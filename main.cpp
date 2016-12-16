@@ -162,7 +162,6 @@ void set_submatrix(il::Array2D<double>& A, int i0, int i1, const il::Array2D<dou
 int main() {
 
   int n=42, p=1;
-
   double h=2./(n-1) ; //  element size
 
   il::Array<double> x{n};
@@ -177,7 +176,6 @@ int main() {
   //  std::complex(double re = 0.0, double im = 0.0) myC2;
   //  myC.real(2.);
   // myC.imag(1.);
-
   // Array2D M(i, j) -> M(i + 1, j) (Ordre Fortran)
   // Array2C M(i, j) -> M(i, j + 1) (Ordre C)
 
@@ -304,6 +302,9 @@ int main() {
     std::cout <<  " ...\n";
 
   }
+
+// solve a constant pressurized crack problem...
+
 
   return 0;
 
