@@ -21,4 +21,7 @@ class Mesh {   // class for 1D mesh of 1D segment elements ?
 
 };
 
+
+void dofhandle_DG2D(il::Array2D<int>& dofhandle,Mesh mesh,int p);
+
 #endif //HFPX2D_MESH_H

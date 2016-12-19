@@ -51,16 +51,12 @@ il/StaticArray.h
 -
 il/linear_algebra.h
 -
+il/linear_algebra/dense/factorization/LU.h
+-
 Elasticity2D.h
 /Users/bricelecampion/ClionProjects/HFPx2D/Elasticity2D.h
 Mesh.h
 /Users/bricelecampion/ClionProjects/HFPx2D/Mesh.h
-
-/opt/intel/compilers_and_libraries_2017.0.102/mac/mkl/include/mkl_cblas.h
-stddef.h
--
-mkl_types.h
-/opt/intel/compilers_and_libraries_2017.0.102/mac/mkl/include/mkl_types.h
 
 /opt/intel/compilers_and_libraries_2017.0.102/mac/mkl/include/mkl_lapacke.h
 mkl_types.h
@@ -80,16 +76,8 @@ il/container/2d/Array2C.h
 il/container/2d/Array2D.h
 -
 
-/usr/local/include/il/BandArray2C.h
-il/container/2d/BandArray2C.h
--
-
 /usr/local/include/il/StaticArray.h
 il/container/1d/StaticArray.h
--
-
-/usr/local/include/il/TriDiagonal.h
-il/container/2d/TriDiagonal.h
 -
 
 /usr/local/include/il/base.h
@@ -146,15 +134,39 @@ utility
 functional
 -
 
-/usr/local/include/il/container/2d/BandArray2C.h
-il/Array2C.h
+/usr/local/include/il/container/2d/LowerArray2D.h
+cstring
+-
+initializer_list
+-
+new
+-
+type_traits
+-
+utility
+-
+il/base.h
 -
 
 /usr/local/include/il/container/2d/TriDiagonal.h
 il/Array.h
 -
 
-/usr/local/include/il/core/Error.h
+/usr/local/include/il/container/2d/UpperArray2D.h
+cstring
+-
+initializer_list
+-
+new
+-
+type_traits
+-
+utility
+-
+il/base.h
+-
+
+/usr/local/include/il/core/Status.h
 string
 -
 il/core/ilassert.h
@@ -190,34 +202,30 @@ il/linear_algebra/dot.h
 il/linear_algebra/linear_solve.h
 -
 
-/usr/local/include/il/linear_algebra/blas.h
-il/Array.h
+/usr/local/include/il/linear_algebra/dense/blas/norm.h
+il/math.h
 -
-il/Array2D.h
+il/container/1d/Array.h
 -
-il/Array2C.h
+il/container/2d/Array2D.h
 -
-mkl_cblas.h
--
-cblas.h
+il/container/2d/TriDiagonal.h
 -
 
-/usr/local/include/il/linear_algebra/dot.h
-il/linear_algebra/blas.h
+/usr/local/include/il/linear_algebra/dense/factorization/LU.h
+il/container/1d/Array.h
 -
-
-/usr/local/include/il/linear_algebra/linear_solve.h
-il/core/Error.h
+il/container/2d/Array2C.h
 -
-il/Array.h
+il/container/2d/Array2D.h
 -
-il/Array2C.h
+il/container/2d/LowerArray2D.h
 -
-il/Array2D.h
+il/container/2d/UpperArray2D.h
 -
-il/BandArray2C.h
+il/core/Status.h
 -
-il/TriDiagonal.h
+il/linear_algebra/dense/blas/norm.h
 -
 mkl_lapacke.h
 -

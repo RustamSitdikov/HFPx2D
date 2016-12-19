@@ -10,30 +10,11 @@
 #include <il/Array2C.h>
 #include <il/StaticArray.h>
 #include <il/linear_algebra.h>
+#include <il/linear_algebra/dense/factorization/LU.h>
 
 
 #include "Elasticity2D.h"
 #include "Mesh.h"
-
-
-void dofhandle_DG2D(il::Array2D<int>& dofhandle,Mesh mesh,int p)
-{
-// function creating a matrix of dof handle - for a piece-wise linear variation per element (Discontinous Galerkin type) on a 1d Mesh object for the case of 2 Degrees of Freedoms per node
-  int ne=mesh.nelts();
-  int ndof = ne*p*2*2;
-
-//  il::Array2D<int> dofhandle{ne,2*p+2,0} ;
-
-  int j ;
-
-  for (int i = 0; i < ne; ++i) {
-    j = i*(2*p+2) ;
-    for (int k=0; k<2*p+2;++k) {
-      dofhandle(i, k) = j + k;
-    }
-  }
-//  return dofhandle; - starts at 0 for dof c++ style!
-}
 
 
 il::Array2D<double> rotation_matrix_2D(double theta)
@@ -48,14 +29,6 @@ il::Array2D<double> rotation_matrix_2D(double theta)
   return R;
 }
 
-//void rotation_matrix_2D(il::Array2D<double>& R, double theta)
-//{
-//  R(0,0)=cos(theta);
-//  R(0,1)=-1.*sin(theta);
-//  R(1,0)=sin(theta);
-//  R(0,1)=cos(theta);
-//
-//}
 
 //----------------------------------------------------
 // Segment Characteristics....
@@ -145,6 +118,7 @@ void take_submatrix(il::Array2D<double>& sub, int i0, int i1, int j0, int j1, co
 
   }
 }
+////////////////////////////////////////////////////////////////////////////////
 
 void set_submatrix(il::Array2D<double>& A, int i0, int i1, const il::Array2D<double>& B) {
   IL_ASSERT(i0 + B.size(0) <= A.size(0));
@@ -157,11 +131,26 @@ void set_submatrix(il::Array2D<double>& A, int i0, int i1, const il::Array2D<dou
   }
 } // e.g. set_submatrix(A, 2, 3, B);
 
+////////////////////////////////////////////////////////////////////////////////
+
+il::Array<double> griffithcrack(il::Array<double>& x, double a,double Ep, double sig)
+{
+  double coef =4.*sig/(Ep);
+  il::Array<double> wsol{x.size(),0.};
+
+  for (int i=0; i<x.size();++i){
+    if (abs(x[i])<a) {
+      wsol[i]=coef*sqrt(pow(a,2)-pow(x[i],2));
+    }
+  }
+  return wsol;
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////
 int main() {
 
-  int n=42, p=1;
+  int n=10, p=1;
   double h=2./(n-1) ; //  element size
 
   il::Array<double> x{n};
@@ -170,7 +159,7 @@ int main() {
   il::Array2D<int> myconn{n-1, 2, 0.0};
   il::Array2D<int> id{n-1,4,0};
 
-  int ndof=(n-1)*4;
+  int ndof=(n-1)*4;   // number of dofs
   double Ep=1.; //Plane strain Young's modulus
 
   //  std::complex(double re = 0.0, double im = 0.0) myC2;
@@ -179,7 +168,7 @@ int main() {
   // Array2D M(i, j) -> M(i + 1, j) (Ordre Fortran)
   // Array2C M(i, j) -> M(i, j + 1) (Ordre C)
 
-  // 1D mesh ....
+  // create 1D mesh ....
   for (int i = 0; i < xy.size(0); ++i) {
       xy(i,0)=-1.+i*h;
       xy(i,1)=0.;
@@ -190,11 +179,14 @@ int main() {
       myconn(i,1)=i+1;
   }
 
+  // create mesh object
   Mesh mesh ;
   mesh.set_values(xy,myconn);
 
   dofhandle_DG2D(id,mesh,p); // dof handle for DDs
 
+
+  // some definitions needed for matrix assembly
   il::Array2D<double> xe{2,2,0},xec{2,2,0};
 
   SegmentCharacteristic mysege,mysegc;
@@ -204,19 +196,9 @@ int main() {
   il::Array<double> sec{2},nec{2},xcol{2};
   il::Array2D<double>  stnl{2,4,0.};
   std::cout << "Number of elements : " << mesh.nelts() << "\n";
+  std::cout <<  "Number of dofs :" << id.size(0)*id.size(1) << "---" << (n-1)*(p+1)*2 <<"---"<< ndof <<"\n";
   std::cout << myconn.size(0)<< "\n";
 
-  // loop on collocation points....
-//  for (int e=0;e<mesh.nelts();++e) {
-//    take_submatrix(xe,mesh.conn(e,0),mesh.conn(e,1),0,1,mesh.Coor); // take the coordinates of element e from the mesh object
-//    mysege=get_segment_characteristic(xe,p); // get the segment characteristic.
-//
-//    std::cout << " \n";
-//    for (int ic=0;ic<p+1;++ic) { // loop on collocation points
-//      std::cout << " collocation pts elt e \n";
-//      std::cout << mysege.CollocationPoints(ic, 0) << "  " << mysege.CollocationPoints(ic, 1) << "\n";
-//    }
-//    }
 
    std::cout << "------\n";
 // double loop on elements to create the stiffness matrix...
@@ -254,61 +236,57 @@ int main() {
       }
     }
   }
-//  mysege=get_segment_characteristic(xs,p);
 
-//  il::Array2D<double>  stnl2{2,4,0.};
-//  il::Array<double> xcc{2};
-//  xcc[0]=2;xcc[1]=0.;
+//  std::string mystring;
+//  mystring = "This is the end of this code... ";
+//  std::cout << " mat entries \n" ;
+//  for (int i=0;i<8; ++i){
+//    std::cout << K(i,0) << " " << K(i,1) << " " << K(i,2) << " " << K(i,3) << " " << K(i,4) << " " << K(i,5) << " " << K(i,6)<< " " << K(i,7) ;
+//    std::cout <<  " ...\n";
 //
-//  std::cout <<" seg size " << mysege.size << " \n";
-
-//  NormalShearStressKernel_LinearDD(stnl2,xcc,mysege.size,mysege.s,mysege.n,1.);
-////
-//  std::cout << stnl2(0,1)<< "\n";
-//  std::cout << stnl2(0,1)<< "\n";
-//  std::cout << stnl2(0,1)<< "\n";
-
-//  il::Array2D<double> A{n, n, 1.0};
-//  il::Array2D<double> B{n, 1, 1.0};
-//  il::Array2D<double> Stress{2,4, 0.0};
-
-//  double myh=0.3;
-//  double xp =3.;
-//  double yp = 5.;
-
-//  Stress =StressesKernelLinearDD(myh,1.,xp,yp);
-//  std::cout << Stress(0,0) ; std::cout <<  " ...\n";
-//  std::cout << Stress(0,1) ; std::cout <<  " ...\n";
-//  std::cout << Stress(0,2) ; std::cout <<  " ...\n";
-//  std::cout << Stress(0,3) ; std::cout <<  " ...\n";
-//  std::cout <<  " ...\n";
-//
-//  std::cout << Stress(1,0) ; std::cout <<  " ...\n";
-//  std::cout << Stress(1,1) ; std::cout <<  " ...\n";
-//  std::cout << Stress(1,2) ; std::cout <<  " ...\n";
-//  std::cout << Stress(1,3) ; std::cout <<  " ...\n";
-
-//  C = il::dot(A, B);
-//  v2 = il::dot(A, v);
-//
-// std::cout << C ;
-
-
-  std::string mystring;
-  mystring = "This is the end of this code... ";
-  std::cout << " mat entries \n" ;
-  for (int i=0;i<8; ++i){
-    std::cout << K(i,0) << " " << K(i,1) << " " << K(i,2) << " " << K(i,3) << " " << K(i,4) << " " << K(i,5) << " " << K(i,6)<< " " << K(i,7) ;
-    std::cout <<  " ...\n";
-
-  }
+//  }
 
 // solve a constant pressurized crack problem...
 
+  il::Array<double> f{ndof,-1.};
+
+  // just opening dds
+  for (int i=0; i<ndof/2;++i){
+    f[2*i]=0;
+  }
+
+  il::Status status;
+//  il::LU<il::Array2D<double>> lu_decomposition(K, il::io, status);
+//  if (!status.ok()) {
+//    // The matrix is singular to the machine precision. You should deal with the error.
+//  }
+// il::Array<double> dd = lu_decomposition.solve(f);
+
+  il::Array<double> dd = linear_solve(K,f,il::io,status);//lu_decomposition.solve(f);
+
+//Analytical solution
+
+  il::Array<double> thex{ndof/2,0},wsol{ndof/2,0} ;
+
+  int i=0;
+  for (int e=0; e<n-1;++e){   // this piece of codes gets 1D mesh of x doubling the nodes of adjacent elements (for comparison with analytical solution)
+
+    thex[i]=mesh.Coor(mesh.conn(e,0),0);
+    thex[i+1]=mesh.Coor(mesh.conn(e,1),0);
+    i=i+2;
+  }
+
+  wsol = griffithcrack(thex,1.,1.,1.);  // call to analytical solution
+
+  // printing out the comparisons for each nodes...
+  double rel_err ;
+  for (int j=0; j<ndof/2;++j){
+
+    rel_err=sqrt(pow(dd[j*2+1]-wsol[j],2))/wsol[j];
+
+    std::cout << "x : " << thex[j] <<"..w anal:" << wsol[j] << " w num: " << dd[j*2+1]<<  " rel error: " << rel_err << "\n";
+  }
 
   return 0;
 
 }
-
-
-

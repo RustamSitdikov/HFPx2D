@@ -26,28 +26,25 @@ CMakeFiles/HFPx2D.dir/main.cpp.o
  /Users/bricelecampion/ClionProjects/HFPx2D/Elasticity2D.h
  /Users/bricelecampion/ClionProjects/HFPx2D/Mesh.h
  /Users/bricelecampion/ClionProjects/HFPx2D/main.cpp
- /opt/intel/compilers_and_libraries_2017.0.102/mac/mkl/include/mkl_cblas.h
  /opt/intel/compilers_and_libraries_2017.0.102/mac/mkl/include/mkl_lapacke.h
  /opt/intel/compilers_and_libraries_2017.0.102/mac/mkl/include/mkl_types.h
  /usr/local/include/il/Array.h
  /usr/local/include/il/Array2C.h
  /usr/local/include/il/Array2D.h
- /usr/local/include/il/BandArray2C.h
  /usr/local/include/il/StaticArray.h
- /usr/local/include/il/TriDiagonal.h
  /usr/local/include/il/base.h
  /usr/local/include/il/container/1d/Array.h
  /usr/local/include/il/container/1d/StaticArray.h
  /usr/local/include/il/container/2d/Array2C.h
  /usr/local/include/il/container/2d/Array2D.h
- /usr/local/include/il/container/2d/BandArray2C.h
+ /usr/local/include/il/container/2d/LowerArray2D.h
  /usr/local/include/il/container/2d/TriDiagonal.h
- /usr/local/include/il/core/Error.h
+ /usr/local/include/il/container/2d/UpperArray2D.h
+ /usr/local/include/il/core/Status.h
  /usr/local/include/il/core/config.h
  /usr/local/include/il/core/ilassert.h
  /usr/local/include/il/core/ildef.h
  /usr/local/include/il/linear_algebra.h
- /usr/local/include/il/linear_algebra/blas.h
- /usr/local/include/il/linear_algebra/dot.h
- /usr/local/include/il/linear_algebra/linear_solve.h
+ /usr/local/include/il/linear_algebra/dense/blas/norm.h
+ /usr/local/include/il/linear_algebra/dense/factorization/LU.h
  /usr/local/include/il/math.h

@@ -17,3 +17,23 @@ void Mesh::set_values(il::Array2D<double> xy, il::Array2D<int> ien)
 //
 /// // could provide a default constructor for a straight fracture ?
 
+
+
+
+void dofhandle_DG2D(il::Array2D<int> &dofhandle, Mesh mesh, int p) {
+// function creating a matrix of dof handle - for a piece-wise linear variation per element (Discontinous Galerkin type) on a 1d Mesh object for the case of 2 Degrees of Freedoms per node
+  int ne=mesh.nelts();
+  int ndof = ne*p*2*2;
+
+//  il::Array2D<int> dofhandle{ne,2*p+2,0} ;
+
+  int j ;
+
+  for (int i = 0; i < ne; ++i) {
+    j = i*(2*p+2) ;
+    for (int k=0; k<2*p+2;++k) {
+      dofhandle(i, k) = j + k;
+    }
+  }
+//  return dofhandle; - starts at 0 for dof c++ style!
+}
