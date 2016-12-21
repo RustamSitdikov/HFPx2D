@@ -4,7 +4,7 @@
 
 #include "Mesh.h"
 
-
+//mesh class
 void Mesh::set_values(il::Array2D<double> xy, il::Array2D<int> ien)
 {
   IL_ASSERT(xy.size(1) ==2); //check array dimensions ?
@@ -20,6 +20,11 @@ void Mesh::set_values(il::Array2D<double> xy, il::Array2D<int> ien)
 
 
 
+
+
+
+
+//  FUNCTION TO CREATE A DOF HANDLES -> Put in another file ?
 void dofhandle_DG2D(il::Array2D<int> &dofhandle, Mesh mesh, int p) {
 // function creating a matrix of dof handle - for a piece-wise linear variation per element (Discontinous Galerkin type) on a 1d Mesh object for the case of 2 Degrees of Freedoms per node
   int ne=mesh.nelts();
