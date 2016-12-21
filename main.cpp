@@ -32,7 +32,8 @@ il::Array2D<double> rotation_matrix_2D(double theta)
 
 //----------------------------------------------------
 // Segment Characteristics....
-// use a struct ? (may be oject is better ? )
+// use a struct ? (may be an oject is better ? )
+// should be migrated in a separate file
 struct SegmentCharacteristic{
   double size;
   double theta; // angle w.r. to e_1
@@ -105,7 +106,7 @@ SegmentCharacteristic get_segment_characteristic(const il::Array2D<double> Xs , 
 }
 //----------------------------------------------------
 
-
+// some utilities.
 void take_submatrix(il::Array2D<double>& sub, int i0, int i1, int j0, int j1, const il::Array2D<double>& A){
   IL_ASSERT((i1 - i0+1) == sub.size(0));
   IL_ASSERT((j1-j0+1) == sub.size(1));
@@ -131,8 +132,9 @@ void set_submatrix(il::Array2D<double>& A, int i0, int i1, const il::Array2D<dou
   }
 } // e.g. set_submatrix(A, 2, 3, B);
 
-////////////////////////////////////////////////////////////////////////////////
 
+////////////////////////////////////////////////////////////////////////////////
+// analytical solution of the griffith-crack (ct pressure)
 il::Array<double> griffithcrack(il::Array<double>& x, double a,double Ep, double sig)
 {
   double coef =4.*sig/(Ep);
@@ -145,7 +147,6 @@ il::Array<double> griffithcrack(il::Array<double>& x, double a,double Ep, double
   }
   return wsol;
 }
-
 
 ////////////////////////////////////////////////////////////////////////////////
 int main() {
@@ -164,15 +165,16 @@ int main() {
 
   //  std::complex(double re = 0.0, double im = 0.0) myC2;
   //  myC.real(2.);
-  // myC.imag(1.);
-  // Array2D M(i, j) -> M(i + 1, j) (Ordre Fortran)
-  // Array2C M(i, j) -> M(i, j + 1) (Ordre C)
+  //  myC.imag(1.);
+  //  Array2D M(i, j) -> M(i + 1, j) (Ordre Fortran)
+  //  Array2C M(i, j) -> M(i, j + 1) (Ordre C)
 
   // create 1D mesh ....
   for (int i = 0; i < xy.size(0); ++i) {
       xy(i,0)=-1.+i*h;
       xy(i,1)=0.;
    }
+
   for (int  i=0; i< myconn.size(0); ++i)
   {
       myconn(i,0)=i;
@@ -184,7 +186,6 @@ int main() {
   mesh.set_values(xy,myconn);
 
   dofhandle_DG2D(id,mesh,p); // dof handle for DDs
-
 
   // some definitions needed for matrix assembly
   il::Array2D<double> xe{2,2,0},xec{2,2,0};
@@ -250,27 +251,28 @@ int main() {
 
   il::Array<double> f{ndof,-1.};
 
-  // just opening dds
+  // just opening dds - set others to zero
   for (int i=0; i<ndof/2;++i){
     f[2*i]=0;
   }
 
   il::Status status;
+// example if LU decomposition
 //  il::LU<il::Array2D<double>> lu_decomposition(K, il::io, status);
 //  if (!status.ok()) {
 //    // The matrix is singular to the machine precision. You should deal with the error.
 //  }
 // il::Array<double> dd = lu_decomposition.solve(f);
 
+  // use a direct solver
   il::Array<double> dd = linear_solve(K,f,il::io,status);//lu_decomposition.solve(f);
 
-//Analytical solution
 
+//Analytical solution at nodes
   il::Array<double> thex{ndof/2,0},wsol{ndof/2,0} ;
 
   int i=0;
   for (int e=0; e<n-1;++e){   // this piece of codes gets 1D mesh of x doubling the nodes of adjacent elements (for comparison with analytical solution)
-
     thex[i]=mesh.Coor(mesh.conn(e,0),0);
     thex[i+1]=mesh.Coor(mesh.conn(e,1),0);
     i=i+2;
@@ -278,7 +280,7 @@ int main() {
 
   wsol = griffithcrack(thex,1.,1.,1.);  // call to analytical solution
 
-  // printing out the comparisons for each nodes...
+  // printing out the comparisons for each nodes (left and right values at each nodes due to the piece-wise constant nature of the solution)...
   double rel_err ;
   for (int j=0; j<ndof/2;++j){
 
