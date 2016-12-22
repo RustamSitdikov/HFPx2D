@@ -141,6 +141,7 @@ void NormalShearStressKernel_LinearDD(il::Array2D<double>& St,const il::Array<do
   sh2n =n1s1*st(1,1)+n1s2pn2s1*st(1,2)+n2s2*st(1,3) ; // normal dd
 
   //normal stress
+  // node 1
   sn1s =n1n1*st(0,0)+2*n1n2*st(0,1)+n2n2*st(0,2); // shear dd
   sn1n = n1n1*st(0,1)+2*n1n2*st(0,2)+n2n2*st(0,3); // normal dd
   //node 2

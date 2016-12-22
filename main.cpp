@@ -6,7 +6,6 @@
 
 #include <il/Array.h>
 #include <il/math.h>
-
 #include <il/Array2C.h>
 #include <il/StaticArray.h>
 #include <il/linear_algebra.h>
@@ -114,7 +113,6 @@ void take_submatrix(il::Array2D<double>& sub, int i0, int i1, int j0, int j1, co
   for(int i = i0; i <= i1;++i) {
     for (int j=j0; j<= j1;++j){
       sub(i-i0,j-j0)=A(i,j);
-
     }
 
   }
@@ -141,7 +139,7 @@ il::Array<double> griffithcrack(il::Array<double>& x, double a,double Ep, double
   il::Array<double> wsol{x.size(),0.};
 
   for (int i=0; i<x.size();++i){
-    if (abs(x[i])<a) {
+    if (std::abs(x[i])<a) {
       wsol[i]=coef*sqrt(pow(a,2)-pow(x[i],2));
     }
   }
@@ -151,7 +149,7 @@ il::Array<double> griffithcrack(il::Array<double>& x, double a,double Ep, double
 ////////////////////////////////////////////////////////////////////////////////
 int main() {
 
-  int n=10, p=1;
+  int n=1001, p=1;
   double h=2./(n-1) ; //  element size
 
   il::Array<double> x{n};
@@ -196,6 +194,7 @@ int main() {
   il::Array<int> dofe{2*(p+1),0},dofc{2*(p+1),0};
   il::Array<double> sec{2},nec{2},xcol{2};
   il::Array2D<double>  stnl{2,4,0.};
+
   std::cout << "Number of elements : " << mesh.nelts() << "\n";
   std::cout <<  "Number of dofs :" << id.size(0)*id.size(1) << "---" << (n-1)*(p+1)*2 <<"---"<< ndof <<"\n";
   std::cout << myconn.size(0)<< "\n";
