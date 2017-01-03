@@ -6,15 +6,17 @@
 #define HFPX2D_ELASTICITY2D_H
 
 
-#include <il/Array2D.h>
-#include <il/Array.h>
+//#include <il/Array2D.h>
+#include <il/StaticArray2D.h>
+//#include <il/Array.h>
+#include <il/StaticArray.h>
 
 
-il::Array2D<double> StressesKernelLinearDD(const double h,const double Ep,const double x,const double y);
+il::StaticArray2D<double,2,4>  StressesKernelLinearDD(const double h,const double Ep,const double x,const double y);
 
 
-void NormalShearStressKernel_LinearDD(il::Array2D<double>& St,const il::Array<double> xe, const double & h,const il::Array<double>& s, const il::Array<double>& n,
-                                      const double&  Ep );
+void NormalShearStressKernel_LinearDD(il::StaticArray2D<double,2,4>& St,const il::StaticArray<double,2> xe, const double & h,const il::StaticArray<double,2> s, const il::StaticArray<double,2> n,
+                                      const double  Ep );
 
 
 #endif //HFPX2D_ELASTICITY2D_H

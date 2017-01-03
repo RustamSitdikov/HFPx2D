@@ -90,6 +90,18 @@
 				</MakeCommands>
 			</Target>
 		</Build>
+		<Unit filename="/Users/bricelecampion/ClionProjects/HFPx2D/AssemblyDDM.cpp">
+			<Option target="HFPx2D"/>
+		</Unit>
+		<Unit filename="/Users/bricelecampion/ClionProjects/HFPx2D/AssemblyDDM.h">
+			<Option target="HFPx2D"/>
+		</Unit>
+		<Unit filename="/Users/bricelecampion/ClionProjects/HFPx2D/DOF_Handles.cpp">
+			<Option target="HFPx2D"/>
+		</Unit>
+		<Unit filename="/Users/bricelecampion/ClionProjects/HFPx2D/DOF_Handles.h">
+			<Option target="HFPx2D"/>
+		</Unit>
 		<Unit filename="/Users/bricelecampion/ClionProjects/HFPx2D/Elasticity2D.cpp">
 			<Option target="HFPx2D"/>
 		</Unit>

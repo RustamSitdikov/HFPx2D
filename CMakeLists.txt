@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.6)
 project(HFPx2D)
 set(CMAKE_CXX_STANDARD 11)
-set(SOURCE_FILES main.cpp Elasticity2D.cpp Elasticity2D.h Mesh.cpp Mesh.h)
+set(SOURCE_FILES main.cpp Elasticity2D.cpp Elasticity2D.h Mesh.cpp Mesh.h DOF_Handles.h DOF_Handles.cpp AssemblyDDM.cpp AssemblyDDM.h)
 add_executable(HFPx2D ${SOURCE_FILES})
 target_compile_definitions(HFPx2D PRIVATE IL_MKL=1)
 target_include_directories(HFPx2D PRIVATE /usr/local/include $ENV{MKLROOT}/include)

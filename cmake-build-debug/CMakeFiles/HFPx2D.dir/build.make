@@ -129,11 +129,61 @@ CMakeFiles/HFPx2D.dir/Mesh.cpp.o.provides: CMakeFiles/HFPx2D.dir/Mesh.cpp.o.requ
 CMakeFiles/HFPx2D.dir/Mesh.cpp.o.provides.build: CMakeFiles/HFPx2D.dir/Mesh.cpp.o
 
 
+CMakeFiles/HFPx2D.dir/DOF_Handles.cpp.o: CMakeFiles/HFPx2D.dir/flags.make
+CMakeFiles/HFPx2D.dir/DOF_Handles.cpp.o: ../DOF_Handles.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/bricelecampion/ClionProjects/HFPx2D/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/HFPx2D.dir/DOF_Handles.cpp.o"
+	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++   $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/HFPx2D.dir/DOF_Handles.cpp.o -c /Users/bricelecampion/ClionProjects/HFPx2D/DOF_Handles.cpp
+
+CMakeFiles/HFPx2D.dir/DOF_Handles.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/HFPx2D.dir/DOF_Handles.cpp.i"
+	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/bricelecampion/ClionProjects/HFPx2D/DOF_Handles.cpp > CMakeFiles/HFPx2D.dir/DOF_Handles.cpp.i
+
+CMakeFiles/HFPx2D.dir/DOF_Handles.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/HFPx2D.dir/DOF_Handles.cpp.s"
+	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/bricelecampion/ClionProjects/HFPx2D/DOF_Handles.cpp -o CMakeFiles/HFPx2D.dir/DOF_Handles.cpp.s
+
+CMakeFiles/HFPx2D.dir/DOF_Handles.cpp.o.requires:
+
+.PHONY : CMakeFiles/HFPx2D.dir/DOF_Handles.cpp.o.requires
+
+CMakeFiles/HFPx2D.dir/DOF_Handles.cpp.o.provides: CMakeFiles/HFPx2D.dir/DOF_Handles.cpp.o.requires
+	$(MAKE) -f CMakeFiles/HFPx2D.dir/build.make CMakeFiles/HFPx2D.dir/DOF_Handles.cpp.o.provides.build
+.PHONY : CMakeFiles/HFPx2D.dir/DOF_Handles.cpp.o.provides
+
+CMakeFiles/HFPx2D.dir/DOF_Handles.cpp.o.provides.build: CMakeFiles/HFPx2D.dir/DOF_Handles.cpp.o
+
+
+CMakeFiles/HFPx2D.dir/AssemblyDDM.cpp.o: CMakeFiles/HFPx2D.dir/flags.make
+CMakeFiles/HFPx2D.dir/AssemblyDDM.cpp.o: ../AssemblyDDM.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/bricelecampion/ClionProjects/HFPx2D/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/HFPx2D.dir/AssemblyDDM.cpp.o"
+	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++   $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/HFPx2D.dir/AssemblyDDM.cpp.o -c /Users/bricelecampion/ClionProjects/HFPx2D/AssemblyDDM.cpp
+
+CMakeFiles/HFPx2D.dir/AssemblyDDM.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/HFPx2D.dir/AssemblyDDM.cpp.i"
+	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/bricelecampion/ClionProjects/HFPx2D/AssemblyDDM.cpp > CMakeFiles/HFPx2D.dir/AssemblyDDM.cpp.i
+
+CMakeFiles/HFPx2D.dir/AssemblyDDM.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/HFPx2D.dir/AssemblyDDM.cpp.s"
+	/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/bricelecampion/ClionProjects/HFPx2D/AssemblyDDM.cpp -o CMakeFiles/HFPx2D.dir/AssemblyDDM.cpp.s
+
+CMakeFiles/HFPx2D.dir/AssemblyDDM.cpp.o.requires:
+
+.PHONY : CMakeFiles/HFPx2D.dir/AssemblyDDM.cpp.o.requires
+
+CMakeFiles/HFPx2D.dir/AssemblyDDM.cpp.o.provides: CMakeFiles/HFPx2D.dir/AssemblyDDM.cpp.o.requires
+	$(MAKE) -f CMakeFiles/HFPx2D.dir/build.make CMakeFiles/HFPx2D.dir/AssemblyDDM.cpp.o.provides.build
+.PHONY : CMakeFiles/HFPx2D.dir/AssemblyDDM.cpp.o.provides
+
+CMakeFiles/HFPx2D.dir/AssemblyDDM.cpp.o.provides.build: CMakeFiles/HFPx2D.dir/AssemblyDDM.cpp.o
+
+
 # Object files for target HFPx2D
 HFPx2D_OBJECTS = \
 "CMakeFiles/HFPx2D.dir/main.cpp.o" \
 "CMakeFiles/HFPx2D.dir/Elasticity2D.cpp.o" \
-"CMakeFiles/HFPx2D.dir/Mesh.cpp.o"
+"CMakeFiles/HFPx2D.dir/Mesh.cpp.o" \
+"CMakeFiles/HFPx2D.dir/DOF_Handles.cpp.o" \
+"CMakeFiles/HFPx2D.dir/AssemblyDDM.cpp.o"
 
 # External object files for target HFPx2D
 HFPx2D_EXTERNAL_OBJECTS =
@@ -141,9 +191,11 @@ HFPx2D_EXTERNAL_OBJECTS =
 HFPx2D: CMakeFiles/HFPx2D.dir/main.cpp.o
 HFPx2D: CMakeFiles/HFPx2D.dir/Elasticity2D.cpp.o
 HFPx2D: CMakeFiles/HFPx2D.dir/Mesh.cpp.o
+HFPx2D: CMakeFiles/HFPx2D.dir/DOF_Handles.cpp.o
+HFPx2D: CMakeFiles/HFPx2D.dir/AssemblyDDM.cpp.o
 HFPx2D: CMakeFiles/HFPx2D.dir/build.make
 HFPx2D: CMakeFiles/HFPx2D.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/Users/bricelecampion/ClionProjects/HFPx2D/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Linking CXX executable HFPx2D"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/Users/bricelecampion/ClionProjects/HFPx2D/cmake-build-debug/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Linking CXX executable HFPx2D"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/HFPx2D.dir/link.txt --verbose=$(VERBOSE)
 	/usr/bin/install_name_tool -add_rpath /opt/intel/compilers_and_libraries_2017.0.102/mac/mkl/lib /Users/bricelecampion/ClionProjects/HFPx2D/cmake-build-debug/HFPx2D
 
@@ -155,6 +207,8 @@ CMakeFiles/HFPx2D.dir/build: HFPx2D
 CMakeFiles/HFPx2D.dir/requires: CMakeFiles/HFPx2D.dir/main.cpp.o.requires
 CMakeFiles/HFPx2D.dir/requires: CMakeFiles/HFPx2D.dir/Elasticity2D.cpp.o.requires
 CMakeFiles/HFPx2D.dir/requires: CMakeFiles/HFPx2D.dir/Mesh.cpp.o.requires
+CMakeFiles/HFPx2D.dir/requires: CMakeFiles/HFPx2D.dir/DOF_Handles.cpp.o.requires
+CMakeFiles/HFPx2D.dir/requires: CMakeFiles/HFPx2D.dir/AssemblyDDM.cpp.o.requires
 
 .PHONY : CMakeFiles/HFPx2D.dir/requires
 

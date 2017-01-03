@@ -6,13 +6,15 @@
 
 #include "Elasticity2D.h"
 
-#include <iostream>
+//#include <iostream>
 #include <il/Array.h>
 #include <il/Array2D.h>
+//#include <il/StaticArray2D.h>
+
 #include <il/math.h>
 
 
-il::Array2D<double> StressesKernelLinearDD(const double h,const double Ep,const double x,const double y)
+il::StaticArray2D<double,2,4> StressesKernelLinearDD(const double h,const double Ep,const double x,const double y)
 {
 // function computing the stresses at (x,y) induced by a linear DD segment (of total length h) centered on the origin [-h/2,h/2]
 // it returns stresses due to a linear variation from an unit value at the left node (node 1)  to zero at the right node (node 2) for both shear and opening displacement discontinuity
@@ -89,7 +91,7 @@ il::Array2D<double> StressesKernelLinearDD(const double h,const double Ep,const 
 // row 1: effect of node 1, row 2 effect of node 2
 // columns sxxs, sxys, syys, syyn    (knowing that we sxxn and sxyn are respectively equal to sxys and syys )
 
-  il::Array2D<double> Stress{2,4,0.0} ;
+  il::StaticArray2D<double,2,4> Stress  ;
 
   // switch back to the segment [-h/2,h/2]
 
@@ -110,8 +112,8 @@ il::Array2D<double> StressesKernelLinearDD(const double h,const double Ep,const 
 //    Function to get the normal and shear stress at a point on a surface (with given normal and shear vector) induced by
 //a linear DD segment of size h  (the linear DD segment is assumed to be the unit element along the x axis [-h/2,h/2]
 //Material of Plane-strain Young's modulus Ep
-void NormalShearStressKernel_LinearDD(il::Array2D<double>& St,const il::Array<double> xe, const double & h,const il::Array<double>& s,
-                                      const il::Array<double>& n, const double&  Ep ){
+void NormalShearStressKernel_LinearDD(il::StaticArray2D<double,2,4>& St,const il::StaticArray<double,2> xe, const double & h,const il::StaticArray<double,2> s, const il::StaticArray<double,2> n,
+                                      const double  Ep ){
   // St:: returned stress
   // xe (x,y):: collocation point to compute the stress in the reference frame of the unit element
   // h :: elt size
@@ -119,7 +121,7 @@ void NormalShearStressKernel_LinearDD(il::Array2D<double>& St,const il::Array<do
   // n:: nornal vector at xe on which to project to obtain the normal stress
 
   double n1n1,n2n2,n1s1,n2s2,n1n2,n1s2pn2s1 ;
-  il::Array2D<double>  st{2,4,0.};
+  il::StaticArray2D<double,2,4>  st ;
 
   n1n1=n[0]*n[0];
   n2n2=n[1]*n[1];

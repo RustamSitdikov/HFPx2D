@@ -123,6 +123,60 @@ HFPx2D/fast:
 	$(MAKE) -f CMakeFiles/HFPx2D.dir/build.make CMakeFiles/HFPx2D.dir/build
 .PHONY : HFPx2D/fast
 
+AssemblyDDM.o: AssemblyDDM.cpp.o
+
+.PHONY : AssemblyDDM.o
+
+# target to build an object file
+AssemblyDDM.cpp.o:
+	$(MAKE) -f CMakeFiles/HFPx2D.dir/build.make CMakeFiles/HFPx2D.dir/AssemblyDDM.cpp.o
+.PHONY : AssemblyDDM.cpp.o
+
+AssemblyDDM.i: AssemblyDDM.cpp.i
+
+.PHONY : AssemblyDDM.i
+
+# target to preprocess a source file
+AssemblyDDM.cpp.i:
+	$(MAKE) -f CMakeFiles/HFPx2D.dir/build.make CMakeFiles/HFPx2D.dir/AssemblyDDM.cpp.i
+.PHONY : AssemblyDDM.cpp.i
+
+AssemblyDDM.s: AssemblyDDM.cpp.s
+
+.PHONY : AssemblyDDM.s
+
+# target to generate assembly for a file
+AssemblyDDM.cpp.s:
+	$(MAKE) -f CMakeFiles/HFPx2D.dir/build.make CMakeFiles/HFPx2D.dir/AssemblyDDM.cpp.s
+.PHONY : AssemblyDDM.cpp.s
+
+DOF_Handles.o: DOF_Handles.cpp.o
+
+.PHONY : DOF_Handles.o
+
+# target to build an object file
+DOF_Handles.cpp.o:
+	$(MAKE) -f CMakeFiles/HFPx2D.dir/build.make CMakeFiles/HFPx2D.dir/DOF_Handles.cpp.o
+.PHONY : DOF_Handles.cpp.o
+
+DOF_Handles.i: DOF_Handles.cpp.i
+
+.PHONY : DOF_Handles.i
+
+# target to preprocess a source file
+DOF_Handles.cpp.i:
+	$(MAKE) -f CMakeFiles/HFPx2D.dir/build.make CMakeFiles/HFPx2D.dir/DOF_Handles.cpp.i
+.PHONY : DOF_Handles.cpp.i
+
+DOF_Handles.s: DOF_Handles.cpp.s
+
+.PHONY : DOF_Handles.s
+
+# target to generate assembly for a file
+DOF_Handles.cpp.s:
+	$(MAKE) -f CMakeFiles/HFPx2D.dir/build.make CMakeFiles/HFPx2D.dir/DOF_Handles.cpp.s
+.PHONY : DOF_Handles.cpp.s
+
 Elasticity2D.o: Elasticity2D.cpp.o
 
 .PHONY : Elasticity2D.o
@@ -213,6 +267,12 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... HFPx2D"
+	@echo "... AssemblyDDM.o"
+	@echo "... AssemblyDDM.i"
+	@echo "... AssemblyDDM.s"
+	@echo "... DOF_Handles.o"
+	@echo "... DOF_Handles.i"
+	@echo "... DOF_Handles.s"
 	@echo "... Elasticity2D.o"
 	@echo "... Elasticity2D.i"
 	@echo "... Elasticity2D.s"
