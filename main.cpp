@@ -10,9 +10,6 @@
 #include <il/StaticArray.h>
 #include <il/linear_algebra.h>
 #include <il/linear_algebra/dense/factorization/LU.h>
-
-
-//#include "Elasticity2D.h"
 #include "Mesh.h"
 #include "DOF_Handles.h"
 #include "AssemblyDDM.h"
@@ -85,13 +82,12 @@ int main() {
 
   std::cout << "------\n";
 
-  BasicAssembly(K, mesh, id, p , Ep );
+  BasicAssembly(K, mesh, id, p , Ep ); // passing p could be avoided here.
+
 
 // solve a constant pressurized crack problem...
-
   il::Array<double> f{ndof,-1.};
-
-  // just opening dds - set others to zero
+  // just opening dds - set shear loads to zero
   for (int i=0; i<ndof/2;++i){
     f[2*i]=0;
   }
@@ -105,7 +101,7 @@ int main() {
 // il::Array<double> dd = lu_decomposition.solve(f);
 
   // use a direct solver
-  il::Array<double> dd = linear_solve(K,f,il::io,status);//lu_decomposition.solve(f);
+  il::Array<double> dd = linear_solve(K,f,il::io,status); //lu_decomposition.solve(f);
 
 //Analytical solution at nodes
   il::Array<double> thex{ndof/2,0},wsol{ndof/2,0} ;
@@ -131,3 +127,4 @@ int main() {
   return 0;
 
 }
+

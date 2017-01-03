@@ -6,11 +6,6 @@
 
 #include "Elasticity2D.h"
 
-//#include <iostream>
-#include <il/Array.h>
-#include <il/Array2D.h>
-//#include <il/StaticArray2D.h>
-
 #include <il/math.h>
 
 
