@@ -6,5 +6,5 @@ CXX_FLAGS = -g   -std=gnu++11
 
 CXX_DEFINES = -DIL_MKL=1
 
-CXX_INCLUDES = -I/usr/local/include -I/opt/intel/compilers_and_libraries_2017.0.102/mac/mkl/include 
+CXX_INCLUDES = -I/opt/intel/compilers_and_libraries_2017.0.102/mac/mkl/include 
 

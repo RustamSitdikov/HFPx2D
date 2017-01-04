@@ -19,7 +19,6 @@ set(CMAKE_TARGET_DEFINITIONS_CXX
 
 # The include file search paths:
 set(CMAKE_CXX_TARGET_INCLUDE_PATH
-  "/usr/local/include"
   "/opt/intel/compilers_and_libraries_2017.0.102/mac/mkl/include"
   )
 

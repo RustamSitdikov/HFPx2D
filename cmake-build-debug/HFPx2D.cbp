@@ -45,10 +45,10 @@
 				<Option compiler="gcc"/>
 				<Compiler>
 					<Add option="-DIL_MKL=1"/>
-					<Add directory="/usr/local/include"/>
 					<Add directory="/opt/intel/compilers_and_libraries_2017.0.102/mac/mkl/include"/>
 					<Add directory="/opt/intel//compilers_and_libraries_2017.0.102/mac/mkl/include"/>
 					<Add directory="/opt/intel//compilers_and_libraries_2017.0.102/mac/mkl/include/intel64/lp64"/>
+					<Add directory="/usr/local/include"/>
 					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../lib/clang/8.0.0/include"/>
 					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include"/>
 					<Add directory="/usr/include"/>
@@ -71,10 +71,10 @@
 				<Option compiler="gcc"/>
 				<Compiler>
 					<Add option="-DIL_MKL=1"/>
-					<Add directory="/usr/local/include"/>
 					<Add directory="/opt/intel/compilers_and_libraries_2017.0.102/mac/mkl/include"/>
 					<Add directory="/opt/intel//compilers_and_libraries_2017.0.102/mac/mkl/include"/>
 					<Add directory="/opt/intel//compilers_and_libraries_2017.0.102/mac/mkl/include/intel64/lp64"/>
+					<Add directory="/usr/local/include"/>
 					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../lib/clang/8.0.0/include"/>
 					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include"/>
 					<Add directory="/usr/include"/>

@@ -33,7 +33,7 @@ il::Array<double> griffithcrack(il::Array<double>& x, double a,double Ep, double
 ////////////////////////////////////////////////////////////////////////////////
 int main() {
 
-  int n=111, p=1;
+  int n=110, p=1;
   double h=2./(n-1) ; //  element size
 
   il::Array<double> x{n};

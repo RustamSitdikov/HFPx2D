@@ -4,7 +4,7 @@ set(CMAKE_CXX_STANDARD 11)
 set(SOURCE_FILES main.cpp Elasticity2D.cpp Elasticity2D.h Mesh.cpp Mesh.h DOF_Handles.h DOF_Handles.cpp AssemblyDDM.cpp AssemblyDDM.h)
 add_executable(HFPx2D ${SOURCE_FILES})
 target_compile_definitions(HFPx2D PRIVATE IL_MKL=1)
-target_include_directories(HFPx2D PRIVATE /usr/local/include $ENV{MKLROOT}/include)
+target_include_directories(HFPx2D PRIVATE $ENV{MKLROOT}/include)
 target_link_libraries(HFPx2D mkl_intel_lp64 mkl_core mkl_intel_thread dl iomp5 pthread m)
 link_directories($ENV{MKLROOT}/lib)
 add_custom_command(TARGET HFPx2D
