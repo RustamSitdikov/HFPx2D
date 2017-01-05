@@ -30,10 +30,11 @@ il::Array<double> griffithcrack(il::Array<double>& x, double a,double Ep, double
   return wsol;
 }
 
+
 ////////////////////////////////////////////////////////////////////////////////
 int main() {
 
-  int n=110, p=1;
+  int n=200, p=1;
   double h=2./(n-1) ; //  element size
 
   il::Array<double> x{n};
@@ -83,7 +84,6 @@ int main() {
   std::cout << "------\n";
 
   BasicAssembly(K, mesh, id, p , Ep ); // passing p could be avoided here.
-
 
 // solve a constant pressurized crack problem...
   il::Array<double> f{ndof,-1.};
