@@ -13,6 +13,9 @@
 #include <chrono>
 #include <cstdint>
 
+#include <il/core/ilassert.h>
+#include <il/core/ildef.h>
+
 namespace il {
 
 class Timer {
@@ -26,7 +29,7 @@ class Timer {
   void start();
   void stop();
   void reset();
-  double time() const;
+  double elapsed() const;
 };
 
 inline Timer::Timer() : point_begin_{} {
@@ -34,7 +37,7 @@ inline Timer::Timer() : point_begin_{} {
   launched_ = false;
 }
 
-inline Timer::start() {
+inline void Timer::start() {
   IL_ASSERT(!launched_);
   launched_ = true;
   point_begin_ = std::chrono::high_resolution_clock::now();
@@ -56,7 +59,7 @@ inline void Timer::reset() {
   launched_ = false;
 }
 
-inline double Timer::time() const { return time_; }
+inline double Timer::elapsed() const { return time_; }
 
 class TimerCycles {
  private:

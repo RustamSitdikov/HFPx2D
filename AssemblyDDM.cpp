@@ -58,7 +58,7 @@ void BasicAssembly(il::Array2D<double> &Kmat, Mesh mesh, il::Array2D<int> id, in
 
 // Brute Force assembly
 // double loop on elements to create the stiffness matrix...
-  for (int e=0;e<mesh.nelts();++e){ // loop on all  elements
+   for (int e=0;e<mesh.nelts();++e){ // loop on all  elements
 
     take_submatrix(xe,mesh.conn(e,0),mesh.conn(e,1),0,1,mesh.Coor); // take the coordinates of element e from the mesh object
     mysege=get_segment_DD_characteristic(xe,p); // get the segment characteristic.
@@ -68,7 +68,7 @@ void BasicAssembly(il::Array2D<double> &Kmat, Mesh mesh, il::Array2D<int> id, in
       dofe[i]=id(e,i);
     };
 
-    for (int j=0;j<mesh.nelts();++j){// loop on all  elements
+     for (int j=0;j<mesh.nelts();++j){// loop on all  elements
 
       take_submatrix(xec,mesh.conn(j,0),mesh.conn(j,1),0,1,mesh.Coor); // takes the coordinates of element j
       mysegc=get_segment_DD_characteristic(xec,p);
@@ -80,7 +80,7 @@ void BasicAssembly(il::Array2D<double> &Kmat, Mesh mesh, il::Array2D<int> id, in
         dofc[i]=id(j,i); // vector of dof id of the  element j
       };
 
-      for (int ic=0;ic<p+1;++ic){ // loop on collocation points
+      for (int ic=0;ic<p+1;++ic){ // loop on collocation points of the target element
         // we switch to the frame of element e
         for (int i=0;i<2;++i){
           xcol[i]=mysegc.CollocationPoints(ic,i)-mysege.Xmid[i]; //

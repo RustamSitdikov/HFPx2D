@@ -18,10 +18,6 @@
 #include <mkl_cblas.h>
 #define IL_CBLAS_INT MKL_INT
 #define IL_CBLAS_LAYOUT CBLAS_LAYOUT
-#else
-#include <cblas.h>
-#define IL_CBLAS_INT int
-#define IL_CBLAS_LAYOUT CBLAS_ORDER
 #endif
 
 namespace il {
@@ -36,6 +32,7 @@ enum class Blas {
   hermitian_lower
 };
 
+#ifdef IL_MKL
 ////////////////////////////////////////////////////////////////////////////////
 // BLAS Level 1
 ////////////////////////////////////////////////////////////////////////////////
@@ -50,6 +47,18 @@ inline void blas(double alpha, const il::Array<double>& x, il::io_t,
   const IL_CBLAS_INT incx{1};
   const IL_CBLAS_INT incy{1};
   cblas_daxpy(n, alpha, x.data(), incx, y.data(), incy);
+}
+
+// x, y are vectors
+// y <- alpha x + beta y
+inline void blas(float alpha, const il::Array<float>& x, float beta,
+                 il::io_t, il::Array<float>& y) {
+  IL_ASSERT(x.size() == y.size());
+
+  const IL_CBLAS_INT n{static_cast<IL_CBLAS_INT>(x.size())};
+  const IL_CBLAS_INT incx{1};
+  const IL_CBLAS_INT incy{1};
+  cblas_saxpby(n, alpha, x.data(), incx, beta, y.data(), incy);
 }
 
 // x, y are vectors
@@ -294,6 +303,9 @@ inline void blas(double alpha, const il::Array2C<double>& A, Blas info_a,
     abort();
   }
 }
+
+#endif
+
 }
 
 #endif  // IL_BLAS_H
