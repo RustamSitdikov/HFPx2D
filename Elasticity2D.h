@@ -1,5 +1,10 @@
 //
+// HFPx2D project.
+//
 // Created by Brice Lecampion on 10.12.16.
+// Copyright (c) ECOLE POLYTECHNIQUE FEDERALE DE LAUSANNE, Switzerland, Geo-Energy Laboratory, 2016-2017.  All rights reserved.
+// See the LICENSE.TXT file for more details.
+//
 //
 
 #ifndef HFPX2D_ELASTICITY2D_H

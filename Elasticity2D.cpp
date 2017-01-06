@@ -1,6 +1,13 @@
 //
-// Created by Brice Lecampion on 10.12.16.
+// HFPx2D project.
 //
+// Created by Brice Lecampion on 10.12.16.
+// Copyright (c) ECOLE POLYTECHNIQUE FEDERALE DE LAUSANNE, Switzerland, Geo-Energy Laboratory, 2016-2017.  All rights reserved.
+// See the LICENSE.TXT file for more details.
+//
+//
+//
+
 // contains fundamental plane-strain elasticity kernels.
 // for fracture segment with linear variation of displacement discontinuities (DD)
 

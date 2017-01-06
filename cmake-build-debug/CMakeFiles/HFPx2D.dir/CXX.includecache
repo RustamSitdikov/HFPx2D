@@ -63,13 +63,13 @@ il/StaticArray2D.h
 -
 
 /Users/bricelecampion/ClionProjects/HFPx2D/main.cpp
-iostream
--
-string
--
 cmath
 -
 complex
+-
+iostream
+-
+string
 -
 il/Array.h
 -
@@ -81,10 +81,10 @@ il/linear_algebra.h
 -
 il/linear_algebra/dense/factorization/LU.h
 -
-Mesh.h
-/Users/bricelecampion/ClionProjects/HFPx2D/Mesh.h
-DOF_Handles.h
-/Users/bricelecampion/ClionProjects/HFPx2D/DOF_Handles.h
 AssemblyDDM.h
 /Users/bricelecampion/ClionProjects/HFPx2D/AssemblyDDM.h
+DOF_Handles.h
+/Users/bricelecampion/ClionProjects/HFPx2D/DOF_Handles.h
+Mesh.h
+/Users/bricelecampion/ClionProjects/HFPx2D/Mesh.h
 
