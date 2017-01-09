@@ -17,21 +17,21 @@
 					<DistClean command="/usr/bin/make -j8 -f &quot;/Users/bricelecampion/ClionProjects/HFPx2D/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
 				</MakeCommands>
 			</Target>
-			<Target title="edit_cache">
-				<Option working_dir="/Users/bricelecampion/ClionProjects/HFPx2D/cmake-build-debug"/>
-				<Option type="4"/>
-				<MakeCommands>
-					<Build command="/usr/bin/make -j8 -f &quot;/Users/bricelecampion/ClionProjects/HFPx2D/cmake-build-debug/Makefile&quot;  VERBOSE=1 edit_cache"/>
-					<CompileFile command="/usr/bin/make -j8 -f &quot;/Users/bricelecampion/ClionProjects/HFPx2D/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
-					<Clean command="/usr/bin/make -j8 -f &quot;/Users/bricelecampion/ClionProjects/HFPx2D/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
-					<DistClean command="/usr/bin/make -j8 -f &quot;/Users/bricelecampion/ClionProjects/HFPx2D/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
-				</MakeCommands>
-			</Target>
 			<Target title="rebuild_cache">
 				<Option working_dir="/Users/bricelecampion/ClionProjects/HFPx2D/cmake-build-debug"/>
 				<Option type="4"/>
 				<MakeCommands>
 					<Build command="/usr/bin/make -j8 -f &quot;/Users/bricelecampion/ClionProjects/HFPx2D/cmake-build-debug/Makefile&quot;  VERBOSE=1 rebuild_cache"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/Users/bricelecampion/ClionProjects/HFPx2D/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/Users/bricelecampion/ClionProjects/HFPx2D/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/Users/bricelecampion/ClionProjects/HFPx2D/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="edit_cache">
+				<Option working_dir="/Users/bricelecampion/ClionProjects/HFPx2D/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/Users/bricelecampion/ClionProjects/HFPx2D/cmake-build-debug/Makefile&quot;  VERBOSE=1 edit_cache"/>
 					<CompileFile command="/usr/bin/make -j8 -f &quot;/Users/bricelecampion/ClionProjects/HFPx2D/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
 					<Clean command="/usr/bin/make -j8 -f &quot;/Users/bricelecampion/ClionProjects/HFPx2D/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
 					<DistClean command="/usr/bin/make -j8 -f &quot;/Users/bricelecampion/ClionProjects/HFPx2D/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
@@ -48,13 +48,13 @@
 					<Add directory="/opt/intel/compilers_and_libraries_2017.0.102/mac/mkl/include"/>
 					<Add directory="/opt/intel//compilers_and_libraries_2017.0.102/mac/mkl/include"/>
 					<Add directory="/opt/intel//compilers_and_libraries_2017.0.102/mac/mkl/include/intel64/lp64"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1"/>
 					<Add directory="/usr/local/include"/>
 					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../lib/clang/8.0.0/include"/>
 					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include"/>
 					<Add directory="/usr/include"/>
 					<Add directory="/System/Library/Frameworks"/>
 					<Add directory="/Library/Frameworks"/>
-					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1"/>
 				</Compiler>
 				<MakeCommands>
 					<Build command="/usr/bin/make -j8 -f &quot;/Users/bricelecampion/ClionProjects/HFPx2D/cmake-build-debug/Makefile&quot;  VERBOSE=1 HFPx2D"/>
@@ -74,13 +74,13 @@
 					<Add directory="/opt/intel/compilers_and_libraries_2017.0.102/mac/mkl/include"/>
 					<Add directory="/opt/intel//compilers_and_libraries_2017.0.102/mac/mkl/include"/>
 					<Add directory="/opt/intel//compilers_and_libraries_2017.0.102/mac/mkl/include/intel64/lp64"/>
+					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1"/>
 					<Add directory="/usr/local/include"/>
 					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../lib/clang/8.0.0/include"/>
 					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include"/>
 					<Add directory="/usr/include"/>
 					<Add directory="/System/Library/Frameworks"/>
 					<Add directory="/Library/Frameworks"/>
-					<Add directory="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1"/>
 				</Compiler>
 				<MakeCommands>
 					<Build command="/usr/bin/make -j8 -f &quot;/Users/bricelecampion/ClionProjects/HFPx2D/cmake-build-debug/Makefile&quot;  VERBOSE=1 HFPx2D/fast"/>
@@ -112,9 +112,6 @@
 			<Option target="HFPx2D"/>
 		</Unit>
 		<Unit filename="/Users/bricelecampion/ClionProjects/HFPx2D/Mesh.h">
-			<Option target="HFPx2D"/>
-		</Unit>
-		<Unit filename="/Users/bricelecampion/ClionProjects/HFPx2D/dd.cpp">
 			<Option target="HFPx2D"/>
 		</Unit>
 		<Unit filename="/Users/bricelecampion/ClionProjects/HFPx2D/main.cpp">
