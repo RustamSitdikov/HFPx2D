@@ -1,4 +1,4 @@
-/Applications/CLion.app/Contents/bin/cmake/bin/cmake -DCMAKE_BUILD_TYPE=Debug -G "CodeBlocks - Unix Makefiles" /Users/bricelecampion/ClionProjects/HFPx2D
+/Applications/CLion.app/Contents/bin/cmake/bin/cmake -DCMAKE_BUILD_TYPE=Debug -G "CodeBlocks - Unix Makefiles" /Users/federicociardo/ClionProjects/HFPx2D
 -- Configuring done
 -- Generating done
--- Build files have been written to: /Users/bricelecampion/ClionProjects/HFPx2D/cmake-build-debug
+-- Build files have been written to: /Users/federicociardo/ClionProjects/HFPx2D/cmake-build-debug

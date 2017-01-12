@@ -48,10 +48,10 @@ RM = /Applications/CLion.app/Contents/bin/cmake/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /Users/bricelecampion/ClionProjects/HFPx2D
+CMAKE_SOURCE_DIR = /Users/federicociardo/ClionProjects/HFPx2D
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /Users/bricelecampion/ClionProjects/HFPx2D/cmake-build-debug
+CMAKE_BINARY_DIR = /Users/federicociardo/ClionProjects/HFPx2D/cmake-build-debug
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -80,9 +80,9 @@ rebuild_cache/fast: rebuild_cache
 
 # The main all target
 all: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/bricelecampion/ClionProjects/HFPx2D/cmake-build-debug/CMakeFiles /Users/bricelecampion/ClionProjects/HFPx2D/cmake-build-debug/CMakeFiles/progress.marks
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/federicociardo/ClionProjects/HFPx2D/cmake-build-debug/CMakeFiles /Users/federicociardo/ClionProjects/HFPx2D/cmake-build-debug/CMakeFiles/progress.marks
 	$(MAKE) -f CMakeFiles/Makefile2 all
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/bricelecampion/ClionProjects/HFPx2D/cmake-build-debug/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/federicociardo/ClionProjects/HFPx2D/cmake-build-debug/CMakeFiles 0
 .PHONY : all
 
 # The main clean target
@@ -177,6 +177,33 @@ DOF_Handles.cpp.s:
 	$(MAKE) -f CMakeFiles/HFPx2D.dir/build.make CMakeFiles/HFPx2D.dir/DOF_Handles.cpp.s
 .PHONY : DOF_Handles.cpp.s
 
+Dilatancy.o: Dilatancy.cpp.o
+
+.PHONY : Dilatancy.o
+
+# target to build an object file
+Dilatancy.cpp.o:
+	$(MAKE) -f CMakeFiles/HFPx2D.dir/build.make CMakeFiles/HFPx2D.dir/Dilatancy.cpp.o
+.PHONY : Dilatancy.cpp.o
+
+Dilatancy.i: Dilatancy.cpp.i
+
+.PHONY : Dilatancy.i
+
+# target to preprocess a source file
+Dilatancy.cpp.i:
+	$(MAKE) -f CMakeFiles/HFPx2D.dir/build.make CMakeFiles/HFPx2D.dir/Dilatancy.cpp.i
+.PHONY : Dilatancy.cpp.i
+
+Dilatancy.s: Dilatancy.cpp.s
+
+.PHONY : Dilatancy.s
+
+# target to generate assembly for a file
+Dilatancy.cpp.s:
+	$(MAKE) -f CMakeFiles/HFPx2D.dir/build.make CMakeFiles/HFPx2D.dir/Dilatancy.cpp.s
+.PHONY : Dilatancy.cpp.s
+
 Elasticity2D.o: Elasticity2D.cpp.o
 
 .PHONY : Elasticity2D.o
@@ -204,6 +231,87 @@ Elasticity2D.cpp.s:
 	$(MAKE) -f CMakeFiles/HFPx2D.dir/build.make CMakeFiles/HFPx2D.dir/Elasticity2D.cpp.s
 .PHONY : Elasticity2D.cpp.s
 
+FVM.o: FVM.cpp.o
+
+.PHONY : FVM.o
+
+# target to build an object file
+FVM.cpp.o:
+	$(MAKE) -f CMakeFiles/HFPx2D.dir/build.make CMakeFiles/HFPx2D.dir/FVM.cpp.o
+.PHONY : FVM.cpp.o
+
+FVM.i: FVM.cpp.i
+
+.PHONY : FVM.i
+
+# target to preprocess a source file
+FVM.cpp.i:
+	$(MAKE) -f CMakeFiles/HFPx2D.dir/build.make CMakeFiles/HFPx2D.dir/FVM.cpp.i
+.PHONY : FVM.cpp.i
+
+FVM.s: FVM.cpp.s
+
+.PHONY : FVM.s
+
+# target to generate assembly for a file
+FVM.cpp.s:
+	$(MAKE) -f CMakeFiles/HFPx2D.dir/build.make CMakeFiles/HFPx2D.dir/FVM.cpp.s
+.PHONY : FVM.cpp.s
+
+Friction.o: Friction.cpp.o
+
+.PHONY : Friction.o
+
+# target to build an object file
+Friction.cpp.o:
+	$(MAKE) -f CMakeFiles/HFPx2D.dir/build.make CMakeFiles/HFPx2D.dir/Friction.cpp.o
+.PHONY : Friction.cpp.o
+
+Friction.i: Friction.cpp.i
+
+.PHONY : Friction.i
+
+# target to preprocess a source file
+Friction.cpp.i:
+	$(MAKE) -f CMakeFiles/HFPx2D.dir/build.make CMakeFiles/HFPx2D.dir/Friction.cpp.i
+.PHONY : Friction.cpp.i
+
+Friction.s: Friction.cpp.s
+
+.PHONY : Friction.s
+
+# target to generate assembly for a file
+Friction.cpp.s:
+	$(MAKE) -f CMakeFiles/HFPx2D.dir/build.make CMakeFiles/HFPx2D.dir/Friction.cpp.s
+.PHONY : Friction.cpp.s
+
+FromEdgeToCol.o: FromEdgeToCol.cpp.o
+
+.PHONY : FromEdgeToCol.o
+
+# target to build an object file
+FromEdgeToCol.cpp.o:
+	$(MAKE) -f CMakeFiles/HFPx2D.dir/build.make CMakeFiles/HFPx2D.dir/FromEdgeToCol.cpp.o
+.PHONY : FromEdgeToCol.cpp.o
+
+FromEdgeToCol.i: FromEdgeToCol.cpp.i
+
+.PHONY : FromEdgeToCol.i
+
+# target to preprocess a source file
+FromEdgeToCol.cpp.i:
+	$(MAKE) -f CMakeFiles/HFPx2D.dir/build.make CMakeFiles/HFPx2D.dir/FromEdgeToCol.cpp.i
+.PHONY : FromEdgeToCol.cpp.i
+
+FromEdgeToCol.s: FromEdgeToCol.cpp.s
+
+.PHONY : FromEdgeToCol.s
+
+# target to generate assembly for a file
+FromEdgeToCol.cpp.s:
+	$(MAKE) -f CMakeFiles/HFPx2D.dir/build.make CMakeFiles/HFPx2D.dir/FromEdgeToCol.cpp.s
+.PHONY : FromEdgeToCol.cpp.s
+
 Mesh.o: Mesh.cpp.o
 
 .PHONY : Mesh.o
@@ -230,33 +338,6 @@ Mesh.s: Mesh.cpp.s
 Mesh.cpp.s:
 	$(MAKE) -f CMakeFiles/HFPx2D.dir/build.make CMakeFiles/HFPx2D.dir/Mesh.cpp.s
 .PHONY : Mesh.cpp.s
-
-dd.o: dd.cpp.o
-
-.PHONY : dd.o
-
-# target to build an object file
-dd.cpp.o:
-	$(MAKE) -f CMakeFiles/HFPx2D.dir/build.make CMakeFiles/HFPx2D.dir/dd.cpp.o
-.PHONY : dd.cpp.o
-
-dd.i: dd.cpp.i
-
-.PHONY : dd.i
-
-# target to preprocess a source file
-dd.cpp.i:
-	$(MAKE) -f CMakeFiles/HFPx2D.dir/build.make CMakeFiles/HFPx2D.dir/dd.cpp.i
-.PHONY : dd.cpp.i
-
-dd.s: dd.cpp.s
-
-.PHONY : dd.s
-
-# target to generate assembly for a file
-dd.cpp.s:
-	$(MAKE) -f CMakeFiles/HFPx2D.dir/build.make CMakeFiles/HFPx2D.dir/dd.cpp.s
-.PHONY : dd.cpp.s
 
 main.o: main.cpp.o
 
@@ -300,15 +381,24 @@ help:
 	@echo "... DOF_Handles.o"
 	@echo "... DOF_Handles.i"
 	@echo "... DOF_Handles.s"
+	@echo "... Dilatancy.o"
+	@echo "... Dilatancy.i"
+	@echo "... Dilatancy.s"
 	@echo "... Elasticity2D.o"
 	@echo "... Elasticity2D.i"
 	@echo "... Elasticity2D.s"
+	@echo "... FVM.o"
+	@echo "... FVM.i"
+	@echo "... FVM.s"
+	@echo "... Friction.o"
+	@echo "... Friction.i"
+	@echo "... Friction.s"
+	@echo "... FromEdgeToCol.o"
+	@echo "... FromEdgeToCol.i"
+	@echo "... FromEdgeToCol.s"
 	@echo "... Mesh.o"
 	@echo "... Mesh.i"
 	@echo "... Mesh.s"
-	@echo "... dd.o"
-	@echo "... dd.i"
-	@echo "... dd.s"
 	@echo "... main.o"
 	@echo "... main.i"
 	@echo "... main.s"

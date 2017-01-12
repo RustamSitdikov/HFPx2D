@@ -15,5 +15,9 @@
 
 void BasicAssembly(il::Array2D<double> &Kmat, Mesh mesh, il::Array2D<int> id, int p , double Ep );
 
+void take_submatrix(il::Array2D<double>& sub, int i0, int i1, int j0, int j1, const il::Array2D<double>& A);
+
+void set_submatrix(il::Array2D<double>& A, int i0, int i1, const il::StaticArray2D<double,2,4>& B);
+
 
 #endif //HFPX2D_ASSEMBLYDDM_H

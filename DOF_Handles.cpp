@@ -22,7 +22,7 @@ void dofhandle_DG2D(il::Array2D<int> &dofhandle, int dof_dim, int nelts, int p) 
 
   int ndof = nelts*(p+1)*dof_dim;
 
-  int j ;
+  int j;
 
   for (int i = 0; i < nelts; ++i) {
     j = i*dof_dim*(p+1) ;
@@ -30,6 +30,9 @@ void dofhandle_DG2D(il::Array2D<int> &dofhandle, int dof_dim, int nelts, int p) 
       dofhandle(i, k) = j + k;
     }
   }
-//  return dofhandle; - starts at 0 for dof c++ style!
+
 }
+
+
+
 
