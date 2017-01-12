@@ -157,6 +157,8 @@ il::Array<int> find2D(il::Array2D<double> &arr2D,
 double_t max2D(il::Array2D<double> &arr2D); // Function prototype
 double_t min2D(il::Array2D<double> &arr2D); // Function prototype
 
+
+
 ////////////////////////////////////////////////////////////////////////////////
 int main() {
   // Declare the input variables
@@ -181,7 +183,7 @@ int main() {
   // Create the vector of density, initial stress state (uniform for now),
   // initial/ambient pore pressure
 
-  il::Array2D<double> rho{2 * Nnodes - 2, 2, 0.}; // fluid density vector
+  il::Array2D<double> rho{Nnodes - 1, 2, 0.}; // fluid density vector
   // {{rho1_left,rho1_right},{rho2_left,rho2_right}..}   Remember:
   // continuos linear varioation -> rho1_right = rho2_left and so on ..
 
@@ -231,7 +233,7 @@ int main() {
   il::Array2D<double> xy{
       Nnodes, 2, 0.0}; // matrix that contains x- and y- coordinates of 1D mesh
   il::Array2D<int> myconn{Nelts, 2, 0.0}; // connectivity matrix
-  il::Array2D<int> id{Nelts, 4, 0};       // auxiliary vector for slip dof
+  il::Array2D<int> id{Nelts, 4, 0};       // slip/opening dof
 
       int Ndof = (Nnodes - 1) * (p + 1) * 2; // number of dofs
 
@@ -264,9 +266,22 @@ int main() {
 
     dofhandle_DG2D(id, 2, Nelts, p); // dof handle for DDs
 
-    il::Array<double> test;
+ /*   il::Array<int> t{2,0.};
+    t[0] = 3;
+    t[1] = 4;
+    il::int_t de;
 
-    test = Quarter(xy);
+    for (il::int_t m = 0; m < t.size(); ++m) {
+
+        if(t[m] != 3) de = t[m];
+
+    }*/
+
+
+//    test = ConductivitiesNewtonian(Visc,mesh,rho,Pinit,Incr_dil,d_wd,Init_dil);
+//    test = Quarter(xy);
+
+
 
 
   return 0;
@@ -320,6 +335,7 @@ il::int_t find(il::Array<double> arr, double_t seek) {
 // It return an array that contain the {N.row, N.col} of the seek value
 
 il::Array<int> find2D(il::Array2D<double> &arr2D, double_t seek) {
+
   il::Array<int> outp{2};
 
   for (il::int_t i = 0; i < arr2D.size(0); ++i) {
@@ -333,6 +349,7 @@ il::Array<int> find2D(il::Array2D<double> &arr2D, double_t seek) {
 
   return outp;
 }
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // Function that return the max value in an array2D.
@@ -381,3 +398,5 @@ double_t min2D(il::Array2D<double> &arr2D) {
 
   return min;
 }
+
+
