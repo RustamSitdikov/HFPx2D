@@ -55,7 +55,8 @@ il::Array<double> Quarter(il::Array2D<double> &d){
 
 // Function to find out the position of a value in a 2D array
 // It returns 2x2 array with row&col of the seek value
-il::Array2D<int> FindPosit_2DArray(il::Array2D<int> &arr2D, double_t seek) {
+// It is not completely general -> the output is always a matrix (2x2)
+il::Array2D<int> FindPosit_2DArray(il::Array2D<int> &arr2D, double seek) {
 
     il::Array2D<int> outp{2,2,0.};
 
@@ -74,6 +75,45 @@ il::Array2D<int> FindPosit_2DArray(il::Array2D<int> &arr2D, double_t seek) {
 
     return outp;
 }
+
+// Function to find out the position of a value in a 2D array
+// It returns 2x2 array with row&col of the seek value
+// It is completely general in a sense that the output can be a vector or a matrix (2x2)
+il::Array2D<int> Position_2DArray(il::Array2D<int> &arr2D, double seek) {
+
+    il::Array2D<il::int_t> M{2 * arr2D.size(0), 2, -1};
+    il::int_t k = 0;
+
+    for (il::int_t i = 0; i < arr2D.size(0); ++i) {
+
+        for (il::int_t j = 0; j < arr2D.size(1); ++j) {
+
+            if (arr2D(i, j) == seek) {
+
+                M(k, 0) = i;
+                M(k, 1) = j;
+
+                k = k + 1;
+
+            }
+
+        }
+    }
+
+    il::Array2D<int> outp{k, 2, 0};
+
+    for (il::int_t l = 0; l < k; ++l) {
+
+        for (il::int_t j = 0; j < 2; ++j) {
+
+            outp(l, j) = M(l, j);
+
+        }
+
+    }
+
+    return outp;
+};
 
 
 // Auxiliary function for assembly process
@@ -145,16 +185,18 @@ il::Array2D<double> Build_L_matrix(Mesh mesh, il::Array2D<double> &d, il::Array2
 
     il::Array2D<double> LL{(mesh.conn).size(0)+1,(mesh.conn).size(0)+1,0.};
     il::Array2D<int> ed;
+    il::int_t ni;
     il::int_t ej;
     il::int_t dofj;
     il::Array<int> t;
 
     // Loop over all the "inner" nodes (the boundary nodes are not included)
-    for (il::int_t i = 1; i < (mesh.conn).size(0); ++i) {
+    for (il::int_t i = 0; i < LL.size(0); ++i) {
 
-        ed = FindPosit_2DArray(mesh.conn,((double)i));
+        ed = Position_2DArray(mesh.conn,((double)i));
+        ni = ed.size(0);
 
-        for (il::int_t j = 0; j < 2; ++j) {
+        for (il::int_t j = 0; j < ni; ++j) {
 
             ej = ed(j,0);
             t = Auxiliary(mesh.conn,ej);
@@ -171,14 +213,6 @@ il::Array2D<double> Build_L_matrix(Mesh mesh, il::Array2D<double> &d, il::Array2
         }
 
     }
-
-    // Set the values at the boundary
-    LL(0,0) = Kk[0];
-    LL(0,1) = Kk[1];
-
-    LL((mesh.conn).size(0)+1,(mesh.conn).size(0)) = Kk[(mesh.conn).size(0)-1];
-    LL((mesh.conn).size(0)+1,(mesh.conn).size(0)+1) = Kk[(mesh.conn).size(0)];
-
 
     il::Array2D<double> T{(mesh.conn).size(0)+1,(mesh.conn).size(0)+1,TimeStep};
 
@@ -276,12 +310,13 @@ il::Array2D<double> BuildVpMatrix(Mesh mesh, const double Incr_dil, const double
     il::Array2D<double> Vp{(mesh.conn).size(0)+1, (mesh.conn).size(0)+1, 0.};
     il::Array2D<int> ed;
     il::Array2D<int> hi;
+    il::int_t ni;
     il::int_t ej;
     il::int_t hj;
     il::int_t dofj;
     il::Array<int> t;
 
-    il::Array<double> Whi{2*(mesh.conn).size(0),0.}; //Vector that we need for assemblig process
+    il::Array<double> Whi{2*(mesh.conn).size(0),0.}; //Vector that we need for assembling process
     for (il::int_t n = 0, q = 0; n < whi_left.size(); ++n, q = q+2) {
 
         Whi[q] = whi_left[n];
@@ -290,12 +325,13 @@ il::Array2D<double> BuildVpMatrix(Mesh mesh, const double Incr_dil, const double
     }
 
 
-    for (il::int_t m = 1; m < (mesh.conn).size(0); ++m) {
+    for (il::int_t m = 0; m < Vp.size(0); ++m) {
 
-        ed = FindPosit_2DArray(mesh.conn,((double)m));
-        hi = FindPosit_2DArray(h,((double)((2*m) -1)));
+        ed = Position_2DArray(mesh.conn,((double)m));
+        hi = Position_2DArray(h,((double)(2*m)));
+        ni = ed.size(0);
 
-        for (il::int_t i = 0; i < 2; ++i) {
+        for (il::int_t i = 0; i < ni; ++i) {
 
             ej = ed(i,0);
             hj = hi(i,0);
@@ -313,17 +349,6 @@ il::Array2D<double> BuildVpMatrix(Mesh mesh, const double Incr_dil, const double
         }
 
     }
-
-    // Set the values at the boundary
-    Vp(0,0) = (EltSizes[0]/12) *((Whi[0]*Cf[vertices[0]]) + (0.5*whi_mid[0]*Cfmid[0]) + (3*wquart[0])*Cfquart[0]);
-    Vp(0,1) =  (EltSizes[0]/12)*((0.5*whi_mid[0]*Cfmid[0]) + (wquart[0]*Cfquart[0]));
-
-    Vp((mesh.conn).size(0)+1,(mesh.conn).size(0)) = (EltSizes[(mesh.conn).size(0)]/12) *((0.5*whi_mid[(mesh.conn).size(0)]*Cfmid[(mesh.conn).size(0)])
-                                                                                         + (wquart[2*(mesh.conn).size(0)]*Cfquart[2*(mesh.conn).size(0)]));
-    Vp((mesh.conn).size(0)+1,(mesh.conn).size(0)+1) = (EltSizes[(mesh.conn).size(0)]/12) *((Whi[2*(mesh.conn).size(0)]*Cf[vertices[vertices.size()]])
-                                                                                           + (0.5*whi_mid[(mesh.conn).size(0)]*Cfmid[(mesh.conn).size(0)])
-                                                                                           + (3*wquart[2*(mesh.conn).size(0)])*Cfquart[2*(mesh.conn).size(0)]);
-
 
     return Vp;
 
@@ -425,6 +450,7 @@ il::Array2D<double> BuildVdMatrix(Mesh mesh, const double Incr_dil, const double
     il::Array2D<double> Vd{(mesh.conn).size(0)+1, 4*((mesh.conn).size(0)), 0.};
     il::Array2D<int> ed;
     il::Array2D<int> hi;
+    il::int_t ni;
     il::int_t ej;
     il::int_t hj;
     il::Array<int> t;
@@ -451,12 +477,13 @@ il::Array2D<double> BuildVdMatrix(Mesh mesh, const double Incr_dil, const double
     }
 
 
-    for (il::int_t i = 1; i < (mesh.conn).size(0); ++i) {
+    for (il::int_t i = 0; i < Vd.size(0); ++i) {
 
-        ed = FindPosit_2DArray(mesh.conn,((double)i));
-        hi = FindPosit_2DArray(h, ((double)((2*i)-1)));
+        ed = Position_2DArray(mesh.conn,((double)i));
+        hi = Position_2DArray(h, ((double)(2*i)));
+        ni = ed.size(0);
 
-        for (il::int_t j = 0; j < 2; ++j) {
+        for (il::int_t j = 0; j < ni; ++j) {
 
             ej = ed(j,0);
             hj = hi(j,0);
@@ -477,19 +504,6 @@ il::Array2D<double> BuildVdMatrix(Mesh mesh, const double Incr_dil, const double
         }
 
     }
-
-
-    // Set the values at the boundary
-
-    Vd(0,0) = (EltSizes[0]/12)*((Rho[0]*BI[0]) +(0.5*rho_mid[0]*Bi_mid[0]) + (3*rho_quart[0]*Bi_quart[0]));
-    Vd(0,2) = (EltSizes[0]/12)*((0.5*rho_mid[0]*Bi_mid[0]) + (rho_quart[0]*Bi_quart[0]));
-
-    Vd((mesh.conn).size(0)+1,2*((mesh.conn).size(0)+1) - 2) = (EltSizes[(mesh.conn).size(0)]/12)* ((0.5*rho_mid[(mesh.conn).size(0)]*Bi_mid[(mesh.conn).size(0)])
-                                                                                                   + (rho_quart[2*(mesh.conn).size(0)]*Bi_quart[2*(mesh.conn).size(0)]));
-    Vd((mesh.conn).size(0)+1,2*((mesh.conn).size(0)+1)) = (EltSizes[(mesh.conn).size(0)]/12)* ((Rho[2*(mesh.conn).size(0)]*BI[2*(mesh.conn).size(0)])
-                                                                                              + (0.5*rho_mid[(mesh.conn).size(0)]*Bi_mid[(mesh.conn).size(0)])
-                                                                                              + (3*rho_quart[2*(mesh.conn).size(0)]*Bi_quart[2*(mesh.conn).size(0)]));
-
 
     // Taking finally only the shear related contributions...
     il::Array2D<double> VD{Vd.size(0),Vd.size(1)/2,0.};

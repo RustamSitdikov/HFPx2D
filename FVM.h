@@ -17,7 +17,9 @@ il::Array<double> Average(il::Array2D<double> &d);
 
 il::Array<double> Quarter(il::Array2D<double> &d);
 
-il::Array2D<int> FindPosit_2DArray(il::Array2D<int> &arr2D, double_t seek);
+il::Array2D<int> FindPosit_2DArray(il::Array2D<int> &arr2D, double seek);
+
+il::Array2D<int> Position_2DArray(il::Array2D<int> &arr2D, double seek);
 
 il::Array<int> Auxiliary(il::Array2D<int> &arr, il::int_t idx);
 
