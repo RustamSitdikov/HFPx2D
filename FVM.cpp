@@ -77,7 +77,7 @@ il::Array2D<int> FindPosit_2DArray(il::Array2D<int> &arr2D, double_t seek) {
 
 
 // Auxiliary function for assembly process
-// It returns the a given row (vector - specified by idx) of a 2D array
+// It returns a given row (vector - specified by idx) of a 2D array
 il::Array<int> Auxiliary(il::Array2D<int> &arr, il::int_t idx){
 
 
@@ -147,7 +147,7 @@ il::Array2D<double> Build_L_matrix(Mesh mesh, il::Array2D<double> &d, il::Array2
     il::int_t dofj;
     il::Array<int> t;
 
-
+    // Loop over all the "inner" nodes (the boundary nodes are not included)
     for (il::int_t i = 1; i < (mesh.conn).size(0); ++i) {
 
         ed = FindPosit_2DArray(mesh.conn,((double)i));
@@ -193,4 +193,146 @@ il::Array2D<double> Build_L_matrix(Mesh mesh, il::Array2D<double> &d, il::Array2
     }
 
     return L;
+};
+
+
+// Function that assemble the Pressure matrix "Vp"
+il::Array2D<double> BuildVpMatrix(Mesh mesh, const double Incr_dil, const double Init_dil, const double CompressFluid, il::Array2D<double> &d, const double d_wd){
+
+
+    //Create an auxiliary vector for the assembling
+    il::Array2D<int> h{2*(mesh.conn).size(0) + 1, 2, 0};
+
+    for (il::int_t i = 0; i < h.size(0); ++i) {
+
+        h(i,0) = i;
+        h(i,1) = i+1;
+
+    }
+
+    // mesh nodes {0,1,2,3..}
+    il::Array<int> vertices{(mesh.conn).size(0)+1,0};
+    for (il::int_t j = 0; j < vertices.size(); ++j) {
+
+        vertices[j] = j;
+
+    }
+
+    //create the array of element size
+    il::Array<double> EltSizes{(mesh.conn).size(0), 0.};
+
+    for (il::int_t i = 0; i < EltSizes.size(); ++i) {
+
+        for (il::int_t j = 0; j < (mesh.conn).size(1); ++j) {
+
+            EltSizes[i] =  fabs(fabs(EltSizes[i]) - fabs(mesh.Coor(mesh.conn(i,j),0)));
+
+        }
+
+    }
+
+    // Create the all the vectors for compressibility of fluid
+    il::Array<double> Cf{vertices.size(),CompressFluid}; // Vector of compressibility of the fluid at nodal points
+    il::Array<double> Cfmid{(mesh.conn).size(0),CompressFluid}; // Vector of compressibility of the fluid at the midpoints of each element
+    il::Array<double> Cfquart{2*(mesh.conn).size(0),CompressFluid}; // Vector of compressibility of the fluid at +/- 1/4 of each element
+
+
+    il::Array<double> d_left{(mesh.conn).size(0),0.};
+    for (il::int_t k = 0; k < d_left.size(); ++k) {
+
+        d_left[k] = d(k,0);
+    }
+
+    il::Array<double> d_right{(mesh.conn).size(0),0.};
+    for (il::int_t j = 0; j < d_right.size(); ++j) {
+
+        d_right[j] = d(j,1);
+    }
+
+    il::Array<double> whi_left{(mesh.conn).size(0),0.} , whi_right{(mesh.conn).size(0),0.};
+
+    whi_left = Dilatancy(Init_dil,Incr_dil,d_wd,d_left);
+    whi_right = Dilatancy(Init_dil,Incr_dil,d_wd,d_right);
+
+    il::Array2D<double> whi{(mesh.conn).size(0),2,0.};
+
+    for (il::int_t l = 0; l < whi.size(0); ++l) {
+
+        whi(l,0) = whi_left[l];
+        whi(l,1) = whi_right[l];
+
+    }
+
+    il::Array<double> whi_mid{(mesh.conn).size(0),0.};
+    whi_mid = Average(whi);
+
+    il::Array<double> wquart{2*(mesh.conn).size(0),0.};
+    wquart = Quarter(whi);
+
+
+    // Assembling the matrix
+    il::Array2D<double> Vp{(mesh.conn).size(0)+1, (mesh.conn).size(0)+1, 0.};
+    il::Array2D<int> ed;
+    il::Array2D<int> hi;
+    il::int_t ej;
+    il::int_t hj;
+    il::int_t dofj;
+    il::Array<int> t;
+
+    il::Array<double> Whi{2*(mesh.conn).size(0),0.}; //Vector that we need for assemblig process
+    for (il::int_t n = 0, q = 0; n < whi_left.size(); ++n, q = q+2) {
+
+        Whi[q] = whi_left[n];
+        Whi[q+1] = whi_right[n];
+
+    }
+
+
+    for (il::int_t m = 1; m < (mesh.conn).size(0); ++m) {
+
+        ed = FindPosit_2DArray(mesh.conn,((double)m));
+        hi = FindPosit_2DArray(h,((double)(2*m -1)));
+
+        for (il::int_t i = 0; i < 2; ++i) {
+
+            ej = ed(i,0);
+            hj = hi(i,0);
+            t = Auxiliary(mesh.conn,ej);
+
+            for (il::int_t j = 0; j < t.size(); ++j) {
+
+                if(t[j]!= vertices[m]) dofj = t[j];
+
+            }
+
+            Vp(vertices[m],vertices[m]) = Vp(vertices[m],vertices[m]) + (EltSizes[ej]/12)*((Whi[hj]*Cf[vertices[m]]) + (0.5*whi_mid[ej]*Cfmid[ej]) + (3*wquart[hj]*Cfquart[hj]));
+            Vp(vertices[m], dofj) = Vp(vertices[m],dofj) + (EltSizes[ej]/12)*((0.5*whi_mid[ej]*Cfmid[ej]) + (wquart[hj]*Cfquart[hj]));
+
+        }
+
+    }
+
+    // Set the values at the boundary
+    Vp(0,0) = (EltSizes[0]/12) *((Whi[0]*Cf[vertices[0]]) + (0.5*whi_mid[0]*Cfmid[0]) + (3*wquart[0])*Cfquart[0]);
+    Vp(0,1) =  (EltSizes[0]/12)*((0.5*whi_mid[0]*Cfmid[0]) + (wquart[0]*Cfquart[0]));
+
+    Vp((mesh.conn).size(0)+1,(mesh.conn).size(0)) = (EltSizes[(mesh.conn).size(0)]/12) *((0.5*whi_mid[(mesh.conn).size(0)]*Cfmid[(mesh.conn).size(0)]) +
+            (wquart[2*(mesh.conn).size(0)]*Cfquart[2*(mesh.conn).size(0)]));
+    Vp((mesh.conn).size(0)+1,(mesh.conn).size(0)+1) = (EltSizes[(mesh.conn).size(0)]/12) *((Whi[2*(mesh.conn).size(0)]*Cf[vertices[vertices.size()]])
+                                                                                           + (0.5*whi_mid[(mesh.conn).size(0)]*Cfmid[(mesh.conn).size(0)])
+                                                                                           + (3*wquart[2*(mesh.conn).size(0)])*Cfquart[2*(mesh.conn).size(0)]);
+
+
+    return Vp;
+
+};
+
+
+il::Array2D<double> BuildVdMatrix(Mesh mesh, const double Incr_dil, const double d_wd, il::Array2D<double> &d){
+
+
+
+
+
+
 };
