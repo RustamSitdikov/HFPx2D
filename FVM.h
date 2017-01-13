@@ -25,6 +25,6 @@ il::Array<double> ConductivitiesNewtonian(const int Visc, Mesh mesh, il::Array2D
 
 il::Array2D<double> BuildVpMatrix(Mesh mesh, const double Incr_dil, const double Init_dil, const double CompressFluid, il::Array2D<double> &d, const double d_wd);
 
-il::Array2D<double> BuildVdMatrix(Mesh mesh, const double Incr_dil, const double d_wd, il::Array2D<double> &d);
+il::Array2D<double> BuildVdMatrix(Mesh mesh, const double Incr_dil, const double d_wd, il::Array2D<int> id, il::Array2D<double> rho, il::Array2D<double> &d);
 
 #endif //HFPX2D_FVM_H

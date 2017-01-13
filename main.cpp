@@ -279,13 +279,8 @@ int main() {
 
 
 
-
-
 //    test = ConductivitiesNewtonian(Visc,mesh,rho,Pinit,Incr_dil,d_wd,Init_dil);
 //    test = Quarter(xy);
-
-
-
 
   return 0;
 }

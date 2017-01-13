@@ -94,6 +94,8 @@ il::Array<int> Auxiliary(il::Array2D<int> &arr, il::int_t idx){
 };
 
 
+//// FVM routines ////
+
 //Function for the coefficients of the Finite Difference Matrix "L"
 // Output: array (vector) that contains all the coefficients for each element
 
@@ -316,8 +318,8 @@ il::Array2D<double> BuildVpMatrix(Mesh mesh, const double Incr_dil, const double
     Vp(0,0) = (EltSizes[0]/12) *((Whi[0]*Cf[vertices[0]]) + (0.5*whi_mid[0]*Cfmid[0]) + (3*wquart[0])*Cfquart[0]);
     Vp(0,1) =  (EltSizes[0]/12)*((0.5*whi_mid[0]*Cfmid[0]) + (wquart[0]*Cfquart[0]));
 
-    Vp((mesh.conn).size(0)+1,(mesh.conn).size(0)) = (EltSizes[(mesh.conn).size(0)]/12) *((0.5*whi_mid[(mesh.conn).size(0)]*Cfmid[(mesh.conn).size(0)]) +
-            (wquart[2*(mesh.conn).size(0)]*Cfquart[2*(mesh.conn).size(0)]));
+    Vp((mesh.conn).size(0)+1,(mesh.conn).size(0)) = (EltSizes[(mesh.conn).size(0)]/12) *((0.5*whi_mid[(mesh.conn).size(0)]*Cfmid[(mesh.conn).size(0)])
+                                                                                         + (wquart[2*(mesh.conn).size(0)]*Cfquart[2*(mesh.conn).size(0)]));
     Vp((mesh.conn).size(0)+1,(mesh.conn).size(0)+1) = (EltSizes[(mesh.conn).size(0)]/12) *((Whi[2*(mesh.conn).size(0)]*Cf[vertices[vertices.size()]])
                                                                                            + (0.5*whi_mid[(mesh.conn).size(0)]*Cfmid[(mesh.conn).size(0)])
                                                                                            + (3*wquart[2*(mesh.conn).size(0)])*Cfquart[2*(mesh.conn).size(0)]);
@@ -366,7 +368,7 @@ il::Array2D<double> BuildVdMatrix(Mesh mesh, const double Incr_dil, const double
 
     // Create the matrix of dof for just shear DD
     // Remember: 4 DOFs per element {shear_i, normal_i, shear_j, normal_j}
-    il::Array2D<double> dofw{(mesh.conn).size(0), 2,0.};
+    il::Array2D<int> dofw{(mesh.conn).size(0), 2,0.};
 
     for (il::int_t k = 0; k < dofw.size(0); ++k) {
 
@@ -420,7 +422,7 @@ il::Array2D<double> BuildVdMatrix(Mesh mesh, const double Incr_dil, const double
 
     // Assembling the matrix
 
-    il::Array2D<double> Vd{(mesh.conn).size(0)+1, 2*((mesh.conn).size(0) + 1), 0.};
+    il::Array2D<double> Vd{(mesh.conn).size(0)+1, 4*((mesh.conn).size(0)), 0.};
     il::Array2D<int> ed;
     il::Array2D<int> hi;
     il::int_t ej;
@@ -430,6 +432,23 @@ il::Array2D<double> BuildVdMatrix(Mesh mesh, const double Incr_dil, const double
     il::int_t dofwi;
     il::int_t dofwj;
 
+
+    il::Array<double> Rho{2*(mesh.conn).size(0),0.}; // We need for the assembling
+    il::Array<double> BI{2*(mesh.conn).size(0),0.}; // We need for the assembling
+
+    for (il::int_t m = 0, q=0; m < rho.size(0); ++m, q=q+2) {
+
+            Rho[q] = rho(m,0);
+            Rho[q+1] = rho(m,1);
+
+    }
+
+    for (il::int_t m = 0, q=0; m < Bi.size(0); ++m, q=q+2) {
+
+        BI[q] = Bi(m,0);
+        BI[q+1] = Bi(m,1);
+
+    }
 
 
     for (il::int_t i = 1; i < (mesh.conn).size(0); ++i) {
@@ -442,18 +461,49 @@ il::Array2D<double> BuildVdMatrix(Mesh mesh, const double Incr_dil, const double
             ej = ed(j,0);
             hj = hi(j,0);
 
-            t = Auxiliary(mesh.conn,ej);
+            dofwi = dofw(ej,ed(j,1));
 
-            for (int k = 0; k < t.size(); ++k) {
+            t = Auxiliary(dofw,ej);
 
-                dofwi = dofw(ej,ed(j,1));
+            for (il::int_t k = 0; k < t.size(); ++k) {
+
+                if (t[k] != dofwi) dofwj = t[k];
 
             }
+
+            Vd(vertices[i],dofwi) = Vd(vertices[i],dofwi) + (EltSizes[ej]/12)*((Rho[hj]*BI[hj]) + (0.5*rho_mid[ej]*Bi_mid[ej]) + (3*rho_quart[hj]*Bi_quart[hj]));
+            Vd(vertices[i],dofwj) = Vd(vertices[i],dofwj) + (EltSizes[ej]/12)*((0.5*rho_mid[ej]*Bi_mid[ej]) + (rho_quart[hj]*Bi_quart[hj]));
 
         }
 
     }
 
-    return Vd;
+
+    // Set the values at the boundary
+
+    Vd(0,0) = (EltSizes[0]/12)*((Rho[0]*BI[0]) +(0.5*rho_mid[0]*Bi_mid[0]) + (3*rho_quart[0]*Bi_quart[0]));
+    Vd(0,2) = (EltSizes[0]/12)*((0.5*rho_mid[0]*Bi_mid[0]) + (rho_quart[0]*Bi_quart[0]));
+
+    Vd((mesh.conn).size(0)+1,2*((mesh.conn).size(0)+1) - 2) = (EltSizes[(mesh.conn).size(0)]/12)* ((0.5*rho_mid[(mesh.conn).size(0)]*Bi_mid[(mesh.conn).size(0)])
+                                                                                                   + (rho_quart[2*(mesh.conn).size(0)]*Bi_quart[2*(mesh.conn).size(0)]));
+    Vd((mesh.conn).size(0)+1,2*((mesh.conn).size(0)+1)) = (EltSizes[(mesh.conn).size(0)]/12)* ((Rho[2*(mesh.conn).size(0)]*BI[2*(mesh.conn).size(0)])
+                                                                                              + (0.5*rho_mid[(mesh.conn).size(0)]*Bi_mid[(mesh.conn).size(0)])
+                                                                                              + (3*rho_quart[2*(mesh.conn).size(0)]*Bi_quart[2*(mesh.conn).size(0)]));
+
+
+    // Taking finally only the shear related contributions...
+    il::Array2D<double> VD{Vd.size(0),Vd.size(1)/2,0.};
+
+    for (il::int_t n = 0; n < VD.size(0); ++n) {
+
+        for (il::int_t i = 0, q=0; i < Vd.size(1); ++i, q = q+2) {
+
+            VD(n,i) = Vd(n,q);
+
+        }
+
+    }
+
+    return VD;
 
 };
