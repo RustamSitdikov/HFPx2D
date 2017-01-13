@@ -196,7 +196,7 @@ il::Array2D<double> Build_L_matrix(Mesh mesh, il::Array2D<double> &d, il::Array2
 };
 
 
-// Function that assemble the Pressure matrix "Vp"
+// Function for assembling the Pressure matrix "Vp"
 il::Array2D<double> BuildVpMatrix(Mesh mesh, const double Incr_dil, const double Init_dil, const double CompressFluid, il::Array2D<double> &d, const double d_wd){
 
 
@@ -291,7 +291,7 @@ il::Array2D<double> BuildVpMatrix(Mesh mesh, const double Incr_dil, const double
     for (il::int_t m = 1; m < (mesh.conn).size(0); ++m) {
 
         ed = FindPosit_2DArray(mesh.conn,((double)m));
-        hi = FindPosit_2DArray(h,((double)(2*m -1)));
+        hi = FindPosit_2DArray(h,((double)((2*m) -1)));
 
         for (il::int_t i = 0; i < 2; ++i) {
 
@@ -328,11 +328,132 @@ il::Array2D<double> BuildVpMatrix(Mesh mesh, const double Incr_dil, const double
 };
 
 
-il::Array2D<double> BuildVdMatrix(Mesh mesh, const double Incr_dil, const double d_wd, il::Array2D<double> &d){
+// Function for assembling the Mass matrix "Vd"
+il::Array2D<double> BuildVdMatrix(Mesh mesh, const double Incr_dil, const double d_wd, il::Array2D<int> id, il::Array2D<double> rho, il::Array2D<double> &d){
+
+
+    //Create an auxiliary vector for the assembling
+    il::Array2D<int> h{2*(mesh.conn).size(0) + 1, 2, 0};
+
+    for (il::int_t i = 0; i < h.size(0); ++i) {
+
+        h(i,0) = i;
+        h(i,1) = i+1;
+
+    }
+
+    // mesh nodes {0,1,2,3..}
+    il::Array<int> vertices{(mesh.conn).size(0)+1,0};
+    for (il::int_t j = 0; j < vertices.size(); ++j) {
+
+        vertices[j] = j;
+
+    }
+
+    //create the array of element size
+    il::Array<double> EltSizes{(mesh.conn).size(0), 0.};
+
+    for (il::int_t i = 0; i < EltSizes.size(); ++i) {
+
+        for (il::int_t j = 0; j < (mesh.conn).size(1); ++j) {
+
+            EltSizes[i] =  fabs(fabs(EltSizes[i]) - fabs(mesh.Coor(mesh.conn(i,j),0)));
+
+        }
+
+    }
+
+
+    // Create the matrix of dof for just shear DD
+    // Remember: 4 DOFs per element {shear_i, normal_i, shear_j, normal_j}
+    il::Array2D<double> dofw{(mesh.conn).size(0), 2,0.};
+
+    for (il::int_t k = 0; k < dofw.size(0); ++k) {
+
+        for (il::int_t i = 0, q=0; i < dofw.size(1); ++i, q=q+2) {
+
+            dofw(k,i) = id(k,q);
+
+        }
+
+    }
+
+
+    il::Array<double> rho_mid{(mesh.conn).size(0), 0.};
+    il::Array<double> rho_quart{2*(mesh.conn).size(0),0.};
+
+    rho_mid = Average(rho);
+    rho_quart = Quarter(rho);
+
+    il::Array<double> d_left{(mesh.conn).size(0),0.};
+    for (il::int_t k = 0; k < d_left.size(); ++k) {
+
+        d_left[k] = d(k,0);
+    }
+
+    il::Array<double> d_right{(mesh.conn).size(0),0.};
+    for (il::int_t j = 0; j < d_right.size(); ++j) {
+
+        d_right[j] = d(j,1);
+    }
+
+    il::Array<double> Bi_left{(mesh.conn).size(0),0.} , Bi_right{(mesh.conn).size(0),0.};
+
+    Bi_left = DDilatancy(Incr_dil,d_wd,d_left);
+    Bi_right = DDilatancy(Incr_dil, d_wd, d_right);
+
+    il::Array2D<double> Bi{(mesh.conn).size(0),2,0.};
+
+    for (il::int_t l = 0; l < Bi.size(0); ++l) {
+
+        Bi(l,0) = Bi_left[l];
+        Bi(l,1) = Bi_right[l];
+
+    }
+
+    il::Array<double> Bi_mid{(mesh.conn).size(0),0.};
+    Bi_mid = Average(Bi);
+
+    il::Array<double> Bi_quart{2*(mesh.conn).size(0),0.};
+    Bi_quart = Quarter(Bi);
+
+
+    // Assembling the matrix
+
+    il::Array2D<double> Vd{(mesh.conn).size(0)+1, 2*((mesh.conn).size(0) + 1), 0.};
+    il::Array2D<int> ed;
+    il::Array2D<int> hi;
+    il::int_t ej;
+    il::int_t hj;
+    il::Array<int> t;
+
+    il::int_t dofwi;
+    il::int_t dofwj;
 
 
 
+    for (il::int_t i = 1; i < (mesh.conn).size(0); ++i) {
 
+        ed = FindPosit_2DArray(mesh.conn,((double)i));
+        hi = FindPosit_2DArray(h, ((double)((2*i)-1)));
 
+        for (il::int_t j = 0; j < 2; ++j) {
+
+            ej = ed(j,0);
+            hj = hi(j,0);
+
+            t = Auxiliary(mesh.conn,ej);
+
+            for (int k = 0; k < t.size(); ++k) {
+
+                dofwi = dofw(ej,ed(j,1));
+
+            }
+
+        }
+
+    }
+
+    return Vd;
 
 };

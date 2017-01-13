@@ -278,31 +278,6 @@ int main() {
     }*/
 
 
-/*    il::Array<double> Whi{10,0.};
-    il::Array<double> a{5,0.};
-    a[0] = 0;
-    a[1] = 1;
-    a[2] = 2;
-    a[3] = 3;
-    a[4] = 4;
-
-
-    il::Array<double> b{5,0.};
-    b[0] = 5;
-    b[1] = 6;
-    b[2] = 7;
-    b[3] = 8;
-    b[4] = 9;
-
-
-    for (il::int_t n = 0, q=0; n < b.size(); ++n, q = q+2) {
-
-        Whi[q] = a[n];
-        Whi[q+1] = b[n];
-
-
-    }*/
-
 
 
 
