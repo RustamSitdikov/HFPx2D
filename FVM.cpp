@@ -445,7 +445,7 @@ il::Array2D<double> BuildVdMatrix(Mesh mesh, const double Incr_dil, const double
     Bi_quart = Quarter(Bi);
 
 
-    // Assembling the matrix-
+    // Assembling the matrix
 
     il::Array2D<double> Vd{(mesh.conn).size(0)+1, 4*((mesh.conn).size(0)), 0.};
     il::Array2D<int> ed;
