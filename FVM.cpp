@@ -116,7 +116,7 @@ il::Array2D<int> Position_2DArray(il::Array2D<int> &arr2D, double seek) {
 };
 
 
-// Auxiliary function for assembly process
+// Auxiliary function for assembly process-
 // It returns a given row (vector - specified by idx) of a 2D array
 il::Array<int> Auxiliary(il::Array2D<int> &arr, il::int_t idx){
 
