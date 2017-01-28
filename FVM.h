@@ -36,6 +36,12 @@ ShearConductivitiesNewtonian(const int Visc, Mesh mesh, il::Array2D<double> rho,
                              il::Array2D<double> &d, const double Incr_dil,
                              const double d_wd, const double Init_dil);
 
+il::Array2D<double> Build_L_matrix(Mesh mesh, il::Array2D<double> &d,
+                                   il::Array2D<double> &rho, const int Visc,
+                                   const double Incr_dil, const double d_wd,
+                                   const double Init_dil,
+                                   const double &TimeStep);
+
 il::Array2D<double> BuildVpMatrix(Mesh mesh, const double Incr_dil,
                                   const double Init_dil,
                                   const double CompressFluid,
