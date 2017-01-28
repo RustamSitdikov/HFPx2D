@@ -11,10 +11,10 @@
 // Inclusion from Inside Loop library
 #include <il/Array2D.h>
 
-namespace hfp {
+namespace hfp2d {
 
 //  FUNCTION TO CREATE A DOF HANDLE
-il::Array2D<int> dofhandle_DG2D(const int dof_dim, const int Nelts,
+il::Array2D<int> dofhandle_dg2d(const int dof_dim, const int Nelts,
                                 const int p) {
   // function creating a matrix of dof handle - for a piece-wise linear
   // variation per element (Discontinous Galerkin type)
