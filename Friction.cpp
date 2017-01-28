@@ -13,11 +13,11 @@
 // Inclusion from the project
 #include "Friction.h"
 
-namespace hfp {
+namespace hfp2d {
 
 // Function that returns an array that contain friction coefficient (according
 // to EXPONENTIAL friction weakening law)
-il::Array<double> Exp_Friction(const double Peak_fric, const double Resid_fric,
+il::Array<double> exp_friction(const double Peak_fric, const double Resid_fric,
                                const double d_wf, il::Array<double> &d) {
 
   // Inputs:
@@ -38,7 +38,7 @@ il::Array<double> Exp_Friction(const double Peak_fric, const double Resid_fric,
 
 // Function that returns an array that contain friction coefficient (according
 // to LINEAR friction weakening law)
-il::Array<double> Lin_Friction(const double Peak_fric, const double Resid_fric,
+il::Array<double> lin_friction(const double Peak_fric, const double Resid_fric,
                                const double d_wf, il::Array<double> &d) {
 
   // Inputs:
