@@ -16,9 +16,12 @@
 // Inclusion from Inside Loop library
 #include <il/linear_algebra.h>
 
-il::Array<double> ConductivitiesNewtonian(const il::Array<double> &rho,
-                                          const il::Array<double> &vector,
-                                          const il::Array<double> EltSizes,
-                                          const double Visc);
+namespace hfp2d {
+
+    il::Array<double> ConductivitiesNewtonian(const il::Array<double> &rho,
+                                              const il::Array<double> &vector,
+                                              const il::Array<double> EltSizes,
+                                              const double Visc);
+}
 
 #endif // HFPX2D_CONDUCTIVITIESNEWTONIAN_H
