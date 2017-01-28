@@ -32,7 +32,7 @@ il::Array<double> from_edge_to_col(il::Array<double> &d_edge, const int Nelts,
                                 const int dof_dim) {
 
   // Inputs:
-  //  - d_edge -> vector that contains EITHER slip OR opening at nodal points
+  //  - d_edge -> vector that contains EITHER slip OR opening at nodal points (size -> 2*Nelts)
   //  - Nelts -> number of elements
   //  - dof_dim -> degrees of freedom per nodes
 
@@ -59,10 +59,11 @@ il::Array<double> from_edge_to_col(il::Array<double> &d_edge, const int Nelts,
 
   for (il::int_t i = 0; i < Nelts; ++i) {
 
-    for (int j = 0; j < dof_dim; j = j + 2) {
+    for (il::int_t j = 0; j < dof_dim; ++j) {
 
       Fetc[A(i, 0)] = Fetc[A(i, 0)] + ShapeFunction(0, j) * d_edge[A(i, j)];
       Fetc[A(i, 1)] = Fetc[A(i, 1)] + ShapeFunction(1, j) * d_edge[A(i, j)];
+
     }
   }
 
