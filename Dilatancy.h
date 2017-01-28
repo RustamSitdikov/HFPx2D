@@ -13,12 +13,12 @@
 // Inclusion from Inside Loop library
 #include <il/linear_algebra.h>
 
-namespace hfp {
+namespace hfp2d {
 
-il::Array<double> Dilatancy(const double Init_dil, const double Incr_dil,
+il::Array<double> dilatancy(const double Init_dil, const double Incr_dil,
                             const double d_wd, il::Array<double> &d);
 
-il::Array<double> DDilatancy(const double Incr_dil, const double d_wd,
+il::Array<double> d_dilatancy(const double Incr_dil, const double d_wd,
                              il::Array<double> &d);
 }
 
