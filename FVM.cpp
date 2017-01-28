@@ -631,7 +631,12 @@ il::Array2D<double> build_vp_matrix_p0(Mesh mesh, const double Incr_dil,
   // fluid at the midpoints of each element
   il::Array<double> Cfquart{2 * (mesh.conn).size(0),
                             CompressFluid}; // Vector of compressibility of the
-  // fluid at +/- 1/4 of each element
+                                            // fluid at +/- 1/4 of each element
+
+  il::Array<double> whi{(mesh.conn).size(0), 0.};
+
+  whi = dilatancy(Init_dil, Incr_dil, d_wd,
+                  d); // wh_{i} = wh_{imid} = wh_{iquart}
 
   // Assembling the matrix
   il::Array2D<double> Vp{(mesh.conn).size(0) + 1, (mesh.conn).size(0) + 1, 0.};
@@ -663,11 +668,11 @@ il::Array2D<double> build_vp_matrix_p0(Mesh mesh, const double Incr_dil,
 
       Vp(vertices[m], vertices[m]) =
           Vp(vertices[m], vertices[m]) +
-          ((EltSizes[ej] * d[ej]) / 12) *
+          ((EltSizes[ej] * whi[ej]) / 12) *
               ((Cf[vertices[m]]) + (0.5 * Cfmid[ej]) + (3 * Cfquart[hj]));
       Vp(vertices[m], dofj) =
           Vp(vertices[m], dofj) +
-          ((EltSizes[ej] * d[ej]) / 12) * ((0.5 * Cfmid[ej]) + (Cfquart[hj]));
+          ((EltSizes[ej] * whi[ej]) / 12) * ((0.5 * Cfmid[ej]) + (Cfquart[hj]));
     }
   }
 
