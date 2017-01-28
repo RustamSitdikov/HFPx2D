@@ -25,7 +25,7 @@ namespace hfp2d {
 // Remember: piecewise linear variation over the element
 // Output: vector that contains the average values of each row (element)
 
-il::Array<double> Average(const il::Array2D<double> &d) {
+il::Array<double> average(const il::Array2D<double> &d) {
 
   il::Array<double> Average{d.size(0), 0.};
 
@@ -43,7 +43,7 @@ il::Array<double> Average(const il::Array2D<double> &d) {
 // Remember: piecewise linear variation over the element
 // Output: vector -> {slip_+1/4 , slip_+3/4}
 
-il::Array<double> Quarter(const il::Array2D<double> &d) {
+il::Array<double> quarter(const il::Array2D<double> &d) {
 
   il::Array<double> Quarter(2 * d.size(0), 0.);
 
@@ -60,7 +60,7 @@ il::Array<double> Quarter(const il::Array2D<double> &d) {
 // It returns 2x2 array with row&col of the seek value
 // It is completely general in a sense that the output can be a vector or a
 // matrix (2x2)
-il::Array2D<int> Position_2DArray(const il::Array2D<int> &arr2D, int seek) {
+il::Array2D<int> position_2d_array(const il::Array2D<int> &arr2D, int seek) {
 
   il::Array2D<il::int_t> M{arr2D.size(1) * arr2D.size(0), 2, -1};
   il::int_t k = 0;
@@ -96,7 +96,7 @@ il::Array2D<int> Position_2DArray(const il::Array2D<int> &arr2D, int seek) {
 // efficient way
 // It is completely general in a sense that the output can be a vector or a
 // matrix (2x2)
-il::Array2D<int> Search(const il::Array2D<int> &matrix, int x) {
+il::Array2D<int> search(const il::Array2D<int> &matrix, int x) {
   il::Array2D<int> ans{0, 2};
   il::int_t k = 0;
 
@@ -116,7 +116,7 @@ il::Array2D<int> Search(const il::Array2D<int> &matrix, int x) {
 
 // Auxiliary function for assembly process
 // It returns a given row (vector - specified by idx) of a 2D array
-il::Array<int> RowSelection(il::Array2D<int> &arr, il::int_t idx) {
+il::Array<int> row_selection(il::Array2D<int> &arr, il::int_t idx) {
 
   il::Array<int> vect{arr.size(1), 0.};
 
@@ -133,7 +133,7 @@ il::Array<int> RowSelection(il::Array2D<int> &arr, il::int_t idx) {
 // Functions for the coefficients of the Finite Difference Matrix "L"
 // Output: array (vector) that contains all the coefficients for each element
 il::Array<double>
-ShearConductivitiesNewtonian(const int Visc, Mesh mesh, il::Array2D<double> rho,
+shear_conductivities_newtonian(const int Visc, Mesh mesh, il::Array2D<double> rho,
                              il::Array2D<double> &d, const double Incr_dil,
                              const double d_wd, const double Init_dil) {
 
@@ -151,9 +151,9 @@ ShearConductivitiesNewtonian(const int Visc, Mesh mesh, il::Array2D<double> rho,
 
   il::Array<double> d_mid, wh_mid, rho_mid;
 
-  d_mid = Average(d);
-  wh_mid = Dilatancy(Init_dil, Incr_dil, d_wd, d_mid);
-  rho_mid = Average(rho);
+  d_mid = average(d);
+  wh_mid = dilatancy(Init_dil, Incr_dil, d_wd, d_mid);
+  rho_mid = average(rho);
 
   // create the array of element size
   il::Array<double> EltSizes{(mesh.conn).size(0), 0.};
@@ -169,14 +169,14 @@ ShearConductivitiesNewtonian(const int Visc, Mesh mesh, il::Array2D<double> rho,
 
   il::Array<double> Out{(mesh.conn).size(0), 0.};
 
-  Out = ConductivitiesNewtonian(rho_mid, wh_mid, EltSizes, Visc);
+  Out = conductivities_newtonian(rho_mid, wh_mid, EltSizes, Visc);
 
   return Out;
 };
 
 ///
 // Function that assemble the Finite Difference matrix "L"
-il::Array2D<double> Build_L_matrix(Mesh mesh, il::Array2D<double> &d,
+il::Array2D<double> build_l_matrix(Mesh mesh, il::Array2D<double> &d,
                                    il::Array2D<double> &rho, const int Visc,
                                    const double Incr_dil, const double d_wd,
                                    const double Init_dil,
@@ -196,7 +196,7 @@ il::Array2D<double> Build_L_matrix(Mesh mesh, il::Array2D<double> &d,
   //  - Finite difference matrix "L" (size -> Nnodes x Nnodes)
 
   il::Array<double> Kk;
-  Kk = ShearConductivitiesNewtonian(Visc, mesh, rho, d, Incr_dil, d_wd,
+  Kk = shear_conductivities_newtonian(Visc, mesh, rho, d, Incr_dil, d_wd,
                                     Init_dil);
 
   il::Array2D<double> LL{(mesh.conn).size(0) + 1, (mesh.conn).size(0) + 1, 0.};
@@ -209,13 +209,13 @@ il::Array2D<double> Build_L_matrix(Mesh mesh, il::Array2D<double> &d,
   // Loop over all the "inner" nodes (the boundary nodes are not included)
   for (il::int_t i = 0; i < LL.size(0); ++i) {
 
-    ed = Position_2DArray(mesh.conn, ((double)i));
+    ed = position_2d_array(mesh.conn, ((double)i));
     ni = ed.size(0);
 
     for (il::int_t j = 0; j < ni; ++j) {
 
       ej = ed(j, 0);
-      t = RowSelection(mesh.conn, ej);
+      t = row_selection(mesh.conn, ej);
 
       for (il::int_t k = 0; k < t.size(); ++k) {
 
@@ -246,7 +246,7 @@ il::Array2D<double> Build_L_matrix(Mesh mesh, il::Array2D<double> &d,
 
 ////
 // Function for assembling the Pressure matrix "Vp"
-il::Array2D<double> BuildVpMatrix(Mesh mesh, const double Incr_dil,
+il::Array2D<double> build_vp_matrix(Mesh mesh, const double Incr_dil,
                                   const double Init_dil,
                                   const double CompressFluid,
                                   il::Array2D<double> &d, const double d_wd) {
@@ -317,8 +317,8 @@ il::Array2D<double> BuildVpMatrix(Mesh mesh, const double Incr_dil,
   il::Array<double> whi_left{(mesh.conn).size(0), 0.},
       whi_right{(mesh.conn).size(0), 0.};
 
-  whi_left = Dilatancy(Init_dil, Incr_dil, d_wd, d_left);
-  whi_right = Dilatancy(Init_dil, Incr_dil, d_wd, d_right);
+  whi_left = dilatancy(Init_dil, Incr_dil, d_wd, d_left);
+  whi_right = dilatancy(Init_dil, Incr_dil, d_wd, d_right);
 
   il::Array2D<double> whi{(mesh.conn).size(0), 2, 0.};
 
@@ -329,10 +329,10 @@ il::Array2D<double> BuildVpMatrix(Mesh mesh, const double Incr_dil,
   }
 
   il::Array<double> whi_mid{(mesh.conn).size(0), 0.};
-  whi_mid = Average(whi);
+  whi_mid = average(whi);
 
   il::Array<double> wquart{2 * (mesh.conn).size(0), 0.};
-  wquart = Quarter(whi);
+  wquart = quarter(whi);
 
   // Assembling the matrix
   il::Array2D<double> Vp{(mesh.conn).size(0) + 1, (mesh.conn).size(0) + 1, 0.};
@@ -354,15 +354,15 @@ il::Array2D<double> BuildVpMatrix(Mesh mesh, const double Incr_dil,
 
   for (il::int_t m = 0; m < Vp.size(0); ++m) {
 
-    ed = Position_2DArray(mesh.conn, ((double)m));
-    hi = Position_2DArray(h, ((double)(2 * m)));
+    ed = position_2d_array(mesh.conn, ((double)m));
+    hi = position_2d_array(h, ((double)(2 * m)));
     ni = ed.size(0);
 
     for (il::int_t i = 0; i < ni; ++i) {
 
       ej = ed(i, 0);
       hj = hi(i, 0);
-      t = RowSelection(mesh.conn, ej);
+      t = row_selection(mesh.conn, ej);
 
       for (il::int_t j = 0; j < t.size(); ++j) {
 
@@ -388,7 +388,7 @@ il::Array2D<double> BuildVpMatrix(Mesh mesh, const double Incr_dil,
 
 ///
 // Function for assembling the Mass matrix "Vd"
-il::Array2D<double> BuildVdMatrix(Mesh mesh, const double Incr_dil,
+il::Array2D<double> build_vd_matrix(Mesh mesh, const double Incr_dil,
                                   const double d_wd, il::Array2D<int> &Dof,
                                   il::Array2D<double> rho,
                                   il::Array2D<double> &d) {
@@ -447,8 +447,8 @@ il::Array2D<double> BuildVdMatrix(Mesh mesh, const double Incr_dil,
   il::Array<double> rho_mid{(mesh.conn).size(0), 0.};
   il::Array<double> rho_quart{2 * (mesh.conn).size(0), 0.};
 
-  rho_mid = Average(rho);
-  rho_quart = Quarter(rho);
+  rho_mid = average(rho);
+  rho_quart = quarter(rho);
 
   il::Array<double> d_left{(mesh.conn).size(0), 0.};
   for (il::int_t k = 0; k < d_left.size(); ++k) {
@@ -465,8 +465,8 @@ il::Array2D<double> BuildVdMatrix(Mesh mesh, const double Incr_dil,
   il::Array<double> Bi_left{(mesh.conn).size(0), 0.},
       Bi_right{(mesh.conn).size(0), 0.};
 
-  Bi_left = DDilatancy(Incr_dil, d_wd, d_left);
-  Bi_right = DDilatancy(Incr_dil, d_wd, d_right);
+  Bi_left = d_dilatancy(Incr_dil, d_wd, d_left);
+  Bi_right = d_dilatancy(Incr_dil, d_wd, d_right);
 
   il::Array2D<double> Bi{(mesh.conn).size(0), 2, 0.};
 
@@ -477,10 +477,10 @@ il::Array2D<double> BuildVdMatrix(Mesh mesh, const double Incr_dil,
   }
 
   il::Array<double> Bi_mid{(mesh.conn).size(0), 0.};
-  Bi_mid = Average(Bi);
+  Bi_mid = average(Bi);
 
   il::Array<double> Bi_quart{2 * (mesh.conn).size(0), 0.};
-  Bi_quart = Quarter(Bi);
+  Bi_quart = quarter(Bi);
 
   // Assembling the matrix
 
@@ -515,8 +515,8 @@ il::Array2D<double> BuildVdMatrix(Mesh mesh, const double Incr_dil,
 
   for (il::int_t i = 0; i < Vd.size(0); ++i) {
 
-    ed = Position_2DArray(mesh.conn, ((double)i));
-    hi = Position_2DArray(h, ((double)(2 * i)));
+    ed = position_2d_array(mesh.conn, ((double)i));
+    hi = position_2d_array(h, ((double)(2 * i)));
     ni = ed.size(0);
 
     for (il::int_t j = 0; j < ni; ++j) {
@@ -526,7 +526,7 @@ il::Array2D<double> BuildVdMatrix(Mesh mesh, const double Incr_dil,
 
       dofwi = dofw(ej, ed(j, 1));
 
-      t = RowSelection(dofw, ej);
+      t = row_selection(dofw, ej);
 
       for (il::int_t k = 0; k < t.size(); ++k) {
 
