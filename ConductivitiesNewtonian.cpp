@@ -16,7 +16,7 @@
 namespace hfp2d {
 
 // Output: array (vector) that contains volume of fluid for each element
-    il::Array<double> ConductivitiesNewtonian(const il::Array<double> &rho,
+    il::Array<double> conductivities_newtonian(const il::Array<double> &rho,
                                               const il::Array<double> &vector,
                                               const il::Array<double> EltSizes,
                                               const double Visc) {

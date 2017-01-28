@@ -18,7 +18,7 @@
 
 namespace hfp2d {
 
-    il::Array<double> ConductivitiesNewtonian(const il::Array<double> &rho,
+    il::Array<double> conductivities_newtonian(const il::Array<double> &rho,
                                               const il::Array<double> &vector,
                                               const il::Array<double> EltSizes,
                                               const double Visc);
