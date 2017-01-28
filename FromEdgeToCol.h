@@ -16,9 +16,9 @@
 // Inclusion from Inside Loop library
 #include <il/linear_algebra.h>
 
-namespace hfp {
+namespace hfp2d {
 
-il::Array<double> FromEdgeToCol(il::Array<double> &d_edge, const int Nelts,
+il::Array<double> from_edge_to_col(il::Array<double> &d_edge, const int Nelts,
                                 const int dof_dim);
 }
 

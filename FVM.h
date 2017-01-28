@@ -21,33 +21,33 @@
 
 namespace hfp2d {
 
-il::Array<double> Average(const il::Array2D<double> &d);
+il::Array<double> average(const il::Array2D<double> &d);
 
-il::Array<double> Quarter(const il::Array2D<double> &d);
+il::Array<double> quarter(const il::Array2D<double> &d);
 
-il::Array2D<int> Position_2DArray(const il::Array2D<int> &arr2D, int seek);
+il::Array2D<int> position_2d_array(const il::Array2D<int> &arr2D, int seek);
 
-il::Array2D<int> Search(const il::Array2D<int> &matrix, int x);
+il::Array2D<int> search(const il::Array2D<int> &matrix, int x);
 
-il::Array<int> RowSelection(il::Array2D<int> &arr, il::int_t idx);
+il::Array<int> row_selection(il::Array2D<int> &arr, il::int_t idx);
 
 il::Array<double>
-ShearConductivitiesNewtonian(const int Visc, Mesh mesh, il::Array2D<double> rho,
+shear_conductivities_newtonian(const int Visc, Mesh mesh, il::Array2D<double> rho,
                              il::Array2D<double> &d, const double Incr_dil,
                              const double d_wd, const double Init_dil);
 
-il::Array2D<double> Build_L_matrix(Mesh mesh, il::Array2D<double> &d,
+il::Array2D<double> build_l_matrix(Mesh mesh, il::Array2D<double> &d,
                                    il::Array2D<double> &rho, const int Visc,
                                    const double Incr_dil, const double d_wd,
                                    const double Init_dil,
                                    const double &TimeStep);
 
-il::Array2D<double> BuildVpMatrix(Mesh mesh, const double Incr_dil,
+il::Array2D<double> build_vp_matrix(Mesh mesh, const double Incr_dil,
                                   const double Init_dil,
                                   const double CompressFluid,
                                   il::Array2D<double> &d, const double d_wd);
 
-il::Array2D<double> BuildVdMatrix(Mesh mesh, const double Incr_dil,
+il::Array2D<double> build_vd_matrix(Mesh mesh, const double Incr_dil,
                                   const double d_wd, il::Array2D<int> &Dof,
                                   il::Array2D<double> rho,
                                   il::Array2D<double> &d);

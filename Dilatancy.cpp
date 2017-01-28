@@ -13,11 +13,11 @@
 // Inclusion from the project
 #include "Dilatancy.h"
 
-namespace hfp {
+namespace hfp2d {
 
 // Function that returns an array that contain dilatancy values (according to
 // exponential dilatant hardening law)
-il::Array<double> Dilatancy(const double Init_dil, const double Incr_dil,
+il::Array<double> dilatancy(const double Init_dil, const double Incr_dil,
                             const double d_wd, il::Array<double> &d) {
 
   // Inputs:
@@ -39,7 +39,7 @@ il::Array<double> Dilatancy(const double Init_dil, const double Incr_dil,
 
 // Function that returns an array that contain the derivative w.r.t slip of
 // dilatancy values (according to exponential dilatant hardening law)
-il::Array<double> DDilatancy(const double Incr_dil, const double d_wd,
+il::Array<double> d_dilatancy(const double Incr_dil, const double d_wd,
                              il::Array<double> &d) {
 
   // Inputs:

@@ -13,12 +13,12 @@
 // Inclusion from Inside Loop library
 #include <il/linear_algebra.h>
 
-namespace hfp {
+namespace hfp2d {
 
-il::Array<double> Exp_Friction(const double Peak_fric, const double Resid_fric,
+il::Array<double> exp_friction(const double Peak_fric, const double Resid_fric,
                                const double d_wf, il::Array<double> &d);
 
-il::Array<double> Lin_Friction(const double Peak_fric, const double Resid_fric,
+il::Array<double> lin_friction(const double Peak_fric, const double Resid_fric,
                                const double d_wf, il::Array<double> &d);
 }
 

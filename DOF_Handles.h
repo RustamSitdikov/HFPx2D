@@ -13,10 +13,10 @@
 // Inclusion from Inside Loop library
 #include <il/Array2D.h>
 
-namespace hfp {
+namespace hfp2d {
 
     il::Array2D<int>
-    dofhandle_DG2D(const int dof_dim, const int Nelts, const int p);
+    dofhandle_dg2d(const int dof_dim, const int Nelts, const int p);
 
 }
 
