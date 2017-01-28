@@ -11,9 +11,9 @@
 #include <iostream>
 
 // Inclusion from the project
+#include "ConductivitiesNewtonian.h"
 #include "Dilatancy.h"
 #include "FVM.h"
-#include "ConductivitiesNewtonian.h"
 #include "Mesh.h"
 
 namespace hfp2d {
@@ -132,10 +132,9 @@ il::Array<int> row_selection(il::Array2D<int> &arr, il::int_t idx) {
 
 // Functions for the coefficients of the Finite Difference Matrix "L"
 // Output: array (vector) that contains all the coefficients for each element
-il::Array<double>
-shear_conductivities_newtonian(const int Visc, Mesh mesh, il::Array2D<double> rho,
-                             il::Array2D<double> &d, const double Incr_dil,
-                             const double d_wd, const double Init_dil) {
+il::Array<double> shear_conductivities_newtonian(
+    const int Visc, Mesh mesh, il::Array2D<double> rho, il::Array2D<double> &d,
+    const double Incr_dil, const double d_wd, const double Init_dil) {
 
   // Inputs:
   //  - Visc -> fluid viscosity (floating point value)
@@ -184,10 +183,13 @@ il::Array2D<double> build_l_matrix(Mesh mesh, il::Array2D<double> &d,
 
   // Inputs:
   //  - mesh -> mesh class
-  //  - d -> matrix of shear DD or opening DD at nodes {{d1_left,d1_right},{d2_left,d2_right}..} (size -> Nelts x 2)
-  //  - rho -> matrix of fluid density  {{rho1_left,rho1_right},{rho2_left,rho2_right}..} (size -> Nelts x 2)
+  //  - d -> matrix of shear DD or opening DD at nodes
+  //  {{d1_left,d1_right},{d2_left,d2_right}..} (size -> Nelts x 2)
+  //  - rho -> matrix of fluid density
+  //  {{rho1_left,rho1_right},{rho2_left,rho2_right}..} (size -> Nelts x 2)
   //  - Visc -> fluid viscosity (floating point value)
-  //  - Incr_dil -> Increment of dilatancy (difference between residual/peak dilatancy and initial dilatancy value
+  //  - Incr_dil -> Increment of dilatancy (difference between residual/peak
+  //  dilatancy and initial dilatancy value
   //  - d_wd ->  slip dw for scaling (see dilatancy law in the report)
   //  - Init_dil -> Initial value of dilatancy
   //  - TimeStep -> time step
@@ -197,7 +199,7 @@ il::Array2D<double> build_l_matrix(Mesh mesh, il::Array2D<double> &d,
 
   il::Array<double> Kk;
   Kk = shear_conductivities_newtonian(Visc, mesh, rho, d, Incr_dil, d_wd,
-                                    Init_dil);
+                                      Init_dil);
 
   il::Array2D<double> LL{(mesh.conn).size(0) + 1, (mesh.conn).size(0) + 1, 0.};
   il::Array2D<int> ed;
@@ -245,22 +247,27 @@ il::Array2D<double> build_l_matrix(Mesh mesh, il::Array2D<double> &d,
 };
 
 ////
-// Function for assembling the Pressure matrix "Vp"
-il::Array2D<double> build_vp_matrix(Mesh mesh, const double Incr_dil,
-                                  const double Init_dil,
-                                  const double CompressFluid,
-                                  il::Array2D<double> &d, const double d_wd) {
+// Function for assembling the Pressure matrix "Vp" for piecewise LINEAR DDs
+// (p = 1)
+il::Array2D<double> build_vp_matrix_p1(Mesh mesh, const double Incr_dil,
+                                       const double Init_dil,
+                                       const double CompressFluid,
+                                       il::Array2D<double> &d,
+                                       const double d_wd) {
 
-     // Inputs:
-     //  - mesh -> mesh class
-     //  - Incr_dil -> Increment of dilatancy (difference between residual/peak dilatancy and initial dilatancy value
-     //  - Init_dil -> Initial value of dilatancy
-     //  - CompressFluid -> Fluid compressibility (floating point value)
-     //  - d -> matrix of shear DD at nodes {{d1_left, d1_right},{d2_left, d2_right}..} (size -> Nelts x 2)
-     //  - d_wd -> slip dw for scaling (see dilatancy law in the report)
+  // Inputs:
+  //  - mesh -> mesh class
+  //  - Incr_dil -> Increment of dilatancy (difference between residual/peak
+  //  dilatancy and initial dilatancy value
+  //  - Init_dil -> Initial value of dilatancy
+  //  - CompressFluid -> Fluid compressibility (floating point value)
+  //  - d -> matrix of shear DD at nodes {{d1_left, d1_right},{d2_left,
+  //  d2_right}..} (size -> Nelts x 2)
+  //  - d_wd -> slip dw for scaling (see dilatancy law in the report)
 
-     // Output:
-     //  - Pressure matrix "Vp", whose size is Nnodes x Nnodes. It is a four banded diagonal matrix
+  // Output:
+  //  - Pressure matrix "Vp", whose size is Nnodes x Nnodes. It is a four banded
+  //  diagonal matrix
 
   // Create an auxiliary vector for the assembling
   il::Array2D<int> h{2 * (mesh.conn).size(0) + 1, 2, 0};
@@ -385,24 +392,28 @@ il::Array2D<double> build_vp_matrix(Mesh mesh, const double Incr_dil,
   return Vp;
 };
 
-
 ///
-// Function for assembling the Mass matrix "Vd"
-il::Array2D<double> build_vd_matrix(Mesh mesh, const double Incr_dil,
-                                  const double d_wd, il::Array2D<int> &Dof,
-                                  il::Array2D<double> rho,
-                                  il::Array2D<double> &d) {
+// Function for assembling the Mass matrix "Vd" for piecewise LINEAR DDs (p = 1)
+il::Array2D<double> build_vd_matrix_p1(Mesh mesh, const double Incr_dil,
+                                       const double d_wd, il::Array2D<int> &Dof,
+                                       il::Array2D<double> rho,
+                                       il::Array2D<double> &d) {
 
-   // Inputs:
-   //  - mesh -> mesh class
-   //  - Incr_dil -> Increment of dilatancy (difference between residual/peak dilatancy and initial dilatancy value
-   //  - d_wd -> slip dw for scaling (see dilatancy law in the report)
-   //  - Dof -> matrix that contains all the degrees of freedom (Remember 4 DOFs per element {shear_i,normal_i,shear_j,normal_j}) (size -> Nelts x 4)
-   //  - rho -> matrix of fluid density  {{rho1_left,rho1_right},{rho2_left,rho2_right}..} (size -> Nelts x 2)
-   //  - d -> matrix of shear DD at nodes {{d1_left, d1_right},{d2_left, d2_right}..} (size -> Nelts x 2)
+  // Inputs:
+  //  - mesh -> mesh class
+  //  - Incr_dil -> Increment of dilatancy (difference between residual/peak
+  //  dilatancy and initial dilatancy value
+  //  - d_wd -> slip dw for scaling (see dilatancy law in the report)
+  //  - Dof -> matrix that contains all the degrees of freedom (Remember 4 DOFs
+  //  per element {shear_i,normal_i,shear_j,normal_j}) (size -> Nelts x 4)
+  //  - rho -> matrix of fluid density
+  //  {{rho1_left,rho1_right},{rho2_left,rho2_right}..} (size -> Nelts x 2)
+  //  - d -> matrix of shear DD at nodes {{d1_left, d1_right},{d2_left,
+  //  d2_right}..} (size -> Nelts x 2)
 
-   // Output:
-   //  - Mass matrix "Vd". (size -> Nnodes x 2*Nelts). It is a four banded diagonal matrix
+  // Output:
+  //  - Mass matrix "Vd". (size -> Nnodes x 2*Nelts). It is a four banded
+  //  diagonal matrix
 
   // Create an auxiliary vector for the assembling
   il::Array2D<int> h{2 * (mesh.conn).size(0) + 1, 2, 0};
@@ -543,6 +554,253 @@ il::Array2D<double> build_vd_matrix(Mesh mesh, const double Incr_dil,
           Vd(vertices[i], dofwj) +
           (EltSizes[ej] / 12) * ((0.5 * rho_mid[ej] * Bi_mid[ej]) +
                                  (rho_quart[hj] * Bi_quart[hj]));
+    }
+  }
+
+  // Taking finally only the shear related contributions...
+  il::Array2D<double> VD{Vd.size(0), Vd.size(1) / 2, 0.};
+
+  for (il::int_t n = 0; n < VD.size(0); ++n) {
+
+    for (il::int_t i = 0, q = 0; i < Vd.size(1); ++i, q = q + 2) {
+
+      VD(n, i) = Vd(n, q);
+    }
+  }
+
+  return VD;
+};
+
+////
+// Function for assembling the Pressure matrix "Vp" for piecewise CONSTANT DDs
+// (p = 0)
+il::Array2D<double> build_vp_matrix_p0(Mesh mesh, const double Incr_dil,
+                                       const double Init_dil,
+                                       const double CompressFluid,
+                                       il::Array<double> &d,
+                                       const double d_wd) {
+
+  // Inputs:
+  //  - mesh -> mesh class
+  //  - Incr_dil -> Increment of dilatancy (difference between residual/peak
+  //  dilatancy and initial dilatancy value
+  //  - Init_dil -> Initial value of dilatancy
+  //  - CompressFluid -> Fluid compressibility (floating point value)
+  //  - d -> vector of shear DD for each element (Remember: piecewise CONSTANT
+  //  DDs, so d_{i} = d_{i+1/2} = d_{i+1/4})  (size -> Nelts)
+  //  - d_wd -> slip dw for scaling (see dilatancy law in the report)
+
+  // Output:
+  //  - Pressure matrix "Vp", whose size is Nnodes x Nnodes. It is a four banded
+  //  diagonal matrix
+
+  // Create an auxiliary vector for the assembling
+  il::Array2D<int> h{2 * (mesh.conn).size(0) + 1, 2, 0};
+
+  for (il::int_t i = 0; i < h.size(0); ++i) {
+
+    h(i, 0) = i;
+    h(i, 1) = i + 1;
+  }
+
+  // mesh nodes {0,1,2,3..}
+  il::Array<int> vertices{(mesh.conn).size(0) + 1, 0};
+  for (il::int_t j = 0; j < vertices.size(); ++j) {
+
+    vertices[j] = j;
+  }
+
+  // create the array of element size
+  il::Array<double> EltSizes{(mesh.conn).size(0), 0.};
+
+  for (il::int_t i = 0; i < EltSizes.size(); ++i) {
+
+    for (il::int_t j = 0; j < (mesh.conn).size(1); ++j) {
+
+      EltSizes[i] =
+          fabs(fabs(EltSizes[i]) - fabs(mesh.Coor(mesh.conn(i, j), 0)));
+    }
+  }
+
+  // Create all the vectors for compressibility of fluid
+  il::Array<double> Cf{
+      vertices.size(),
+      CompressFluid}; // Vector of compressibility of the fluid at nodal points
+  il::Array<double> Cfmid{(mesh.conn).size(0),
+                          CompressFluid}; // Vector of compressibility of the
+  // fluid at the midpoints of each element
+  il::Array<double> Cfquart{2 * (mesh.conn).size(0),
+                            CompressFluid}; // Vector of compressibility of the
+  // fluid at +/- 1/4 of each element
+
+  // Assembling the matrix
+  il::Array2D<double> Vp{(mesh.conn).size(0) + 1, (mesh.conn).size(0) + 1, 0.};
+  il::Array2D<int> ed;
+  il::Array2D<int> hi;
+  il::int_t ni;
+  il::int_t ej;
+  il::int_t hj;
+  il::int_t dofj;
+  il::Array<int> t;
+
+  for (il::int_t m = 0; m < Vp.size(0); ++m) {
+
+    ed = position_2d_array(mesh.conn, ((double)m));
+    hi = position_2d_array(h, ((double)(2 * m)));
+    ni = ed.size(0);
+
+    for (il::int_t i = 0; i < ni; ++i) {
+
+      ej = ed(i, 0);
+      hj = hi(i, 0);
+      t = row_selection(mesh.conn, ej);
+
+      for (il::int_t j = 0; j < t.size(); ++j) {
+
+        if (t[j] != vertices[m])
+          dofj = t[j];
+      }
+
+      Vp(vertices[m], vertices[m]) =
+          Vp(vertices[m], vertices[m]) +
+          ((EltSizes[ej] * d[ej]) / 12) *
+              ((Cf[vertices[m]]) + (0.5 * Cfmid[ej]) + (3 * Cfquart[hj]));
+      Vp(vertices[m], dofj) =
+          Vp(vertices[m], dofj) +
+          ((EltSizes[ej] * d[ej]) / 12) * ((0.5 * Cfmid[ej]) + (Cfquart[hj]));
+    }
+  }
+
+  return Vp;
+};
+
+///
+// Function for assembling the Mass matrix "Vd" for piecewise CONSTANT DDs
+// (p = 0)
+il::Array2D<double> build_vd_matrix_p0(Mesh mesh, const double Incr_dil,
+                                       const double d_wd, il::Array2D<int> &Dof,
+                                       il::Array2D<double> rho,
+                                       il::Array<double> &d) {
+
+  // Inputs:
+  //  - mesh -> mesh class
+  //  - Incr_dil -> Increment of dilatancy (difference between residual/peak
+  //  dilatancy and initial dilatancy value
+  //  - d_wd -> slip dw for scaling (see dilatancy law in the report)
+  //  - Dof -> matrix that contains all the degrees of freedom (Remember 4 DOFs
+  //  per element {shear_i,normal_i,shear_j,normal_j}) (size -> Nelts x 4)
+  //  - rho -> matrix of fluid density
+  //  {{rho1_left,rho1_right},{rho2_left,rho2_right}..} (size -> Nelts x 2)
+  //  - d -> vector of shear DD for each element (Remember: piecewise CONSTANT
+  //  DDs, so d_{i} = d_{i+1/2} = d_{i+1/4})  (size -> Nelts)
+
+  // Output:
+  //  - Mass matrix "Vd". (size -> Nnodes x 2*Nelts). It is a four banded
+  //  diagonal matrix
+
+  // Create an auxiliary vector for the assembling
+  il::Array2D<int> h{2 * (mesh.conn).size(0) + 1, 2, 0};
+
+  for (il::int_t i = 0; i < h.size(0); ++i) {
+
+    h(i, 0) = i;
+    h(i, 1) = i + 1;
+  }
+
+  // mesh nodes {0,1,2,3..}
+  il::Array<int> vertices{(mesh.conn).size(0) + 1, 0};
+  for (il::int_t j = 0; j < vertices.size(); ++j) {
+
+    vertices[j] = j;
+  }
+
+  // create the array of element size
+  il::Array<double> EltSizes{(mesh.conn).size(0), 0.};
+
+  for (il::int_t i = 0; i < EltSizes.size(); ++i) {
+
+    for (il::int_t j = 0; j < (mesh.conn).size(1); ++j) {
+
+      EltSizes[i] =
+          fabs(fabs(EltSizes[i]) - fabs(mesh.Coor(mesh.conn(i, j), 0)));
+    }
+  }
+
+  // Create the matrix of dof for just shear DD
+  // Remember: 4 DOFs per element {shear_i, normal_i, shear_j, normal_j}
+  il::Array2D<int> dofw{(mesh.conn).size(0), 2, 0.};
+
+  for (il::int_t k = 0; k < dofw.size(0); ++k) {
+
+    for (il::int_t i = 0, q = 0; i < dofw.size(1); ++i, q = q + 2) {
+
+      dofw(k, i) = Dof(k, q);
+    }
+  }
+
+  il::Array<double> rho_mid{(mesh.conn).size(0), 0.};
+  il::Array<double> rho_quart{2 * (mesh.conn).size(0), 0.};
+
+  rho_mid = average(rho);
+  rho_quart = quarter(rho);
+
+  il::Array<double> Bi{(mesh.conn).size(0), 0.};
+
+  Bi = d_dilatancy(Incr_dil, d_wd, d); // B_{i} = B_{imid} = B_{iquart}
+
+  // Assembling the matrix
+
+  il::Array2D<double> Vd{(mesh.conn).size(0) + 1, 4 * ((mesh.conn).size(0)),
+                         0.};
+  il::Array2D<int> ed;
+  il::Array2D<int> hi;
+  il::int_t ni;
+  il::int_t ej;
+  il::int_t hj;
+  il::Array<int> t;
+
+  il::int_t dofwi;
+  il::int_t dofwj;
+
+  il::Array<double> Rho{2 * (mesh.conn).size(0),
+                        0.}; // We need for the assembling
+                             //  il::Array<double> BI{2 * (mesh.conn).size(0),
+  //                       0.}; // We need for the assembling
+
+  for (il::int_t m = 0, q = 0; m < rho.size(0); ++m, q = q + 2) {
+
+    Rho[q] = rho(m, 0);
+    Rho[q + 1] = rho(m, 1);
+  }
+
+  for (il::int_t i = 0; i < Vd.size(0); ++i) {
+
+    ed = position_2d_array(mesh.conn, ((double)i));
+    hi = position_2d_array(h, ((double)(2 * i)));
+    ni = ed.size(0);
+
+    for (il::int_t j = 0; j < ni; ++j) {
+
+      ej = ed(j, 0);
+      hj = hi(j, 0);
+
+      dofwi = dofw(ej, ed(j, 1));
+
+      t = row_selection(dofw, ej);
+
+      for (il::int_t k = 0; k < t.size(); ++k) {
+
+        if (t[k] != dofwi)
+          dofwj = t[k];
+      }
+
+      Vd(vertices[i], dofwi) =
+          Vd(vertices[i], dofwi) +
+          ((EltSizes[ej] * Bi[ej]) / 12) *
+              ((Rho[hj]) + (0.5 * rho_mid[ej]) + (3 * rho_quart[hj]));
+      Vd(vertices[i], dofwj) = Vd(vertices[i], dofwj) +
+                               ((EltSizes[ej] * Bi[ej]) / 12) *
+                                   ((0.5 * rho_mid[ej]) + (rho_quart[hj]));
     }
   }
 
