@@ -104,7 +104,7 @@ void basic_assembly(il::Array2D<double> &Kmat, Mesh mesh, il::Array2D<int> id,
         }
         xcol = il::dot(R, xcol);
 
-        NormalShearStressKernel_LinearDD(stnl, xcol, mysege.size, sec, nec, Ep);
+        normal_shear_stress_kernel_linear_dd(stnl, xcol, mysege.size, sec, nec, Ep);
         //
 
         set_submatrix(Kmat, dofc[2 * ic], dofe[0], stnl);
