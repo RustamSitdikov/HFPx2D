@@ -18,7 +18,7 @@
 #include "DOF_Handles.h"
 #include "FromEdgeToCol.h"
 
-namespace hfp {
+namespace hfp2d {
 
 // Function which allow us to switch from end points (two values per node ->
 // dof_dim = 2) to collocation points
@@ -28,7 +28,7 @@ namespace hfp {
 // It returns an array (vector) that includes EITHER shear (slip) OR opening at
 // collocation points
 
-il::Array<double> FromEdgeToCol(il::Array<double> &d_edge, const int Nelts,
+il::Array<double> from_edge_to_col(il::Array<double> &d_edge, const int Nelts,
                                 const int dof_dim) {
 
   // Inputs:
