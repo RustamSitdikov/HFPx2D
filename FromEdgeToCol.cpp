@@ -60,12 +60,14 @@ il::Array2D<double> from_edge_to_col(const int Nelts, const int dof_dim) {
 
     for (il::int_t j = 0; j < dof_dim; ++j) {
 
-      Fetc(k, A(i, j)) = ShapeFunction(0, j);
-      Fetc(q, A(i, j)) = ShapeFunction(1, j);
+        Fetc(k, A(i, j)) = ShapeFunction(0, j);
+        Fetc(q, A(i, j)) = ShapeFunction(1, j);
+
     }
 
-    k = 2*k;
-    q = 2*q - 1;
+    k = k + 2;
+    q = q + 2;
+
   }
 
   return Fetc;
