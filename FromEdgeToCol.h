@@ -18,8 +18,7 @@
 
 namespace hfp2d {
 
-il::Array<double> from_edge_to_col(il::Array<double> &d_edge, const int Nelts,
-                                const int dof_dim);
+il::Array2D<double> from_edge_to_col(const int Nelts, const int dof_dim);
 }
 
 #endif // HFPX2D_FROMEDGETOCOL_H

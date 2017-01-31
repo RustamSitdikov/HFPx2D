@@ -25,18 +25,17 @@ namespace hfp2d {
 // Remember: the elasticity is evaluated at collocation points
 // The collocation points are located in the reference unit element at location
 // {-1/sqrt(2) , +1/sqrt(2)}
-// It returns an array (vector) that includes EITHER shear (slip) OR opening at
-// collocation points
+// It returns a matrix (size 2Nelts x 2Nelts) that, if multiplied by nodal
+// slip OR opening vector (size 2Nelts), it returns the slip OR opening vector
+// at collocation points
 
-il::Array<double> from_edge_to_col(il::Array<double> &d_edge, const int Nelts,
-                                const int dof_dim) {
+il::Array2D<double> from_edge_to_col(const int Nelts, const int dof_dim) {
 
   // Inputs:
-  //  - d_edge -> vector that contains EITHER slip OR opening at nodal points (size -> 2*Nelts)
   //  - Nelts -> number of elements
   //  - dof_dim -> degrees of freedom per nodes
 
-  il::Array<double> Fetc{d_edge.size(), 0.};
+  il::Array2D<double> Fetc{2 * Nelts, 2 * Nelts, 0.};
   il::Array2D<double> ShapeFunction{2, 2, .0};
 
   ShapeFunction(0, 0) = (1 + (1 / sqrt(2))) / 2;
@@ -57,14 +56,16 @@ il::Array<double> from_edge_to_col(il::Array<double> &d_edge, const int Nelts,
     }
   }
 
-  for (il::int_t i = 0; i < Nelts; ++i) {
+  for (il::int_t i = 0, k = 0, q = 1; i < Nelts; ++i) {
 
     for (il::int_t j = 0; j < dof_dim; ++j) {
 
-      Fetc[A(i, 0)] = Fetc[A(i, 0)] + ShapeFunction(0, j) * d_edge[A(i, j)];
-      Fetc[A(i, 1)] = Fetc[A(i, 1)] + ShapeFunction(1, j) * d_edge[A(i, j)];
-
+      Fetc(k, A(i, j)) = ShapeFunction(0, j);
+      Fetc(q, A(i, j)) = ShapeFunction(1, j);
     }
+
+    k = k + 2;
+    q = q + 2;
   }
 
   return Fetc;
