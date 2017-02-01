@@ -40,7 +40,7 @@ namespace hfp2d {
  *     - tot_stress_state -> array (matrix) of total stress for each time step
  *     - incr_d ->  matrix of increment of slip
  *     - P ->  vector of pore pressure profile at nodal points for each time
- * step
+ *             step
  *     - iter -> number of iterations for each time step to satisfy MC
  *     - final_slip_points -> vector of final slip points per each time step
  *     - t -> current time
@@ -526,6 +526,10 @@ Result elhds(Result SolutionAtTj, Mesh mesh, const int p, const double Cohes,
 ///// OTHER UTILITIES /////
 
 /// 1
+// This routine turns a 2D array of double precision values into a vector of
+// double precision values.
+// Input:
+//   - Arr -> 2D array that we want to "flat"
 il::Array<double> flatten1(il::Array2D<double> &Arr) {
 
   il::Array2D<int> A{Arr.size(0), 2, 0};
@@ -554,6 +558,10 @@ il::Array<double> flatten1(il::Array2D<double> &Arr) {
 }
 
 /// 2
+// This routine turns a 2D array of integer values into a vector of
+// integer values.
+// Input:
+//   - Arr -> 2D array that we want to "flat"
 il::Array<int> flatten2(il::Array2D<int> &Arr) {
 
   il::Array2D<int> A{Arr.size(0), 2, 0};
@@ -582,11 +590,19 @@ il::Array<int> flatten2(il::Array2D<int> &Arr) {
 }
 
 /// 3
+// This function returns an integer which represents the number of collocation
+// points that satisfy the Mohr-Coulomb criterion
+// Inputs:
+//  - tau -> vector of shear stress at each collocation point
+//  - sigma_n -> vector of normal stress at each collocation point
+//  - fric -> vector of friction coefficient at each collocation point
+//  - Cohes -> cohesion (double precision value)
+//  - NCollPoints -> number of collocation points
 int boole_mc(il::Array<double> tau, il::Array<double> sigma_n,
              il::Array<double> fric, const double Cohes,
              const il::int_t NCollPoints) {
 
-  il::Array<int> T{tau.size(), 0};
+  il::Array<int> T{NCollPoints, 0};
   int out;
 
   for (il::int_t i = 0; i < NCollPoints; ++i) {
@@ -609,6 +625,11 @@ int boole_mc(il::Array<double> tau, il::Array<double> sigma_n,
 }
 
 /// 4
+// This function extracts the integer values greater (or equal) to 0 in a
+// vector composed of integer values
+// Input:
+//  - arr -> vector in which we want to extract the values >=0
+// It is general in a sense that the output can be either a vector or an integers
 il::Array<int> select(il::Array<int> &arr) {
 
   il::Array<int> ans{0};
@@ -629,6 +650,13 @@ il::Array<int> select(il::Array<int> &arr) {
 };
 
 /// 5
+// This function allows us to set a submatrix of the A matrix as B matrix
+// Inputs:
+//  - A -> matrix in which we want to set the submatrix
+//  - i0 -> initial row index in the A matrix where we want to set the submatrix
+//  - i1 -> initial column index in the A matrix where we want to set
+//          the submatrix
+//  - B -> submatrix
 void set_submatrix_non_linear_system(il::Array2D<double> &A, int i0, int i1,
                                      const il::Array2D<double> &B) {
 
@@ -643,6 +671,11 @@ void set_submatrix_non_linear_system(il::Array2D<double> &A, int i0, int i1,
 }
 
 /// 6
+// This function allows us to set a subvector of the A vector as B vector
+// Inputs:
+//  - A -> vector in which we want to set the subvector
+//  - i0 -> initial index in the A vector where we want to set the subvector
+//  - B -> subvector
 void set_subvector_non_linear_system(il::Array<double> &A, int i0,
                                      const il::Array<double> &B) {
 
@@ -654,6 +687,13 @@ void set_subvector_non_linear_system(il::Array<double> &A, int i0,
 }
 
 /// 7
+// This function allows us to extract a submatrix from the A matrix
+// Inputs:
+//  - i0 -> initial row index where we want to extract the submatrix
+//  - i1 -> final row index where we want to extract the submatrix
+//  - j0 -> initial column index where we want to extract the submatrix
+//  - j1 -> final column index where we want to extract the submatrix
+//  - A -> matrix in which we want to extract the submatrix
 il::Array2D<double>
 take_submatrix_non_linear_system(int i0, int i1, int j0, int j1,
                                  const il::Array2D<double> &A) {
@@ -669,6 +709,11 @@ take_submatrix_non_linear_system(int i0, int i1, int j0, int j1,
 }
 
 /// 8
+// This function allows us to extract a subvector from the A vector
+// Inputs:
+//  - i0 -> initial index where we want to extract the vector
+//  - i1 -> final index where we want to extract the vector
+//  - A -> vector in which we want to extract the subvector
 il::Array<double> take_subvector_non_linear_system(int i0, int i1,
                                                    const il::Array<double> &A) {
 
@@ -682,6 +727,11 @@ il::Array<double> take_subvector_non_linear_system(int i0, int i1,
 }
 
 /// 9
+// This funciton calcualtes the 2D euclidean distance between two points
+// {x1,y1}, {x2,y2}
+// Input -> x- y- coordinates of the two points
+// Output -> double precision values that represents the euclidean distance
+// between the two aforementioned points
 double euclidean_distance(double x1, double x2, double y1, double y2) {
 
   double dist;
