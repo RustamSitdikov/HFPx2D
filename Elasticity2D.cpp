@@ -125,7 +125,7 @@ void NormalShearStressKernel_LinearDD(il::StaticArray2D<double,2,4>& St,const il
   double n1n1,n2n2,n1s1,n2s2,n1n2,n1s2pn2s1 ;
   il::StaticArray2D<double,2,4>  st ;
 
-  n1n1=n[0]*n[0];
+  n1n1=n[0]*n[0];//test
   n2n2=n[1]*n[1];
   n1n2=n[0]*n[1];
   n1s1=n[0]*s[0];
