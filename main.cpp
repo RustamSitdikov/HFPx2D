@@ -158,7 +158,6 @@ double_t max2D(il::Array2D<double> &arr2D); // Function prototype
 double_t min2D(il::Array2D<double> &arr2D); // Function prototype
 
 
-
 ////////////////////////////////////////////////////////////////////////////////
 int main() {
   // Declare the input variables
@@ -276,6 +275,9 @@ int main() {
         if(t[m] != 3) de = t[m];
 
     }*/
+
+il::Array2D<int> Test;
+Test = Position_2DArray(mesh.conn,1);
 
 
 
@@ -396,5 +398,10 @@ double_t min2D(il::Array2D<double> &arr2D) {
 
   return min;
 }
+
+
+
+
+
 
 
