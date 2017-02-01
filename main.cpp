@@ -11,12 +11,12 @@
 #include <iostream>
 #include <string>
 
-#include <il/Array.h>
-#include <il/math.h>
+#include "il/Array.h"
+#include "il/math.h"
 //#include <il/Array2C.h>
-#include <il/StaticArray.h>
-#include <il/linear_algebra.h>
-#include <il/linear_algebra/dense/factorization/LU.h>
+#include "il/StaticArray.h"
+#include "il/linear_algebra.h"
+#include "il/linear_algebra/dense/factorization/LU.h"
 #include "AssemblyDDM.h"
 #include "DOF_Handles.h"
 #include "Mesh.h"
@@ -135,8 +135,8 @@ int main() {
   for (int j = 0; j < ndof / 2; ++j) {
     rel_err = sqrt(pow(dd[j * 2 + 1] - wsol[j], 2)) / wsol[j];
 
-    //    std::cout << "x : " << thex[j] <<"..w anal:" << wsol[j] << " w num: "
-    //    << dd[j*2+1]<<  " rel error: " << rel_err << "\n";
+        std::cout << "x : " << thex[j] <<"..w anal:" << wsol[j] << " w num: "
+        << dd[j*2+1]<<  " rel error: " << rel_err << "\n";
   }
 
   return 0;
