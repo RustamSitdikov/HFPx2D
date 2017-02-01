@@ -133,7 +133,7 @@ void NormalShearStressKernel_LinearDD(il::StaticArray2D<double,2,4>& St,const il
 
   n1s2pn2s1=n[0]*s[1]+n[1]*s[0];
 
-  st=StressesKernelLinearDD(h,Ep,xe[0],xe[1]);// columns sxxs, sxys, syys, syyn    (knowing that we sxxn and sxyn are respectively equal to sxys and syys )
+  st=StressesKernelLinearDD(h,Ep,xe[0],xe[1]); // columns sxxs, sxys, syys, syyn    (knowing that sxxn and sxyn are respectively equal to sxys and syys )
 
   double sh1s,sn1s,sh1n,sn1n,sh2s,sn2s,sh2n,sn2n ;
    //shear stress
@@ -153,8 +153,9 @@ void NormalShearStressKernel_LinearDD(il::StaticArray2D<double,2,4>& St,const il
   sn2n =n1n1*st(1,1)+2*n1n2*st(1,2)+n2n2*st(1,3); // normal dd
 
   // output the desired stress components induced either by normal or shear dd of the 2 nodes of the linear DD segment.
-  St(0,0)=sh1s;St(0,1)=sh1n;St(0,2)=sh2s;St(0,3)=sh2n;
-  St(1,0)=sn1s;St(1,1)=sn1n;St(1,2)=sn2s;St(1,3)=sn2n;
+  St(0,0)=sh1s;St(0,1)=sh1n;St(0,2)=sh2s;St(0,3)=sh2n; // shear stress (node 1 shear dd, normal dd ; node 2 shear dd , normal dd)
+  St(1,0)=sn1s;St(1,1)=sn1n;St(1,2)=sn2s;St(1,3)=sn2n; // normal stress (node 1 shear dd, normal dd ; node 2 shear dd , normal dd)
    // St dimensions 2 * 4
+
 }
 
