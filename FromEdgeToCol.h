@@ -18,7 +18,15 @@
 
 namespace hfp2d {
 
-il::Array2D<double> from_edge_to_col(const int Nelts, const int dof_dim);
+il::Array2D<double> from_edge_to_col_dg_full2d(const int dof_dim,
+                                               il::Array2D<int> Dof);
+
+il::Array2D<double> from_edge_to_col_dg(const int dof_dim,
+                                        il::Array2D<int> Dofw);
+
+il::Array2D<double> from_edge_to_col_cg(const int dof_dim,
+                                        il::Array2D<int> Dof,
+                                        il::Array2D<int> Dofp);
 }
 
 #endif // HFPX2D_FROMEDGETOCOL_H
