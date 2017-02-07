@@ -14,10 +14,11 @@
 namespace hfp2d {
 
 //  FUNCTION TO CREATE A DOF HANDLE
-il::Array2D<int> dofhandle_dg2d(const int dof_dim, const int Nelts,
-                                const int p) {
+il::Array2D<int> dofhandle_dg_full2d(const int dof_dim, const int Nelts,
+                                     const int p) {
   // function creating a matrix of dof handle - for a piece-wise linear
-  // variation per element (Discontinous Galerkin type)
+  // variation per element of BOTH shear AND opening DDs
+  // (Discontinous Galerkin type)
   // on a 1d Mesh object for the case of dof_dim Degrees of Freedoms per node
   // format of the handle : number of elements \times (p+1)*dof_dim
   // dof_dim :: number of dof per node
@@ -36,5 +37,49 @@ il::Array2D<int> dofhandle_dg2d(const int dof_dim, const int Nelts,
   }
 
   return Dof;
+}
+
+il::Array2D<int> dofhandle_dg(const int dof_dim, const int Nelts) {
+  // function creating a matrix of dof handle - for a piece-wise linear
+  // variation per element of EITHER shear OR opening DDs
+  // (Discontinous Galerkin type)
+  // on a 1d Mesh object for the case of dof_dim Degrees of Freedoms per node
+  // format of the handle : number of elements \times number of dof of either
+  // shear or opening per element
+  // dof_dim :: number of dof per node
+  // Nelts :: number of elements in the mesh
+
+  il::Array2D<int> Dofw{Nelts, dof_dim, 0};
+
+  for (il::int_t k = 0, j; k < Dofw.size(0); ++k) {
+
+    j = k * dof_dim;
+
+    for (il::int_t i = 0; i < Dofw.size(1); ++i) {
+
+      Dofw(k, i) = i + j;
+    }
+  }
+
+  return Dofw;
+}
+
+il::Array2D<int> dofhandle_cg2d(const int dof_dim, const int Nelts) {
+  // function creating a matrix of dof handle - for continuous linear
+  // variation per element (Continuous Galerkin type)
+  // on a 1d Mesh object for the case of dof_dim Degrees of Freedoms per node
+  // format of the handle : number of elements \times (p+1)*dof_dim
+  // dof_dim :: number of dof per node
+  // Nelts :: number of elements in the mesh
+
+  il::Array2D<int> Dofp{Nelts, dof_dim, 0};
+
+  for (il::int_t i = 0; i < Dofp.size(0); ++i) {
+
+    Dofp(i, 0) = i;
+    Dofp(i, 1) = i + 1;
+  }
+
+  return Dofp;
 }
 }
