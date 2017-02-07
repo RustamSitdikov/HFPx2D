@@ -27,81 +27,103 @@
 
 namespace hfp2d {
 
-void time_incr(Mesh mesh, const int p, const double Cohes, const int itermax,
-               il::Array2D<double> &kmat, const double tolerance,
-               const double Incr_dil, const double d_wd, il::Array2D<int> &Dof,
-               il::Array2D<double> rho, const double Init_dil,
-               const double CompressFluid, const double Visc,
-               il::Array<double> S, const int InjPoint, const int dof_dim,
+void time_incr(Mesh mesh, const int p, const double Cohes,
+               il::Array2D<double> &kmat, const double Incr_dil,
+               const double d_wd, il::Array2D<double> rho,
+               const double Init_dil, const double CompressFluid,
+               const double Visc, il::Array<double> S, const int dof_dim,
                const double Peak_fric, const double Resid_fric,
                const double d_wf, il::Array2D<double> Sigma0,
-               il::Array2D<double> Amb_press, il::Array2D<double> Pinit) {
+               il::Array<double> Amb_press, il::Array<double> Pinit) {
 
-  // Get the collocation points' information from mesh
-  il::Array2D<double> xe{2, 2, 0};
-  hfp2d::SegmentCharacteristic mysege;
-  // CollPoints -> Matrix of coord. of collocation points
-  // {{xcoll_1,ycoll_1},{xcoll_2,ycoll_2}..}
-  il::Array2D<double> CollPoints{2 * mesh.nelts(), 2, 0.};
-
-  for (il::int_t e = 0, k = 0; e < mesh.nelts(); ++e) {
-
-    hfp2d::take_submatrix(
-        xe, mesh.conn(e, 0), mesh.conn(e, 1), 0, 1,
-        mesh.Coor); // take the coordinates of element e from the mesh object
-
-    mysege = hfp2d::get_segment_DD_characteristic(
-        xe, p); // get the segment characteristic.
-
-    // assemble the matrix
-    for (int j = 0; j < 2; ++j) {
-
-      CollPoints(k, j) = mysege.CollocationPoints(0, j);
-      CollPoints(k + 1, j) = mysege.CollocationPoints(1, j);
-    }
-
-    k = k + 2;
-  }
-
-  // Total numbers of collocation points (i.e 2*Nelts)
-  il::int_t NCollPoints = CollPoints.size(0);
+  // Total numbers of collocation points
+  il::int_t NCollPoints = 2 * mesh.nelts();
 
   /// Initialization ///
+
+  // Initialization of the structure of module "ELHDs"
   Result SolutionAtTj;
-  SolutionAtTj.slippagezone = 0.;
-  il::Array<double> In1{NCollPoints, 0.};
-  il::Array2D<double> In2{mesh.nelts(), 2, 0.};
-  SolutionAtTj.friction = hfp2d::exp_friction(Peak_fric, Resid_fric, d_wf, In1);
-  SolutionAtTj.dilatancy = hfp2d::dilatancy(Init_dil, Incr_dil, d_wd, In1);
-  SolutionAtTj.incr_d = In2;
-  SolutionAtTj.tot_stress_state = Sigma0;
 
-  il::Array<double> InitP1{2 * mesh.nelts(), 0.};
-  il::Array<double> InitP2{2 * mesh.nelts(), 0.};
+  // Initialization of pore pressure profile at nodal points
+  il::Array<double> Pin{mesh.nelts() + 1, 0.};
+  for (il::int_t j = 0; j < Pin.size(); ++j) {
 
-  InitP1 = flatten1(Amb_press);
-  InitP2 = flatten1(Pinit);
-
-  il::Array<double> InitPP{2 * mesh.nelts(), 0.};
-  for (il::int_t i = 0; i < InitPP.size(); ++i) {
-
-    InitPP[i] = InitP1[i] + InitP2[i];
+    Pin[j] = Pinit[j] + Amb_press[j];
   }
 
-  SolutionAtTj.P = InitPP;
+  SolutionAtTj.P = Pin;
 
-  double t = 0.5;
-  double tmax = 1.;
+  // Injection point
+  il::int_t InjPoint;
+  InjPoint = hfp2d::find(SolutionAtTj.P, max_1d(SolutionAtTj.P));
+
+  // Initialization of slippage length (No slip condition before fluid
+  // injection)
+  SolutionAtTj.slippagezone = 0.;
+
+  // Initialization of friction vector
+  il::Array<double> In1{NCollPoints, 0.};
+  SolutionAtTj.friction = hfp2d::exp_friction(Peak_fric, Resid_fric, d_wf, In1);
+
+  // Initialization of dilatancy vector
+  SolutionAtTj.dilatancy = hfp2d::dilatancy(Init_dil, Incr_dil, d_wd, In1);
+
+  // Initialization of vector total slip at nodal points
+  // Remember: piecewise linear shear DDs
+  il::Array<double> in_incr_d{2 * mesh.nelts(), 0.};
+  SolutionAtTj.incr_d = in_incr_d;
+
+  // Initialization of matrix of total stress
+  // {{tau_1,sigma_n1},{tau_2, sigma_n2},{tau3, sigma_n3} ..}
+  SolutionAtTj.tot_stress_state = Sigma0;
+
+  double t = 0.005;
+  double tmax = 0.01;
   double TimeStep = 0.005;
 
   while (t <= tmax) {
 
-    SolutionAtTj =
-        elhds(SolutionAtTj, mesh, p, Cohes, itermax, kmat, tolerance, Incr_dil,
-              d_wd, Dof, rho, Init_dil, CompressFluid, TimeStep, Visc, S,
-              InjPoint, dof_dim, t, Peak_fric, Resid_fric, d_wf);
+    hfp2d::elhds(SolutionAtTj, mesh, p, Cohes, kmat, Incr_dil, d_wd, rho,
+                 Init_dil, CompressFluid, TimeStep, Visc, S, InjPoint, dof_dim,
+                 Peak_fric, Resid_fric, d_wf);
 
-    t = t + SolutionAtTj.t;
+    t = t + SolutionAtTj.dt;
   }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Function that return the index of a given value ("seek") in a vector.
+// arr -> 1D array in which we want to find the index of a given value
+// seek ->  value for which we want to find out the index
+
+il::int_t find(il::Array<double> arr, double_t seek) {
+
+  for (il::int_t i = 0; i < arr.size(); ++i) {
+
+    if (arr[i] == seek)
+      return i;
+  }
+
+  return -1;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Function that return the max value in an vector.
+// arr1D -> vector in which we want to find the max
+
+double_t max_1d(il::Array<double> &arr1D) {
+
+  double_t max;
+  max = arr1D[0];
+
+  for (il::int_t i = 0; i < arr1D.size(); ++i) {
+
+    if (max < arr1D[i]) {
+
+      max = arr1D[i];
+    }
+  }
+
+  return max;
 }
 }
