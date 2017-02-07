@@ -14,12 +14,15 @@
 #include "ConductivitiesNewtonian.h"
 #include "Dilatancy.h"
 #include "FVM.h"
+#include "DOF_Handles.h"
+#include "ELHDs.h"
 #include "Mesh.h"
 
 namespace hfp2d {
 
 /////// Some utilities ///////
 
+/// 1
 // This function calculates the average between two values for each element
 // Input: matrix of slip/opening for each element -> size Nelts x 2
 // Remember: piecewise linear variation over the element
@@ -37,6 +40,7 @@ il::Array<double> average(const il::Array2D<double> &d) {
   return Average;
 };
 
+/// 2
 // This function calculates the slip/opening at +/- 1/4 -> the control volume is
 // centered on the nodes!
 // Input: matrix of slip/opening for each element -> size Nelts x 2
@@ -56,6 +60,7 @@ il::Array<double> quarter(const il::Array2D<double> &d) {
   return Quarter;
 };
 
+/// 3
 // Function to find out the position of a value in a 2D array
 // It returns 2x2 array with row&col of the seek value
 // It is completely general in a sense that the output can be a vector or a
@@ -92,6 +97,7 @@ il::Array2D<int> position_2d_array(const il::Array2D<int> &arr2D, int seek) {
   return outp;
 };
 
+/// 4
 // Function to find out the position of a value in a 2D array in a more
 // efficient way
 // It is completely general in a sense that the output can be a vector or a
@@ -114,6 +120,7 @@ il::Array2D<int> search(const il::Array2D<int> &matrix, int x) {
   return ans;
 }
 
+/// 5
 // Auxiliary function for assembly process
 // It returns a given row (vector - specified by idx) of a 2D array
 il::Array<int> row_selection(il::Array2D<int> &arr, il::int_t idx) {
@@ -128,19 +135,21 @@ il::Array<int> row_selection(il::Array2D<int> &arr, il::int_t idx) {
   return vect;
 };
 
-/////////// FVM routines ///////////
+/////////////// **************************** ///////////////
+///////////////         FVM routines         ///////////////
+/////////////// **************************** ///////////////
 
 // Functions for the coefficients of the Finite Difference Matrix "L"
 // Output: array (vector) that contains all the coefficients for each element
 il::Array<double> shear_conductivities_newtonian(
-    const int Visc, Mesh mesh, il::Array2D<double> rho, il::Array2D<double> &d,
+    const double Visc, Mesh mesh, il::Array2D<double> rho, il::Array2D<double> &d,
     const double Incr_dil, const double d_wd, const double Init_dil) {
 
   // Inputs:
   //  - Visc -> fluid viscosity (floating point value)
   //  - mesh -> mesh class
   //  - rho -> matrix of fluid density
-  //  {{rho1_left,rho1_right},{rho2_left,rho2_right}..} (size -> Nelts x 2)
+  //  {{rho_1left, rho_2right},{rho_2left, rho_2right}, ...} (size -> Nelts + 1)
   //  - d -> matrix of slip at nodes {{d1_left,d1_right},{d2_left,d2_right}..}
   //  (size -> Nelts x 2)
   //  - Incr_dil -> Increment of dilatancy (difference between residual/peak
@@ -155,19 +164,16 @@ il::Array<double> shear_conductivities_newtonian(
   rho_mid = average(rho);
 
   // create the array of element size
-  il::Array<double> EltSizes{(mesh.conn).size(0), 0.};
-
+  il::Array<double> EltSizes{mesh.nelts(), 0.};
   for (il::int_t i = 0; i < EltSizes.size(); ++i) {
-
     for (il::int_t j = 0; j < (mesh.conn).size(1); ++j) {
 
       EltSizes[i] =
-          fabs(fabs(EltSizes[i]) - fabs(mesh.Coor(mesh.conn(i, j), 0)));
+              fabs(fabs(EltSizes[i]) - fabs(mesh.Coor(mesh.conn(i, j), 0)));
     }
   }
 
-  il::Array<double> Out{(mesh.conn).size(0), 0.};
-
+  il::Array<double> Out{mesh.nelts(), 0.};
   Out = conductivities_newtonian(rho_mid, wh_mid, EltSizes, Visc);
 
   return Out;
@@ -176,7 +182,7 @@ il::Array<double> shear_conductivities_newtonian(
 ///
 // Function that assemble the Finite Difference matrix "L"
 il::Array2D<double> build_l_matrix(Mesh mesh, il::Array2D<double> &d,
-                                   il::Array2D<double> &rho, const int Visc,
+                                   il::Array2D<double> &rho, const double Visc,
                                    const double Incr_dil, const double d_wd,
                                    const double Init_dil,
                                    const double &TimeStep) {
@@ -201,23 +207,25 @@ il::Array2D<double> build_l_matrix(Mesh mesh, il::Array2D<double> &d,
   Kk = shear_conductivities_newtonian(Visc, mesh, rho, d, Incr_dil, d_wd,
                                       Init_dil);
 
-  il::Array2D<double> LL{(mesh.conn).size(0) + 1, (mesh.conn).size(0) + 1, 0.};
+  il::Array2D<double> LL{mesh.nelts() + 1, mesh.nelts() + 1, 0.};
   il::Array2D<int> ed;
   il::int_t ni;
   il::int_t ej;
   il::int_t dofj;
   il::Array<int> t;
+  il::Array2D<int> Dofp;
+  Dofp = hfp2d::dofhandle_cg2d(2,mesh.nelts());
 
-  // Loop over all the "inner" nodes (the boundary nodes are not included)
+  // Loop over the pressure nodes
   for (il::int_t i = 0; i < LL.size(0); ++i) {
 
-    ed = position_2d_array(mesh.conn, ((double)i));
+    ed = position_2d_array(Dofp, ((double)i));
     ni = ed.size(0);
 
     for (il::int_t j = 0; j < ni; ++j) {
 
       ej = ed(j, 0);
-      t = row_selection(mesh.conn, ej);
+      t = row_selection(Dofp, ej);
 
       for (il::int_t k = 0; k < t.size(); ++k) {
 
@@ -230,16 +238,12 @@ il::Array2D<double> build_l_matrix(Mesh mesh, il::Array2D<double> &d,
     }
   }
 
-  il::Array2D<double> T{(mesh.conn).size(0) + 1, (mesh.conn).size(0) + 1,
-                        TimeStep};
+  // Finally multiply the finite diffrence matrix by TimeStep
+  il::Array2D<double> L{mesh.nelts() + 1, mesh.nelts() + 1, 0.};
+  for (il::int_t k = 0; k < L.size(0); ++k) {
+    for (il::int_t i = 0; i < L.size(1); ++i) {
 
-  il::Array2D<double> L{(mesh.conn).size(0) + 1, (mesh.conn).size(0) + 1, 0.};
-
-  for (il::int_t k = 0; k < (mesh.conn).size(0) + 1; ++k) {
-
-    for (il::int_t i = 0; i < (mesh.conn).size(0) + 1; ++i) {
-
-      L(k, i) = LL(k, i) * T(k, i);
+      L(k, i) = TimeStep*LL(k, i);
     }
   }
 
@@ -270,8 +274,7 @@ il::Array2D<double> build_vp_matrix_p1(Mesh mesh, const double Incr_dil,
   //  diagonal matrix
 
   // Create an auxiliary vector for the assembling
-  il::Array2D<int> h{2 * (mesh.conn).size(0) + 1, 2, 0};
-
+  il::Array2D<int> h{2 * mesh.nelts() + 1, 2, 0};
   for (il::int_t i = 0; i < h.size(0); ++i) {
 
     h(i, 0) = i;
@@ -279,17 +282,15 @@ il::Array2D<double> build_vp_matrix_p1(Mesh mesh, const double Incr_dil,
   }
 
   // mesh nodes {0,1,2,3..}
-  il::Array<int> vertices{(mesh.conn).size(0) + 1, 0};
+  il::Array<int> vertices{mesh.nelts() + 1, 0};
   for (il::int_t j = 0; j < vertices.size(); ++j) {
 
     vertices[j] = j;
   }
 
   // create the array of element size
-  il::Array<double> EltSizes{(mesh.conn).size(0), 0.};
-
+  il::Array<double> EltSizes{mesh.nelts(), 0.};
   for (il::int_t i = 0; i < EltSizes.size(); ++i) {
-
     for (il::int_t j = 0; j < (mesh.conn).size(1); ++j) {
 
       EltSizes[i] =
@@ -297,19 +298,16 @@ il::Array2D<double> build_vp_matrix_p1(Mesh mesh, const double Incr_dil,
     }
   }
 
-  // Create the all the vectors for compressibility of fluid
-  il::Array<double> Cf{
-      vertices.size(),
-      CompressFluid}; // Vector of compressibility of the fluid at nodal points
-  il::Array<double> Cfmid{(mesh.conn).size(0),
-                          CompressFluid}; // Vector of compressibility of the
-                                          // fluid at the midpoints of each
-                                          // element
-  il::Array<double> Cfquart{2 * (mesh.conn).size(0),
-                            CompressFluid}; // Vector of compressibility of the
-                                            // fluid at +/- 1/4 of each element
+  // Create all the vectors for compressibility of fluid
+  // Vector of compressibility of the fluid at nodal points
+  il::Array<double> Cf{vertices.size(), CompressFluid};
+  // Vector of compressibility of the fluid at the midpoints of each element
+  il::Array<double> Cfmid{mesh.nelts(),CompressFluid};
+  // Vector of compressibility of the fluid at +/- 1/4 of each element
+  il::Array<double> Cfquart{2 * mesh.nelts(),CompressFluid};
 
-  il::Array<double> d_left{(mesh.conn).size(0), 0.};
+
+  il::Array<double> d_left{mesh.nelts(), 0.};
   for (il::int_t k = 0; k < d_left.size(); ++k) {
 
     d_left[k] = d(k, 0);
@@ -321,28 +319,27 @@ il::Array2D<double> build_vp_matrix_p1(Mesh mesh, const double Incr_dil,
     d_right[j] = d(j, 1);
   }
 
-  il::Array<double> whi_left{(mesh.conn).size(0), 0.},
-      whi_right{(mesh.conn).size(0), 0.};
+  il::Array<double> whi_left{mesh.nelts(), 0.};
+  il::Array<double> whi_right{mesh.nelts(), 0.};
 
   whi_left = dilatancy(Init_dil, Incr_dil, d_wd, d_left);
   whi_right = dilatancy(Init_dil, Incr_dil, d_wd, d_right);
 
-  il::Array2D<double> whi{(mesh.conn).size(0), 2, 0.};
-
+  il::Array2D<double> whi{mesh.nelts(), 2, 0.};
   for (il::int_t l = 0; l < whi.size(0); ++l) {
 
     whi(l, 0) = whi_left[l];
     whi(l, 1) = whi_right[l];
   }
 
-  il::Array<double> whi_mid{(mesh.conn).size(0), 0.};
+  il::Array<double> whi_mid{mesh.nelts(), 0.};
   whi_mid = average(whi);
 
-  il::Array<double> wquart{2 * (mesh.conn).size(0), 0.};
+  il::Array<double> wquart{2 * mesh.nelts(), 0.};
   wquart = quarter(whi);
 
   // Assembling the matrix
-  il::Array2D<double> Vp{(mesh.conn).size(0) + 1, (mesh.conn).size(0) + 1, 0.};
+  il::Array2D<double> Vp{mesh.nelts() + 1, mesh.nelts() + 1, 0.};
   il::Array2D<int> ed;
   il::Array2D<int> hi;
   il::int_t ni;
@@ -351,14 +348,15 @@ il::Array2D<double> build_vp_matrix_p1(Mesh mesh, const double Incr_dil,
   il::int_t dofj;
   il::Array<int> t;
 
-  il::Array<double> Whi{2 * (mesh.conn).size(0),
-                        0.}; // Vector that we need for assembling process
+  // Vector that we need for assembling process
+  il::Array<double> Whi{2 * mesh.nelts(), 0.};
   for (il::int_t n = 0, q = 0; n < whi_left.size(); ++n, q = q + 2) {
 
     Whi[q] = whi_left[n];
     Whi[q + 1] = whi_right[n];
   }
 
+  /// Assembling procedure ///
   for (il::int_t m = 0; m < Vp.size(0); ++m) {
 
     ed = position_2d_array(mesh.conn, ((double)m));
@@ -395,7 +393,7 @@ il::Array2D<double> build_vp_matrix_p1(Mesh mesh, const double Incr_dil,
 ///
 // Function for assembling the Mass matrix "Vd" for piecewise LINEAR DDs (p = 1)
 il::Array2D<double> build_vd_matrix_p1(Mesh mesh, const double Incr_dil,
-                                       const double d_wd, il::Array2D<int> &Dof,
+                                       const double d_wd, il::Array2D<int> Dof,
                                        il::Array2D<double> rho,
                                        il::Array2D<double> &d) {
 
@@ -416,8 +414,7 @@ il::Array2D<double> build_vd_matrix_p1(Mesh mesh, const double Incr_dil,
   //  diagonal matrix
 
   // Create an auxiliary vector for the assembling
-  il::Array2D<int> h{2 * (mesh.conn).size(0) + 1, 2, 0};
-
+  il::Array2D<int> h{2 * mesh.nelts() + 1, 2, 0};
   for (il::int_t i = 0; i < h.size(0); ++i) {
 
     h(i, 0) = i;
@@ -425,17 +422,15 @@ il::Array2D<double> build_vd_matrix_p1(Mesh mesh, const double Incr_dil,
   }
 
   // mesh nodes {0,1,2,3..}
-  il::Array<int> vertices{(mesh.conn).size(0) + 1, 0};
+  il::Array<int> vertices{mesh.nelts() + 1, 0};
   for (il::int_t j = 0; j < vertices.size(); ++j) {
 
     vertices[j] = j;
   }
 
   // create the array of element size
-  il::Array<double> EltSizes{(mesh.conn).size(0), 0.};
-
+  il::Array<double> EltSizes{mesh.nelts(), 0.};
   for (il::int_t i = 0; i < EltSizes.size(); ++i) {
-
     for (il::int_t j = 0; j < (mesh.conn).size(1); ++j) {
 
       EltSizes[i] =
@@ -445,58 +440,50 @@ il::Array2D<double> build_vd_matrix_p1(Mesh mesh, const double Incr_dil,
 
   // Create the matrix of dof for just shear DD
   // Remember: 4 DOFs per element {shear_i, normal_i, shear_j, normal_j}
-  il::Array2D<int> dofw{(mesh.conn).size(0), 2, 0.};
-
+  il::Array2D<int> dofw{mesh.nelts(), 2, 0.};
   for (il::int_t k = 0; k < dofw.size(0); ++k) {
-
     for (il::int_t i = 0, q = 0; i < dofw.size(1); ++i, q = q + 2) {
 
       dofw(k, i) = Dof(k, q);
     }
   }
 
-  il::Array<double> rho_mid{(mesh.conn).size(0), 0.};
-  il::Array<double> rho_quart{2 * (mesh.conn).size(0), 0.};
 
+  il::Array<double> rho_mid{mesh.nelts(), 0.};
+  il::Array<double> rho_quart{2 * mesh.nelts(), 0.};
   rho_mid = average(rho);
   rho_quart = quarter(rho);
 
-  il::Array<double> d_left{(mesh.conn).size(0), 0.};
+  il::Array<double> d_left{mesh.nelts(), 0.};
   for (il::int_t k = 0; k < d_left.size(); ++k) {
-
     d_left[k] = d(k, 0);
   }
 
-  il::Array<double> d_right{(mesh.conn).size(0), 0.};
+  il::Array<double> d_right{mesh.nelts(), 0.};
   for (il::int_t j = 0; j < d_right.size(); ++j) {
-
     d_right[j] = d(j, 1);
   }
 
-  il::Array<double> Bi_left{(mesh.conn).size(0), 0.},
-      Bi_right{(mesh.conn).size(0), 0.};
+  il::Array<double> Bi_left{mesh.nelts(), 0.};
+  il::Array<double> Bi_right{mesh.nelts(), 0.};
 
   Bi_left = d_dilatancy(Incr_dil, d_wd, d_left);
   Bi_right = d_dilatancy(Incr_dil, d_wd, d_right);
 
-  il::Array2D<double> Bi{(mesh.conn).size(0), 2, 0.};
-
+  il::Array2D<double> Bi{mesh.nelts(), 2, 0.};
   for (il::int_t l = 0; l < Bi.size(0); ++l) {
-
     Bi(l, 0) = Bi_left[l];
     Bi(l, 1) = Bi_right[l];
   }
 
-  il::Array<double> Bi_mid{(mesh.conn).size(0), 0.};
+  il::Array<double> Bi_mid{mesh.nelts(), 0.};
   Bi_mid = average(Bi);
 
-  il::Array<double> Bi_quart{2 * (mesh.conn).size(0), 0.};
+  il::Array<double> Bi_quart{2 * mesh.nelts(), 0.};
   Bi_quart = quarter(Bi);
 
-  // Assembling the matrix
-
-  il::Array2D<double> Vd{(mesh.conn).size(0) + 1, 4 * ((mesh.conn).size(0)),
-                         0.};
+  // Initialization
+  il::Array2D<double> Vd{mesh.nelts() + 1, 4 * mesh.nelts(), 0.};
   il::Array2D<int> ed;
   il::Array2D<int> hi;
   il::int_t ni;
@@ -507,23 +494,21 @@ il::Array2D<double> build_vd_matrix_p1(Mesh mesh, const double Incr_dil,
   il::int_t dofwi;
   il::int_t dofwj;
 
-  il::Array<double> Rho{2 * (mesh.conn).size(0),
-                        0.}; // We need for the assembling
-  il::Array<double> BI{2 * (mesh.conn).size(0),
-                       0.}; // We need for the assembling
-
+  // We need for the assembling
+  il::Array<double> Rho{2 * mesh.nelts(), 0.};
   for (il::int_t m = 0, q = 0; m < rho.size(0); ++m, q = q + 2) {
-
     Rho[q] = rho(m, 0);
     Rho[q + 1] = rho(m, 1);
   }
 
+  // We need for the assembling
+  il::Array<double> BI{2 * mesh.nelts(), 0.};
   for (il::int_t m = 0, q = 0; m < Bi.size(0); ++m, q = q + 2) {
-
     BI[q] = Bi(m, 0);
     BI[q + 1] = Bi(m, 1);
   }
 
+  /// Assembling procedure ///
   for (il::int_t i = 0; i < Vd.size(0); ++i) {
 
     ed = position_2d_array(mesh.conn, ((double)i));
@@ -536,7 +521,6 @@ il::Array2D<double> build_vd_matrix_p1(Mesh mesh, const double Incr_dil,
       hj = hi(j, 0);
 
       dofwi = dofw(ej, ed(j, 1));
-
       t = row_selection(dofw, ej);
 
       for (il::int_t k = 0; k < t.size(); ++k) {
@@ -557,18 +541,18 @@ il::Array2D<double> build_vd_matrix_p1(Mesh mesh, const double Incr_dil,
     }
   }
 
-  // Taking finally only the shear related contributions...
-  il::Array2D<double> VD{Vd.size(0), Vd.size(1) / 2, 0.};
+//  // Taking finally only the shear related contributions...
+//  il::Array2D<double> VD{Vd.size(0), Vd.size(1)/2, 0.};
+//
+//  for (il::int_t n = 0; n < VD.size(0); ++n) {
+//
+//    for (il::int_t i = 0, q = 0; i < VD.size(1); ++i, q = q + 2) {
+//
+//      VD(n, i) = Vd(n, q);
+//    }
+//  }
 
-  for (il::int_t n = 0; n < VD.size(0); ++n) {
-
-    for (il::int_t i = 0, q = 0; i < Vd.size(1); ++i, q = q + 2) {
-
-      VD(n, i) = Vd(n, q);
-    }
-  }
-
-  return VD;
+  return Vd;
 };
 
 ////
@@ -595,26 +579,21 @@ il::Array2D<double> build_vp_matrix_p0(Mesh mesh, const double Incr_dil,
   //  diagonal matrix
 
   // Create an auxiliary vector for the assembling
-  il::Array2D<int> h{2 * (mesh.conn).size(0) + 1, 2, 0};
-
+  il::Array2D<int> h{2 * mesh.nelts() + 1, 2, 0};
   for (il::int_t i = 0; i < h.size(0); ++i) {
-
     h(i, 0) = i;
     h(i, 1) = i + 1;
   }
 
   // mesh nodes {0,1,2,3..}
-  il::Array<int> vertices{(mesh.conn).size(0) + 1, 0};
+  il::Array<int> vertices{mesh.nelts() + 1, 0};
   for (il::int_t j = 0; j < vertices.size(); ++j) {
-
     vertices[j] = j;
   }
 
   // create the array of element size
-  il::Array<double> EltSizes{(mesh.conn).size(0), 0.};
-
+  il::Array<double> EltSizes{mesh.nelts(), 0.};
   for (il::int_t i = 0; i < EltSizes.size(); ++i) {
-
     for (il::int_t j = 0; j < (mesh.conn).size(1); ++j) {
 
       EltSizes[i] =
@@ -623,23 +602,20 @@ il::Array2D<double> build_vp_matrix_p0(Mesh mesh, const double Incr_dil,
   }
 
   // Create all the vectors for compressibility of fluid
-  il::Array<double> Cf{
-      vertices.size(),
-      CompressFluid}; // Vector of compressibility of the fluid at nodal points
-  il::Array<double> Cfmid{(mesh.conn).size(0),
-                          CompressFluid}; // Vector of compressibility of the
-  // fluid at the midpoints of each element
-  il::Array<double> Cfquart{2 * (mesh.conn).size(0),
-                            CompressFluid}; // Vector of compressibility of the
-                                            // fluid at +/- 1/4 of each element
+  // Vector of compressibility of the fluid at nodal points
+  il::Array<double> Cf{vertices.size(), CompressFluid};
+  // Vector of compressibility of the fluid at the midpoints of each element
+  il::Array<double> Cfmid{mesh.nelts(), CompressFluid};
+  // Vector of compressibility of the fluid at +/- 1/4 of each element
+  il::Array<double> Cfquart{2 * mesh.nelts(), CompressFluid};
 
-  il::Array<double> whi{(mesh.conn).size(0), 0.};
+  il::Array<double> whi{mesh.nelts(), 0.};
 
-  whi = dilatancy(Init_dil, Incr_dil, d_wd,
-                  d); // wh_{i} = wh_{imid} = wh_{iquart}
+  // wh_{i} = wh_{imid} = wh_{iquart}, because p=0
+  whi = dilatancy(Init_dil, Incr_dil, d_wd, d);
 
-  // Assembling the matrix
-  il::Array2D<double> Vp{(mesh.conn).size(0) + 1, (mesh.conn).size(0) + 1, 0.};
+  // Initialization
+  il::Array2D<double> Vp{mesh.nelts() + 1, mesh.nelts() + 1, 0.};
   il::Array2D<int> ed;
   il::Array2D<int> hi;
   il::int_t ni;
@@ -648,6 +624,7 @@ il::Array2D<double> build_vp_matrix_p0(Mesh mesh, const double Incr_dil,
   il::int_t dofj;
   il::Array<int> t;
 
+  /// Assembling procedure ///
   for (il::int_t m = 0; m < Vp.size(0); ++m) {
 
     ed = position_2d_array(mesh.conn, ((double)m));
@@ -704,28 +681,22 @@ il::Array2D<double> build_vd_matrix_p0(Mesh mesh, const double Incr_dil,
   //  diagonal matrix
 
   // Create an auxiliary vector for the assembling
-  il::Array2D<int> h{2 * (mesh.conn).size(0) + 1, 2, 0};
-
+  il::Array2D<int> h{2 * mesh.nelts() + 1, 2, 0};
   for (il::int_t i = 0; i < h.size(0); ++i) {
-
     h(i, 0) = i;
     h(i, 1) = i + 1;
   }
 
   // mesh nodes {0,1,2,3..}
-  il::Array<int> vertices{(mesh.conn).size(0) + 1, 0};
+  il::Array<int> vertices{mesh.nelts() + 1, 0};
   for (il::int_t j = 0; j < vertices.size(); ++j) {
-
     vertices[j] = j;
   }
 
   // create the array of element size
-  il::Array<double> EltSizes{(mesh.conn).size(0), 0.};
-
+  il::Array<double> EltSizes{mesh.nelts(), 0.};
   for (il::int_t i = 0; i < EltSizes.size(); ++i) {
-
     for (il::int_t j = 0; j < (mesh.conn).size(1); ++j) {
-
       EltSizes[i] =
           fabs(fabs(EltSizes[i]) - fabs(mesh.Coor(mesh.conn(i, j), 0)));
     }
@@ -733,29 +704,26 @@ il::Array2D<double> build_vd_matrix_p0(Mesh mesh, const double Incr_dil,
 
   // Create the matrix of dof for just shear DD
   // Remember: 4 DOFs per element {shear_i, normal_i, shear_j, normal_j}
-  il::Array2D<int> dofw{(mesh.conn).size(0), 2, 0.};
-
+  il::Array2D<int> dofw{mesh.nelts(), 2, 0.};
   for (il::int_t k = 0; k < dofw.size(0); ++k) {
-
     for (il::int_t i = 0, q = 0; i < dofw.size(1); ++i, q = q + 2) {
 
       dofw(k, i) = Dof(k, q);
     }
   }
 
-  il::Array<double> rho_mid{(mesh.conn).size(0), 0.};
-  il::Array<double> rho_quart{2 * (mesh.conn).size(0), 0.};
+  il::Array<double> rho_mid{mesh.nelts(), 0.};
+  il::Array<double> rho_quart{2 * mesh.nelts(), 0.};
 
   rho_mid = average(rho);
   rho_quart = quarter(rho);
 
-  il::Array<double> Bi{(mesh.conn).size(0), 0.};
+  il::Array<double> Bi{mesh.nelts(), 0.};
 
   Bi = d_dilatancy(Incr_dil, d_wd, d); // B_{i} = B_{imid} = B_{iquart}
 
-  // Assembling the matrix
-
-  il::Array2D<double> Vd{(mesh.conn).size(0) + 1, 4 * ((mesh.conn).size(0)),
+  // Initialization
+  il::Array2D<double> Vd{mesh.nelts() + 1, 4 * mesh.nelts(),
                          0.};
   il::Array2D<int> ed;
   il::Array2D<int> hi;
@@ -767,16 +735,16 @@ il::Array2D<double> build_vd_matrix_p0(Mesh mesh, const double Incr_dil,
   il::int_t dofwi;
   il::int_t dofwj;
 
-  il::Array<double> Rho{2 * (mesh.conn).size(0),
-                        0.}; // We need for the assembling
-                             //  il::Array<double> BI{2 * (mesh.conn).size(0),
-  //                       0.}; // We need for the assembling
+  // We need for the assembling
+  il::Array<double> Rho{2 * (mesh.conn).size(0), 0.};
+  //  il::Array<double> BI{2 * (mesh.conn).size(0),0.};
 
   for (il::int_t m = 0, q = 0; m < rho.size(0); ++m, q = q + 2) {
-
     Rho[q] = rho(m, 0);
     Rho[q + 1] = rho(m, 1);
   }
+
+  /// Assembling procedure ///
 
   for (il::int_t i = 0; i < Vd.size(0); ++i) {
 
@@ -809,17 +777,17 @@ il::Array2D<double> build_vd_matrix_p0(Mesh mesh, const double Incr_dil,
     }
   }
 
-  // Taking finally only the shear related contributions...
-  il::Array2D<double> VD{Vd.size(0), Vd.size(1) / 2, 0.};
+//  // Taking finally only the shear related contributions...
+//  il::Array2D<double> VD{Vd.size(0), Vd.size(1) / 2, 0.};
+//
+//  for (il::int_t n = 0; n < VD.size(0); ++n) {
+//
+//    for (il::int_t i = 0, q = 0; i < VD.size(1); ++i, q = q + 2) {
+//
+//      VD(n, i) = Vd(n, q);
+//    }
+//  }
 
-  for (il::int_t n = 0; n < VD.size(0); ++n) {
-
-    for (il::int_t i = 0, q = 0; i < Vd.size(1); ++i, q = q + 2) {
-
-      VD(n, i) = Vd(n, q);
-    }
-  }
-
-  return VD;
+  return Vd;
 };
 }
