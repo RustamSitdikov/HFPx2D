@@ -9,14 +9,17 @@
 
 // Inclusion from standard library
 #include <iostream>
+#include <vector>
 
 // Inclusion from Inside Loop library
+#include <curses.h>
 #include <il/linear_algebra.h>
 #include <il/linear_algebra/dense/blas/norm.h>
 #include <il/math.h>
 
 // Inclusion from the project
 #include "AssemblyDDM.h"
+#include "DOF_Handles.h"
 #include "Dilatancy.h"
 #include "ELHDs.h"
 #include "FVM.h"
@@ -27,7 +30,7 @@
 namespace hfp2d {
 
 /* This function solves the 2D problem of fluid injection into a frictional
- * weakening dilatant fault for one increment of time.
+ * weakening dilatant fault for one time increment.
  *
  * Inputs -> look at "TimeIncr" function
  *
@@ -35,10 +38,10 @@ namespace hfp2d {
  *
  *   Structure called 'Result', which is composed of:
  *
- *     - friction -> vector of friction coefficient for each time step
- *     - dilatancy -> vector of dilatancy for each time step
- *     - tot_stress_state -> array (matrix) of total stress for each time step
- *     - incr_d ->  matrix of increment of slip
+ *     - friction -> vector of friction coefficient at each time step
+ *     - dilatancy -> vector of dilatancy at each time step
+ *     - tot_stress_state -> array (matrix) of total stress at each time step
+ *     - incr_d ->  vectr of increment of slip
  *     - P ->  vector of pore pressure profile at nodal points for each time
  *             step
  *     - iter -> number of iterations for each time step to satisfy MC
@@ -49,101 +52,56 @@ namespace hfp2d {
  *
  * */
 
-Result elhds(Result SolutionAtTj, Mesh mesh, const int p, const double Cohes,
-             const int itermax, il::Array2D<double> &kmat,
-             const double tolerance, const double Incr_dil, const double d_wd,
-             il::Array2D<int> &Dof, il::Array2D<double> rho,
-             const double Init_dil, const double CompressFluid,
-             const double TimeStep, const double Visc, il::Array<double> S,
-             const int InjPoint, const int dof_dim, const double t,
-             const double Peak_fric, const double Resid_fric,
-             const double d_wf) {
-
-  Result res;
-
-  // Get the collocation points' information from mesh
-  il::Array2D<double> xe{2, 2, 0};
-  hfp2d::SegmentCharacteristic mysege;
-  // CollPoints -> Matrix of coord. of collocation points
-  // {{xcoll_1,ycoll_1},{xcoll_2,ycoll_2}..}
-  il::Array2D<double> CollPoints{2 * mesh.nelts(), 2, 0.};
-
-  for (il::int_t e = 0, k = 0; e < mesh.nelts(); ++e) {
-
-    hfp2d::take_submatrix(
-        xe, mesh.conn(e, 0), mesh.conn(e, 1), 0, 1,
-        mesh.Coor); // take the coordinates of element e from the mesh object
-
-    mysege = hfp2d::get_segment_DD_characteristic(
-        xe, p); // get the segment characteristic.
-
-    // assemble the matrix
-    for (int j = 0; j < 2; ++j) {
-
-      CollPoints(k, j) = mysege.CollocationPoints(0, j);
-      CollPoints(k + 1, j) = mysege.CollocationPoints(1, j);
-    }
-
-    k = k + 2;
-  }
-
-  // Total numbers of collocation points (i.e 2*Nelts)
-  il::int_t NCollPoints = CollPoints.size(0);
+void elhds(Result &res, Mesh mesh, const int p, const double Cohes,
+           il::Array2D<double> &kmat, const double Incr_dil, const double d_wd,
+           il::Array2D<double> rho, const double Init_dil,
+           const double CompressFluid, const double TimeStep, const double Visc,
+           il::Array<double> S, const int InjPoint, const int dof_dim,
+           const double Peak_fric, const double Resid_fric, const double d_wf) {
 
   // Vector of friction at the beginning of each time step
-  il::Array<double> fric;
-  fric = SolutionAtTj.friction;
+  il::Array<double> fric{res.friction.size(), 0.};
+  fric = res.friction;
 
   // Vector of dilatancy at the beginning of each time step
-  il::Array<double> dil;
-  dil = SolutionAtTj.dilatancy;
+  il::Array<double> dil{res.dilatancy.size()};
+  dil = res.dilatancy;
 
   // Matrix of total stress at the beginning of each time step
   // Size -> Nelts x 2
-  il::Array2D<double> sigma_tot;
-  sigma_tot = SolutionAtTj.tot_stress_state;
+  il::Array2D<double> sigma_tot{res.tot_stress_state.size(0),
+                                res.tot_stress_state.size(1), 0.};
+  sigma_tot = res.tot_stress_state;
 
   // Vector of total slip at nodal points at the beginning of each time step
-  il::Array2D<double> incr_slip;
-  incr_slip = SolutionAtTj.incr_d;
+  il::Array<double> incr_slip{res.incr_d.size(), 0.};
+  incr_slip = res.incr_d;
 
   // Length of slippage zone at the beginning of each time step
   double sl;
-  sl = SolutionAtTj.slippagezone;
+  sl = res.slippagezone;
 
   // Vector of pressure profile at nodes at the beginning of each time step
-  // Size -> 2*Nelts
-  // {p1_left,p1_right,p2_left,p2_right..}
-  // Remember p1_right = p2_left
-  il::Array<double> press_prof;
-  press_prof = SolutionAtTj.P;
+  // Size -> Nelts + 1 -> {P_n1, P_n2, P_n3 ..}
+  il::Array<double> press_prof{res.P.size(), 0.};
+  press_prof = res.P;
 
-  // Vectot of pressure profile at nodes at the beginning of each time step
-  // Size -> Nnodes
-  il::Array<double> pnodes{mesh.nelts() + 1, 0.};
-  for (int i = 0, k = 0; i < pnodes.size() - 1; ++i) {
-
-    pnodes[i] = press_prof[k];
-    k = k + 2;
-  }
-  pnodes[pnodes.size()] = press_prof[press_prof.size()];
-
-  // Vector of pressure profile at collocation points at the beginning
-  // of each time step. Size -> NCollPoints = 2*Nelts
-  il::Array<double> Pc{NCollPoints, 0.};
-  Pc = il::dot(from_edge_to_col(mesh.nelts(), 2), press_prof);
-
-  // Create the matrix of pressure at collocation points {{0,pc1},{0,pc2}..}
+  // Create the matrix of pressure at collocation points {{0,p_c1},{0,p_c2}..}
   // Size -> NCollPoints x 2
-  il::Array2D<double> Pcm{Pc.size(), 2, 0.};
-  for (il::int_t l = 0; l < Pcm.size(0); ++l) {
+  il::Array2D<double> Pcm{2 * mesh.nelts(), 2, 0.};
+  for (il::int_t l = 0, k = 1; l < Pcm.size(0); ++l) {
 
-    Pcm(l, 1) = Pc[l];
+    Pcm(l, 1) = il::dot(
+        hfp2d::from_edge_to_col_cg(
+            dof_dim, hfp2d::dofhandle_dg_full2d(dof_dim, mesh.nelts(), p),
+            hfp2d::dofhandle_cg2d(dof_dim, mesh.nelts())),
+        press_prof)[k];
+    k = k + 2;
   }
 
   // Create matrix of effective stress for each collocation point {tau,sigma_n}
   // Size -> NCollPoints x 2
-  il::Array2D<double> sigma_eff{NCollPoints, 2, 0.};
+  il::Array2D<double> sigma_eff{2 * mesh.nelts(), 2, 0.};
   for (int m = 0; m < sigma_eff.size(0); ++m) {
     for (int i = 0; i < sigma_eff.size(1); ++i) {
 
@@ -152,123 +110,163 @@ Result elhds(Result SolutionAtTj, Mesh mesh, const int p, const double Cohes,
   }
 
   // Initial effective stress state at the beginning of each time step
-  il::Array2D<double> I{NCollPoints, 2, 0.};
-  I = sigma_eff;
+  il::Array2D<double> sigma_eff_old{2 * mesh.nelts(), 2, 0.};
+  sigma_eff_old = sigma_eff;
 
-  // vector of shear stress at the beginning of each time step
-  il::Array<double> tau{NCollPoints, 0.};
+  // Vector of shear stress at the beginning of each time step
+  il::Array<double> tau{2 * mesh.nelts(), 0.};
   for (il::int_t n = 0; n < tau.size(); ++n) {
 
     tau[n] = sigma_eff(n, 0);
   }
 
-  // vector of effective normal stress at the beginning of each time step
-  il::Array<double> sigma_n{NCollPoints, 0.};
+  // Vector of effective normal stress at the beginning of each time step
+  il::Array<double> sigma_n{2 * mesh.nelts(), 0.};
   for (il::int_t i1 = 0; i1 < sigma_n.size(); ++i1) {
 
     sigma_n[i1] = sigma_eff(i1, 1);
   }
 
-  il::Array<int> kk{NCollPoints, -1};      // Auxiliary vector
-  il::Array2D<int> qq{NCollPoints, 2, -1}; // Auxiliary matrix
+  // Auxiliary vector to flag slipping elements
+  il::Array<il::int_t> kk{0};
+
+  // Slipping collocation points
+  il::Array<il::int_t> q{0};
+
+  // Auxiliary vector to flag DOFs of slipping elements
+  il::Array<int> Dof_slip_elem{0};
 
   // Declaration of variables
-  il::Array<double> dd{2 * mesh.nelts(), 0.};
   double SL;
-  il::Array<int> k;
   double DTnew;
+  il::Array<il::int_t> slipp_elem;
+  il::Status status;
+  il::Norm norm;
+  norm = il::Norm::L1;
 
   // Initialization of the while loop
   int iter = 1;
-  int check;
-  // check is the criterion that has to be satisfied in the while loop:
-  // tau must be lower (or equal) than (fric + sigma_n*p) at each
+  double itermax = 10e10;
+
+  // Check is the criterion that has to be satisfied in the while loop:
+  // tau must be lower (or equal) than (fric * sigma_n + Cohes) at each
   // collocation point
-  check = boole_mc(tau, sigma_n, fric, Cohes, NCollPoints);
+  int check;
+  check = boole_mc(tau, sigma_n, fric, Cohes);
+
+  il::Array<double> Dd{incr_slip.size(), 0.};
+  il::Array<double> DiffDd{Dd.size(), 0.};
+  il::Array<double> Ddold = Dd;
+  il::Array<double> Dp{press_prof.size(), 0.};
+  il::Array<double> Dpold{press_prof.size(), 0.};
+  il::Array<double> DiffDp{Dp.size(), 0.};
+  il::Array<double> pnodes = press_prof;
 
   // Iterate until each point falls below the Mohr-Coulomb failure line
-  while (check != NCollPoints && iter <= itermax) {
+  while (check != 2 * mesh.nelts() && iter <= itermax) {
 
-    // Loop over collocation points to check the M-C criterion and to
-    // find out the slipping nodes and their degrees of freedom
-    for (int i = 0; i < NCollPoints; ++i) {
+    // Calculate the excess of shear stress that has to be release
+    il::Array<double> T{2 * mesh.nelts(), 0.};
+    for (il::int_t j = 0, k = 0, l = 0; j < T.size(); ++j) {
 
-      if (sigma_eff(i, 0) >= Cohes + fric[i] * sigma_eff(i, 1)) {
+      T[j] = (Cohes + fric[j] * sigma_eff(j, 1)) - sigma_eff(j, 0);
 
-        kk[i] = i;
-        qq(i, 0) = 2 * i - 1;
-        qq(i, 1) = 2 * i;
+      // If the jth component of T is negative, then flag slipping elements (the
+      // ones in which the corresponding collocation point do not satisfy the
+      // M-C criterion)
+      if (T[j] <= 0) {
+
+        kk.resize(k + 1);
+        q.resize(k + 1);
+        q[k] = j;
+        kk[k] = hfp2d::position_2d_array(
+            hfp2d::dofhandle_dg(dof_dim, mesh.nelts()), j)(0, 0);
+        k = k + 1;
       }
     }
 
-    il::Array<int> q{2 * NCollPoints, 0};
-    q = flatten2(qq);
-
-    // Select the component >= 0, i.e the slipping nodes
-    k = select(kk);
-
-    // Select the component >= 0, i.e the DOFs of slipping nodes
-    il::Array<int> dofd;
-    dofd = select(q);
-
     // Calculate the excess of shear stress that has to be release
-    il::Array<double> T{NCollPoints, 0.};
-    for (il::int_t j = 0; j < T.size(); ++j) {
+    il::Array<double> TT{2 * mesh.nelts(), 0.};
+    for (il::int_t j = 0, k = 0, l = 0; j < T.size(); ++j) {
 
-      T[j] = (Cohes + fric[j] * I(j, 1)) - I(j, 0);
+      TT[j] = (Cohes + fric[j] * sigma_eff_old(j, 1)) - sigma_eff_old(j, 0);
+    }
+
+    // Since we have 2 collocation points per element,
+    // we have to delete the duplicate elements
+    slipp_elem = delete_duplicates2(kk);
+
+    // Find the corresponding DOFs of the slipping elements
+    for (il::int_t i = 0, k = 0; i < slipp_elem.size(); ++i) {
+
+      Dof_slip_elem.resize(k + 4);
+
+      Dof_slip_elem[k] = hfp2d::dofhandle_dg_full2d(dof_dim, mesh.nelts(),
+                                                    p)(slipp_elem[i], 0);
+      Dof_slip_elem[k + 1] = hfp2d::dofhandle_dg_full2d(dof_dim, mesh.nelts(),
+                                                        p)(slipp_elem[i], 1);
+      Dof_slip_elem[k + 2] = hfp2d::dofhandle_dg_full2d(dof_dim, mesh.nelts(),
+                                                        p)(slipp_elem[i], 2);
+      Dof_slip_elem[k + 3] = hfp2d::dofhandle_dg_full2d(dof_dim, mesh.nelts(),
+                                                        p)(slipp_elem[i], 3);
+      k = k + 4;
     }
 
     //// SOLUTION OF THE COUPLED PROBLEM ////
-    // Initialization of the system BigABigX = BigB
-    il::Array2D<double> BigA{k.size() + mesh.nelts() + 1,
-                             k.size() + mesh.nelts() + 1, 0.};
-    il::Array<double> BigB{k.size() + mesh.nelts() + 1, 0.};
+    // Initialization of the system BigA*BigX = BigB
+    // Just for shear DDs!!
+    il::Array2D<double> BigA{(Dof_slip_elem.size() / 2) + mesh.nelts() + 1,
+                             (Dof_slip_elem.size() / 2) + mesh.nelts() + 1, 0.};
+    il::Array<double> BigB{(Dof_slip_elem.size() / 2) + mesh.nelts() + 1, 0.};
 
-    // Select the elasticity matrix for just shear DDs
-    il::Array2D<double> kmatd{2 * mesh.nelts(), 2 * mesh.nelts(), 0.};
-    for (int m = 0; m < kmatd.size(0); ++m) {
-      for (int i = 0, k = 0, q = 1; i < kmatd.size(1); ++i) {
+    // Select the elasticity matrix for just shear DDs of slipping DOFs
+    il::Array2D<double> kmatd{(Dof_slip_elem.size() / 2),
+                              (Dof_slip_elem.size() / 2), 0.};
+    for (int m = 0, k = 0; m < kmatd.size(0); ++m, k = k + 2) {
+      for (int i = 0, q = 0; i < kmatd.size(1); ++i, q = q + 2) {
 
-        kmatd(m, i) = kmat(k, q);
-        k = k + 2;
-        q = q + 2;
+        kmatd(m, i) = kmat(Dof_slip_elem[k], Dof_slip_elem[q]);
       }
     }
 
     // Assembling just elasticity part of BigA
-    hfp2d::set_submatrix_non_linear_system(
-        BigA, 1, 1, hfp2d::take_submatrix_non_linear_system(
-                        k[0], k[k.size()], k[0], k[k.size()], kmatd));
+    hfp2d::set_submatrix_non_linear_system(BigA, 0, 0, kmatd);
 
-    // Implicit solution of the non-linear system of equations
-    il::Array2D<double> Dd{mesh.nelts(), 2, 0.};
-    il::Array2D<double> Ddold{mesh.nelts(), 2, 0.};
+    // Implicit solution of the non-linear system of equations by using fixed
+    // point iterations
 
-    il::Array<double> Dp{pnodes.size(), 0.};
-    il::Array<double> Dpold{pnodes.size(), 0.};
-
-    il::Array2D<double> Vd, Vp, L;
-    il::Array2D<double> incrdk{incr_slip.size(0), incr_slip.size(1), 0.};
+    // Initialization of Finite Volume matrices
+    il::Array2D<double> Vd;
+    il::Array2D<double> Vp;
+    il::Array2D<double> L{mesh.nelts() + 1, mesh.nelts() + 1, 0.};
+    il::Array2D<double> incrdk{mesh.nelts(), 2, 0.};
 
     double betarela = 0.6;
     double errDd = 2;
     double errDp = 2;
+    double tolerance = 10e-6;
     int j = 0;
 
-    while ((j < itermax && errDd > tolerance) || (errDp > tolerance)) {
+    il::Array<double> BigX{BigA.size(0), 0.};
+    il::Array<double> Ddd{Dd.size(), 0.};
 
+    while (j < itermax && (errDd > tolerance || errDp > tolerance)) {
       ++j;
 
-      for (il::int_t i = 0; i < incr_slip.size(0); ++i) {
+      for (il::int_t i = 0; i < incrdk.size(0); ++i) {
+        for (il::int_t l = 0; l < incrdk.size(1); ++l) {
 
-        for (il::int_t l = 0; l < incr_slip.size(1); ++l) {
-
-          incrdk(i, l) = incr_slip(i, l) + Dd(i, l);
+          incrdk(i, l) =
+              incr_slip[hfp2d::dofhandle_dg(dof_dim, mesh.nelts())(i, l)] +
+              Dd[hfp2d::dofhandle_dg(dof_dim, mesh.nelts())(i, l)];
         }
       }
 
       // Mass matrix "Vd"
-      Vd = hfp2d::build_vd_matrix_p1(mesh, Incr_dil, d_wd, Dof, rho, incrdk);
+      Vd = hfp2d::build_vd_matrix_p1(
+          mesh, Incr_dil, d_wd,
+          hfp2d::dofhandle_dg_full2d(dof_dim, mesh.nelts(), p), rho, incrdk);
+
       // Pressure matrix "P"
       Vp = hfp2d::build_vp_matrix_p1(mesh, Incr_dil, Init_dil, CompressFluid,
                                      incrdk, d_wd);
@@ -277,116 +275,84 @@ Result elhds(Result SolutionAtTj, Mesh mesh, const int p, const double Cohes,
                                 Init_dil, TimeStep);
 
       /// Assembling the system ///
-      hfp2d::set_submatrix_non_linear_system(
-          BigA, k.size() + 1, 1, hfp2d::take_submatrix_non_linear_system(
-                                     1, Vd.size(0), k[0], k[k.size()], Vd));
 
-      il::Array2D<double> C{Vp.size(0), Vp.size(1), 0.};
-      for (il::int_t m = 0; m < C.size(0); ++m) {
+      for (il::int_t k = 0; k < Vd.size(0); ++k) {
 
-        for (il::int_t i = 0; i < C.size(1); ++i) {
+        for (il::int_t i = 0, q = 0; i < (Dof_slip_elem.size() / 2);
+             ++i, q = q + 2) {
 
-          C(m, i) = Vp(m, i) - L(m, i);
+          BigA((Dof_slip_elem.size() / 2) + k, i) = Vd(k, Dof_slip_elem[q]);
         }
       }
 
-      hfp2d::set_submatrix_non_linear_system(BigA, k.size() + 1, k.size() + 1,
-                                             C);
+      for (il::int_t m = 0; m < Vp.size(0); ++m) {
 
-      hfp2d::set_subvector_non_linear_system(
-          BigB, 1,
-          hfp2d::take_subvector_non_linear_system(k[0], k[k.size()], T));
+        for (il::int_t i = 0; i < Vp.size(1); ++i) {
 
-      il::Array<double> R{mesh.nelts() + 1, 0.};
-      for (il::int_t i1 = 0; i1 < R.size(); ++i1) {
-
-        R[i1] = il::dot(L, pnodes)[i1] + (S[i1] * TimeStep);
+          BigA((Dof_slip_elem.size() / 2) + m, (Dof_slip_elem.size() / 2) + i) =
+              Vp(m, i) - L(m, i);
+        }
       }
 
-      hfp2d::set_subvector_non_linear_system(BigB, k.size() + 1, R);
+      for (il::int_t n = 0, q = 0; n < slipp_elem.size(); ++n, q = q + 2) {
+
+        BigB[q] = TT[hfp2d::dofhandle_dg(2, mesh.nelts())(slipp_elem[n], 0)];
+        BigB[q + 1] =
+            TT[hfp2d::dofhandle_dg(2, mesh.nelts())(slipp_elem[n], 1)];
+      }
+
+      for (il::int_t i1 = 0; i1 < L.size(0); ++i1) {
+
+        BigB[(Dof_slip_elem.size() / 2) + i1] =
+            il::dot(L, pnodes)[i1] + (TimeStep * S[i1]);
+      }
 
       /// Boundary conditions ///
-      // Dirichlet boundary conditions for solution with constant overpressure
       for (il::int_t k1 = 0; k1 < BigA.size(1); ++k1) {
-
-        BigA(k.size() + InjPoint, k1) = 0.;
+        BigA((Dof_slip_elem.size() / 2) + InjPoint, k1) = 0;
       }
 
-      for (il::int_t l1 = 0; l1 < k.size(); ++l1) {
-
-        BigA(l1, k.size() + InjPoint) = 0.;
+      for (il::int_t l1 = 0; l1 < BigA.size(0); ++l1) {
+        BigA(l1, (Dof_slip_elem.size() / 2) + InjPoint) = 0;
       }
 
-      BigA(k.size() + InjPoint, k.size() + InjPoint) = 1;
-      BigB[k.size() + InjPoint] = 0.;
+      BigA((Dof_slip_elem.size() / 2) + InjPoint,
+           (Dof_slip_elem.size() / 2) + InjPoint) = 1;
+
+      BigB[(Dof_slip_elem.size() / 2) + InjPoint] = 0;
 
       /// Solve the system ///
-      il::Array<double> BigX{BigA.size(0), 0.};
-      il::Status status;
       BigX = il::linear_solve(BigA, BigB, il::io, status);
 
-      // Select the contribution in terms of increment of nodal slip and
-      // pressure
-      il::Array<double> Dd2;
-      il::Array<double> Dp2;
-      Dd2 = hfp2d::take_subvector_non_linear_system(1, k.size(), BigX);
-      Dp2 = hfp2d::take_subvector_non_linear_system(k.size() + 1, BigX.size(),
-                                                    BigX);
-
-      // under relaxation technique
-      for (il::int_t m1 = 0; m1 < Dp.size(); ++m1) {
-
-        Dp[m1] = (1 - betarela) * Dpold[m1] + betarela * Dp2[m1];
+      // Under relaxation technique
+      for (il::int_t m1 = 0, q = 0; m1 < slipp_elem.size(); ++m1, q = q + 2) {
+        Ddd[hfp2d::dofhandle_dg(dof_dim, mesh.nelts())(slipp_elem[m1], 0)] =
+            BigX[q];
+        Ddd[hfp2d::dofhandle_dg(dof_dim, mesh.nelts())(slipp_elem[m1], 1)] =
+            BigX[q + 1];
       }
 
-      for (il::int_t n1 = 0; n1 < k.size(); ++n1) {
-
-        dd[k[n1]] = Dd2[n1];
+      for (il::int_t m1 = 0; m1 < Dd.size(); ++m1) {
+        Dd[m1] = (1 - betarela) * Ddold[m1] + betarela * Ddd[m1];
       }
 
-      il::Array2D<int> Aux{mesh.nelts(), 2, 0};
+      for (il::int_t n1 = 0; n1 < Dp.size(); ++n1) {
 
-      for (il::int_t k = 0, j; k < Aux.size(0); ++k) {
-
-        j = k * dof_dim;
-
-        for (il::int_t i = 0; i < Aux.size(1); ++i) {
-
-          Aux(k, i) = i + j;
-        }
-      }
-
-      for (il::int_t i2 = 0; i2 < Dd.size(0); ++i2) {
-
-        for (il::int_t i = 0; i < Dd.size(1); ++i) {
-
-          Dd(i2, i) = (1 - betarela) * Ddold(i2, i) + betarela * dd[Aux(i2, i)];
-        }
+        Dp[n1] = (1 - betarela) * Dpold[n1] +
+                 betarela * BigX[(Dof_slip_elem.size() / 2) + n1];
       }
 
       // Error on increments
-      double errDd, errDp;
-
-      il::Array2D<double> diffDdDdold{Dd.size(0), Dd.size(1), 0.};
-      for (il::int_t j2 = 0; j2 < diffDdDdold.size(0); ++j2) {
-
-        for (il::int_t i = 0; i < diffDdDdold.size(1); ++i) {
-
-          diffDdDdold(j2, i) = Dd(j2, i) - Ddold(j2, i);
-        }
+      for (il::int_t i2 = 0; i2 < DiffDd.size(); ++i2) {
+        DiffDd[i2] = Dd[i2] - Ddold[i2];
       }
 
-      il::Array<double> diffDpDpold{Dp.size(), 0.};
-      for (il::int_t k2 = 0; k2 < diffDpDpold.size(); ++k2) {
-
-        diffDpDpold[k2] = Dp[k2] - Dpold[k2];
+      for (il::int_t j2 = 0; j2 < DiffDp.size(); ++j2) {
+        DiffDp[j2] = Dp[j2] - Dpold[j2];
       }
 
-      il::Norm norm;
-      norm = il::Norm::L2;
-      errDd = (il::norm(flatten1(diffDdDdold), norm) /
-               il::norm(flatten1(Dd), norm));
-      errDp = (il::norm(diffDpDpold, norm)) / (il::norm(Dp, norm));
+      errDd = (il::norm(DiffDd, norm) / il::norm(Dd, norm));
+      errDp = (il::norm(DiffDp, norm)) / (il::norm(Dp, norm));
 
       // Update
       Ddold = Dd;
@@ -394,80 +360,69 @@ Result elhds(Result SolutionAtTj, Mesh mesh, const int p, const double Cohes,
     }
 
     // Calculate the increment of shear stress due to the increment of slip
-    il::Array2D<double> IncrT{NCollPoints, 2, 0.};
-    il::Array<double> IncrTau{2 * mesh.nelts(), 0.};
-    IncrTau = il::dot(kmatd, dd);
-
-    for (il::int_t l2 = 0; l2 < IncrT.size(0); ++l2) {
-
-      IncrT(l2, 0) = IncrTau[l2];
+    il::Array2D<double> IncrT{2 * mesh.nelts(), 2, 0.};
+    for (il::int_t k2 = 0, k = 0; k2 < IncrT.size(0); ++k2, k = k + 2) {
+      for (il::int_t i = 0, q = 0; i < 2 * mesh.nelts(); ++i, q = q + 2) {
+        IncrT(k2, 0) = IncrT(k2, 0) + kmat(k, q) * Dd[i];
+      }
     }
 
-    // Force the slipping nodes at the first iteration to stay in the MC line in
-    // the second iteration
-    il::Array2D<double> MC{k[k.size()] - k[0] + 1, 2, 0.};
-
+    // Force the slipping nodes at the first iteration to stay in the MC
+    // line in the next iterations
+    il::Array2D<double> MC{q[q.size() - 1] - q[0] + 1, 2, 0.};
     for (il::int_t m2 = 0; m2 < MC.size(0); ++m2) {
-
-      MC(m2, 0) = fabs(Cohes + fric[k[m2]] * sigma_n[k[m2]]);
-      MC(m2, 1) = fabs(sigma_n[k[m2]]);
+      MC(m2, 0) = fabs(Cohes + fric[q[m2]] * sigma_n[q[m2]]);
+      MC(m2, 1) = fabs(sigma_n[q[m2]]);
     }
 
     // Update the effective stress state
     for (il::int_t n2 = 0; n2 < sigma_eff.size(0); ++n2) {
       for (il::int_t i = 0; i < sigma_eff.size(1); ++i) {
-
-        sigma_eff(n2, i) = I(n2, i) + IncrT(n2, i);
+        sigma_eff(n2, i) = sigma_eff_old(n2, i) + IncrT(n2, i);
       }
     }
 
-    set_submatrix_non_linear_system(sigma_eff, k[0], k[0], MC);
+    for (il::int_t k3 = 0; k3 < q.size(); ++k3) {
+      for (il::int_t i = 0; i < 2; ++i) {
+        sigma_eff(q[0] + k3, i) = MC(k3, i);
+      }
+    }
 
     // Update the vector of shear stress & vector of normal stress
     for (il::int_t i3 = 0; i3 < sigma_eff.size(0); ++i3) {
-
       tau[i3] = sigma_eff(i3, 0);
       sigma_n[i3] = sigma_eff(i3, 1);
     }
 
     // Update the pore pressure profile at nodal points
-    il::Array2D<double> DP2{mesh.nelts(), 2, 0.};
-    for (il::int_t j3 = 0; j3 < DP2.size(0); ++j3) {
-
-      for (il::int_t i = 0; i < DP2.size(1); ++i) {
-
-        DP2(j3, i) = Dp[mesh.conn(j3, i)];
-      }
+    for (il::int_t l2 = 0; l2 < press_prof.size(); ++l2) {
+      press_prof[l2] = press_prof[l2] + Dp[l2];
     }
 
-    il::Array<double> DP{2 * mesh.nelts(), 0.};
-    DP = flatten1(DP2);
-
-    for (il::int_t k3 = 0; k3 < press_prof.size(); ++k3) {
-
-      press_prof[k3] = press_prof[k3] + DP[k3];
-    }
-
-    // Total stress state at collocation points
-    for (il::int_t l3 = 0; l3 < sigma_tot.size(0); ++l3) {
-
+    // Total stress state at collocation points for next time increment
+    for (il::int_t j3 = 0; j3 < sigma_tot.size(0); ++j3) {
       for (il::int_t i = 0; i < sigma_tot.size(1); ++i) {
-
-        sigma_tot(l3, i) = sigma_eff(l3, i) + Pcm(l3, i);
+        sigma_tot(j3, i) = sigma_eff(j3, i) + Pcm(j3, i);
       }
     }
 
-    // Number of slip points
-    int NSlipPoints;
-    NSlipPoints = k.size();
+    // Number of slipping elements
+    int NSlippingElem;
+    NSlippingElem = slipp_elem.size();
 
-    // Slippage length at each time step
-    SL = euclidean_distance(flatten1(CollPoints)[k[0]],
-                            flatten1(CollPoints)[k[k.size()]], 0., 0.);
+    // Number of collocation points that do not satisfy M-C criterion
+    int NSlipCollPoints;
+    NSlipCollPoints = q.size();
+
+    // Calculate slippage length
+    SL =
+        euclidean_distance(mesh.Coor(slipp_elem[0], 0),
+                           mesh.Coor(slipp_elem[slipp_elem.size() - 1] + 1, 0),
+                           mesh.Coor(slipp_elem[0], 1),
+                           mesh.Coor(slipp_elem[slipp_elem.size() - 1] + 1, 1));
 
     // Adaptive time stepping
     double psi = 1.;
-
     if (SL - sl > psi) {
       DTnew = TimeStep / 10;
     } else {
@@ -477,52 +432,38 @@ Result elhds(Result SolutionAtTj, Mesh mesh, const int p, const double Cohes,
     // Update the iterations
     ++iter;
 
+    // Cumulative slip at nodal points
+    for (il::int_t k3 = 0; k3 < Dd.size(); ++k3) {
+      Dd[k3] = Dd[k3] + incr_slip[k3];
+    }
+
+    // Cumulative slip at collocation points
+    il::Array<double> s{2 * mesh.nelts(), 0.};
+    s = il::dot(hfp2d::from_edge_to_col_dg(
+            dof_dim, hfp2d::dofhandle_dg(dof_dim, mesh.nelts())),
+                Dd);
+
+    // Update the friction weakening coefficient for next time step
+    fric = hfp2d::exp_friction(Peak_fric, Resid_fric, d_wf, s);
+
+    // Update the dilatancy weakening coefficient for next time step
+    dil = hfp2d::dilatancy(Init_dil, Incr_dil, d_wd, s);
+
     // Update the check criterion
-    check = boole_mc(tau, sigma_n, fric, Cohes, NCollPoints);
+    check = boole_mc(tau, sigma_n, fric, Cohes);
   }
-
-  // Cumulative slip at nodal points
-  for (il::int_t m3 = 0; m3 < dd.size(); ++m3) {
-
-    dd[m3] = dd[m3] + flatten1(incr_slip)[m3];
-  }
-
-  // Cumulative slip at collocation points
-  il::Array<double> s;
-  s = il::dot(from_edge_to_col(mesh.nelts(), 2), dd);
-
-  // Update the friction coefficient for next time step
-  fric = exp_friction(Peak_fric, Resid_fric, d_wf, s);
-
-  // Update the dilatancy weakening coefficient for next time step
-  dil = dilatancy(Init_dil, Incr_dil, d_wd, s);
 
   // Assign the desired outputs to structure's members
   res.dilatancy = dil;
   res.friction = fric;
   res.dt = DTnew;
-  res.t = t;
   res.iter = iter;
+  res.incr_d = Dd;
   res.tot_stress_state = sigma_tot;
   res.slippagezone = SL;
-  res.final_slip_points = k;
+  res.final_slip_elements = slipp_elem;
   res.P = press_prof;
-
-  il::Array2D<double> ddout{mesh.nelts(), 2, 0.};
-
-  for (il::int_t n3 = 0; n3 < ddout.size(0); ++n3) {
-
-    for (il::int_t i = 0; i < ddout.size(1); ++i) {
-
-      ddout(n3, i) = dd[mesh.conn(n3, i)];
-    }
-  }
-
-  res.incr_d = ddout;
-
-  return res;
 }
-
 ///// OTHER UTILITIES /////
 
 /// 1
@@ -562,7 +503,7 @@ il::Array<double> flatten1(il::Array2D<double> &Arr) {
 // integer values.
 // Input:
 //   - Arr -> 2D array that we want to "flat"
-il::Array<int> flatten2(il::Array2D<int> &Arr) {
+il::Array<int> flatten2(il::Array2D<int> Arr) {
 
   il::Array2D<int> A{Arr.size(0), 2, 0};
 
@@ -599,13 +540,12 @@ il::Array<int> flatten2(il::Array2D<int> &Arr) {
 //  - Cohes -> cohesion (double precision value)
 //  - NCollPoints -> number of collocation points
 int boole_mc(il::Array<double> tau, il::Array<double> sigma_n,
-             il::Array<double> fric, const double Cohes,
-             const il::int_t NCollPoints) {
+             il::Array<double> fric, const double Cohes) {
 
-  il::Array<int> T{NCollPoints, 0};
-  int out;
+  il::Array<int> T{tau.size(), 0};
+  int out = 0.;
 
-  for (il::int_t i = 0; i < NCollPoints; ++i) {
+  for (il::int_t i = 0; i < T.size(); ++i) {
 
     if (tau[i] <= (Cohes + (fric[i] * sigma_n[i]))) {
 
@@ -613,7 +553,7 @@ int boole_mc(il::Array<double> tau, il::Array<double> sigma_n,
     }
   }
 
-  for (il::int_t m = 0; m < NCollPoints; ++m) {
+  for (il::int_t m = 0; m < T.size(); ++m) {
 
     if (T[m] == 1) {
 
@@ -629,7 +569,8 @@ int boole_mc(il::Array<double> tau, il::Array<double> sigma_n,
 // vector composed of integer values
 // Input:
 //  - arr -> vector in which we want to extract the values >=0
-// It is general in a sense that the output can be either a vector or an integers
+// It is general in a sense that the output can be either a vector or an
+// integer
 il::Array<int> select(il::Array<int> &arr) {
 
   il::Array<int> ans{0};
@@ -743,5 +684,69 @@ double euclidean_distance(double x1, double x2, double y1, double y2) {
   dist = sqrt(dist);
 
   return dist;
+}
+
+/// 10
+// Function that return the index ( IndRow,IndColumn ) of a given value ("seek")
+// in an array2D.
+// arr2D -> array2D in which we want to find the index of  given value
+// seek -> value for which we want to find out the index
+// It return an array that contain the {N.row, N.col} of the seek value
+
+il::Array<int> find_2d(il::Array2D<double> &arr2D, double_t seek) {
+
+  il::Array<int> outp{2};
+
+  for (il::int_t i = 0; i < arr2D.size(0); ++i) {
+
+    for (il::int_t j = 0; j < arr2D.size(1); ++j) {
+
+      if (arr2D(i, j) == seek)
+        outp[0] = i, outp[1] = j;
+    }
+  }
+
+  return outp;
+}
+
+/// 11
+
+il::Array<int> delete_duplicates(il::Array<il::int_t> &arr) {
+
+  il::Array<int> out{0};
+
+  for (il::int_t i = 0, k = 0; i < arr.size(); ++i) {
+
+    for (il::int_t j = i + 1; j < arr.size(); ++j) {
+
+      if (arr[i] == arr[j]) {
+        out.resize(k + 1);
+        out[k] = arr[i];
+        k = k + 1;
+      }
+    }
+  }
+
+  return out;
+}
+
+/// 12
+
+il::Array<il::int_t> delete_duplicates2(const il::Array<il::int_t> &arr) {
+  il::Array<il::int_t> out{};
+
+  for (il::int_t i = 0; i < arr.size(); ++i) {
+    bool already_there = false;
+    for (il::int_t j = 0; j < out.size(); ++j) {
+      if (arr[i] == out[j]) {
+        already_there = true;
+      }
+    }
+    if (!already_there) {
+      out.push_back(arr[i]);
+    }
+  }
+
+  return out;
 }
 }
