@@ -13,5 +13,5 @@
 il::Array2D<double> stresscalculation(Mesh mesh,il::Array2D<int> id,int p,const double Ep,double xg, double yg);
 il::Array<double> stressoutput(Mesh mesh,il::Array2D<int> id,int p,const double Ep,double xg, double yg, il::Array<double> width);
 
-
+//d 
 #endif //HFPX2D_STRESS_H
