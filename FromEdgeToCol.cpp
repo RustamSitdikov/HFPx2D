@@ -29,16 +29,16 @@ namespace hfp2d {
 // slip + opening vector (size 4Nelts), it returns the slip AND opening vector
 // at collocation points
 
-il::Array2D<double> from_edge_to_col_dg_full2d(const int dof_dim,
-                                               il::Array2D<int> Dof) {
+il::Array2D<double> from_edge_to_col_dg_full2d(int dof_dim,
+                                               il::Array2D<int> Dof, il::io_t) {
 
   // Inputs:
   //  - dof_dim -> degrees of freedom per nodes
   //  - Dofw -> DOFs handle for BOTH slip AND opening (size -> Neltsx4)
 
   // Note matrix on all the DDs dofs
-  il::Array2D<double> Fetc{4 * Dof.size(0), 4 * Dof.size(0), 0.};
-  il::Array2D<double> ShapeFunction{2, 4, .0};
+  il::Array2D<double> Fetc{4 * Dof.size(0), 4 * Dof.size(0), 0};
+  il::Array2D<double> ShapeFunction{2, 4, 0};
 
   ShapeFunction(0, 0) = (1 + (1 / sqrt(2))) / 2;
   ShapeFunction(0, 1) = (1 + (1 / sqrt(2))) / 2;
@@ -72,16 +72,16 @@ il::Array2D<double> from_edge_to_col_dg_full2d(const int dof_dim,
 // It returns a matrix (size 2Nelts x 2Nelts) that, if multiplied by EITHER
 // slip OR opening vector (size 2*Nelts), it returns the slip OR opening vector
 // at collocation points
-il::Array2D<double> from_edge_to_col_dg(const int dof_dim,
-                                        il::Array2D<int> Dofw) {
+il::Array2D<double> from_edge_to_col_dg(int dof_dim,
+                                        il::Array2D<int> Dofw, il::io_t) {
 
   // Inputs:
   //  - dof_dim -> degrees of freedom per nodes
   //  - Dofw -> DOFs handle for EITHER slip OR opening (size -> Neltsx2)
 
   // Note matrix on all the DDs dofs
-  il::Array2D<double> Fetc{2 * Dofw.size(0), 2 * Dofw.size(0), 0.};
-  il::Array2D<double> ShapeFunction{2, 2, .0};
+  il::Array2D<double> Fetc{2 * Dofw.size(0), 2 * Dofw.size(0), 0};
+  il::Array2D<double> ShapeFunction{2, 2, 0};
 
   ShapeFunction(0, 0) = (1 + (1 / sqrt(2))) / 2;
   ShapeFunction(0, 1) = (1 - (1 / sqrt(2))) / 2;
@@ -110,13 +110,13 @@ il::Array2D<double> from_edge_to_col_dg(const int dof_dim,
 // It returns a matrix (size 4Nelts x Nelts+1) that, if multiplied by nodal
 // pressure valuse (size Nelts + 1), it returns the pressure values at
 // collocation points
-il::Array2D<double> from_edge_to_col_cg(const int dof_dim,
+il::Array2D<double> from_edge_to_col_cg(int dof_dim,
                                         il::Array2D<int> Dof,
-                                        il::Array2D<int> Dofp) {
+                                        il::Array2D<int> Dofp, il::io_t) {
 
   // Note matrix on all the DDs dofs
-  il::Array2D<double> Fetc{4 * Dof.size(0), Dof.size(0) + 1, 0.};
-  il::Array2D<double> ShapeFunction{2, 2, 0.};
+  il::Array2D<double> Fetc{4 * Dof.size(0), Dof.size(0) + 1, 0};
+  il::Array2D<double> ShapeFunction{2, 2, 0};
 
   ShapeFunction(0, 0) = (1 + (1 / sqrt(2))) / 2;
   ShapeFunction(0, 1) = (1 - (1 / sqrt(2))) / 2;

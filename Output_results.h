@@ -44,7 +44,7 @@ void save_data_to_csv(const il::Array2D<double> &matrix,
   std::fclose(of);
 }
 
-void save_data_to_csv(Result &SolutionAtTj, const double t,
+void export_results(Result &SolutionAtTj, double t,
                       const std::string &trg_dir, const std::string &of_name) {
 
   std::string f_path = trg_dir + of_name;
@@ -54,7 +54,7 @@ void save_data_to_csv(Result &SolutionAtTj, const double t,
   const char *format4 = "Current time:\n%2.5g\n\n";
   const char *format5 = "Slippage length:\n%2.5g";
 
-  FILE *of = std::fopen(f_path.c_str(), "w");
+  FILE *of = std::fopen(f_path.c_str(), "a");
   std::fprintf(of, format2, SolutionAtTj.iter, 1);
   std::fprintf(of, format3, SolutionAtTj.dt, 1);
   std::fprintf(of, format4, t);
@@ -84,6 +84,8 @@ void save_data_to_csv(Result &SolutionAtTj, const double t,
   for (int j = 0; j < SolutionAtTj.friction.size(); ++j) {
     std::fprintf(of, format1, SolutionAtTj.friction[j]);
   }
+
+  std::fprintf(of, "\n\n######################################\n\n");
 
   std::fclose(of);
 }

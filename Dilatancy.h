@@ -15,11 +15,11 @@
 
 namespace hfp2d {
 
-il::Array<double> dilatancy(const double Init_dil, const double Incr_dil,
-                            const double d_wd, il::Array<double> &d);
+il::Array<double> dilatancy(double Init_dil, double Incr_dil,
+                            double d_wd, const il::Array<double> &d, il::io_t);
 
-il::Array<double> d_dilatancy(const double Incr_dil, const double d_wd,
-                             il::Array<double> &d);
+il::Array<double> d_dilatancy(double Incr_dil, double d_wd,
+                             const il::Array<double> &d, il::io_t);
 }
 
 #endif // HFPX2D_DILATANCY_H

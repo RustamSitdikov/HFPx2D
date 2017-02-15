@@ -17,8 +17,8 @@ namespace hfp2d {
 
 // Function that returns an array that contain dilatancy values (according to
 // exponential dilatant hardening law)
-il::Array<double> dilatancy(const double Init_dil, const double Incr_dil,
-                            const double d_wd, il::Array<double> &d) {
+il::Array<double> dilatancy(double Init_dil, double Incr_dil,
+                            double d_wd, const il::Array<double> &d, il::io_t) {
 
   // Inputs:
   //  - Init_dil -> Initial value of dilatancy
@@ -26,8 +26,10 @@ il::Array<double> dilatancy(const double Init_dil, const double Incr_dil,
   //  dilatancy and initial dilatancy value)
   //  - d_wd -> slip dw for scaling (see dilatancy law in the report)
   //  - d -> vector that contains the slip
+  //  - io_t -> everything on the left of il::io_t is read-only and is not
+  //    going to be mutated
 
-  il::Array<double> D{d.size(), 0.};
+  il::Array<double> D{d.size(), 0};
 
   for (il::int_t i = 0; i < D.size(); ++i) {
 
@@ -39,16 +41,18 @@ il::Array<double> dilatancy(const double Init_dil, const double Incr_dil,
 
 // Function that returns an array that contain the derivative w.r.t slip of
 // dilatancy values (according to exponential dilatant hardening law)
-il::Array<double> d_dilatancy(const double Incr_dil, const double d_wd,
-                             il::Array<double> &d) {
+il::Array<double> d_dilatancy(double Incr_dil, double d_wd,
+                             const il::Array<double> &d, il::io_t) {
 
   // Inputs:
   //  - Incr_dil -> Increment of dilatancy (difference between residual/peak
   //  dilatancy and initial dilatancy value)
   //  - d_wd -> slip dw for scaling (see dilatancy law in the report)
   //  - d -> vector that contains the slip
+  //  - io_t -> everything on the left of il::io_t is read-only and is not
+  //    going to be mutated
 
-  il::Array<double> DD{d.size(), 0.};
+  il::Array<double> DD{d.size(), 0};
 
   for (il::int_t i = 0; i < DD.size(); ++i) {
 

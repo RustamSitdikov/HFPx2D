@@ -22,8 +22,8 @@ namespace hfp2d {
 
 //mesh class
     void Mesh::set_values(il::Array2D<double> xy, il::Array2D<int> ien) {
-        IL_ASSERT(xy.size(1) == 2); //check array dimensions ?
-        IL_ASSERT(ien.size(1) ==
+        IL_EXPECT_FAST(xy.size(1) == 2); //check array dimensions ?
+        IL_EXPECT_FAST(ien.size(1) ==
                   2);//check array dimensions ??? -> this is only for 1D mesh so far
 
         Coor = xy;   // list of coordinates of points in the mesh
@@ -53,8 +53,8 @@ namespace hfp2d {
 //
     SegmentCharacteristic
     get_segment_DD_characteristic(const il::Array2D<double> Xs, int const p) {
-        IL_ASSERT(Xs.size(0) == 2);
-        IL_ASSERT(Xs.size(1) == 2);
+        IL_EXPECT_FAST(Xs.size(0) == 2);
+        IL_EXPECT_FAST(Xs.size(1) == 2);
         SegmentCharacteristic segment;
 
 // compute element size

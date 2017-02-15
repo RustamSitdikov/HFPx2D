@@ -14,8 +14,7 @@
 namespace hfp2d {
 
 //  FUNCTION TO CREATE A DOF HANDLE
-il::Array2D<int> dofhandle_dg_full2d(const int dof_dim, const int Nelts,
-                                     const int p) {
+il::Array2D<int> dofhandle_dg_full2d(int dof_dim, int Nelts, int p, il::io_t) {
   // function creating a matrix of dof handle - for a piece-wise linear
   // variation per element of BOTH shear AND opening DDs
   // (Discontinous Galerkin type)
@@ -24,6 +23,8 @@ il::Array2D<int> dofhandle_dg_full2d(const int dof_dim, const int Nelts,
   // dof_dim :: number of dof per node
   // Nelts :: number of elements in the mesh
   // p :: interpolation order inside each element
+  // io_t -> everything on the left of il::io_t is read-only and is not
+  //         going to be mutated
 
   il::Array2D<int> Dof{Nelts, 2 * dof_dim, 0};
 
@@ -39,7 +40,7 @@ il::Array2D<int> dofhandle_dg_full2d(const int dof_dim, const int Nelts,
   return Dof;
 }
 
-il::Array2D<int> dofhandle_dg(const int dof_dim, const int Nelts) {
+il::Array2D<int> dofhandle_dg(int dof_dim, int Nelts, il::io_t) {
   // function creating a matrix of dof handle - for a piece-wise linear
   // variation per element of EITHER shear OR opening DDs
   // (Discontinous Galerkin type)
@@ -48,6 +49,8 @@ il::Array2D<int> dofhandle_dg(const int dof_dim, const int Nelts) {
   // shear or opening per element
   // dof_dim :: number of dof per node
   // Nelts :: number of elements in the mesh
+  // io_t -> everything on the left of il::io_t is read-only and is not
+  //         going to be mutated
 
   il::Array2D<int> Dofw{Nelts, dof_dim, 0};
 
@@ -64,13 +67,15 @@ il::Array2D<int> dofhandle_dg(const int dof_dim, const int Nelts) {
   return Dofw;
 }
 
-il::Array2D<int> dofhandle_cg2d(const int dof_dim, const int Nelts) {
+il::Array2D<int> dofhandle_cg2d(int dof_dim, int Nelts, il::io_t) {
   // function creating a matrix of dof handle - for continuous linear
   // variation per element (Continuous Galerkin type)
   // on a 1d Mesh object for the case of dof_dim Degrees of Freedoms per node
   // format of the handle : number of elements \times (p+1)*dof_dim
   // dof_dim :: number of dof per node
   // Nelts :: number of elements in the mesh
+  // io_t -> everything on the left of il::io_t is read-only and is not
+  //         going to be mutated
 
   il::Array2D<int> Dofp{Nelts, dof_dim, 0};
 

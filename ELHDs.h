@@ -49,23 +49,20 @@ struct Result {
   double slippagezone;
 };
 
-void elhds(Result &res, Mesh mesh, const int p,
-                    const double Cohes, il::Array2D<double> &kmat,
-                    const double Incr_dil, const double d_wd,
-                    il::Array2D<double> rho, const double Init_dil,
-                    const double CompressFluid, const double TimeStep,
-                    const double Visc, il::Array<double> S, const int InjPoint,
-                    const int dof_dim, const double Peak_fric,
-                    const double Resid_fric, const double d_wf);
+void elhds(Mesh mesh, int p, double Cohes, const il::Array2D<double> &kmat,
+           double Incr_dil, double d_wd, il::Array2D<double> rho,
+           double Init_dil, double CompressFluid, double TimeStep, double Visc,
+           il::Array<double> S, int InjPoint, int dof_dim, double Peak_fric,
+           double Resid_fric, double d_wf, il::io_t, Result &res);
 
-il::Array<double> flatten1(il::Array2D<double> &Arr);
+il::Array<double> flatten1(const il::Array2D<double> &Arr, il::io_t);
 
 int boole_mc(il::Array<double> tau, il::Array<double> sigma_n,
-             il::Array<double> fric, const double Cohes);
+             il::Array<double> fric, double Cohes, il::io_t);
 
-il::Array<int> flatten2(il::Array2D<int> Arr);
+il::Array<int> flatten2(const il::Array2D<int> &Arr, il::io_t);
 
-il::Array<int> select(il::Array<int> &arr);
+il::Array<int> select(const il::Array<int> &arr, il::io_t);
 
 void set_submatrix_non_linear_system(il::Array2D<double> &A, int i0, int i1,
                                      const il::Array2D<double> &B);
@@ -80,11 +77,11 @@ take_submatrix_non_linear_system(int i0, int i1, int j0, int j1,
 il::Array<double> take_subvector_non_linear_system(int i0, int i1,
                                                    const il::Array<double> &A);
 
-double euclidean_distance(double x1, double x2, double y1, double y2);
+double euclidean_distance(double x1, double x2, double y1, double y2, il::io_t);
 
-il::Array<int> delete_duplicates(il::Array<il::int_t> &arr);
+il::Array<int> delete_duplicates(const il::Array<il::int_t> &arr, il::io_t);
 
-il::Array<il::int_t> delete_duplicates2(const il::Array<il::int_t> &arr);
+il::Array<il::int_t> delete_duplicates2(const il::Array<il::int_t> &arr, il::io_t);
 }
 
 #endif // HFPX2D_ELHDS_H

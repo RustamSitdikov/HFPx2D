@@ -15,11 +15,11 @@
 
 namespace hfp2d {
 
-il::Array<double> exp_friction(const double Peak_fric, const double Resid_fric,
-                               const double d_wf, il::Array<double> &d);
+il::Array<double> exp_friction(double Peak_fric, double Resid_fric, double d_wf,
+                               const il::Array<double> &d, il::io_t);
 
-il::Array<double> lin_friction(const double Peak_fric, const double Resid_fric,
-                               const double d_wf, il::Array<double> &d);
+il::Array<double> lin_friction(double Peak_fric, double Resid_fric, double d_wf,
+                               const il::Array<double> &d, il::io_t);
 }
 
 #endif // HFPX2D_FRICTION_H

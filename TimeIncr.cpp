@@ -12,7 +12,7 @@
 
 // Inclusion from Inside Loop library
 #include <il/linear_algebra.h>
-#include <il/linear_algebra/dense/blas/norm.h>
+#include <il/linear_algebra/dense/norm.h>
 #include <il/math.h>
 
 // Inclusion from the project
@@ -23,18 +23,18 @@
 #include "Friction.h"
 #include "FromEdgeToCol.h"
 #include "Mesh.h"
+#include "Output_results.h"
 #include "TimeIncr.h"
 
 namespace hfp2d {
 
-void time_incr(Mesh mesh, const int p, const double Cohes,
-               il::Array2D<double> &kmat, const double Incr_dil,
-               const double d_wd, il::Array2D<double> rho,
-               const double Init_dil, const double CompressFluid,
-               const double Visc, il::Array<double> S, const int dof_dim,
-               const double Peak_fric, const double Resid_fric,
-               const double d_wf, il::Array2D<double> Sigma0,
-               il::Array<double> Amb_press, il::Array<double> Pinit) {
+void time_incr(Mesh mesh, int p, double Cohes, const il::Array2D<double> &kmat,
+               double Incr_dil, double d_wd, il::Array2D<double> rho,
+               double Init_dil, double CompressFluid, double Visc,
+               il::Array<double> S, int dof_dim, double Peak_fric,
+               double Resid_fric, double d_wf, il::Array2D<double> Sigma0,
+               il::Array<double> Amb_press, il::Array<double> Pinit,
+               const std::string &Directory_results, il::io_t) {
 
   // Total numbers of collocation points
   il::int_t NCollPoints = 2 * mesh.nelts();
@@ -45,7 +45,7 @@ void time_incr(Mesh mesh, const int p, const double Cohes,
   Result SolutionAtTj;
 
   // Initialization of pore pressure profile at nodal points
-  il::Array<double> Pin{mesh.nelts() + 1, 0.};
+  il::Array<double> Pin{mesh.nelts() + 1, 0};
   for (il::int_t j = 0; j < Pin.size(); ++j) {
 
     Pin[j] = Pinit[j] + Amb_press[j];
@@ -55,22 +55,25 @@ void time_incr(Mesh mesh, const int p, const double Cohes,
 
   // Injection point
   il::int_t InjPoint;
-  InjPoint = hfp2d::find(SolutionAtTj.P, max_1d(SolutionAtTj.P));
+  InjPoint =
+      hfp2d::find(SolutionAtTj.P, max_1d(SolutionAtTj.P, il::io), il::io);
 
   // Initialization of slippage length (No slip condition before fluid
   // injection)
-  SolutionAtTj.slippagezone = 0.;
+  SolutionAtTj.slippagezone = 0;
 
   // Initialization of friction vector
-  il::Array<double> In1{NCollPoints, 0.};
-  SolutionAtTj.friction = hfp2d::exp_friction(Peak_fric, Resid_fric, d_wf, In1);
+  il::Array<double> In1{NCollPoints, 0};
+  SolutionAtTj.friction =
+      hfp2d::exp_friction(Peak_fric, Resid_fric, d_wf, In1, il::io);
 
   // Initialization of dilatancy vector
-  SolutionAtTj.dilatancy = hfp2d::dilatancy(Init_dil, Incr_dil, d_wd, In1);
+  SolutionAtTj.dilatancy =
+      hfp2d::dilatancy(Init_dil, Incr_dil, d_wd, In1, il::io);
 
   // Initialization of vector total slip at nodal points
   // Remember: piecewise linear shear DDs
-  il::Array<double> in_incr_d{2 * mesh.nelts(), 0.};
+  il::Array<double> in_incr_d{2 * mesh.nelts(), 0};
   SolutionAtTj.incr_d = in_incr_d;
 
   // Initialization of matrix of total stress
@@ -78,14 +81,22 @@ void time_incr(Mesh mesh, const int p, const double Cohes,
   SolutionAtTj.tot_stress_state = Sigma0;
 
   double t = 0.005;
-  double tmax = 0.01;
+  double tmax = 0.02;
   double TimeStep = 0.005;
 
   while (t <= tmax) {
 
-    hfp2d::elhds(SolutionAtTj, mesh, p, Cohes, kmat, Incr_dil, d_wd, rho,
-                 Init_dil, CompressFluid, TimeStep, Visc, S, InjPoint, dof_dim,
-                 Peak_fric, Resid_fric, d_wf);
+    hfp2d::elhds(mesh, p, Cohes, kmat, Incr_dil, d_wd, rho, Init_dil,
+                 CompressFluid, TimeStep, Visc, S, InjPoint, dof_dim, Peak_fric,
+                 Resid_fric, d_wf, il::io, SolutionAtTj);
+
+    //      hfp2d::export_results(SolutionAtTj, t, Directory_results,
+    //                            std::string{"Test.txt"});
+
+    ///  To get a different file per each iteration ///
+    hfp2d::export_results(SolutionAtTj, t, Directory_results,
+                          std::string{"Test"} + std::to_string(t) +
+                              std::string{".txt"});
 
     t = t + SolutionAtTj.dt;
   }
@@ -96,10 +107,9 @@ void time_incr(Mesh mesh, const int p, const double Cohes,
 // arr -> 1D array in which we want to find the index of a given value
 // seek ->  value for which we want to find out the index
 
-il::int_t find(il::Array<double> arr, double_t seek) {
+il::int_t find(const il::Array<double> &arr, double_t seek, il::io_t) {
 
   for (il::int_t i = 0; i < arr.size(); ++i) {
-
     if (arr[i] == seek)
       return i;
   }
@@ -111,7 +121,7 @@ il::int_t find(il::Array<double> arr, double_t seek) {
 // Function that return the max value in an vector.
 // arr1D -> vector in which we want to find the max
 
-double_t max_1d(il::Array<double> &arr1D) {
+double_t max_1d(const il::Array<double> &arr1D, il::io_t) {
 
   double_t max;
   max = arr1D[0];

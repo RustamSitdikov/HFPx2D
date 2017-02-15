@@ -12,18 +12,17 @@
 
 namespace hfp2d {
 
-void time_incr(Mesh mesh, const int p, const double Cohes,
-               il::Array2D<double> &kmat, const double Incr_dil,
-               const double d_wd, il::Array2D<double> rho, const double Init_dil,
-               const double CompressFluid, const double Visc,
-               il::Array<double> S, const int dof_dim, const double Peak_fric,
-               const double Resid_fric, const double d_wf,
-               il::Array2D<double> Sigma0, il::Array<double> Amb_press,
-               il::Array<double> Pinit);
+void time_incr(Mesh mesh, int p, double Cohes, const il::Array2D<double> &kmat,
+               double Incr_dil, double d_wd, il::Array2D<double> rho,
+               double Init_dil, double CompressFluid, double Visc,
+               il::Array<double> S, int dof_dim, double Peak_fric,
+               double Resid_fric, double d_wf, il::Array2D<double> Sigma0,
+               il::Array<double> Amb_press, il::Array<double> Pinit,
+               const std::string &Directory_results, il::io_t);
 
-il::int_t find(il::Array<double> arr, double_t seek);
+il::int_t find(const il::Array<double> &arr, double_t seek, il::io_t);
 
-double_t max_1d(il::Array<double> &arr1D);
+double_t max_1d(const il::Array<double> &arr1D, il::io_t);
 }
 
 #endif // HFPX2D_TIMEINCR_H
