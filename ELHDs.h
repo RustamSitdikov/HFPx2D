@@ -53,7 +53,8 @@ void elhds(Mesh mesh, int p, double Cohes, const il::Array2D<double> &kmat,
            double Incr_dil, double d_wd, il::Array2D<double> rho,
            double Init_dil, double CompressFluid, double TimeStep, double Visc,
            il::Array<double> S, int InjPoint, int dof_dim, double Peak_fric,
-           double Resid_fric, double d_wf, il::io_t, Result &res);
+           double Resid_fric, double d_wf, il::Array<double> XColl, il::io_t,
+           Result &res);
 
 il::Array<double> flatten1(const il::Array2D<double> &Arr, il::io_t);
 
@@ -81,7 +82,10 @@ double euclidean_distance(double x1, double x2, double y1, double y2, il::io_t);
 
 il::Array<int> delete_duplicates(const il::Array<il::int_t> &arr, il::io_t);
 
-il::Array<il::int_t> delete_duplicates2(const il::Array<il::int_t> &arr, il::io_t);
+il::Array<il::int_t> delete_duplicates2(const il::Array<il::int_t> &arr,
+                                        il::io_t);
+
+void sort_ascending_order(const il::Array<il::int_t> &arr, il::io_t);
 }
 
 #endif // HFPX2D_ELHDS_H

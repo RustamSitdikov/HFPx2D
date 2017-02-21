@@ -57,9 +57,22 @@ il::Array<double> lin_friction(double Peak_fric, double Resid_fric, double d_wf,
 
   for (il::int_t i = 0; i < f.size(); ++i) {
 
-    if (d[i] < d_wf) {
+    //    if (d[i] < d_wf) {
+    //
+    //      f[i] = Peak_fric - (sl * d[i]);
+    //    } else  {
+    //
+    //      f[i] = Resid_fric;
+    //    }
+
+    if (d[i] < 0) {
+
+      f[i] = 1;
+
+    } else if (d[i] < ((Peak_fric-Resid_fric)/sl) ) {
 
       f[i] = Peak_fric - (sl * d[i]);
+
     } else {
 
       f[i] = Resid_fric;

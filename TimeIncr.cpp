@@ -13,7 +13,7 @@
 // Inclusion from Inside Loop library
 #include <il/linear_algebra.h>
 #include <il/linear_algebra/dense/norm.h>
-#include <il/math.h>
+//#include <il/math.h>
 
 // Inclusion from the project
 #include "AssemblyDDM.h"
@@ -22,7 +22,7 @@
 #include "FVM.h"
 #include "Friction.h"
 #include "FromEdgeToCol.h"
-#include "Mesh.h"
+//#include "Mesh.h"
 #include "Output_results.h"
 #include "TimeIncr.h"
 
@@ -34,7 +34,8 @@ void time_incr(Mesh mesh, int p, double Cohes, const il::Array2D<double> &kmat,
                il::Array<double> S, int dof_dim, double Peak_fric,
                double Resid_fric, double d_wf, il::Array2D<double> Sigma0,
                il::Array<double> Amb_press, il::Array<double> Pinit,
-               const std::string &Directory_results, il::io_t) {
+               const std::string &Directory_results, il::Array<double> XColl,
+               il::io_t) {
 
   // Total numbers of collocation points
   il::int_t NCollPoints = 2 * mesh.nelts();
@@ -54,7 +55,7 @@ void time_incr(Mesh mesh, int p, double Cohes, const il::Array2D<double> &kmat,
   SolutionAtTj.P = Pin;
 
   // Injection point
-  il::int_t InjPoint;
+  int InjPoint;
   InjPoint =
       hfp2d::find(SolutionAtTj.P, max_1d(SolutionAtTj.P, il::io), il::io);
 
@@ -65,7 +66,7 @@ void time_incr(Mesh mesh, int p, double Cohes, const il::Array2D<double> &kmat,
   // Initialization of friction vector
   il::Array<double> In1{NCollPoints, 0};
   SolutionAtTj.friction =
-      hfp2d::exp_friction(Peak_fric, Resid_fric, d_wf, In1, il::io);
+      hfp2d::lin_friction(Peak_fric, Resid_fric, d_wf, In1, il::io);
 
   // Initialization of dilatancy vector
   SolutionAtTj.dilatancy =
@@ -80,20 +81,23 @@ void time_incr(Mesh mesh, int p, double Cohes, const il::Array2D<double> &kmat,
   // {{tau_1,sigma_n1},{tau_2, sigma_n2},{tau3, sigma_n3} ..}
   SolutionAtTj.tot_stress_state = Sigma0;
 
-  double t = 0.005;
-  double tmax = 0.02;
-  double TimeStep = 0.005;
+  double TimeStep = 0.001;
+  SolutionAtTj.dt = TimeStep;
+
+  double t = 0.0005;
+  double tmax = 0.625;
 
   while (t <= tmax) {
 
+    std::cout << "******** Time increment *******"
+              << " "
+              << "t = " << t << "\n";
+
     hfp2d::elhds(mesh, p, Cohes, kmat, Incr_dil, d_wd, rho, Init_dil,
                  CompressFluid, TimeStep, Visc, S, InjPoint, dof_dim, Peak_fric,
-                 Resid_fric, d_wf, il::io, SolutionAtTj);
+                 Resid_fric, d_wf, XColl, il::io, SolutionAtTj);
 
-    //      hfp2d::export_results(SolutionAtTj, t, Directory_results,
-    //                            std::string{"Test.txt"});
-
-    ///  To get a different file per each iteration ///
+    /// To get a different output file per each iteration ///
     hfp2d::export_results(SolutionAtTj, t, Directory_results,
                           std::string{"Test"} + std::to_string(t) +
                               std::string{".txt"});
@@ -107,7 +111,7 @@ void time_incr(Mesh mesh, int p, double Cohes, const il::Array2D<double> &kmat,
 // arr -> 1D array in which we want to find the index of a given value
 // seek ->  value for which we want to find out the index
 
-il::int_t find(const il::Array<double> &arr, double_t seek, il::io_t) {
+int find(const il::Array<double> &arr, double_t seek, il::io_t) {
 
   for (il::int_t i = 0; i < arr.size(); ++i) {
     if (arr[i] == seek)

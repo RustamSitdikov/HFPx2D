@@ -13,14 +13,14 @@
 #include <complex>
 #include <fstream>
 #include <iostream>
-#include <string>
+//#include <string>
 
 // Inclusion from Inside Loop library
 #include <il/Array.h>
 #include <il/StaticArray.h>
 #include <il/linear_algebra.h>
 #include <il/linear_algebra/dense/factorization/LU.h>
-#include <il/math.h>
+//#include <il/math.h>
 
 // Inclusion from the project
 #include "AssemblyDDM.h"
@@ -29,7 +29,7 @@
 #include "FVM.h"
 #include "Friction.h"
 #include "FromEdgeToCol.h"
-#include "Mesh.h"
+//#include "Mesh.h"
 #include "TimeIncr.h"
 #include <il/io/yaml.h>
 
@@ -44,42 +44,15 @@ double_t min_2d(const il::Array2D<double> &arr2D, il::io_t);
 
 int main() {
 
-//    double Ep, Density, Cohes, CompressFluid, Visc, Init_dil, Incr_dil, d_wf,
-//        d_wd, Peak_fric, Resid_fric, sigma_n0, P0, Source, l;
-//    int Nnodes;
-//
-//    // Read the file that contains the input data
-//    std::ifstream read_file(
-//        "/Users/federicociardo/ClionProjects/HFPx2D/InputData.txt");
-//
-//    // Check whether the input data file is opened or not
-//    IL_EXPECT_FAST(read_file.is_open());
-//
-//    // Read the data
-//    read_file >> Nnodes >> Ep >> Density >> Cohes >> CompressFluid >> Visc >>
-//        Init_dil >> Incr_dil >> d_wf >> d_wd >> Peak_fric >> Resid_fric >>
-//        sigma_n0 >> P0 >> Source >> l;
-//
-//    // Close the data file
-//    read_file.close();
-//
-//    // Declare other variables
-//    // Number of elements
-//    int Nelts = Nnodes - 1;
-//    // Number of collocation points
-//    int NcollPoints = 2 * Nelts;
-//    // Degrees of freedom per node
-//    int dof_dim = 2;
-
   il::Status status{};
   il::String filename =
       "/Users/federicociardo/ClionProjects/HFPx2D/InputData.yaml";
   il::Yaml config = il::load<il::Yaml>(filename, il::io, status);
   status.abort_on_error();
 
-  il::int_t  i;
+  il::int_t i;
 
-  int Nnodes;
+  il::int_t Nnodes = 0;
   i = config.search("Number of nodes");
   if (config.found(i)) {
     IL_EXPECT_FAST(config.type(i) == il::Type::integer);
@@ -171,7 +144,7 @@ int main() {
   }
 
   double P0;
-  i= config.search("Ambient pore pressure");
+  i = config.search("Ambient pore pressure");
   if (config.found(i)) {
     IL_EXPECT_FAST(config.type(i) == il::Type::floating_point);
     P0 = config.value_floating_point(i);
@@ -193,9 +166,9 @@ int main() {
 
   // Declare other variables
   // Number of elements
-  int Nelts = Nnodes - 1;
+  il::int_t Nelts = Nnodes - 1;
   // Number of collocation points
-  int NcollPoints = 2 * Nelts;
+  il::int_t NcollPoints = 2 * Nelts;
   // Degrees of freedom per node
   int dof_dim = 2;
 
@@ -210,33 +183,33 @@ int main() {
   // Remember: continuous linear variation
   // Size -> Neltsx2
   il::Array2D<double> rho{Nelts, 2, 0};
-  for (il::int_t i{0}; i < rho.size(0); ++i) {
+  for (il::int_t ii = 0; ii < rho.size(0); ++ii) {
     for (il::int_t j = 0; j < rho.size(1); ++j) {
 
-      rho(i, j) = Density;
+      rho(ii, j) = Density;
     }
   }
 
   // Declare some variables -> sigma_s0 is the ambient shear stress
   // (which is related to the ambient normal stress)
   // Dp is the constant overpressure
-  double sigma_s0 = 0.55 * sigma_n0;
+  double sigma_s0 = 0.7 * sigma_n0;
   double Dp = 0.5 * (sigma_n0 - P0);
 
   // Matrix -> {Ambient shear stress , Ambient normal stress}
   // for each collocation points
   il::Array2D<double> Sigma0{NcollPoints, 2, 0};
 
-  for (il::int_t i{0}; i < Sigma0.size(0); ++i) {
-    Sigma0(i, 0) = sigma_s0;
-    Sigma0(i, 1) = sigma_n0;
+  for (il::int_t i3 = 0; i3 < Sigma0.size(0); ++i3) {
+    Sigma0(i3, 0) = sigma_s0;
+    Sigma0(i3, 1) = sigma_n0;
   }
 
   // Ambient pore pressure at nodal points {P0_1, P0_2, P0_3, ..}
   // Remember -> Pressure varies linearly and continuously over the elements
   // Size -> Nnodes
   il::Array<double> Amb_press{Nnodes, 0};
-  for (il::int_t k{0}; k < Amb_press.size(); ++k) {
+  for (il::int_t k = 0; k < Amb_press.size(); ++k) {
 
     Amb_press[k] = P0;
   }
@@ -252,21 +225,40 @@ int main() {
 
   // xy -> matrix of mesh coordinates {{x1,y1},{x2,y2},{x3,y3}..}
   il::Array2D<double> xy{Nnodes, 2, 0};
-  for (il::int_t i = 0; i < xy.size(0); ++i) {
-    xy(i, 0) = -l + (i * h);
-    xy(i, 1) = 0.;
+  for (il::int_t i2 = 0; i2 < xy.size(0); ++i2) {
+    xy(i2, 0) = -l + (i2 * h);
+    xy(i2, 1) = 0.;
   }
 
   // Connectivity matrix
   il::Array2D<int> myconn{Nelts, 2, 0};
-  for (il::int_t i{0}; i < myconn.size(0); ++i) {
-    myconn(i, 0) = i;
-    myconn(i, 1) = i + 1;
+  for (il::int_t i4 = 0; i4 < myconn.size(0); ++i4) {
+    myconn(i4, 0) = i4;
+    myconn(i4, 1) = i4 + 1;
   }
 
   // Create mesh object
   hfp2d::Mesh mesh;
   mesh.set_values(xy, myconn);
+
+  // Get collocation points' information (needed for calculation of slippage
+  // length)
+  il::Array<double> XColl{2 * mesh.nelts(), 0};
+  il::Array2D<double> Xs{2, 2, 0};
+  hfp2d::SegmentCharacteristic coo_coll;
+
+  for (il::int_t m3 = 0, m4 = 0; m3 < mesh.nelts(); ++m3, m4 = m4 + 2) {
+    for (il::int_t i = 0; i < Xs.size(1); ++i) {
+      Xs(0, i) = mesh.Coor(
+          hfp2d::dofhandle_cg2d(dof_dim, mesh.nelts(), il::io)(m3, 0), i);
+      Xs(1, i) = mesh.Coor(
+          hfp2d::dofhandle_cg2d(dof_dim, mesh.nelts(), il::io)(m3, 1), i);
+    }
+
+    coo_coll = hfp2d::get_segment_DD_characteristic(Xs, p);
+    XColl[m4] = coo_coll.CollocationPoints(0, 0);
+    XColl[m4 + 1] = coo_coll.CollocationPoints(1, 0);
+  }
 
   // Initial pore pressure profile (which must be added to the
   // ambient pressure in the crack/fault)
@@ -275,7 +267,7 @@ int main() {
   Pinit = analytical_solution(Dp, mesh, il::io);
 
   // Find the position of the max value in Pinit
-  il::int_t idx;
+  int idx;
   idx = hfp2d::find(Pinit, hfp2d::max_1d(Pinit, il::io), il::io);
 
   // Source vector whose size is Nnodes
@@ -294,7 +286,7 @@ int main() {
   /// Solution of fluid injection into frictional weakening dilatant fault ///
   hfp2d::time_incr(mesh, p, Cohes, kmat, Incr_dil, d_wd, rho, Init_dil,
                    CompressFluid, Visc, S, dof_dim, Peak_fric, Resid_fric, d_wf,
-                   Sigma0, Amb_press, Pinit, Directory_results, il::io);
+                   Sigma0, Amb_press, Pinit, Directory_results, XColl, il::io);
 
   return 0;
 }
@@ -317,7 +309,7 @@ il::Array<double> analytical_solution(double Dp, hfp2d::Mesh mesh, il::io_t) {
 
   for (il::int_t j = 0; j < Pinit.size(); ++j) {
 
-    Pinit[j] = Dp * (erfc(fabs(mesh.Coor(j, 0) / sqrt(10 * 0.005)) / 2));
+    Pinit[j] = Dp * (erfc(fabs(mesh.Coor(j, 0) / sqrt(10 * 0.0005)) / 2));
   }
 
   return Pinit;

@@ -49,12 +49,13 @@ void export_results(Result &SolutionAtTj, double t,
 
   std::string f_path = trg_dir + of_name;
   const char *format1 = "%.16g %10";
+  const char *format6 = "%6.0d";
   const char *format2 = "N. iteration: %i\n\n";
   const char *format3 = "Current time step: %.5g\n\n";
   const char *format4 = "Current time:\n%2.5g\n\n";
   const char *format5 = "Slippage length:\n%2.5g";
 
-  FILE *of = std::fopen(f_path.c_str(), "a");
+  FILE *of = std::fopen(f_path.c_str(), "w");
   std::fprintf(of, format2, SolutionAtTj.iter, 1);
   std::fprintf(of, format3, SolutionAtTj.dt, 1);
   std::fprintf(of, format4, t);
@@ -71,8 +72,8 @@ void export_results(Result &SolutionAtTj, double t,
   }
 
   std::fprintf(of, "\n\n******* Final slipping elements *******\n");
-  for (int j = 0; j < SolutionAtTj.final_slip_elements.size(); ++j) {
-    std::fprintf(of, format1, SolutionAtTj.final_slip_elements[j]);
+  for (int j1 = 0; j1 < SolutionAtTj.final_slip_elements.size(); ++j1) {
+    std::fprintf(of, format6, SolutionAtTj.final_slip_elements[j1]);
   }
 
   std::fprintf(of, "\n\n******* Dilatancy values *******\n");

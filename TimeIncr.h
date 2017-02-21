@@ -18,9 +18,10 @@ void time_incr(Mesh mesh, int p, double Cohes, const il::Array2D<double> &kmat,
                il::Array<double> S, int dof_dim, double Peak_fric,
                double Resid_fric, double d_wf, il::Array2D<double> Sigma0,
                il::Array<double> Amb_press, il::Array<double> Pinit,
-               const std::string &Directory_results, il::io_t);
+               const std::string &Directory_results, il::Array<double> XColl,
+               il::io_t);
 
-il::int_t find(const il::Array<double> &arr, double_t seek, il::io_t);
+int find(const il::Array<double> &arr, double_t seek, il::io_t);
 
 double_t max_1d(const il::Array<double> &arr1D, il::io_t);
 }
