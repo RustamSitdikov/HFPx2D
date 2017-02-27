@@ -20,6 +20,12 @@
 #include "AssemblyDDM.h"
 #include "DOF_Handles.h"
 #include "Mesh.h"
+#include "Stress.h"
+#include "Coh_Propagation.h"
+#include "Coh_Prop_new.h"
+#include <fstream>
+
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // analytical solution of the griffith-crack (ct pressure)
@@ -38,7 +44,7 @@ il::Array<double> griffithcrack(const il::Array<double>& x, double a, double Ep,
 
 ////////////////////////////////////////////////////////////////////////////////
 int main() {
-  int n = 200, p = 1;
+  int n = 1001, p = 1;
   double h = 2. / (n - 1);  //  element size
 
   il::Array<double> x{n};
@@ -48,7 +54,7 @@ int main() {
   il::Array2D<int> id{n - 1, 4, 0};
 
   int ndof = (n - 1) * (p + 1) * 2;  // number of dofs
-  double Ep = 1.;                    // Plane strain Young's modulus
+  double Ep = 100.;                    // Plane strain Young's modulus
 
   //  std::complex(double re = 0.0, double im = 0.0) myC2;
   //  myC.real(2.);
@@ -94,13 +100,19 @@ int main() {
   std::cout << "------\n";
   result = std::time(nullptr);
   std::cout << std::asctime(std::localtime(&result));
-
   // solve a constant pressurized crack problem...
   il::Array<double> f{ndof, -1.};
   // just opening dds - set shear loads to zero
   for (int i = 0; i < ndof / 2; ++i) {
     f[2 * i] = 0;
   }
+//  il::Status status1;
+//  il::Array2D<double> k1{4,4,1};
+//  il::Array<double> f1{4,1};
+//  il::Array<double> ddd=linear_solve(k1,f1,il::io,status1);
+//  std::cout<<ddd[1];
+
+
 
   il::Status status;
   // example if LU decomposition
@@ -113,7 +125,74 @@ int main() {
 
   // use a direct solver
   il::Array<double> dd =
-      linear_solve(K, f, il::io, status);  // lu_decomposition.solve(f);
+      linear_solve(K, f, il::io, status);  // lu_decomposition.solve(f);//
+
+//    //we add here to test the stress calculation code part;
+//    il::Array<double> stress;
+//    stress=stressoutput(mesh,id,p,Ep,2.0,0.0,dd);
+//    std::cout << stress[1];
+
+  //we add here to test the propagation code.
+  il::Array2D<double> widthlist;
+  il::Array<double> plist;
+    il::Array<double> l_coh;
+    il::Array<double> l_c;
+  Material material;
+  Initial_condition initial_condition;
+
+  material_condition(material, initial_condition,
+                    0.0001, 2.,100.0,0.,
+          0.00001,0.001,0.01,0.);
+//  void material_condition(Material &material, Initial_condition &initial_condition,
+//                          double wc1, double sigma_t1,double Ep1,double U1,
+//                          double pini1,double Q01,double timestep1,double sigma01);
+
+
+
+    il::Array<double> widthB;
+
+    il::Status status2;
+  propagation_loop_new(widthlist,plist,l_coh,l_c,
+                   mesh,id,p,material,initial_condition,490,510,25,status2);
+  il::Array<double> xlist{2*mesh.nelts(),0.};
+  get_xlist(xlist,mesh);
+
+  std::ofstream fout;
+  fout.open("output2.txt");
+//    fout<<initial_condition.timestep<<"\n";
+//    for(int pp=0;pp<plist.size();++pp){
+//        fout<<plist[pp]<<"\t";
+//    }
+//    fout<<"\n";
+//    for (int xx = 0; xx <xlist.size() ; ++xx) {
+//        fout<<xlist[xx]<<"\t";
+//    }
+//    fout<<"\n";
+  for(int qq=0;qq<widthlist.size(0);++qq){
+    for(int qqq=0;qqq<widthlist.size(1);++qqq){
+      fout<<widthlist(qq,qqq)<<"\t";
+    }
+    fout<<"\n";
+  }
+  fout.close();
+
+  std::ofstream fout1;
+  fout1.open("outputpressure.txt");
+//    fout<<initial_condition.timestep<<"\n";
+//    for(int pp=0;pp<plist.size();++pp){
+//        fout<<plist[pp]<<"\t";
+//    }
+//    fout<<"\n";
+//    for (int xx = 0; xx <xlist.size() ; ++xx) {
+//        fout<<xlist[xx]<<"\t";
+//    }
+//    fout<<"\n";
+  for(int mm=0;mm<plist.size();++mm){
+      fout1<<plist[mm]<<"\n";
+    }
+
+  fout1.close();
+
 
   // Analytical solution at nodes
   il::Array<double> thex{ndof / 2, 0}, wsol{ndof / 2, 0};
@@ -141,3 +220,5 @@ int main() {
 
   return 0;
 }
+
+
