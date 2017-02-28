@@ -29,14 +29,16 @@ namespace hfp2d {
 // slip OR opening vector (size 2Nelts), it returns the slip OR opening vector
 // at collocation points
 
-il::Array2D<double> from_edge_to_col(const int Nelts, const int dof_dim) {
+// this only works for p=1
+il::Array2D<double> from_edge_to_col(const int nelts, const int dof_dim) {
 
   // Inputs:
   //  - Nelts -> number of elements
   //  - dof_dim -> degrees of freedom per nodes
-
-  il::Array2D<double> Fetc{2 * Nelts, 2 * Nelts, 0.};
-  il::Array2D<double> ShapeFunction{2, 2, .0};
+  //
+  // it should be a sparse matrix....
+  il::Array2D<double> Fetc{2 * nelts, 2 * nelts, 0.};
+  il::StaticArray2D<double> ShapeFunction{2, 2, .0};
 
   ShapeFunction(0, 0) = (1 + (1 / sqrt(2))) / 2;
   ShapeFunction(0, 1) = (1 - (1 / sqrt(2))) / 2;
@@ -44,7 +46,7 @@ il::Array2D<double> from_edge_to_col(const int Nelts, const int dof_dim) {
   ShapeFunction(1, 0) = (1 - (1 / sqrt(2))) / 2;
   ShapeFunction(1, 1) = (1 + (1 / sqrt(2))) / 2;
 
-  il::Array2D<int> A{Nelts, 2, 0};
+  il::Array2D<int> A{nelts, 2, 0};
 
   for (il::int_t k = 0, j; k < A.size(0); ++k) {
 
@@ -56,7 +58,7 @@ il::Array2D<double> from_edge_to_col(const int Nelts, const int dof_dim) {
     }
   }
 
-  for (il::int_t i = 0, k = 0, q = 1; i < Nelts; ++i) {
+  for (il::int_t i = 0, k = 0, q = 1; i < nelts; ++i) {
 
     for (il::int_t j = 0; j < dof_dim; ++j) {
 

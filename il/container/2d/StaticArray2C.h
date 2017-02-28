@@ -11,12 +11,8 @@
 #ifndef IL_STATICARRAY2C_H
 #define IL_STATICARRAY2C_H
 
-// <cstring> is needed for memcpy
-#include <cstring>
 // <initializer_list> is needed for std::initializer_list<T>
 #include <initializer_list>
-// <type_traits> is needed for std::is_pod
-#include <type_traits>
 
 #include <il/base.h>
 
@@ -88,8 +84,8 @@ class StaticArray2C {
 
   /* \brief Get the size of the il::StaticArray2C<T, n0, n1>
   //
-  // for (il::int_t i{0}; i < v.size(0); ++i) {
-  //   for (il::int_t j{0}; j < v.size(1); ++j) {
+  // for (il::int_t i = 0; i < v.size(0); ++i) {
+  //   for (il::int_t j = 0; j < v.size(1); ++j) {
   //     A(i, j) = 1.0 / (i + j + 2);
   //   }
   // }
@@ -110,9 +106,9 @@ class StaticArray2C {
 
 template <typename T, il::int_t n0, il::int_t n1>
 StaticArray2C<T, n0, n1>::StaticArray2C() {
-  if (std::is_pod<T>::value) {
+  if (il::is_trivial<T>::value) {
 #ifdef IL_DEFAULT_VALUE
-    for (il::int_t k{0}; k < n0 * n1; ++k) {
+    for (il::int_t k = 0; k < n0 * n1; ++k) {
       data_[k] = il::default_value<T>();
     }
 #endif
@@ -121,7 +117,7 @@ StaticArray2C<T, n0, n1>::StaticArray2C() {
 
 template <typename T, il::int_t n0, il::int_t n1>
 StaticArray2C<T, n0, n1>::StaticArray2C(const T& value) {
-  for (il::int_t k{0}; k < n0 * n1; ++k) {
+  for (il::int_t k = 0; k < n0 * n1; ++k) {
     data_[k] = value;
   }
 }
@@ -129,9 +125,10 @@ StaticArray2C<T, n0, n1>::StaticArray2C(const T& value) {
 template <typename T, il::int_t n0, il::int_t n1>
 StaticArray2C<T, n0, n1>::StaticArray2C(
     il::value_t, std::initializer_list<std::initializer_list<T>> list) {
-  IL_ASSERT(n0 == static_cast<il::int_t>(list.size()));
+  IL_EXPECT_FAST(n0 == static_cast<il::int_t>(list.size()));
+
   for (il::int_t i0 = 0; i0 < n0; ++i0) {
-    IL_ASSERT(n1 == (list.begin() + i0)->size());
+    IL_EXPECT_FAST(n1 == (list.begin() + i0)->size());
     for (il::int_t i1 = 0; i1 < n1; ++i1) {
       data_[i0 * n1 + i1] = *((list.begin() + i0)->begin() + i1);
     }
@@ -141,21 +138,24 @@ StaticArray2C<T, n0, n1>::StaticArray2C(
 template <typename T, il::int_t n0, il::int_t n1>
 const T& StaticArray2C<T, n0, n1>::operator()(il::int_t i0,
                                               il::int_t i1) const {
-  IL_ASSERT_BOUNDS(static_cast<il::uint_t>(i0) < static_cast<il::uint_t>(n0));
-  IL_ASSERT_BOUNDS(static_cast<il::uint_t>(i1) < static_cast<il::uint_t>(n1));
+  IL_EXPECT_MEDIUM(static_cast<std::size_t>(i0) < static_cast<std::size_t>(n0));
+  IL_EXPECT_MEDIUM(static_cast<std::size_t>(i1) < static_cast<std::size_t>(n1));
+
   return data_[i0 * n1 + i1];
 }
 
 template <typename T, il::int_t n0, il::int_t n1>
 T& StaticArray2C<T, n0, n1>::operator()(il::int_t i0, il::int_t i1) {
-  IL_ASSERT_BOUNDS(static_cast<il::uint_t>(i0) < static_cast<il::uint_t>(n0));
-  IL_ASSERT_BOUNDS(static_cast<il::uint_t>(i1) < static_cast<il::uint_t>(n1));
+  IL_EXPECT_MEDIUM(static_cast<std::size_t>(i0) < static_cast<std::size_t>(n0));
+  IL_EXPECT_MEDIUM(static_cast<std::size_t>(i1) < static_cast<std::size_t>(n1));
+
   return data_[i0 * n1 + i1];
 }
 
 template <typename T, il::int_t n0, il::int_t n1>
 il::int_t StaticArray2C<T, n0, n1>::size(il::int_t d) const {
-  IL_ASSERT_BOUNDS(static_cast<il::uint_t>(d) < static_cast<il::uint_t>(2));
+  IL_EXPECT_MEDIUM(static_cast<std::size_t>(d) < static_cast<std::size_t>(2));
+
   return d == 0 ? n0 : n1;
 }
 
@@ -168,7 +168,6 @@ template <typename T, il::int_t n0, il::int_t n1>
 T* StaticArray2C<T, n0, n1>::data() {
   return data_;
 }
-
 }
 
 #endif  // IL_STATICARRAY2C_H

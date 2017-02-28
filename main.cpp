@@ -14,9 +14,10 @@
 #include "il/Array.h"
 #include "il/math.h"
 //#include <il/Array2C.h>
-#include "il/StaticArray.h"
-#include "il/linear_algebra.h"
-#include "il/linear_algebra/dense/factorization/LU.h"
+#include <il/StaticArray.h>
+#include <il/linear_algebra.h>
+//#include "il/linear_algebra/dense/factorization/LU.h"
+
 #include "AssemblyDDM.h"
 #include "DOF_Handles.h"
 #include "Mesh.h"
@@ -38,21 +39,19 @@ il::Array<double> griffithcrack(const il::Array<double>& x, double a, double Ep,
 
 ////////////////////////////////////////////////////////////////////////////////
 int main() {
-  int n = 200, p = 1;
-  double h = 2. / (n - 1);  //  element size
+  int nelts = 200, p = 1 ;
+  double h = 2. / (nelts);  //  element size
 
-  il::Array<double> x{n};
+  il::Array<double> x{nelts+1};
 
-  il::Array2D<double> xy{n, 2, 0.0};
-  il::Array2D<int> myconn{n - 1, 2, 0.0};
-  il::Array2D<int> id{n - 1, 4, 0};
+  il::Array2D<double> xy{nelts+1, 2, 0.0};
+  il::Array2D<int> myconn{nelts, 2, 0.0};
+  il::Array2D<int> id{nelts, 4, 0};
 
-  int ndof = (n - 1) * (p + 1) * 2;  // number of dofs
+  int ndof = (nelts) * (p + 1) * 2;  // number of dofs
   double Ep = 1.;                    // Plane strain Young's modulus
 
-  //  std::complex(double re = 0.0, double im = 0.0) myC2;
-  //  myC.real(2.);
-  //  myC.imag(1.);
+
   //  Array2D M(i, j) -> M(i + 1, j) (Ordre Fortran)
   //  Array2C M(i, j) -> M(i, j + 1) (Ordre C)
 
@@ -68,10 +67,10 @@ int main() {
   }
 
   // create mesh object
-  Mesh mesh;
+  hfp2d::Mesh mesh;
   mesh.set_values(xy, myconn);
 
-  dofhandle_DG2D(id, 2, n - 1, p);  // dof handle for DDs
+  id=hfp2d::dofhandle_dp( 2, nelts, p);  // dof handle for DDs
 
   // some definitions needed for matrix assembly
   il::Array2D<double> xe{2, 2, 0}, xec{2, 2, 0};
@@ -82,14 +81,14 @@ int main() {
 
   std::cout << "Number of elements : " << mesh.nelts() << "\n";
   std::cout << "Number of dofs :" << id.size(0) * id.size(1) << "---"
-            << (n - 1) * (p + 1) * 2 << "---" << ndof << "\n";
+            << (nelts) * (p + 1) * 2 << "---" << ndof << "\n";
   std::cout << myconn.size(0) << "\n";
 
   std::cout << "------\n";
   std::time_t result = std::time(nullptr);
   std::cout << std::asctime(std::localtime(&result));
 
-  BasicAssembly(K, mesh, id, p, Ep);  // passing p could be avoided here.
+  hfp2d::basic_assembly(K, mesh, id, p, Ep);  // passing p could be avoided here.
 
   std::cout << "------\n";
   result = std::time(nullptr);
@@ -112,18 +111,18 @@ int main() {
   // il::Array<double> dd = lu_decomposition.solve(f);
 
   // use a direct solver
-  il::Array<double> dd =
-      linear_solve(K, f, il::io, status);  // lu_decomposition.solve(f);
-
-  // Analytical solution at nodes
+  il::Array<double> dd = il::linear_solve(K, f, il::io, status);  // lu_decomposition.solve(f);
+//
+//  // Analytical solution at nodes
   il::Array<double> thex{ndof / 2, 0}, wsol{ndof / 2, 0};
 
   int i = 0;
-  for (int e = 0; e < n - 1;
-       ++e) {  // this piece of codes gets 1D mesh of x doubling the nodes of
-               // adjacent elements (for comparison with analytical solution)
-    thex[i] = mesh.Coor(mesh.conn(e, 0), 0);
-    thex[i + 1] = mesh.Coor(mesh.conn(e, 1), 0);
+  // this piece of codes gets 1D mesh of x doubling the nodes of
+  // adjacent elements (for comparison with analytical solution)
+  for (int e = 0; e < nelts; ++e) {
+
+    thex[i] = mesh.node(mesh.connectivity(e, 0), 0);
+    thex[i + 1] = mesh.node(mesh.connectivity(e, 1), 0);
     i = i + 2;
   }
 
@@ -139,5 +138,6 @@ int main() {
         << dd[j*2+1]<<  " rel error: " << rel_err << "\n";
   }
 
+  std::cout << " end of code";
   return 0;
 }

@@ -13,9 +13,8 @@
 
 namespace hfp2d {
 
-//  FUNCTION TO CREATE A DOF HANDLE
-il::Array2D<int> dofhandle_dg2d(const int dof_dim, const int Nelts,
-                                const int p) {
+//  FUNCTION TO CREATE A DOF HANDLE for Discontinuous Polynomial (along 1D Mesh)
+il::Array2D<int> dofhandle_dp(const int dof_dim, const int Nelts, const int p) {
   // function creating a matrix of dof handle - for a piece-wise linear
   // variation per element (Discontinous Galerkin type)
   // on a 1d Mesh object for the case of dof_dim Degrees of Freedoms per node
@@ -37,4 +36,6 @@ il::Array2D<int> dofhandle_dg2d(const int dof_dim, const int Nelts,
 
   return Dof;
 }
+
+// C
 }

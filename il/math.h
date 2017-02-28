@@ -11,6 +11,7 @@
 #define IL_MATH_H
 
 #include <cmath>
+#include <complex>
 
 #include <il/container/1d/Array.h>
 
@@ -31,7 +32,8 @@ struct epsilon<long double> {
   static constexpr double value = 2.7105054312137610850e-20;
 };
 
-const double pi{3.1415926535897932385};
+const double pi = 3.1415926535897932385;
+const std::complex<double> I = std::complex<double>{0.0, 1.0};
 
 template <typename T>
 T min(T a, T b) {
@@ -45,9 +47,9 @@ T min(T a, T b, T c, T d) {
 
 template <typename T>
 T min(const il::Array<T>& A) {
-  IL_ASSERT(A.size() > 0);
+  IL_EXPECT_FAST(A.size() > 0);
   T ans{A[0]};
-  for (il::int_t k{0}; k < A.size(); ++k) {
+  for (il::int_t k = 0; k < A.size(); ++k) {
     if (A[k] < ans) {
       ans = A[k];
     }
@@ -73,7 +75,7 @@ T max(T a, T b, T c, T d) {
 
 template <typename T>
 T max(const il::Array<T>& v) {
-  IL_ASSERT(v.size() > 0);
+  IL_EXPECT_FAST(v.size() > 0);
   T max{v[0]};
   for (il::int_t k = 0; k < v.size(); ++k) {
     if (v[k] > max) {
@@ -85,9 +87,9 @@ T max(const il::Array<T>& v) {
 
 template <typename T>
 T mean(const il::Array<T>& v) {
-  IL_ASSERT(v.size() > 0);
-  T ans{0};
-  for (il::int_t i{0}; i < v.size(); ++i) {
+  IL_EXPECT_FAST(v.size() > 0);
+  T ans = 0;
+  for (il::int_t i = 0; i < v.size(); ++i) {
     ans += v[i];
   }
   ans /= v.size();
@@ -96,14 +98,14 @@ T mean(const il::Array<T>& v) {
 
 template <typename T>
 T sigma(const il::Array<T>& v) {
-  IL_ASSERT(v.size() > 1);
-  T mean{0};
-  for (il::int_t i{0}; i < v.size(); ++i) {
+  IL_EXPECT_FAST(v.size() > 1);
+  T mean = 0;
+  for (il::int_t i = 0; i < v.size(); ++i) {
     mean += v[i];
   }
   mean /= v.size();
-  T sigma{0};
-  for (il::int_t i{0}; i < v.size(); ++i) {
+  T sigma = 0;
+  for (il::int_t i = 0; i < v.size(); ++i) {
     sigma += (v[i] - mean) * (v[i] - mean);
   }
   sigma /= v.size() - 1;
@@ -141,7 +143,8 @@ class powN {
   static T p(T x) {
 // Remove right-most 1-bit in binary representation of N:
 #define N1 (N & (N - 1))
-    return powN<(N1 & (N1 - 1)) == 0, N1, T>::p(x) * powN<true, N - N1, T>::p(x);
+    return powN<(N1 & (N1 - 1)) == 0, N1, T>::p(x) *
+           powN<true, N - N1, T>::p(x);
 #undef N1
   }
 };
@@ -184,7 +187,7 @@ static T ipow(T x) {
 
 template <typename T>
 double ipow(T x, il::int_t n) {
-  IL_ASSERT(n >= 0);
+  IL_EXPECT_FAST(n >= 0);
   T ans = 1;
   while (n != 0) {
     if (n & 1) {
@@ -194,6 +197,105 @@ double ipow(T x, il::int_t n) {
     n >>= 1;
   }
   return ans;
+}
+
+inline std::uint32_t previous_power_of_2_32(std::uint32_t x) {
+  x |= x >> 1;
+  x |= x >> 2;
+  x |= x >> 4;
+  x |= x >> 8;
+  x |= x >> 16;
+  x -= (x >> 1);
+
+  return x;
+}
+
+inline std::uint32_t next_power_of_2_32(std::uint32_t x) {
+  x -= 1;
+  x |= x >> 1;
+  x |= x >> 2;
+  x |= x >> 4;
+  x |= x >> 8;
+  x |= x >> 16;
+  x += 1;
+
+  return x;
+}
+
+inline std::uint64_t previous_power_of_2_64(std::uint64_t x) {
+  x |= x >> 1;
+  x |= x >> 2;
+  x |= x >> 4;
+  x |= x >> 8;
+  x |= x >> 16;
+  x |= x >> 32;
+  x -= (x >> 1);
+
+  return x;
+}
+
+inline std::uint64_t next_power_of_2_64(std::uint64_t x) {
+  x -= 1;
+  x |= x >> 1;
+  x |= x >> 2;
+  x |= x >> 4;
+  x |= x >> 8;
+  x |= x >> 16;
+  x |= x >> 32;
+  x += 1;
+
+  return x;
+}
+
+// From http://chessprogramming.wikispaces.com/BitScan
+static const int table_log2_64[64] = {
+    63, 0,  58, 1,  59, 47, 53, 2,  60, 39, 48, 27, 54, 33, 42, 3,
+    61, 51, 37, 40, 49, 18, 28, 20, 55, 30, 34, 11, 43, 14, 22, 4,
+    62, 57, 46, 52, 38, 26, 32, 41, 50, 36, 17, 19, 29, 10, 13, 21,
+    56, 45, 25, 31, 35, 16, 9,  12, 44, 24, 15, 8,  23, 7,  6,  5};
+
+inline int next_log2_64(std::uint64_t x) {
+//  x |= x >> 1;
+//  x |= x >> 2;
+//  x |= x >> 4;
+//  x |= x >> 8;
+//  x |= x >> 16;
+//  x |= x >> 32;
+//  const il::int_t index =
+//      static_cast<il::int_t>((x * 0x07EDD5E59A4E28C2) >> 58);
+//
+//  return table_log2_64[index];
+  std::uint64_t power = 1;
+  int k = 0;
+  while (power < x) {
+    power *= 2;
+    k += 1;
+  }
+
+  return k;
+}
+
+static const int table_log2_32[32] = {
+    0, 9,  1,  10, 13, 21, 2,  29, 11, 14, 16, 18, 22, 25, 3, 30,
+    8, 12, 20, 28, 15, 17, 24, 7,  19, 27, 23, 6,  26, 5,  4, 31};
+
+inline int next_log2_32(std::uint32_t x) {
+//  x |= x >> 1;
+//  x |= x >> 2;
+//  x |= x >> 4;
+//  x |= x >> 8;
+//  x |= x >> 16;
+//  const int32_t index = static_cast<std::int32_t>(x * 0x07C4ACDD) >> 27;
+//
+//  return table_log2_32[index];
+  std::uint32_t power = 1;
+  int k = 0;
+  while (power < x) {
+    power *= 2;
+    k += 1;
+  }
+
+  return k;
 }
 }
 

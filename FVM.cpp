@@ -37,12 +37,12 @@ il::Array<double> average(const il::Array2D<double> &d) {
   return Average;
 };
 
+
 // This function calculates the slip/opening at +/- 1/4 -> the control volume is
 // centered on the nodes!
 // Input: matrix of slip/opening for each element -> size Nelts x 2
 // Remember: piecewise linear variation over the element
 // Output: vector -> {slip_+1/4 , slip_+3/4}
-
 il::Array<double> quarter(const il::Array2D<double> &d) {
 
   il::Array<double> Quarter(2 * d.size(0), 0.);
@@ -55,6 +55,7 @@ il::Array<double> quarter(const il::Array2D<double> &d) {
 
   return Quarter;
 };
+
 
 // Function to find out the position of a value in a 2D array
 // It returns 2x2 array with row&col of the seek value
@@ -298,9 +299,8 @@ il::Array2D<double> build_vp_matrix_p1(Mesh mesh, const double Incr_dil,
   }
 
   // Create the all the vectors for compressibility of fluid
-  il::Array<double> Cf{
-      vertices.size(),
-      CompressFluid}; // Vector of compressibility of the fluid at nodal points
+  // Vector of compressibility of the fluid at nodal points
+  il::Array<double> Cf{vertices.size(), CompressFluid};
   il::Array<double> Cfmid{(mesh.conn).size(0),
                           CompressFluid}; // Vector of compressibility of the
                                           // fluid at the midpoints of each
@@ -392,7 +392,7 @@ il::Array2D<double> build_vp_matrix_p1(Mesh mesh, const double Incr_dil,
   return Vp;
 };
 
-///
+
 // Function for assembling the Mass matrix "Vd" for piecewise LINEAR DDs (p = 1)
 il::Array2D<double> build_vd_matrix_p1(Mesh mesh, const double Incr_dil,
                                        const double d_wd, il::Array2D<int> &Dof,

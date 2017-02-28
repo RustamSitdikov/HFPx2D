@@ -12,6 +12,8 @@
 
 #include <il/linear_algebra/sparse/blas/SparseMatrixBlas.h>
 
+#ifdef IL_MKL
+
 namespace il {
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -46,9 +48,9 @@ inline void blas(double alpha, const il::SparseMatrixCSR<il::int_t, double>& A,
 
 // inline void blas(const il::Array<double>& x, il::io_t,
 //                 il::SparseMatrixCSR<int, double>& A, il::Array<double>& y) {
-//  IL_ASSERT_PRECOND(y.size() == A.size(0));
-//  IL_ASSERT_PRECOND(x.size() == A.size(1));
-//  IL_ASSERT_PRECOND(A.size(0) == A.size(1));
+//  IL_EXPECT_FAST(y.size() == A.size(0));
+//  IL_EXPECT_FAST(x.size() == A.size(1));
+//  IL_EXPECT_FAST(A.size(0) == A.size(1));
 //
 //  const char transa = 'n';
 //  const MKL_INT m = A.size(0);
@@ -84,7 +86,7 @@ inline void blas(float alpha, il::SparseMatrixBlas<int, float>& A_optimized,
 
   sparse_status_t status =
       mkl_sparse_s_mv(operation, alpha, A, descr, x.data(), beta, y.data());
-  IL_ASSERT(status == SPARSE_STATUS_SUCCESS);
+  IL_EXPECT_FAST(status == SPARSE_STATUS_SUCCESS);
 }
 
 inline void blas(double alpha, il::SparseMatrixBlas<int, double>& A_optimized,
@@ -97,9 +99,11 @@ inline void blas(double alpha, il::SparseMatrixBlas<int, double>& A_optimized,
 
   sparse_status_t status =
       mkl_sparse_d_mv(operation, alpha, A, descr, x.data(), beta, y.data());
-  IL_ASSERT(status == SPARSE_STATUS_SUCCESS);
+  IL_EXPECT_FAST(status == SPARSE_STATUS_SUCCESS);
 }
 
 }
+
+#endif // IL_MKL
 
 #endif  // IL_SPARSE_BLAS_H

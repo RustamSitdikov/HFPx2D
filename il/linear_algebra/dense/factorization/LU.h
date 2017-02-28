@@ -16,12 +16,12 @@
 #include <il/container/2d/LowerArray2D.h>
 #include <il/container/2d/UpperArray2D.h>
 #include <il/core/Status.h>
-#include <il/linear_algebra/dense/blas/norm.h>
+#include <il/linear_algebra/dense/norm.h>
 
 #ifdef IL_MKL
 #include <mkl_lapacke.h>
-#else
-#include <lapacke.h>
+#elif IL_OPENBLAS
+#include <OpenBLAS/lapacke.h>
 #endif
 
 namespace il {
@@ -87,7 +87,7 @@ LU<il::Array2D<double>>::LU(il::Array2D<double> A, il::io_t,
   const lapack_int lapack_error =
       LAPACKE_dgetrf(layout, m, n, A.data(), lda, ipiv.data());
 
-  IL_ASSERT(lapack_error >= 0);
+  IL_EXPECT_FAST(lapack_error >= 0);
   if (lapack_error == 0) {
     status.set(ErrorCode::ok);
     ipiv_ = std::move(ipiv);
@@ -98,13 +98,13 @@ LU<il::Array2D<double>>::LU(il::Array2D<double> A, il::io_t,
 }
 
 il::int_t LU<il::Array2D<double>>::size(il::int_t d) const {
-  IL_ASSERT_BOUNDS(static_cast<il::uint_t>(d) < static_cast<il::uint_t>(2));
+  IL_EXPECT_MEDIUM(static_cast<std::size_t>(d) < static_cast<std::size_t>(2));
   return lu_.size(d);
 }
 
 il::Array<double> LU<il::Array2D<double>>::solve(
     il::Array<double> y) const {
-  IL_ASSERT_PRECOND(lu_.size(0) == lu_.size(1));
+  IL_EXPECT_FAST(lu_.size(0) == lu_.size(1));
 
   const int layout = LAPACK_COL_MAJOR;
   const char trans = 'N';
@@ -114,15 +114,15 @@ il::Array<double> LU<il::Array2D<double>>::solve(
   const lapack_int ldy = n;
   const lapack_int lapack_error = LAPACKE_dgetrs(
       layout, trans, n, nrhs, lu_.data(), lda, ipiv_.data(), y.data(), ldy);
-  IL_ASSERT(lapack_error == 0);
+  IL_EXPECT_FAST(lapack_error == 0);
 
   return y;
 }
 
 il::Array2D<double> LU<il::Array2D<double>>::solve(
     il::Array2D<double> y) const {
-  IL_ASSERT_PRECOND(lu_.size(0) == lu_.size(1));
-  IL_ASSERT_PRECOND(lu_.size(0) == y.size(0));
+  IL_EXPECT_FAST(lu_.size(0) == lu_.size(1));
+  IL_EXPECT_FAST(lu_.size(0) == y.size(0));
 
   const int layout = LAPACK_COL_MAJOR;
   const char trans = 'N';
@@ -132,13 +132,13 @@ il::Array2D<double> LU<il::Array2D<double>>::solve(
   const lapack_int ldy = n;
   const lapack_int lapack_error = LAPACKE_dgetrs(
       layout, trans, n, nrhs, lu_.data(), lda, ipiv_.data(), y.data(), ldy);
-  IL_ASSERT(lapack_error == 0);
+  IL_EXPECT_FAST(lapack_error == 0);
 
   return y;
 }
 
 il::Array2D<double> LU<il::Array2D<double>>::inverse() const {
-  IL_ASSERT_PRECOND(lu_.size(0) == lu_.size(1));
+  IL_EXPECT_FAST(lu_.size(0) == lu_.size(1));
 
   il::Array2D<double> inverse{lu_};
   const int layout = LAPACK_COL_MAJOR;
@@ -146,13 +146,13 @@ il::Array2D<double> LU<il::Array2D<double>>::inverse() const {
   const lapack_int lda = static_cast<lapack_int>(inverse.stride(1));
   const lapack_int lapack_error =
       LAPACKE_dgetri(layout, n, inverse.data(), lda, ipiv_.data());
-  IL_ASSERT(lapack_error == 0);
+  IL_EXPECT_FAST(lapack_error == 0);
 
   return inverse;
 }
 
 double LU<il::Array2D<double>>::determinant() const {
-  IL_ASSERT_PRECOND(lu_.size(0) == lu_.size(1));
+  IL_EXPECT_FAST(lu_.size(0) == lu_.size(1));
 
   double det = 1.0;
   for (il::int_t i = 0; i < lu_.size(0); ++i) {
@@ -160,12 +160,12 @@ double LU<il::Array2D<double>>::determinant() const {
   }
 
   return det;
-};
+}
 
 double LU<il::Array2D<double>>::condition_number(il::Norm norm_type,
                                                         double norm_a) const {
-  IL_ASSERT_PRECOND(lu_.size(0) == lu_.size(1));
-  IL_ASSERT_PRECOND(norm_type == il::Norm::L1 || norm_type == il::Norm::Linf);
+  IL_EXPECT_FAST(lu_.size(0) == lu_.size(1));
+  IL_EXPECT_FAST(norm_type == il::Norm::L1 || norm_type == il::Norm::Linf);
 
   const int layout = LAPACK_COL_MAJOR;
   const char lapack_norm = (norm_type == il::Norm::L1) ? '1' : 'I';
@@ -174,25 +174,25 @@ double LU<il::Array2D<double>>::condition_number(il::Norm norm_type,
   double rcond;
   const lapack_int lapack_error =
       LAPACKE_dgecon(layout, lapack_norm, n, lu_.data(), lda, norm_a, &rcond);
-  IL_ASSERT(lapack_error == 0);
+  IL_EXPECT_FAST(lapack_error == 0);
 
   return 1.0 / rcond;
 }
 
 const double& LU<il::Array2D<double>>::L(il::int_t i,
                                                 il::int_t j) const {
-  IL_ASSERT_BOUNDS(j < i);
+  IL_EXPECT_MEDIUM(j < i);
   return lu_(i, j);
 }
 
 const double& LU<il::Array2D<double>>::U(il::int_t i,
                                                 il::int_t j) const {
-  IL_ASSERT_BOUNDS(j >= i);
+  IL_EXPECT_MEDIUM(j >= i);
   return lu_(i, j);
 }
 
 il::LowerArray2D<double> LU<il::Array2D<double>>::L() const {
-  IL_ASSERT_PRECOND(size(0) == size(1));
+  IL_EXPECT_FAST(size(0) == size(1));
 
   const il::int_t n = size(0);
   il::LowerArray2D<double> L{n};
@@ -206,7 +206,7 @@ il::LowerArray2D<double> LU<il::Array2D<double>>::L() const {
 }
 
 il::UpperArray2D<double> LU<il::Array2D<double>>::U() const {
-  IL_ASSERT_PRECOND(size(0) == size(1));
+  IL_EXPECT_FAST(size(0) == size(1));
 
   const il::int_t n = size(0);
   il::UpperArray2D<double> U{n};

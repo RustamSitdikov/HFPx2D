@@ -33,7 +33,7 @@ namespace hfp2d {
       for (il::int_t i = 0; i < Res.size(); ++i) {
 
         Res[i] = ((rho[i] * (pow(vector[i], 3))) / EltSizes[i]) *
-                 (1 / (12 * Visc));
+                 (1 / (12. * Visc));
       }
 
       return Res;
