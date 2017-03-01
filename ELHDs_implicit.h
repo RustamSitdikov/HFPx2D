@@ -24,9 +24,6 @@ struct Result {
   // vector of friction coefficient for each time step
   il::Array<double> friction;
 
-  // vector of dilatancy for each time step
-  il::Array<double> dilatancy;
-
   // array (matrix) of total stress for each time step
   il::Array2D<double> tot_stress_state;
 
@@ -39,8 +36,8 @@ struct Result {
   // number of iterations for each time step
   int iter;
 
-  // vector of final slip points per each time step
-  il::Array<il::int_t> final_slip_elements;
+  // vector of final slip collocation point per each time step
+  il::Array<il::int_t> final_slip_collpoints;
 
   // current time step
   double dt;
@@ -49,7 +46,7 @@ struct Result {
   double slippagezone;
 };
 
-void elhds(Mesh mesh, int p, double Cohes, const il::Array2D<double> &kmat,
+void elhds_implicit(Mesh mesh, int p, double Cohes, const il::Array2D<double> &kmat,
            double Incr_dil, double d_wd, il::Array2D<double> rho,
            double Init_dil, double CompressFluid, double TimeStep, double Visc,
            il::Array<double> S, int InjPoint, int dof_dim, double Peak_fric,
