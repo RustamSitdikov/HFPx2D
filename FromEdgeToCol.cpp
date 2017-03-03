@@ -15,7 +15,6 @@
 #include <il/linear_algebra.h>
 
 // Inclusion from the project
-#include "DOF_Handles.h"
 #include "FromEdgeToCol.h"
 
 namespace hfp2d {

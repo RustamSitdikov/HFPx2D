@@ -64,19 +64,19 @@ UpperArray2D<T>::UpperArray2D() {
 
 template <typename T>
 UpperArray2D<T>::UpperArray2D(il::int_t n) {
-  IL_ASSERT(n >= 0);
+  IL_EXPECT_FAST(n >= 0);
   if (n > 0) {
     const il::int_t nb_elements{(n * (n + 1)) / 2};
-    if (std::is_pod<T>::value) {
+    if (il::is_trivial<T>::value) {
       data_ = new T[nb_elements];
 #ifdef IL_DEFAULT_VALUE
-      for (il::int_t k{0}; k < nb_elements; ++k) {
+      for (il::int_t k = 0; k < nb_elements; ++k) {
         data_[k] = il::default_value<T>();
       }
 #endif
     } else {
       data_ = static_cast<T*>(::operator new(nb_elements * sizeof(T)));
-      for (il::int_t k{0}; k < nb_elements; ++k) {
+      for (il::int_t k = 0; k < nb_elements; ++k) {
         new (data_ + k) T{};
       }
     }
@@ -96,12 +96,12 @@ UpperArray2D<T>::UpperArray2D(const UpperArray2D<T>& A) {
   const il::int_t n{A.size()};
   if (n > 0) {
     const il::int_t nb_elements{(n * (n + 1)) / 2};
-    if (std::is_pod<T>::value) {
+    if (il::is_trivial<T>::value) {
       data_ = new T[nb_elements];
       memcpy(data_, A.data_, nb_elements * sizeof(T));
     } else {
       data_ = static_cast<T*>(::operator new(nb_elements * sizeof(T)));
-      for (il::int_t k{0}; k < nb_elements; ++k) {
+      for (il::int_t k = 0; k < nb_elements; ++k) {
         new (data_ + k) T{A.data_[k]};
       }
     }
@@ -141,7 +141,7 @@ UpperArray2D<T>& UpperArray2D<T>::operator=(const UpperArray2D<T>& A) {
     const il::int_t nb_elements{(n * (n + 1)) / 2};
     const bool needs_memory{n > capacity()};
     if (needs_memory) {
-      if (std::is_pod<T>::value) {
+      if (il::is_trivial<T>::value) {
         if (data_) {
           delete[] data_;
         }
@@ -155,7 +155,7 @@ UpperArray2D<T>& UpperArray2D<T>::operator=(const UpperArray2D<T>& A) {
           ::operator delete(data_);
         }
         data_ = static_cast<T*>(::operator new(nb_elements * sizeof(T)));
-        for (il::int_t k{0}; k < nb_elements; ++k) {
+        for (il::int_t k = 0; k < nb_elements; ++k) {
           new (data_ + k) T{A.data_[k]};
         }
       }
@@ -166,10 +166,10 @@ UpperArray2D<T>& UpperArray2D<T>::operator=(const UpperArray2D<T>& A) {
       size_ = data_ + n;
       capacity_ = data_ + n;
     } else {
-      if (std::is_pod<T>::value) {
+      if (il::is_trivial<T>::value) {
         memcpy(data_, A.data_, n * sizeof(T));
       } else {
-        for (il::int_t k{0}; k < nb_elements; ++k) {
+        for (il::int_t k = 0; k < nb_elements; ++k) {
           data_[k] = A.data_[k];
         }
         const il::int_t nb_elements_old{(size() * (size() + 1)) / 2};
@@ -190,7 +190,7 @@ template <typename T>
 UpperArray2D<T>& UpperArray2D<T>::operator=(UpperArray2D<T>&& A) {
   if (this != &A) {
     if (data_) {
-      if (std::is_pod<T>::value) {
+      if (il::is_trivial<T>::value) {
         delete[] data_;
       } else {
         const il::int_t nb_elements{(size() * (size() + 1)) / 2};
@@ -221,7 +221,7 @@ UpperArray2D<T>& UpperArray2D<T>::operator=(UpperArray2D<T>&& A) {
 template <typename T>
 UpperArray2D<T>::~UpperArray2D() {
   if (data_) {
-    if (std::is_pod<T>::value) {
+    if (il::is_trivial<T>::value) {
       delete[] data_;
     } else {
       const il::int_t nb_elements{(size() * (size() + 1)) / 2};
@@ -235,21 +235,21 @@ UpperArray2D<T>::~UpperArray2D() {
 
 template <typename T>
 const T& UpperArray2D<T>::operator()(il::int_t i0, il::int_t i1) const {
-  IL_ASSERT_BOUNDS(static_cast<il::uint_t>(i0) <
-                   static_cast<il::uint_t>(size()));
-  IL_ASSERT_BOUNDS(static_cast<il::uint_t>(i1) <
-                   static_cast<il::uint_t>(size()));
-  IL_ASSERT_BOUNDS(i0 <= i1);
+  IL_EXPECT_MEDIUM(static_cast<std::size_t>(i0) <
+                   static_cast<std::size_t>(size()));
+  IL_EXPECT_MEDIUM(static_cast<std::size_t>(i1) <
+                   static_cast<std::size_t>(size()));
+  IL_EXPECT_MEDIUM(i0 <= i1);
   return data_[(i1 * (i1 + 1)) / 2 + i0];
 }
 
 template <typename T>
 T& UpperArray2D<T>::operator()(il::int_t i0, il::int_t i1) {
-  IL_ASSERT_BOUNDS(static_cast<il::uint_t>(i0) <
-                   static_cast<il::uint_t>(size()));
-  IL_ASSERT_BOUNDS(static_cast<il::uint_t>(i1) <
-                   static_cast<il::uint_t>(size()));
-  IL_ASSERT_BOUNDS(i0 <= i1);
+  IL_EXPECT_MEDIUM(static_cast<std::size_t>(i0) <
+                   static_cast<std::size_t>(size()));
+  IL_EXPECT_MEDIUM(static_cast<std::size_t>(i1) <
+                   static_cast<std::size_t>(size()));
+  IL_EXPECT_MEDIUM(i0 <= i1);
   return data_[(i1 * (i1 + 1)) / 2 + i0];
 }
 

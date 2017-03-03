@@ -19,7 +19,8 @@ namespace hfp2d {
 il::Array<double> conductivities_newtonian(const il::Array<double> &rho,
                                            const il::Array<double> &vector,
                                            il::Array<double> EltSizes,
-                                           double Visc, il::io_t) {
+                                           Parameters_fluid &fluid_parameters,
+                                           il::io_t) {
 
   // Inputs:
   //  - rho -> vector of fluid density values at the middle of each element
@@ -35,7 +36,8 @@ il::Array<double> conductivities_newtonian(const il::Array<double> &rho,
 
   for (il::int_t i = 0; i < Res.size(); ++i) {
 
-    Res[i] = ((rho[i] * (pow(vector[i], 3))) / EltSizes[i]) * (1 / (12 * Visc));
+    Res[i] = ((rho[i] * (pow(vector[i], 3))) / EltSizes[i]) *
+             (1 / (12 * fluid_parameters.viscosity));
   }
 
   return Res;

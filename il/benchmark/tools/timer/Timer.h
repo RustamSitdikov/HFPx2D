@@ -12,11 +12,16 @@
 
 #include <chrono>
 #include <cstdint>
+#include <cstddef>
+#include <cstdlib>
+#include <limits>
 
-#include <il/core/ilassert.h>
-#include <il/core/ildef.h>
+
+#include <il/core/base.h>
 
 namespace il {
+
+typedef std::ptrdiff_t int_t;
 
 class Timer {
  private:
@@ -38,7 +43,7 @@ inline Timer::Timer() : point_begin_{} {
 }
 
 inline void Timer::start() {
-  IL_ASSERT(!launched_);
+  IL_EXPECT_FAST(!launched_);
   launched_ = true;
   point_begin_ = std::chrono::high_resolution_clock::now();
 }
@@ -46,7 +51,7 @@ inline void Timer::start() {
 inline void Timer::stop() {
   std::chrono::time_point<std::chrono::high_resolution_clock> point_end =
       std::chrono::high_resolution_clock::now();
-  IL_ASSERT(launched_);
+  IL_EXPECT_FAST(launched_);
   launched_ = false;
   time_ += 1.0e-9 *
            std::chrono::duration_cast<std::chrono::nanoseconds>(point_end -

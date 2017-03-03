@@ -14,6 +14,7 @@
 #include <cmath>
 
 // Inclusion from Inside Loop library
+#include "FVM.h"
 #include <il/linear_algebra.h>
 
 namespace hfp2d {
@@ -21,7 +22,8 @@ namespace hfp2d {
 il::Array<double> conductivities_newtonian(const il::Array<double> &rho,
                                            const il::Array<double> &vector,
                                            il::Array<double> EltSizes,
-                                           double Visc, il::io_t);
+                                           Parameters_fluid &fluid_parameters,
+                                           il::io_t);
 }
 
 #endif // HFPX2D_CONDUCTIVITIESNEWTONIAN_H

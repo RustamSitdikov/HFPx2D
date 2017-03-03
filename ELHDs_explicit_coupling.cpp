@@ -18,7 +18,7 @@
 #include "AssemblyDDM.h"
 #include "DOF_Handles.h"
 #include "Dilatancy.h"
-#include "ELHDs_explicit.h"
+#include "ELHDs_explicit_coupling.h"
 #include "FVM.h"
 #include "Friction.h"
 #include "FromEdgeToCol.h"
@@ -48,7 +48,7 @@ namespace hfp2d {
  *
  */
 
-void elhds_explicit(Mesh mesh, int p, double Cohes,
+void elhds_explicit_coupling(Mesh mesh, int p, double Cohes,
                     const il::Array2D<double> &kmat, double Incr_dil,
                     double d_wd, il::Array2D<double> rho, double Init_dil,
                     double CompressFluid, double TimeStep, double Visc,
@@ -181,7 +181,7 @@ void elhds_explicit(Mesh mesh, int p, double Cohes,
       TT[j] = (Cohes + fric[j] * sigma_eff_old(j, 1)) - sigma_eff_old(j, 0);
     }
 
-    //// EXPLICIT SOLUTION OF THE COUPLED PROBLEM ////
+    //// EXPLICIT WAY TO SOLVE THE COUPLED PROBLEM ////
     // Initialization of the system BigA*BigX = BigB -> Just for shear DDs!!
     il::Array2D<double> BigA{q.size() + mesh.nelts() + 1,
                              q.size() + mesh.nelts() + 1, 0};

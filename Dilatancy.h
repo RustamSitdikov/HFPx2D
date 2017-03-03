@@ -15,11 +15,22 @@
 
 namespace hfp2d {
 
-il::Array<double> dilatancy(double Init_dil, double Incr_dil,
-                            double d_wd, const il::Array<double> &d, il::io_t);
+struct Parameters_dilatancy {
 
-il::Array<double> d_dilatancy(double Incr_dil, double d_wd,
-                             const il::Array<double> &d, il::io_t);
+  // Initial value of dilatancy
+  double Init_dil;
+  // Increment of dilatancy (difference between residual/peak
+  // dilatancy and initial dilatancy value)
+  double Incr_dil;
+  // slip dw for scaling (see dilatancy law in the report)
+  double d_wd;
+};
+
+il::Array<double> dilatancy(Parameters_dilatancy &param,
+                            const il::Array<double> &d, il::io_t);
+
+il::Array<double> d_dilatancy(Parameters_dilatancy &param,
+                              const il::Array<double> &d, il::io_t);
 }
 
 #endif // HFPX2D_DILATANCY_H

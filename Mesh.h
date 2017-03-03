@@ -20,17 +20,35 @@
 namespace hfp2d {
 
 ///// 1D mesh class
+// class Mesh { // class for 1D mesh of 1D segment elements ?
+//
+// public:
+//  il::Array2D<double> Coor; // array of XY coordinates of nodes
+//  il::Array2D<int> conn;    // mesh connectivity array
+//
+//  void set_values(il::Array2D<double>, il::Array2D<int>);
+//
+//  int nelts() { return conn.size(0); };
+//
+//  int ncoor() { return Coor.size(0); };
+//};
 class Mesh { // class for 1D mesh of 1D segment elements ?
 
-public:
-  il::Array2D<double> Coor; // array of XY coordinates of nodes
-  il::Array2D<int> conn;    // mesh connectivity array
+private:
+  il::Array2D<double> node_;
+  il::Array2D<int> connectivity_;
 
+public:
   void set_values(il::Array2D<double>, il::Array2D<int>);
 
-  int nelts() { return conn.size(0); };
+  double node(il::int_t k, il::int_t i);
 
-  int ncoor() { return Coor.size(0); };
+  int connectivity(il::int_t k, il::int_t i);
+
+  int nelts();
+  int ncoor();
+  il::Array2D<double> coor();
+  il::Array2D<int> conn();
 };
 
 struct SegmentCharacteristic {
@@ -47,8 +65,8 @@ struct SegmentCharacteristic {
 
 il::StaticArray2D<double, 2, 2> rotation_matrix_2D(double theta);
 
-SegmentCharacteristic
-get_segment_DD_characteristic(const il::Array2D<double> Xs, int const p);
+SegmentCharacteristic get_segment_DD_characteristic(Mesh mesh, int const ne,
+                                                    int const p);
 }
 
 #endif // HFPX2D_MESH_H

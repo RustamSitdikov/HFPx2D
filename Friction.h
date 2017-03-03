@@ -15,10 +15,20 @@
 
 namespace hfp2d {
 
-il::Array<double> exp_friction(double Peak_fric, double Resid_fric, double d_wf,
+struct Parameters_friction {
+
+  // Peak friction coefficient
+  double Peak_fric_coeff;
+  // Residual friction coefficient
+  double Resid_fric_coeff;
+  // slip dw for scaling (see linear law in the report)
+  double d_wf;
+};
+
+il::Array<double> exp_friction(Parameters_friction &param,
                                const il::Array<double> &d, il::io_t);
 
-il::Array<double> lin_friction(double Peak_fric, double Resid_fric, double d_wf,
+il::Array<double> lin_friction(Parameters_friction &param,
                                const il::Array<double> &d, il::io_t);
 }
 

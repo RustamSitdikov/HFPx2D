@@ -93,8 +93,8 @@ class StaticArray3D {
 
   /* \brief Get the size of the il::StaticArray3D<T, n0, n1, n2>
   //
-  // for (il::int_t i{0}; i < v.size(0); ++i) {
-  //   for (il::int_t j{0}; j < v.size(1); ++j) {
+  // for (il::int_t i = 0; i < v.size(0); ++i) {
+  //   for (il::int_t j = 0; j < v.size(1); ++j) {
   //     A(i, j) = 1.0 / (i + j + 2);
   //   }
   // }
@@ -138,9 +138,9 @@ class StaticArray3D {
 
 template <typename T, il::int_t n0, il::int_t n1, il::int_t n2>
 StaticArray3D<T, n0, n1, n2>::StaticArray3D() {
-  if (std::is_pod<T>::value) {
+  if (il::is_trivial<T>::value) {
 #ifndef NDEBUG
-    for (il::int_t l{0}; l < n0 * n1 * n2; ++l) {
+    for (il::int_t l = 0; l < n0 * n1 * n2; ++l) {
       data_[l] = il::default_value<T>();
     }
 #endif
@@ -149,7 +149,7 @@ StaticArray3D<T, n0, n1, n2>::StaticArray3D() {
 
 template <typename T, il::int_t n0, il::int_t n1, il::int_t n2>
 StaticArray3D<T, n0, n1, n2>::StaticArray3D(const T& value) {
-  for (il::int_t l{0}; l < n0 * n1 * n2; ++l) {
+  for (il::int_t l = 0; l < n0 * n1 * n2; ++l) {
     data_[l] = value;
   }
 }
@@ -159,11 +159,11 @@ StaticArray3D<T, n0, n1, n2>::StaticArray3D(
     il::value_t,
     std::initializer_list<std::initializer_list<std::initializer_list<T>>>
         list) {
-  IL_ASSERT(n2 == static_cast<il::int_t>(list.size()));
+  IL_EXPECT_FAST(n2 == static_cast<il::int_t>(list.size()));
   for (il::int_t i2 = 0; i2 < n2; ++i2) {
-    IL_ASSERT(n1 == (list.begin() + i2)->size());
+    IL_EXPECT_FAST(n1 == (list.begin() + i2)->size());
     for (il::int_t i1 = 0; i1 < n1; ++i1) {
-      IL_ASSERT(n0 == ((list.begin() + i2)->begin() + i1)->size());
+      IL_EXPECT_FAST(n0 == ((list.begin() + i2)->begin() + i1)->size());
       for (il::int_t i0 = 0; i0 < n0; ++i0) {
         data_[(i2 * n1 + i1) * n0 + i0] =
             *(((list.begin() + i2)->begin() + i1)->begin() + i0);
@@ -175,90 +175,26 @@ StaticArray3D<T, n0, n1, n2>::StaticArray3D(
 template <typename T, il::int_t n0, il::int_t n1, il::int_t n2>
 const T& StaticArray3D<T, n0, n1, n2>::operator()(il::int_t i0, il::int_t i1,
                                                   il::int_t i2) const {
-  IL_ASSERT(static_cast<il::uint_t>(i0) < static_cast<il::uint_t>(n0));
-  IL_ASSERT(static_cast<il::uint_t>(i1) < static_cast<il::uint_t>(n1));
-  IL_ASSERT(static_cast<il::uint_t>(i2) < static_cast<il::uint_t>(n2));
+  IL_EXPECT_FAST(static_cast<std::size_t>(i0) < static_cast<std::size_t>(n0));
+  IL_EXPECT_FAST(static_cast<std::size_t>(i1) < static_cast<std::size_t>(n1));
+  IL_EXPECT_FAST(static_cast<std::size_t>(i2) < static_cast<std::size_t>(n2));
   return data_[(i2 * n1 + i1) * n0 + i0];
 }
 
 template <typename T, il::int_t n0, il::int_t n1, il::int_t n2>
 T& StaticArray3D<T, n0, n1, n2>::operator()(il::int_t i0, il::int_t i1,
                                             il::int_t i2) {
-  IL_ASSERT(static_cast<il::uint_t>(i0) < static_cast<il::uint_t>(n0));
-  IL_ASSERT(static_cast<il::uint_t>(i1) < static_cast<il::uint_t>(n1));
-  IL_ASSERT(static_cast<il::uint_t>(i2) < static_cast<il::uint_t>(n2));
+  IL_EXPECT_FAST(static_cast<std::size_t>(i0) < static_cast<std::size_t>(n0));
+  IL_EXPECT_FAST(static_cast<std::size_t>(i1) < static_cast<std::size_t>(n1));
+  IL_EXPECT_FAST(static_cast<std::size_t>(i2) < static_cast<std::size_t>(n2));
   return data_[(i2 * n1 + i1) * n0 + i0];
 }
 
 template <typename T, il::int_t n0, il::int_t n1, il::int_t n2>
 il::int_t StaticArray3D<T, n0, n1, n2>::size(il::int_t d) const {
-  IL_ASSERT(static_cast<il::uint_t>(d) < static_cast<il::uint_t>(3));
+  IL_EXPECT_FAST(static_cast<std::size_t>(d) < static_cast<std::size_t>(3));
   return d == 0 ? n0 : (d == 1 ? n1 : n2);
 }
-
-// template <typename T, il::int_t n0, il::int_t n1, il::int_t n2>
-// ConstArray3DView<T> StaticArray3D<T, n0, n1, n2>::const_view() const {
-//  return il::ConstArray3DView<T>{data_, n, p, q, p, q};
-//}
-
-// template <typename T, il::int_t n0, il::int_t n1, il::int_t n2>
-// Array3DView<T> StaticArray3D<T, n0, n1, n2>::view() {
-//  return il::Array3DView<T>{data_, n, p, q, p, q};
-//}
-
-// template <typename T, il::int_t n0, il::int_t n1, il::int_t n2>
-// ConstArray3DView<T> StaticArray3D<T, n0, n1, n2>::const_view(
-//    il::int_t i_begin, il::int_t i_end, il::int_t j_begin, il::int_t j_end,
-//    il::int_t k_begin, il::int_t k_end) const {
-//  IL_ASSERT(static_cast<il::uint_t>(i_begin) <
-//            static_cast<il::uint_t>(size(0)));
-//  IL_ASSERT(static_cast<il::uint_t>(i_end) <=
-//  static_cast<il::uint_t>(size(0)));
-//  IL_ASSERT(i_begin <= i_end);
-//  IL_ASSERT(static_cast<il::uint_t>(j_begin) <
-//            static_cast<il::uint_t>(size(1)));
-//  IL_ASSERT(static_cast<il::uint_t>(j_end) <=
-//  static_cast<il::uint_t>(size(1)));
-//  IL_ASSERT(j_begin <= j_end);
-//  IL_ASSERT(static_cast<il::uint_t>(k_begin) <
-//            static_cast<il::uint_t>(size(2)));
-//  IL_ASSERT(static_cast<il::uint_t>(k_end) <=
-//  static_cast<il::uint_t>(size(2)));
-//  IL_ASSERT(k_begin <= k_end);
-//  return ConstArray3DView<T>{data_ + (i_begin * p + j_begin) * q,
-//                             i_end - i_begin,
-//                             j_end - j_begin,
-//                             k_end - k_begin,
-//                             p,
-//                             q};
-//}
-
-// template <typename T, il::int_t n0, il::int_t n1, il::int_t n2>
-// Array3DView<T> StaticArray3D<T, n0, n1, n2>::view(
-//    il::int_t i_begin, il::int_t i_end, il::int_t j_begin, il::int_t j_end,
-//    il::int_t k_begin, il::int_t k_end) {
-//  IL_ASSERT(static_cast<il::uint_t>(i_begin) <
-//            static_cast<il::uint_t>(size(0)));
-//  IL_ASSERT(static_cast<il::uint_t>(i_end) <=
-//  static_cast<il::uint_t>(size(0)));
-//  IL_ASSERT(i_begin <= i_end);
-//  IL_ASSERT(static_cast<il::uint_t>(j_begin) <
-//            static_cast<il::uint_t>(size(1)));
-//  IL_ASSERT(static_cast<il::uint_t>(j_end) <=
-//  static_cast<il::uint_t>(size(1)));
-//  IL_ASSERT(j_begin <= j_end);
-//  IL_ASSERT(static_cast<il::uint_t>(k_begin) <
-//            static_cast<il::uint_t>(size(2)));
-//  IL_ASSERT(static_cast<il::uint_t>(k_end) <=
-//  static_cast<il::uint_t>(size(2)));
-//  IL_ASSERT(k_begin <= k_end);
-//  return Array3DView<T>{data_ + (i_begin * p + j_begin) * q,
-//                        i_end - i_begin,
-//                        j_end - j_begin,
-//                        k_end - k_begin,
-//                        p,
-//                        q};
-//}
 
 template <typename T, il::int_t n0, il::int_t n1, il::int_t n2>
 const T* StaticArray3D<T, n0, n1, n2>::data() const {
@@ -269,6 +205,7 @@ template <typename T, il::int_t n0, il::int_t n1, il::int_t n2>
 T* StaticArray3D<T, n0, n1, n2>::data() {
   return data_;
 }
+
 }
 
 #endif  // IL_STATICARRAY3D_H

@@ -18,7 +18,7 @@
 #include "AssemblyDDM.h"
 #include "DOF_Handles.h"
 #include "Dilatancy.h"
-#include "ELHDs_implicit.h"
+#include "ELHDs_implicit_coupling.h"
 #include "FVM.h"
 #include "Friction.h"
 #include "FromEdgeToCol.h"
@@ -48,12 +48,14 @@ namespace hfp2d {
  *
  */
 
-void elhds_implicit(Mesh mesh, int p, double Cohes, const il::Array2D<double> &kmat,
-           double Incr_dil, double d_wd, il::Array2D<double> rho,
-           double Init_dil, double CompressFluid, double TimeStep, double Visc,
-           il::Array<double> S, int InjPoint, int dof_dim, double Peak_fric,
-           double Resid_fric, double d_wf, il::Array<double> XColl, il::io_t,
-           Result &res) {
+void elhds_implicit_coupling(Mesh mesh, int p, double Cohes,
+                             const il::Array2D<double> &kmat, double Incr_dil,
+                             double d_wd, il::Array2D<double> rho,
+                             double Init_dil, double CompressFluid,
+                             double TimeStep, double Visc, il::Array<double> S,
+                             int InjPoint, int dof_dim, double Peak_fric,
+                             double Resid_fric, double d_wf,
+                             il::Array<double> XColl, il::io_t, Result &res) {
 
   // Vector of friction at the beginning of each time step
   il::Array<double> fric{res.friction.size(), 0};
@@ -141,7 +143,7 @@ void elhds_implicit(Mesh mesh, int p, double Cohes, const il::Array2D<double> &k
   // Check is the criterion that has to be satisfied in the while loop:
   // tau must be lower (or equal) than (fric * sigma_n + Cohes) at each
   // collocation point. If check is equal to the number of collocation points,
-  // then the criterion is satisfied.
+  // then the criterion is satisfied (f<=0) everywhere in the mesh.
   int check;
   check = boole_mc(tau, sigma_n, fric, Cohes, il::io);
 
@@ -149,6 +151,7 @@ void elhds_implicit(Mesh mesh, int p, double Cohes, const il::Array2D<double> &k
   int iter = 1;
   double itermax = 1e4;
   il::Array<double> Dd{incr_slip.size(), 0};
+  il::Array<double> Ddnew{incr_slip.size(), 0};
   il::Array<double> s{2 * mesh.nelts(), 0};
   il::Array<double> DiffDd{Dd.size(), 0};
   il::Array<double> Ddold = Dd;
@@ -159,7 +162,8 @@ void elhds_implicit(Mesh mesh, int p, double Cohes, const il::Array2D<double> &k
   il::Array2D<double> Pcm_new{2 * mesh.nelts(), 2, 0};
 
   // Iterate until each point falls below the Mohr-Coulomb failure line
-  while ((check != 2 * mesh.nelts() && iter <= itermax) || flag != false) {
+  while ((check != 2 * mesh.nelts() && iter <= itermax) ||
+         /*iter==1*/ flag != false) {
 
     std::cout << "Iter to satisfy M-C criterion = " << iter << "\n";
 
@@ -175,7 +179,9 @@ void elhds_implicit(Mesh mesh, int p, double Cohes, const il::Array2D<double> &k
 
         q.resize(k + 1);
         q[k] = j;
-        std::cout << j << " ";
+        std::cout << j << " "
+                  << "\n";
+        std::cout << T[j] << "\n";
         k = k + 1;
       }
     }
@@ -255,7 +261,7 @@ void elhds_implicit(Mesh mesh, int p, double Cohes, const il::Array2D<double> &k
                                      incrdk, d_wd, il::io);
       // Finite Difference matrix "L"
       L = hfp2d::build_l_matrix(mesh, incrdk, rho, Visc, Incr_dil, d_wd,
-                                Init_dil, res.dt, il::io);
+                                Init_dil, DTnew, il::io);
 
       for (il::int_t m2 = 0; m2 < Nf.size(0); ++m2) {
         Nf(m2, m2) = hfp2d::lin_friction(
@@ -303,10 +309,14 @@ void elhds_implicit(Mesh mesh, int p, double Cohes, const il::Array2D<double> &k
                  il::io)[q[n]] *
                  (sigma_n_tot[q[n]] - Pcm(q[n], 1))) -
             (sigma_eff_old(q[n], 0));
+
+        std::cout << BigB[n] << " ";
       }
 
+      std::cout << "\n";
+
       for (il::int_t i1 = 0; i1 < L.size(0); ++i1) {
-        BigB[q.size() + i1] = il::dot(L, pnodes)[i1] + (res.dt * S[i1]);
+        BigB[q.size() + i1] = il::dot(L, pnodes)[i1] + (DTnew * S[i1]);
       }
 
       /// Boundary conditions ///

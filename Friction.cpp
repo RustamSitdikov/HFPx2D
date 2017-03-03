@@ -17,13 +17,11 @@ namespace hfp2d {
 
 // Function that returns an array that contain friction coefficient (according
 // to EXPONENTIAL friction weakening law)
-il::Array<double> exp_friction(double Peak_fric, double Resid_fric, double d_wf,
+il::Array<double> exp_friction(Parameters_friction &param,
                                const il::Array<double> &d, il::io_t) {
 
   // Inputs:
-  //  - Peak_fric -> peak friction coefficient
-  //  - Resid_fric -> residual friction coefficient
-  //  - d_wf -> slip dw for scaling (see exponential law in the report)
+  //  - param -> structure that contains all the friction parameters we need
   //  - d -> vector that contains the slip
   //  - io_t -> everything on the left of il::io_t is read-only and is not
   //    going to be mutated
@@ -32,7 +30,9 @@ il::Array<double> exp_friction(double Peak_fric, double Resid_fric, double d_wf,
 
   for (il::int_t i = 0; i < f.size(); ++i) {
 
-    f[i] = Peak_fric - ((Peak_fric - Resid_fric) * (1 - exp(-(d[i] / d_wf))));
+    f[i] = param.Peak_fric_coeff -
+           ((param.Peak_fric_coeff - param.Resid_fric_coeff) *
+            (1 - exp(-(d[i] / param.d_wf))));
   }
 
   return f;
@@ -40,42 +40,28 @@ il::Array<double> exp_friction(double Peak_fric, double Resid_fric, double d_wf,
 
 // Function that returns an array that contain friction coefficient (according
 // to LINEAR friction weakening law)
-il::Array<double> lin_friction(double Peak_fric, double Resid_fric, double d_wf,
+il::Array<double> lin_friction(Parameters_friction &param,
                                const il::Array<double> &d, il::io_t) {
 
   // Inputs:
-  //  - Peak_fric -> peak friction coefficient
-  //  - Resid_fric -> residual friction coefficient
-  //  - d_wf -> slip dw for scaling (see exponential law in the report)
+  //  - param -> structure that contains all the friction parameters we need
   //  - d -> vector that contains the slip
   //  - io_t -> everything on the left of il::io_t is read-only and is not
   //    going to be mutated
 
   il::Array<double> f{d.size(), 0};
   double_t sl;
-  sl = Peak_fric / d_wf;
+  sl = param.Peak_fric_coeff / param.d_wf;
 
   for (il::int_t i = 0; i < f.size(); ++i) {
 
-    //    if (d[i] < d_wf) {
-    //
-    //      f[i] = Peak_fric - (sl * d[i]);
-    //    } else  {
-    //
-    //      f[i] = Resid_fric;
-    //    }
+    if (d[i] < ((param.Peak_fric_coeff - param.Resid_fric_coeff) / sl)) {
 
-    if (d[i] < 0) {
-
-      f[i] = 1;
-
-    } else if (d[i] < ((Peak_fric-Resid_fric)/sl) ) {
-
-      f[i] = Peak_fric - (sl * d[i]);
+      f[i] = param.Peak_fric_coeff - (sl * d[i]);
 
     } else {
 
-      f[i] = Resid_fric;
+      f[i] = param.Resid_fric_coeff;
     }
   }
 

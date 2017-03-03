@@ -1,14 +1,14 @@
 //
 // This file is part of HFPx2D.
 //
-// Created by Federico Ciardo on 30.01.17.
+// Created by Federico Ciardo on 01.03.17.
 // Copyright (c) ECOLE POLYTECHNIQUE FEDERALE DE LAUSANNE, Switzerland,
 // Geo-Energy Laboratory, 2016-2017.  All rights reserved.
 // See the LICENSE.TXT file for more details.
 //
 
-#ifndef HFPX2D_ELHDS_H
-#define HFPX2D_ELHDS_H
+#ifndef HFPX2D_ELHDS_EXPLICIT_H
+#define HFPX2D_ELHDS_EXPLICIT_H
 
 // Inclusion from Inside Loop library
 #include <il/Array.h>
@@ -46,12 +46,13 @@ struct Result {
   double slippagezone;
 };
 
-void elhds_implicit(Mesh mesh, int p, double Cohes, const il::Array2D<double> &kmat,
-           double Incr_dil, double d_wd, il::Array2D<double> rho,
-           double Init_dil, double CompressFluid, double TimeStep, double Visc,
-           il::Array<double> S, int InjPoint, int dof_dim, double Peak_fric,
-           double Resid_fric, double d_wf, il::Array<double> XColl, il::io_t,
-           Result &res);
+void elhds_explicit_coupling(Mesh mesh, int p, double Cohes,
+                    const il::Array2D<double> &kmat, double Incr_dil,
+                    double d_wd, il::Array2D<double> rho, double Init_dil,
+                    double CompressFluid, double TimeStep, double Visc,
+                    il::Array<double> S, int InjPoint, int dof_dim,
+                    double Peak_fric, double Resid_fric, double d_wf,
+                    il::Array<double> XColl, il::io_t, Result &res);
 
 il::Array<double> flatten1(const il::Array2D<double> &Arr, il::io_t);
 
@@ -85,4 +86,4 @@ il::Array<il::int_t> delete_duplicates2(const il::Array<il::int_t> &arr,
 void sort_ascending_order(const il::Array<il::int_t> &arr, il::io_t);
 }
 
-#endif // HFPX2D_ELHDS_H
+#endif // HFPX2D_ELHDS_EXPLICIT_H

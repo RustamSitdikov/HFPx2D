@@ -44,7 +44,7 @@ void save_data_to_csv(const il::Array2D<double> &matrix,
   std::fclose(of);
 }
 
-void export_results(Result &SolutionAtTj, double t,
+void export_results(Results_one_timeincrement &SolutionAtTj, double t,
                       const std::string &trg_dir, const std::string &of_name) {
 
   std::string f_path = trg_dir + of_name;
@@ -71,14 +71,9 @@ void export_results(Result &SolutionAtTj, double t,
     std::fprintf(of, format1, SolutionAtTj.incr_d[j]);
   }
 
-  std::fprintf(of, "\n\n******* Final slipping elements *******\n");
-  for (int j1 = 0; j1 < SolutionAtTj.final_slip_elements.size(); ++j1) {
-    std::fprintf(of, format6, SolutionAtTj.final_slip_elements[j1]);
-  }
-
-  std::fprintf(of, "\n\n******* Dilatancy values *******\n");
-  for (int j = 0; j < SolutionAtTj.dilatancy.size(); ++j) {
-    std::fprintf(of, format1, SolutionAtTj.dilatancy[j]);
+  std::fprintf(of, "\n\n******* Active set of collocation points *******\n");
+  for (int j1 = 0; j1 < SolutionAtTj.active_set_collpoints.size(); ++j1) {
+    std::fprintf(of, format6, SolutionAtTj.active_set_collpoints[j1]);
   }
 
   std::fprintf(of, "\n\n******* Friction coefficient *******\n");

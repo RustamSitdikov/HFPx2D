@@ -14,7 +14,6 @@
 // Inclusion from the project
 #include "AssemblyDDM.h"
 #include "Elasticity2D.h"
-#include "Mesh.h"
 
 namespace hfp2d {
 
@@ -67,27 +66,23 @@ void basic_assembly(il::Array2D<double> &Kmat, Mesh mesh, il::Array2D<int> id,
   il::StaticArray<double, 2> sec, nec, xcol;
 
   // Brute Force assembly
-  // double loop on elements to create the stiffness matrix...
+  // double loop on elements to create the stiffness matrix ...
   for (int e = 0; e < mesh.nelts(); ++e) { // loop on all  elements
 
-    take_submatrix(
-        xe, mesh.conn(e, 0), mesh.conn(e, 1), 0, 1,
-        mesh.Coor); // take the coordinates of element e from the mesh object
-    mysege =
-        get_segment_DD_characteristic(xe,
-                                      p); // get the segment characteristic.
-    R = rotation_matrix_2D(
-        mysege.theta); // Rotation matrix of the element w.r. to x-axis.
+    //   get characteristic of element # e
+    mysege = hfp2d::get_segment_DD_characteristic(mesh, e, p);
+    // Rotation matrix of the element w.r. to x-axis.
+    R = hfp2d::rotation_matrix_2D(mysege.theta);
 
-    for (int i = 0; i < 2 * (p + 1); ++i) { // vector of dof id of the element e
+    for (int i = 0; i < 2 * (p + 1); ++i) {
+      // vector of dof id of the element e
       dofe[i] = id(e, i);
     };
 
-    for (int j = 0; j < mesh.nelts(); ++j) { // loop on all  elements
-
-      take_submatrix(xec, mesh.conn(j, 0), mesh.conn(j, 1), 0, 1,
-                     mesh.Coor); // takes the coordinates of element j
-      mysegc = get_segment_DD_characteristic(xec, p);
+    // loop on all  elements
+    for (int j = 0; j < mesh.nelts(); ++j) {
+      //   get characteristic of element # j
+      mysegc = hfp2d::get_segment_DD_characteristic(mesh, j, p);
 
       sec = il::dot(R, mysegc.s); // tangent of elt j
       nec = il::dot(R, mysegc.n); // normal of elt j
@@ -95,19 +90,18 @@ void basic_assembly(il::Array2D<double> &Kmat, Mesh mesh, il::Array2D<int> id,
       for (int i = 0; i < 2 * (p + 1); ++i) {
         dofc[i] = id(j, i); // vector of dof id of the  element j
       };
-
-      for (int ic = 0; ic < p + 1;
-           ++ic) { // loop on collocation points of the target element
+      // loop on collocation points of the target element
+      for (int ic = 0; ic < p + 1; ++ic) {
         // we switch to the frame of element e
         for (int i = 0; i < 2; ++i) {
-          xcol[i] = mysegc.CollocationPoints(ic, i) - mysege.Xmid[i]; //
+          xcol[i] = mysegc.CollocationPoints(ic, i) - mysege.Xmid[i];
         }
+
         xcol = il::dot(R, xcol);
 
-        normal_shear_stress_kernel_linear_dd(stnl, xcol, mysege.size, sec, nec, Ep);
-        //
-
-        set_submatrix(Kmat, dofc[2 * ic], dofe[0], stnl);
+        stnl = hfp2d::normal_shear_stress_kernel_dp1_dd(xcol, mysege.size, sec,
+                                                        nec, Ep);
+        hfp2d::set_submatrix(Kmat, dofc[2 * ic], dofe[0], stnl);
       }
     }
   }
