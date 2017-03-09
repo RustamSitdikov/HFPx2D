@@ -20,7 +20,8 @@ void time_incr(double t_0plus, int inj_point, il::int_t NCollPoints, Mesh mesh,
                int dof_dim, il::Array2D<double> Sigma0,
                il::Array<double> Amb_press, il::Array<double> Pinit,
                const std::string &Directory_results, il::Array<double> XColl,
-               il::Array2D<double> &Fetc, il::io_t);
+               il::Array2D<double> &Fetc, double h, double TimeStep_max,
+               double TimeStep_min, il::io_t);
 
 int find(const il::Array<double> &arr, double_t seek, il::io_t);
 

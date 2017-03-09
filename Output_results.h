@@ -45,7 +45,7 @@ void save_data_to_csv(const il::Array2D<double> &matrix,
 }
 
 void export_results(Results_one_timeincrement &SolutionAtTj, double t,
-                      const std::string &trg_dir, const std::string &of_name) {
+                    const std::string &trg_dir, const std::string &of_name) {
 
   std::string f_path = trg_dir + of_name;
   const char *format1 = "%.16g %10";
@@ -67,8 +67,8 @@ void export_results(Results_one_timeincrement &SolutionAtTj, double t,
   }
 
   std::fprintf(of, "\n\n******* Total slip *******\n");
-  for (int j = 0; j < SolutionAtTj.incr_d.size(); ++j) {
-    std::fprintf(of, format1, SolutionAtTj.incr_d[j]);
+  for (int j = 0; j < SolutionAtTj.d_tot.size(); ++j) {
+    std::fprintf(of, format1, SolutionAtTj.d_tot[j]);
   }
 
   std::fprintf(of, "\n\n******* Active set of collocation points *******\n");

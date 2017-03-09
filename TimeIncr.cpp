@@ -35,20 +35,21 @@ void time_incr(double t_0plus, int inj_point, il::int_t NCollPoints, Mesh mesh,
                int dof_dim, il::Array2D<double> Sigma0,
                il::Array<double> Amb_press, il::Array<double> Pinit,
                const std::string &Directory_results, il::Array<double> XColl,
-               il::Array2D<double> &Fetc, il::io_t) {
+               il::Array2D<double> &Fetc, double h, double TimeStep_max,
+               double TimeStep_min, il::io_t) {
 
   /// Initialization ///
 
-  // Initialization of the structure of module "ELHDs"
+  // Initialization of the structure of module "MC_criterion"
   Results_one_timeincrement SolutionAtTj;
 
-  // Initialization of matrix of TOTAL stress at time t_0
+  // Initialization of matrix of TOTAL stress at time t_0 (before the injection)
   // {{tau_1,sigma_n1},{tau_2, sigma_n2},{tau3, sigma_n3} ..}
   SolutionAtTj.tot_stress_state = Sigma0;
 
   // Initialization of vector total slip at nodal points at time t_0 (before the
   // injection)
-  // Remember: piecewise linear shear DDs
+  // Remember: piecewise linear DDs
   il::Array<double> no_slip{NCollPoints, 0};
   SolutionAtTj.d_tot = no_slip;
 
@@ -78,27 +79,33 @@ void time_incr(double t_0plus, int inj_point, il::int_t NCollPoints, Mesh mesh,
         SolutionAtTj.P)[k];
     k = k + 2;
   }
+  SolutionAtTj.Pcm = Pcm;
 
   // Initialization of active set of collocation points at t_0plus
   for (il::int_t i = 0, k = 0; i < NCollPoints; ++i) {
     if (SolutionAtTj.tot_stress_state(i, 0) >=
         cohes[i] +
-            SolutionAtTj.friction[i] *
-                (SolutionAtTj.tot_stress_state(i, 1) - Pcm(i, 1))) {
+            SolutionAtTj.friction[i] * (SolutionAtTj.tot_stress_state(i, 1) -
+                                        SolutionAtTj.Pcm(i, 1))) {
       SolutionAtTj.active_set_collpoints.resize(k + 1);
       SolutionAtTj.active_set_collpoints[k] = i;
       k = k + 1;
     }
   }
 
-  double TimeStep = 0.001;
+  // Initial time step
+  double TimeStep = TimeStep_min;
   SolutionAtTj.dt = TimeStep;
 
   // Initialization of time
   double t;
   t = t_0plus;
+
   // Maximum time
   double tmax = 0.625;
+
+  // Parameter for adaptive time stepping
+  double psi = 1;
 
   while (
       t <= tmax &&
@@ -110,8 +117,17 @@ void time_incr(double t_0plus, int inj_point, il::int_t NCollPoints, Mesh mesh,
               << "t = " << t << "\n";
 
     hfp2d::MC_criterion(mesh, p, cohes, kmat, fric_parameters, dilat_parameters,
-                        TimeStep, fluid_parameters, S, inj_point, dof_dim,
-                        XColl, Fetc, il::io, SolutionAtTj);
+                        fluid_parameters, S, inj_point, dof_dim, XColl, Fetc,
+                        Sigma0, il::io, SolutionAtTj);
+
+    // Adaptive time stepping
+    if (psi * (h / SolutionAtTj.crack_velocity) >= TimeStep_max) {
+      SolutionAtTj.dt = TimeStep_max;
+    } else if (psi * (h / SolutionAtTj.crack_velocity) <= TimeStep_min) {
+      SolutionAtTj.dt = TimeStep_min;
+    } else {
+        SolutionAtTj.dt = psi * (h / SolutionAtTj.crack_velocity);
+    }
 
     /// To get a different output file per each iteration ///
     hfp2d::export_results(SolutionAtTj, t, Directory_results,
@@ -158,7 +174,7 @@ double_t max_1d(const il::Array<double> &arr1D, il::io_t) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// This funciton calcualtes the 2D euclidean distance between two points
+// This function calculates the 2D euclidean distance between two points
 // {x1,y1}, {x2,y2}
 // Input -> x- y- coordinates of the two points
 // Output -> double precision values that represents the euclidean distance

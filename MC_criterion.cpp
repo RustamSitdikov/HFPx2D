@@ -19,10 +19,7 @@
 #include "DOF_Handles.h"
 #include "Dilatancy.h"
 #include "ELHDs.h"
-#include "FVM.h"
-#include "Friction.h"
 #include "FromEdgeToCol.h"
-#include "MC_criterion.h"
 #include "TimeIncr.h"
 
 namespace hfp2d {
@@ -30,11 +27,11 @@ namespace hfp2d {
 void MC_criterion(Mesh mesh, int p, il::Array<double> cohes,
                   const il::Array2D<double> &kmat,
                   Parameters_friction &fric_parameters,
-                  Parameters_dilatancy &dilat_parameters, double TimeStep,
+                  Parameters_dilatancy &dilat_parameters,
                   Parameters_fluid &fluid_parameters, il::Array<double> S,
                   int inj_point, int dof_dim, il::Array<double> XColl,
-                  il::Array2D<double> &Fetc, il::io_t,
-                  Results_one_timeincrement &res) {
+                  il::Array2D<double> &Fetc, il::Array2D<double> Sigma0,
+                  il::io_t, Results_one_timeincrement &res) {
 
   // Vector of friction at the beginning of each time step
   il::Array<double> fric{res.friction.size(), 0};
@@ -59,18 +56,10 @@ void MC_criterion(Mesh mesh, int p, il::Array<double> cohes,
   il::Array<double> press_prof{res.P.size(), 0};
   press_prof = res.P;
 
-  // Create the matrix of pressure at collocation points {{0,p_c1},{0,p_c2}..}
-  // Size -> NCollPoints x 2
-  il::Array2D<double> Pcm{2 * mesh.nelts(), 2, 0};
-  for (il::int_t l = 0, k = 1; l < Pcm.size(0); ++l) {
-    Pcm(l, 1) = il::dot(
-        hfp2d::from_edge_to_col_cg(
-            dof_dim,
-            hfp2d::dofhandle_dg_full2d(dof_dim, mesh.nelts(), p, il::io),
-            hfp2d::dofhandle_cg2d(dof_dim, mesh.nelts(), il::io), il::io),
-        press_prof)[k];
-    k = k + 2;
-  }
+  // Matrix of pressure profile at collocation points at the beginning of each
+  // time step. {{0,p_c1},{0,p_c2}..}
+  il::Array2D<double> Pcm{res.Pcm.size(0), res.Pcm.size(1), 0};
+  Pcm = res.Pcm;
 
   // Create matrix of EFFECTIVE stress for each collocation point {tau,sigma_n}
   // Size -> NCollPoints x 2
@@ -92,13 +81,15 @@ void MC_criterion(Mesh mesh, int p, il::Array<double> cohes,
 
   // Initialization of the while loop
   Results_solution_nonlinearsystem res_nonlinearsystem;
-  double DTnew;
+  il::Array2D<double> sigma_tot_new{2 * mesh.nelts(), 2, 0};
+  il::Array2D<double> sigma_eff_new = sigma_eff;
   int iter = 1;
-  int itermax = 1e4;
+  int itermax = 20;
   MCcheck check;
   int cvg = 0;
   il::Array<double> s{2 * mesh.nelts(), 0};
   il::Array2D<double> Pcm_new{2 * mesh.nelts(), 2, 0};
+  double crack_vel;
 
   // Iterate until each point falls below the Mohr-Coulomb failure line
   while (cvg != 1 && iter <= itermax) {
@@ -123,6 +114,8 @@ void MC_criterion(Mesh mesh, int p, il::Array<double> cohes,
       }
     }
 
+    // Select just the "slipping" part of the matrix to switch from nodal
+    // points to collocation points
     il::Array2D<double> Npc{res.active_set_collpoints.size(), press_prof.size(),
                             0};
     for (il::int_t l2 = 0, q3 = 1; l2 < Npc.size(0); ++l2, q3 = q3 + 2) {
@@ -131,13 +124,14 @@ void MC_criterion(Mesh mesh, int p, il::Array<double> cohes,
       }
     }
 
+    // Call the elastic-hydrodynamic solver for the solution of the fully
+    // implicit coupled problem
     res_nonlinearsystem = hfp2d::ELHDs(
         mesh, kmatd, Npc, fric_parameters, dilat_parameters, fluid_parameters,
-        res, sigma_tot, press_prof, Pcm, tot_slip, itermax, dof_dim, p, cohes,
-        status, norm, inj_point, S, Dof_slip_coll, il::io);
+        res, sigma_eff_new, press_prof, tot_slip, dof_dim, p, cohes, status,
+        norm, inj_point, S, Dof_slip_coll, Sigma0, il::io);
 
-    std::cout << "\n"
-              << "Total N. of iterations for solving non-linear system of "
+    std::cout << "Total N. of iterations for solving non-linear system of "
                  "equations = "
               << res_nonlinearsystem.Niterations << " || "
               << " err on Dd: " << res_nonlinearsystem.errDd << " & "
@@ -171,7 +165,7 @@ void MC_criterion(Mesh mesh, int p, il::Array<double> cohes,
     // Update the CURRENT effective stress state
     for (il::int_t n2 = 0; n2 < sigma_eff.size(0); ++n2) {
       for (il::int_t i = 0; i < sigma_eff.size(1); ++i) {
-        sigma_eff(n2, i) = sigma_tot(n2, i) - Pcm_new(n2, i) + IncrT(n2, i);
+        sigma_eff_new(n2, i) = sigma_tot(n2, i) - Pcm_new(n2, i) + IncrT(n2, i);
       }
     }
 
@@ -187,10 +181,7 @@ void MC_criterion(Mesh mesh, int p, il::Array<double> cohes,
     // Force the slipping nodes at the first iteration to stay in the MC
     // line in the next iterations (because all the slipping nodes in one time
     // increment displace simultaneously)
-    il::Array2D<double> MC{
-        res.active_set_collpoints[res.active_set_collpoints.size() - 1] -
-            res.active_set_collpoints[0] + 1,
-        2, 0};
+    il::Array2D<double> MC{res.active_set_collpoints.size(), 2, 0};
     for (il::int_t m2 = 0; m2 < MC.size(0); ++m2) {
       MC(m2, 0) = fabs(cohes[res.active_set_collpoints[m2]] +
                        fric[res.active_set_collpoints[m2]] *
@@ -202,7 +193,7 @@ void MC_criterion(Mesh mesh, int p, il::Array<double> cohes,
 
     for (il::int_t k3 = 0; k3 < MC.size(0); ++k3) {
       for (il::int_t i = 0; i < sigma_eff.size(1); ++i) {
-        sigma_eff(res.active_set_collpoints[k3], i) = MC(k3, i);
+        sigma_eff_new(res.active_set_collpoints[k3], i) = MC(k3, i);
       }
     }
 
@@ -210,12 +201,12 @@ void MC_criterion(Mesh mesh, int p, il::Array<double> cohes,
     // increment
     for (il::int_t j3 = 0; j3 < sigma_tot.size(0); ++j3) {
       for (il::int_t i = 0; i < sigma_tot.size(1); ++i) {
-        sigma_tot(j3, i) = sigma_eff(j3, i) + Pcm_new(j3, i);
+        sigma_tot_new(j3, i) = sigma_eff_new(j3, i) + Pcm_new(j3, i);
       }
     }
 
     // Update the check criterion of the external while loop with current state
-    check = boole_mc(sigma_eff, fric, cohes, il::io);
+    check = boole_mc(sigma_eff_new, fric, cohes, il::io);
     // If the number of collocation points the satisfy the MC criterion is equal
     // to the total number of collocation points, then converged is reached (cvg
     // = 1). Else, append the new active collocation points to the past active
@@ -234,37 +225,28 @@ void MC_criterion(Mesh mesh, int p, il::Array<double> cohes,
       sort_ascending_order(res.active_set_collpoints, il::io);
     }
 
-    // Number of collocation points that do not satisfy M-C criterion
-    int NSlipCollPoints;
-    NSlipCollPoints = res.active_set_collpoints.size();
-
-    // Calculate slippage length
+    // Calculate current slippage length
     SL = euclidean_distance(
         XColl[res.active_set_collpoints[0]],
         XColl[res.active_set_collpoints[res.active_set_collpoints.size() - 1]],
         0, 0, il::io);
 
-    // Adaptive time stepping
-    double psi = 1;
-    if (SL - psi * sl > 0) {
-      DTnew = TimeStep / 10;
-    } else {
-      DTnew = TimeStep;
-    }
+    // Calculate the current shear crack velocity
+    crack_vel = (SL - sl) / res.dt;
+
+    // Assign the desired outputs to structure's members
+    res.friction = fric;
+    res.iter = iter;
+    res.d_tot = flatten1(res_nonlinearsystem.new_tot_slip, il::io);
+    res.tot_stress_state = sigma_tot_new;
+    res.slippagezone = SL;
+    res.P = press_prof;
+    res.Pcm = Pcm_new;
+    res.crack_velocity = crack_vel;
 
     // Update the iterations
     ++iter;
   }
-
-  // Assign the desired outputs to structure's members
-  res.friction = fric;
-  res.dt = DTnew;
-  res.iter = iter;
-  res.d_tot = flatten1(res_nonlinearsystem.new_tot_slip, il::io);
-  res.tot_stress_state = sigma_tot;
-  res.slippagezone = SL;
-  res.active_set_collpoints;
-  res.P = press_prof;
 }
 
 ///// OTHER UTILITIES /////
@@ -347,24 +329,24 @@ MCcheck boole_mc(il::Array2D<double> &sigma_eff, il::Array<double> fric,
   MCcheck result_MCcheck;
   il::Array<int> T{sigma_eff.size(0), 0};
 
-  for (il::int_t i = 0, k = 0; i < T.size(); ++i) {
+  for (il::int_t i = 0; i < T.size(); ++i) {
     if (sigma_eff(i, 0) <= (cohes[i] + (fric[i] * sigma_eff(i, 1)))) {
 
       T[i] = 1;
-
-    } else {
-
-      result_MCcheck.CollPoint_notsatisfMC.resize(k + 1);
-      result_MCcheck.CollPoint_notsatisfMC[k] = i;
-      k = k + 1;
     }
   }
 
-  for (il::int_t m = 0; m < T.size(); ++m) {
+  for (il::int_t m = 0, k = 0; m < T.size(); ++m) {
     if (T[m] == 1) {
 
       result_MCcheck.Ncollpoint_satisfMC =
           result_MCcheck.Ncollpoint_satisfMC + T[m];
+
+    } else {
+
+      result_MCcheck.CollPoint_notsatisfMC.resize(k + 1);
+      result_MCcheck.CollPoint_notsatisfMC[k] = m;
+      k = k + 1;
     }
   }
 

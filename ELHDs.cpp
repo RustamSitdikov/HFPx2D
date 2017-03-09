@@ -7,16 +7,11 @@
 // See the LICENSE.TXT file for more details.
 //
 
-#include "ELHDs.h"
-
-// Inclusion from standard library
-#include <iostream>
-
 // Inclusion from the project
+#include "ELHDs.h"
 #include "AssemblyDDM.h"
 #include "DOF_Handles.h"
 #include "FromEdgeToCol.h"
-#include "TimeIncr.h"
 
 namespace hfp2d {
 
@@ -24,16 +19,16 @@ Results_solution_nonlinearsystem
 ELHDs(Mesh mesh, il::Array2D<double> &kmatd, il::Array2D<double> &Npc,
       Parameters_friction fric_parameters,
       Parameters_dilatancy dilat_parameters, Parameters_fluid fluid_parameters,
-      Results_one_timeincrement &SolutionAtTj, il::Array2D<double> sigma_tot,
-      il::Array<double> press_prof, il::Array2D<double> Pcm,
-      il::Array<double> tot_slip, int itermax, int dof_dim, int p,
-      il::Array<double> cohes, il::Status status, il::Norm norm, int inj_point,
-      il::Array<double> S, il::Array<int> Dof_slip_coll, il::io_t) {
+      Results_one_timeincrement &SolutionAtTj,
+      il::Array2D<double> sigma_eff_new, il::Array<double> press_prof,
+      il::Array<double> tot_slip, int dof_dim, int p, il::Array<double> cohes,
+      il::Status status, il::Norm norm, int inj_point, il::Array<double> S,
+      il::Array<int> Dof_slip_coll, il::Array2D<double> Sigma0, il::io_t) {
 
   Results_solution_nonlinearsystem Results_iterations;
 
   //// FULLY IMPLICIT SOLUTION OF THE COUPLED PROBLEM ////
-  // Initialization of the system BigA*BigX = BigB -> Just for shear DDs!!
+  // Initialization of the system BigA*BigX = BigB -> Just for shear DDs for now
   il::Array2D<double> BigA{
       SolutionAtTj.active_set_collpoints.size() + mesh.nelts() + 1,
       SolutionAtTj.active_set_collpoints.size() + mesh.nelts() + 1, 0};
@@ -52,12 +47,13 @@ ELHDs(Mesh mesh, il::Array2D<double> &kmatd, il::Array2D<double> &Npc,
   il::Array2D<double> L{mesh.nelts() + 1, mesh.nelts() + 1, 0};
   il::Array2D<double> incrdk{mesh.nelts(), 2, 0};
 
+  // Initialization of the while loop
   double betarela = 0.6;
+  double itermax_nonlinsystem = 100;
   double errDd = 2;
   double errDp = 2;
   double tolerance = 10e-6;
   int j = 0;
-
   il::Array<double> BigX{BigA.size(0), 0};
   il::Array<double> Dd{tot_slip.size(), 0};
   il::Array<double> DiffDd{Dd.size(), 0};
@@ -66,14 +62,17 @@ ELHDs(Mesh mesh, il::Array2D<double> &kmatd, il::Array2D<double> &Npc,
   il::Array<double> Dpold{press_prof.size(), 0};
   il::Array<double> DiffDp{Dp.size(), 0};
   il::Array<double> Ddd{Dd.size(), 0};
+  il::Array<double> tot_slipk{SolutionAtTj.active_set_collpoints.size(), 0};
 
-  while (j < itermax && (errDd > tolerance || errDp > tolerance)) {
+  while (j < itermax_nonlinsystem && (errDd > tolerance || errDp > tolerance)) {
     ++j;
 
+    // Current total slip
     for (il::int_t i = 0; i < incrdk.size(0); ++i) {
       for (il::int_t l = 0; l < incrdk.size(1); ++l) {
         incrdk(i, l) =
-            tot_slip[hfp2d::dofhandle_dg(dof_dim, mesh.nelts(), il::io)(i, l)] +
+            SolutionAtTj.d_tot[hfp2d::dofhandle_dg(dof_dim, mesh.nelts(),
+                                                   il::io)(i, l)] +
             Dd[hfp2d::dofhandle_dg(dof_dim, mesh.nelts(), il::io)(i, l)];
       }
     }
@@ -91,6 +90,8 @@ ELHDs(Mesh mesh, il::Array2D<double> &kmatd, il::Array2D<double> &Npc,
     L = hfp2d::build_l_matrix(mesh, incrdk, fluid_parameters, dilat_parameters,
                               SolutionAtTj.dt, il::io);
 
+    // Nf -> diagonal matrix that contains the current friction coefficient of
+    // the slipping collocation points
     il::Array2D<double> Nf{SolutionAtTj.active_set_collpoints.size(),
                            SolutionAtTj.active_set_collpoints.size(), 0};
     for (il::int_t m2 = 0; m2 < Nf.size(0); ++m2) {
@@ -107,6 +108,7 @@ ELHDs(Mesh mesh, il::Array2D<double> &kmatd, il::Array2D<double> &Npc,
     /// Assembling the system ///
 
     // Matrix of coefficient
+
     for (il::int_t k2 = 0; k2 < SolutionAtTj.active_set_collpoints.size();
          ++k2) {
       for (il::int_t i = 0; i < mesh.nelts() + 1; ++i) {
@@ -132,6 +134,12 @@ ELHDs(Mesh mesh, il::Array2D<double> &kmatd, il::Array2D<double> &Npc,
     }
 
     // Right hand side vector
+
+    for (il::int_t l2 = 0; l2 < tot_slipk.size(); ++l2) {
+      tot_slipk[l2] =
+          flatten1(incrdk, il::io)[SolutionAtTj.active_set_collpoints[l2]];
+    }
+
     for (il::int_t n = 0, n1 = 1; n < SolutionAtTj.active_set_collpoints.size();
          ++n, n1 = n1 + 2) {
       BigB[n] =
@@ -144,14 +152,10 @@ ELHDs(Mesh mesh, il::Array2D<double> &kmatd, il::Array2D<double> &Npc,
                            il::io),
                        flatten1(incrdk, il::io)),
                il::io)[SolutionAtTj.active_set_collpoints[n]] *
-               (sigma_tot(SolutionAtTj.active_set_collpoints[n], 1) -
-                Pcm(SolutionAtTj.active_set_collpoints[n], 1))) -
-          (sigma_tot(SolutionAtTj.active_set_collpoints[n], 0));
-
-      std::cout << BigB[n] << " ";
+               sigma_eff_new(SolutionAtTj.active_set_collpoints[n], 1)) -
+          il::dot(kmatd, tot_slipk)[n] -
+          Sigma0(SolutionAtTj.active_set_collpoints[n], 0);
     }
-
-    std::cout << "\n";
 
     for (il::int_t i1 = 0; i1 < L.size(0); ++i1) {
       BigB[SolutionAtTj.active_set_collpoints.size() + i1] =
@@ -186,7 +190,7 @@ ELHDs(Mesh mesh, il::Array2D<double> &kmatd, il::Array2D<double> &Npc,
     }
 
     for (il::int_t m1 = 0; m1 < Dd.size(); ++m1) {
-      Dd[m1] = +(1 - betarela) * Ddold[m1] + betarela * Ddd[m1];
+      Dd[m1] = (1 - betarela) * Ddold[m1] + betarela * Ddd[m1];
     }
 
     for (il::int_t n1 = 0; n1 < Dp.size(); ++n1) {
@@ -211,7 +215,7 @@ ELHDs(Mesh mesh, il::Array2D<double> &kmatd, il::Array2D<double> &Npc,
     Dpold = Dp;
   }
 
-  Results_iterations.Dd = Dd;
+  Results_iterations.Dd = Ddd;
   Results_iterations.Dp = Dp;
   Results_iterations.errDd = errDd;
   Results_iterations.errDp = errDp;

@@ -39,10 +39,10 @@ il::Array<double> analytical_solution(double Dp, double alpha, double t_0plus,
 
 int main() {
 
-  /*  **** Read the input data fromm TOML input file **** */
+  ///  **** Read the input data from TOML input file **** ///
 
   il::String filename =
-      "/Users/federicociardo/ClionProjects/HFPx2D/InputData.toml";
+      "/Users/federicociardo/ClionProjects/HFPx2D-Collscheme/InputData.toml";
 
   il::Status status{};
   auto config =
@@ -55,96 +55,144 @@ int main() {
   i = config.search("Number_of_nodes");
   if (config.found(i) && config.value(i).is_integer()) {
     Nnodes = config.value(i).to_integer();
+  } else {
+    Nnodes = 0;
   }
 
   double Ep;
   i = config.search("Plain_strain_modulus");
   if (config.found(i) && config.value(i).is_floating_point()) {
     Ep = config.value(i).to_floating_point();
+  } else {
+    Ep = 0;
   }
 
   double Density;
   i = config.search("Density");
   if (config.found(i) && config.value(i).is_floating_point()) {
     Density = config.value(i).to_floating_point();
+  } else {
+    Density = 0;
   }
 
   double Cohes;
   i = config.search("Cohesion");
   if (config.found(i) && config.value(i).is_floating_point()) {
     Cohes = config.value(i).to_floating_point();
+  } else {
+    Cohes = 0;
   }
 
   double CompressFluid;
   i = config.search("Fluid_compressibility");
   if (config.found(i) && config.value(i).is_floating_point()) {
     CompressFluid = config.value(i).to_floating_point();
+  } else {
+    CompressFluid = 0;
   }
 
   double Visc;
   i = config.search("Fluid_viscosity");
   if (config.found(i) && config.value(i).is_floating_point()) {
     Visc = config.value(i).to_floating_point();
+  } else {
+    Visc = 0;
   }
 
   double Init_dil;
   i = config.search("Initial_value_of_dilatancy");
   if (config.found(i) && config.value(i).is_floating_point()) {
     Init_dil = config.value(i).to_floating_point();
+  } else {
+    Init_dil = 0;
   }
 
   double Incr_dil;
   i = config.search("Increment_of_dilatancy");
   if (config.found(i) && config.value(i).is_floating_point()) {
     Incr_dil = config.value(i).to_floating_point();
+  } else {
+    Incr_dil = 0;
   }
 
   double d_wfriction;
   i = config.search("Slip_dw_for_friction");
   if (config.found(i) && config.value(i).is_floating_point()) {
     d_wfriction = config.value(i).to_floating_point();
+  } else {
+    d_wfriction = 0;
   }
 
   double d_wdilatancy;
   i = config.search("Slip_dw_for_dilatancy");
   if (config.found(i) && config.value(i).is_floating_point()) {
     d_wdilatancy = config.value(i).to_floating_point();
+  } else {
+    d_wdilatancy = 0;
   }
 
   double Peak_fric;
   i = config.search("Peak_friction_coefficient");
   if (config.found(i) && config.value(i).is_floating_point()) {
     Peak_fric = config.value(i).to_floating_point();
+  } else {
+    Peak_fric = 0;
   }
 
   double Resid_fric;
   i = config.search("Residual_friction_coefficient");
   if (config.found(i) && config.value(i).is_floating_point()) {
     Resid_fric = config.value(i).to_floating_point();
+  } else {
+    Resid_fric = 0;
   }
 
   double sigma_n0;
   i = config.search("Ambient_normal_stress");
   if (config.found(i) && config.value(i).is_floating_point()) {
     sigma_n0 = config.value(i).to_floating_point();
+  } else {
+    sigma_n0 = 0;
   }
 
   double P0;
   i = config.search("Ambient pore pressure");
   if (config.found(i) && config.value(i).is_floating_point()) {
     P0 = config.value(i).to_floating_point();
+  } else {
+    P0 = 0;
   }
 
   double Source;
   i = config.search("Source");
   if (config.found(i) && config.value(i).is_floating_point()) {
     Source = config.value(i).to_floating_point();
+  } else {
+    Source = 0;
   }
 
   double l;
   i = config.search("Half_fault_length");
   if (config.found(i) && config.value(i).is_floating_point()) {
     l = config.value(i).to_floating_point();
+  } else {
+    l = 0;
+  }
+
+  double TimeStep_max;
+  i = config.search("TimeStep_max");
+  if (config.found(i) && config.value(i).is_floating_point()) {
+    TimeStep_max = config.value(i).to_floating_point();
+  } else {
+    TimeStep_max = 0;
+  }
+
+  double TimeStep_min;
+  i = config.search("TimeStep_min");
+  if (config.found(i) && config.value(i).is_floating_point()) {
+    TimeStep_min = config.value(i).to_floating_point();
+  } else {
+    TimeStep_min = 0;
   }
 
   // Set the structure members of friction
@@ -169,16 +217,16 @@ int main() {
 
   // Directory for output results
   std::string Directory_results{
-      "/Users/federicociardo/ClionProjects/HFPx2D/Results/"};
+      "/Users/federicociardo/ClionProjects/HFPx2D-Collscheme/Results/"};
 
   /* Create:
    *  - the matrix of density (rho)
-   *  - initial stress state (uniform for now, Sigma0)
+   *  - initial stress state Sigma0 (uniform for now)
    *  - initial/ambient pore pressure (Amb_press)
    *  - the matrix of cohesion for each collocation point */
 
   // Fluid density matrix {{rho_1left, rho_1right},{rho_2left,rho_2right} ..}
-  // Remember: continuous linear variation -> rho_2right = rho_2left and so on..
+  // Remember: continuous linear variation -> rho_2right = rho_1left and so on..
   il::Array2D<double> rho{Nelts, 2, 0};
   for (il::int_t ii = 0; ii < rho.size(0); ++ii) {
     for (il::int_t j = 0; j < rho.size(1); ++j) {
@@ -196,7 +244,7 @@ int main() {
   // sigma_s0 is the ambient shear stress (which is related to the ambient
   // normal stress)
   // Dp is the constant overpressure in the middle of the fault/fracture
-  double sigma_s0 = 0.55 * sigma_n0;
+  double sigma_s0 = 0.75 * sigma_n0;
   double Dp = 0.5 * (sigma_n0 - P0);
 
   // Matrix of initial stress state
@@ -223,7 +271,7 @@ int main() {
   // Interpolation order
   int p = 1;
 
-  // Element size -> for now UNIFORM mesh, but later it might not be uniform
+  // Element size -> for now UNIFORM mesh, but later it might be non-uniform
   double h = (2 * l) / Nelts;
 
   /// Mesh ///
@@ -258,10 +306,10 @@ int main() {
 
   // Initial pore pressure profile needed to activate the shear crack (which
   // must be added to the ambient pressure in the crack/fault)
-  // alpha -> initial fault/fracture diffusivity
+  // alpha -> initial fault/fracture diffusivity [Lˆ2/T]
   // t_0plus -> initial time (starting time)
   double alpha = 10;
-  double t_0plus = 0.005;
+  double t_0plus = 0.0001;
   il::Array<double> Pinit{Nnodes, 0};
   Pinit = analytical_solution(Dp, alpha, t_0plus, mesh, il::io);
 
@@ -277,13 +325,13 @@ int main() {
   // Total number of dofs
   int Ndof = (Nnodes - 1) * (p + 1) * 2;
 
-  // Initialization of  matrix to switch from nodal points to collocation points
+  // Matrix to switch from nodal points to collocation points
   il::Array2D<double> Fetc{4 * mesh.nelts(), mesh.nelts() + 1, 0};
   Fetc = hfp2d::from_edge_to_col_cg(
       dof_dim, hfp2d::dofhandle_dg_full2d(dof_dim, mesh.nelts(), p, il::io),
       hfp2d::dofhandle_cg2d(dof_dim, mesh.nelts(), il::io), il::io);
 
-  // Elasticity matrix assembling
+  // Get the elasticity matrix
   il::Array2D<double> kmat{Ndof, Ndof, 0};
   hfp2d::basic_assembly(
       kmat, mesh, hfp2d::dofhandle_dg_full2d(dof_dim, Nelts, p, il::io), p, Ep);
@@ -292,7 +340,7 @@ int main() {
   hfp2d::time_incr(t_0plus, inj_point, NCollPoints, mesh, p, cohes, kmat,
                    fric_parameters, dilat_parameters, fluid_parameters, S,
                    dof_dim, Sigma0, Amb_press, Pinit, Directory_results, XColl,
-                   Fetc, il::io);
+                   Fetc, h, TimeStep_max, TimeStep_min, il::io);
 
   return 0;
 }
@@ -302,16 +350,17 @@ int main() {
 // fracture/fault with constant permeability subjected to a constant
 // overpressure Dp.
 // It returns a vector whose size is Nnodes {Pinit_1, Pinit_2, Pinit_3 ...}. It
-// represents the initial pore pressure distribution/perturbation needed to
-// activate the shear crack.
+// represents the initial pore pressure distribution/perturbation at t_0plus
+// needed to activate the shear crack.
 // Remember -> pressure varies linearly and continuously over the elements
+////////////////////////////////////////////////////////////////////////////////
 
 il::Array<double> analytical_solution(double Dp, double alpha, double t_0plus,
                                       hfp2d::Mesh mesh, il::io_t) {
 
   // Inputs:
   //  - Dp -> Constant overpressure in the middle of the fracture/fault
-  //  - alpha -> Initial fault/fracture diffusivity (Lˆ2 T^-1)
+  //  - alpha -> Initial fault/fracture diffusivity (Lˆ2/T)
   //  - t_0plus -> Initial time (starting time)
   //  - mesh -> mesh class
   //  - io_t -> everything on the left of il::io_t is read-only and is not

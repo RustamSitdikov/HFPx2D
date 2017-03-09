@@ -13,7 +13,7 @@
 // Inclusion from the project
 #include "ConductivitiesNewtonian.h"
 #include "DOF_Handles.h"
-#include "ELHDs_implicit_coupling.h"
+#include "ELHDs.h"
 
 namespace hfp2d {
 

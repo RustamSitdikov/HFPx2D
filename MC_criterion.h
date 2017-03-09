@@ -33,6 +33,9 @@ struct Results_one_timeincrement {
   // vector of pore pressure profile at nodal points (size -> 2Nelts)
   il::Array<double> P;
 
+  // vector of pore pressure profile at collocation points (size -> 2Nelts x 2)
+  il::Array2D<double> Pcm;
+
   // number of iterations for each time step
   int iter;
 
@@ -44,12 +47,15 @@ struct Results_one_timeincrement {
 
   // Length slippage zone
   double slippagezone;
+
+  // Shear crack velocity
+  double crack_velocity;
 };
 
 struct MCcheck {
 
   // Number of collocation points that satisfy the Mohr-Coulomb criterion
-  int Ncollpoint_satisfMC;
+  int Ncollpoint_satisfMC = 0;
 
   // Collocation points that do not satisfy the Mohr-Coulomb criterion
   il::Array<il::int_t> CollPoint_notsatisfMC{};
@@ -58,11 +64,11 @@ struct MCcheck {
 void MC_criterion(Mesh mesh, int p, il::Array<double> cohes,
                   const il::Array2D<double> &kmat,
                   Parameters_friction &fric_parameters,
-                  Parameters_dilatancy &dilat_parameters, double TimeStep,
+                  Parameters_dilatancy &dilat_parameters,
                   Parameters_fluid &fluid_parameters, il::Array<double> S,
                   int inj_point, int dof_dim, il::Array<double> XColl,
-                  il::Array2D<double> &Fetc, il::io_t,
-                  Results_one_timeincrement &res);
+                  il::Array2D<double> &Fetc, il::Array2D<double> Sigma0,
+                  il::io_t, Results_one_timeincrement &res);
 
 il::Array<double> flatten1(const il::Array2D<double> &Arr, il::io_t);
 
@@ -91,7 +97,7 @@ il::Array<int> delete_duplicates(const il::Array<il::int_t> &arr, il::io_t);
 il::Array<il::int_t> delete_duplicates2(const il::Array<il::int_t> &arr,
                                         il::io_t);
 
-void sort_ascending_order(const il::Array<il::int_t> &arr, il::io_t);
+void sort_ascending_order(il::Array<il::int_t> &arr, il::io_t);
 }
 
 #endif // HFPX2D_MC_CRITERION_H
