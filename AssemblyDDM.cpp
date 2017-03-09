@@ -44,8 +44,8 @@ void set_submatrix(il::Array2D<double> &A, int i0, int i1,
   }
 }  // e.g. set_submatrix(A, 2, 3, B);
 
-il::Array2D<double> basic_assembly( Mesh& mesh, il::Array2D<int>& id,
-                    int p, double Ep) {
+il::Array2D<double> basic_assembly(Mesh &mesh, il::Array2D<int> &id, int p,
+                                   double Ep) {
   // Kmat : the stiffness matrix to assemble
   // mesh:: the Mesh object
   // id :: the DOF handle
@@ -53,13 +53,13 @@ il::Array2D<double> basic_assembly( Mesh& mesh, il::Array2D<int>& id,
   // Ep :: the Plane Strain Young's modulus
   IL_EXPECT_FAST(id.size(0) == mesh.nelts());
   IL_EXPECT_FAST(id.size(1) == 2 * (p + 1));
-//  IL_EXPECT_FAST(Kmat.size(0) == Kmat.size(1));
-//  IL_EXPECT_FAST(Kmat.size(0) == id.size(0) * id.size(1));
+  //  IL_EXPECT_FAST(Kmat.size(0) == Kmat.size(1));
+  //  IL_EXPECT_FAST(Kmat.size(0) == id.size(0) * id.size(1));
 
   il::Array2D<double> xe{2, 2, 0}, xec{2, 2, 0};
 
   hfp2d::SegmentCharacteristic mysege, mysegc;
-  il::Array2D<double> Kmat{id.size(0) * id.size(1),id.size(0) * id.size(1)};
+  il::Array2D<double> Kmat{id.size(0) * id.size(1), id.size(0) * id.size(1)};
 
   il::StaticArray2D<double, 2, 2> R;
   il::Array<int> dofe{2 * (p + 1), 0}, dofc{2 * (p + 1), 0};
@@ -97,19 +97,18 @@ il::Array2D<double> basic_assembly( Mesh& mesh, il::Array2D<int>& id,
         // we switch to the frame of element e
         for (il::int_t i = 0; i < 2; ++i) {
           xcol[i] = mysegc.CollocationPoints(ic, i) - mysege.Xmid[i];
-        }
+        };
 
         xcol = il::dot(R, xcol);
 
         stnl = hfp2d::normal_shear_stress_kernel_dp1_dd(xcol, mysege.size, sec,
                                                         nec, Ep);
+     //   hfp2d::set_submatrix(Kmat, dofc[2 * ic], dofe[0], stnl);
 
-//        hfp2d::set_submatrix(Kmat, dofc[2 * ic], dofe[0], stnl);
-
-          for (il::int_t j1 = 0; j1 < 2; ++j1) {
-            for (il::int_t j0 = 0; j0 < 4; ++j0) {
-               Kmat(dofc[2 * ic] + j0, dofe[0] + j1) = stnl(j0, j1);
-          }
+        for (il::int_t j1 = 0; j1 < 4; ++j1) {
+          for (il::int_t j0 = 0; j0 < 2; ++j0) {
+            Kmat(dofc[2 * ic] + j0, dofe[0] + j1) = stnl(j0, j1);
+           }
         }
 
       }

@@ -51,8 +51,8 @@ struct SegmentCharacteristic {
 
 il::StaticArray2D<double, 2, 2> rotation_matrix_2D(double theta);
 
-SegmentCharacteristic get_segment_DD_characteristic(Mesh mesh, int const ne,
-                                                    int const p);
+SegmentCharacteristic get_segment_DD_characteristic(Mesh mesh, il::int_t const ne,
+                                                    il::int_t const p);
 
 }
 #endif  // HFPX2D_MESH_H

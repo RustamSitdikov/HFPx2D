@@ -41,7 +41,7 @@ il::Array<double> griffithcrack(const il::Array<double>& x, double a, double Ep,
 
 ////////////////////////////////////////////////////////////////////////////////
 int main() {
-  int nelts = 1300, p = 1 ;
+  int nelts = 1000, p = 1 ;
   double h = 2. / (nelts);  //  element size
 
   il::Array<double> x{nelts+1};
@@ -78,7 +78,7 @@ int main() {
 
   //  SegmentCharacteristic mysege,mysegc;
 
-  il::Array2D<double> K{ndof, ndof, 0.};
+  il::Array2D<double> K{ndof, ndof };
 
   std::cout << "Number of elements : " << mesh.nelts() << "\n";
   std::cout << "Number of dofs :" << id.size(0) * id.size(1) << "---"
@@ -90,11 +90,11 @@ int main() {
   std::cout << std::asctime(std::localtime(&result));
 
   il::Timer timer{};
- timer.start();
+  timer.start();
   K=hfp2d::basic_assembly( mesh, id, p, Ep);  // passing p could be avoided here.
-timer.stop();
+  timer.stop();
   std::cout << "------ " << timer.elapsed() << "  \n";
-  std::cout << "------\n";
+  std::cout << "---#---\n";
   result = std::time(nullptr);
   std::cout << std::asctime(std::localtime(&result));
 
