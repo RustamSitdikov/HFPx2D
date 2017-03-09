@@ -17,8 +17,7 @@
 #include "Mesh.h"
 
 namespace hfp2d {
-    void
-    basic_assembly(il::Array2D<double> &Kmat, Mesh mesh, il::Array2D<int> id,
+il::Array2D<double> basic_assembly( Mesh& mesh, il::Array2D<int>& id,
                   int p, double Ep);
 
     void

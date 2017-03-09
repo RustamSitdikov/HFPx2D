@@ -19,10 +19,8 @@
 
 namespace hfp2d {
 
-il::StaticArray2D<double, 2, 4> stresses_kernel_dp1_dd(const double h,
-                                                       const double Ep,
-                                                       const double x,
-                                                       const double y) {
+il::StaticArray2D<double, 2, 4> stresses_kernel_dp1_dd(double h, double Ep,
+                                                       double x, double y) {
   // function computing the stresses at (x,y) induced by a linear DD segment (of
   // total length h) centered on the origin [-h/2,h/2]
   // it returns stresses due to a linear variation from an unit value at the
@@ -143,9 +141,9 @@ il::StaticArray2D<double, 2, 4> stresses_kernel_dp1_dd(const double h,
 
 //------------------------------------------------------------------------------
 il::StaticArray2D<double, 2, 4> normal_shear_stress_kernel_dp1_dd(
-    const il::StaticArray<double, 2> xe, const double& h,
-    const il::StaticArray<double, 2> s, const il::StaticArray<double, 2> n,
-    const double Ep) {
+    const il::StaticArray<double, 2>& xe, double h,
+    const il::StaticArray<double, 2>& s, const il::StaticArray<double, 2>& n,
+    double Ep) {
   //   Function to get the normal and shear stress at a point on a surface
   // (with given normal and shear vector) induced by
   // a linear DD segment of size h
@@ -414,8 +412,7 @@ double rectangular_integration(double x, double y, double z, double a, double b,
 // Fundamental stress kernel - only  effect of DD_x(e_1) and DD_z (e3)
 // this function output the 3D stress in the 3D frame for completeness ?
 il::StaticArray2D<double, 2, 6> all_3d_stresses_kernel_s3d_p0_dd(
-    double& x, double& y, double& z, double& a, double& b, double& G,
-    double& nu) {
+    double x, double y, double z, double a, double b, double G, double nu) {
   // x , y , z location where to compute stress
   //  a,b  1/2 size of the rectangular DD
   //  G Shear modulus, nu Poisson's ratio'
@@ -479,11 +476,14 @@ il::StaticArray2D<double, 2, 6> all_3d_stresses_kernel_s3d_p0_dd(
   return Stress;
 }
 
+//------------------------------------------------------------------------------
+
 //  this function ouptuts the stress in the plane (x2=0) s11,s33,s13
 //  simplified 3D kernel
-il::StaticArray2D<double, 2, 3> stresses_kernel_s3d_p0_dd(
-    const double a, const double b, const double G, const double nu,
-    const double xx, const double yy) {
+il::StaticArray2D<double, 2, 3> stresses_kernel_s3d_p0_dd(double a, double b,
+                                                          double G, double nu,
+                                                          double xx,
+                                                          double yy) {
   // xx,yy location where to compute stress in the 2D elastic plan
   //  a,b  1/2 size of the rectangular DD, b corresponds to the 1/2 FRACTURE
   //  HEIGHT
@@ -562,10 +562,12 @@ il::StaticArray2D<double, 2, 3> stresses_kernel_s3d_p0_dd(
   return StressInPlane;
 }
 
+//------------------------------------------------------------------------------
+
 il::StaticArray2D<double, 2, 2> normal_shear_stress_kernel_s3d_dp0_dd(
-    const il::StaticArray<double, 2>& xe, const double hx, const double height,
+    const il::StaticArray<double, 2>& xe, double hx, double height,
     const il::StaticArray<double, 2>& s, const il::StaticArray<double, 2>& n,
-    const double G, const double nu) {
+    double G, double nu) {
   il::StaticArray2D<double, 2, 3> stress_l;
 
   stress_l =

@@ -16,6 +16,8 @@
 //#include <il/Array2C.h>
 #include <il/StaticArray.h>
 #include <il/linear_algebra.h>
+#include <il/Timer.h>
+
 //#include "il/linear_algebra/dense/factorization/LU.h"
 
 #include "AssemblyDDM.h"
@@ -39,7 +41,7 @@ il::Array<double> griffithcrack(const il::Array<double>& x, double a, double Ep,
 
 ////////////////////////////////////////////////////////////////////////////////
 int main() {
-  int nelts = 200, p = 1 ;
+  int nelts = 1300, p = 1 ;
   double h = 2. / (nelts);  //  element size
 
   il::Array<double> x{nelts+1};
@@ -50,7 +52,6 @@ int main() {
 
   int ndof = (nelts) * (p + 1) * 2;  // number of dofs
   double Ep = 1.;                    // Plane strain Young's modulus
-
 
   //  Array2D M(i, j) -> M(i + 1, j) (Ordre Fortran)
   //  Array2C M(i, j) -> M(i, j + 1) (Ordre C)
@@ -88,8 +89,11 @@ int main() {
   std::time_t result = std::time(nullptr);
   std::cout << std::asctime(std::localtime(&result));
 
-  hfp2d::basic_assembly(K, mesh, id, p, Ep);  // passing p could be avoided here.
-
+  il::Timer timer{};
+ timer.start();
+  K=hfp2d::basic_assembly( mesh, id, p, Ep);  // passing p could be avoided here.
+timer.stop();
+  std::cout << "------ " << timer.elapsed() << "  \n";
   std::cout << "------\n";
   result = std::time(nullptr);
   std::cout << std::asctime(std::localtime(&result));
@@ -134,10 +138,12 @@ int main() {
   for (int j = 0; j < ndof / 2; ++j) {
     rel_err = sqrt(pow(dd[j * 2 + 1] - wsol[j], 2)) / wsol[j];
 
-        std::cout << "x : " << thex[j] <<"..w anal:" << wsol[j] << " w num: "
-        << dd[j*2+1]<<  " rel error: " << rel_err << "\n";
+//        std::cout << "x : " << thex[j] <<"..w anal:" << wsol[j] << " w num: "
+//        << dd[j*2+1]<<  " rel error: " << rel_err << "\n";
   }
 
   std::cout << " end of code";
+  status.ok();
+
   return 0;
 }

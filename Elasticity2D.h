@@ -19,25 +19,25 @@
 
 namespace hfp2d {
 
-il::StaticArray2D<double, 2, 4> stresses_kernel_dp1_dd(const double h,
-                                                       const double Ep,
-                                                       const double x,
-                                                       const double y);
+il::StaticArray2D<double, 2, 4> stresses_kernel_dp1_dd( double h,
+                                                        double Ep,
+                                                        double x,
+                                                        double y);
 
 il::StaticArray2D<double, 2, 4> normal_shear_stress_kernel_dp1_dd(
-    const il::StaticArray<double, 2> xe, const double& h,
-    const il::StaticArray<double, 2> s, const il::StaticArray<double, 2> n,
-    const double Ep);
+    const il::StaticArray<double, 2>& xe, double h,
+    const il::StaticArray<double, 2>& s, const il::StaticArray<double, 2>& n,
+    double Ep);
 
 // Simplified 3D kernel - piece wise constant
-il::StaticArray2D<double, 2, 3> stresses_kernel_s3d_p0_dd(
-    const double a, const double b, const double G, const double nu,
-    const double xx, const double yy);
+il::StaticArray2D<double, 2, 3> stresses_kernel_s3d_p0_dd(double a, double b,
+                                                          double G, double nu,
+                                                          double xx, double yy);
 
 il::StaticArray2D<double, 2, 2> normal_shear_stress_kernel_s3d_dp0_dd(
-    const il::StaticArray<double, 2>& xe, const double hx, const double height,
+    const il::StaticArray<double, 2>& xe, double hx, double height,
     const il::StaticArray<double, 2>& s, const il::StaticArray<double, 2>& n,
-    const double G, const double nu);
+    double G, double nu);
 }
 
 #endif  // HFPX2D_ELASTICITY2D_H
