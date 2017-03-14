@@ -60,12 +60,12 @@ int main() {
   for (int i = 0; i < xy.size(0); ++i) {
     xy(i, 0) = -1. + i * h;
     xy(i, 1) = 0.;
-  }
+  };
 
   for (int i = 0; i < myconn.size(0); ++i) {
     myconn(i, 0) = i;
     myconn(i, 1) = i + 1;
-  }
+  };
 
   // create mesh object
   hfp2d::Mesh mesh;
