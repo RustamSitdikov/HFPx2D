@@ -20,9 +20,9 @@
 
 //#include "il/linear_algebra/dense/factorization/LU.h"
 
-#include "AssemblyDDM.h"
-#include "DOF_Handles.h"
-#include "Mesh.h"
+#include "src/AssemblyDDM.h"
+#include "src/DOF_Handles.h"
+#include "src/Mesh.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 // analytical solution of the griffith-crack (ct pressure)

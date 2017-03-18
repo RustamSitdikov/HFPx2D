@@ -11,8 +11,8 @@
 #include <iostream>
 
 // Inclusion from the project
-#include "ConductivitiesNewtonian.h"
-#include "Dilatancy.h"
+#include "src/ConductivitiesNewtonian.h"
+#include "src/Dilatancy.h"
 #include "FVM.h"
 #include "Mesh.h"
 
