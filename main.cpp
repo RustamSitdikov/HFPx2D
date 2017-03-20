@@ -17,6 +17,7 @@
 // Inclusion from Inside Loop library
 #include <il/Array.h>
 #include <il/StaticArray.h>
+#include <il/Timer.h>
 #include <il/linear_algebra.h>
 #include <il/linear_algebra/dense/factorization/LU.h>
 
@@ -99,12 +100,12 @@ int main() {
     Visc = 0;
   }
 
-  double Init_dil;
-  i = config.search("Initial_value_of_dilatancy");
+  double Init_hydr_width;
+  i = config.search("Initial_hydraulic_width");
   if (config.found(i) && config.value(i).is_floating_point()) {
-    Init_dil = config.value(i).to_floating_point();
+    Init_hydr_width = config.value(i).to_floating_point();
   } else {
-    Init_dil = 0;
+    Init_hydr_width = 0;
   }
 
   double Incr_dil;
@@ -115,12 +116,28 @@ int main() {
     Incr_dil = 0;
   }
 
-  double d_wfriction;
-  i = config.search("Slip_dw_for_friction");
+  double d_wfriction_layer1;
+  i = config.search("Slip_dw_for_friction_layer1");
   if (config.found(i) && config.value(i).is_floating_point()) {
-    d_wfriction = config.value(i).to_floating_point();
+    d_wfriction_layer1 = config.value(i).to_floating_point();
   } else {
-    d_wfriction = 0;
+    d_wfriction_layer1 = 0;
+  }
+
+  double d_wfriction_layer2;
+  i = config.search("Slip_dw_for_friction_layer2");
+  if (config.found(i) && config.value(i).is_floating_point()) {
+    d_wfriction_layer2 = config.value(i).to_floating_point();
+  } else {
+    d_wfriction_layer2 = 0;
+  }
+
+  double d_wfriction_layer3;
+  i = config.search("Slip_dw_for_friction_layer3");
+  if (config.found(i) && config.value(i).is_floating_point()) {
+    d_wfriction_layer3 = config.value(i).to_floating_point();
+  } else {
+    d_wfriction_layer3 = 0;
   }
 
   double d_wdilatancy;
@@ -131,20 +148,52 @@ int main() {
     d_wdilatancy = 0;
   }
 
-  double Peak_fric;
-  i = config.search("Peak_friction_coefficient");
+  double Peak_fric_layer1;
+  i = config.search("Peak_friction_coefficient_layer1");
   if (config.found(i) && config.value(i).is_floating_point()) {
-    Peak_fric = config.value(i).to_floating_point();
+    Peak_fric_layer1 = config.value(i).to_floating_point();
   } else {
-    Peak_fric = 0;
+    Peak_fric_layer1 = 0;
   }
 
-  double Resid_fric;
-  i = config.search("Residual_friction_coefficient");
+  double Resid_fric_layer1;
+  i = config.search("Residual_friction_coefficient_layer1");
   if (config.found(i) && config.value(i).is_floating_point()) {
-    Resid_fric = config.value(i).to_floating_point();
+    Resid_fric_layer1 = config.value(i).to_floating_point();
   } else {
-    Resid_fric = 0;
+    Resid_fric_layer1 = 0;
+  }
+
+  double Peak_fric_layer2;
+  i = config.search("Peak_friction_coefficient_layer2");
+  if (config.found(i) && config.value(i).is_floating_point()) {
+    Peak_fric_layer2 = config.value(i).to_floating_point();
+  } else {
+    Peak_fric_layer2 = 0;
+  }
+
+  double Resid_fric_layer2;
+  i = config.search("Residual_friction_coefficient_layer2");
+  if (config.found(i) && config.value(i).is_floating_point()) {
+    Resid_fric_layer2 = config.value(i).to_floating_point();
+  } else {
+    Resid_fric_layer2 = 0;
+  }
+
+  double Peak_fric_layer3;
+  i = config.search("Peak_friction_coefficient_layer3");
+  if (config.found(i) && config.value(i).is_floating_point()) {
+    Peak_fric_layer3 = config.value(i).to_floating_point();
+  } else {
+    Peak_fric_layer3 = 0;
+  }
+
+  double Resid_fric_layer3;
+  i = config.search("Residual_friction_coefficient_layer3");
+  if (config.found(i) && config.value(i).is_floating_point()) {
+    Resid_fric_layer3 = config.value(i).to_floating_point();
+  } else {
+    Resid_fric_layer3 = 0;
   }
 
   double sigma_n0;
@@ -155,12 +204,28 @@ int main() {
     sigma_n0 = 0;
   }
 
+  double sigma_s0;
+  i = config.search("Ambient_shear_stress");
+  if (config.found(i) && config.value(i).is_floating_point()) {
+    sigma_s0 = config.value(i).to_floating_point();
+  } else {
+    sigma_s0 = 0;
+  }
+
   double P0;
   i = config.search("Ambient pore pressure");
   if (config.found(i) && config.value(i).is_floating_point()) {
     P0 = config.value(i).to_floating_point();
   } else {
     P0 = 0;
+  }
+
+  double Dp;
+  i = config.search("Constant_overpressure");
+  if (config.found(i) && config.value(i).is_floating_point()) {
+    Dp = config.value(i).to_floating_point();
+  } else {
+    Dp = 0;
   }
 
   double Source;
@@ -197,13 +262,19 @@ int main() {
 
   // Set the structure members of friction
   hfp2d::Parameters_friction fric_parameters;
-  fric_parameters.Peak_fric_coeff = Peak_fric;
-  fric_parameters.Resid_fric_coeff = Resid_fric;
-  fric_parameters.d_wf = d_wfriction;
+  fric_parameters.Peak_fric_coeff_layer1 = Peak_fric_layer1;
+  fric_parameters.Resid_fric_coeff_layer1 = Resid_fric_layer1;
+  fric_parameters.d_wf_layer1 = d_wfriction_layer1;
+  fric_parameters.Peak_fric_coeff_layer2 = Peak_fric_layer2;
+  fric_parameters.Resid_fric_coeff_layer2 = Resid_fric_layer2;
+  fric_parameters.d_wf_layer2 = d_wfriction_layer2;
+  fric_parameters.Peak_fric_coeff_layer3 = Peak_fric_layer3;
+  fric_parameters.Resid_fric_coeff_layer3 = Resid_fric_layer3;
+  fric_parameters.d_wf_layer3 = d_wfriction_layer3;
 
   // Set the structure members of dilatancy
   hfp2d::Parameters_dilatancy dilat_parameters;
-  dilat_parameters.Init_dil = Init_dil;
+  dilat_parameters.Init_hydr_width = Init_hydr_width;
   dilat_parameters.Incr_dil = Incr_dil;
   dilat_parameters.d_wd = d_wdilatancy;
 
@@ -227,25 +298,13 @@ int main() {
 
   // Fluid density matrix {{rho_1left, rho_1right},{rho_2left,rho_2right} ..}
   // Remember: continuous linear variation -> rho_2right = rho_1left and so on..
-  il::Array2D<double> rho{Nelts, 2, 0};
-  for (il::int_t ii = 0; ii < rho.size(0); ++ii) {
-    for (il::int_t j = 0; j < rho.size(1); ++j) {
-      rho(ii, j) = Density;
-    }
-  }
+  il::Array2D<double> rho{Nelts, 2, Density};
 
   // Set the structure members of fluid
   hfp2d::Parameters_fluid fluid_parameters;
   fluid_parameters.compressibility = CompressFluid;
   fluid_parameters.density = rho;
   fluid_parameters.viscosity = Visc;
-
-  // Declare some variables:
-  // sigma_s0 is the ambient shear stress (which is related to the ambient
-  // normal stress)
-  // Dp is the constant overpressure in the middle of the fault/fracture
-  double sigma_s0 = 0.75 * sigma_n0;
-  double Dp = 0.5 * (sigma_n0 - P0);
 
   // Matrix of initial stress state
   // {Ambient SHEAR stress , Ambient NORMAL stress} for each collocation points
@@ -309,7 +368,7 @@ int main() {
   // alpha -> initial fault/fracture diffusivity [Lˆ2/T]
   // t_0plus -> initial time (starting time)
   double alpha = 10;
-  double t_0plus = 0.0001;
+  double t_0plus = 0.001;
   il::Array<double> Pinit{Nnodes, 0};
   Pinit = analytical_solution(Dp, alpha, t_0plus, mesh, il::io);
 

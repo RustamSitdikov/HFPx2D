@@ -8,7 +8,7 @@
 //
 
 // Inclusion from the project
-#include "ELHDs.h"
+#include "EHLDs.h"
 #include "AssemblyDDM.h"
 #include "DOF_Handles.h"
 #include "FromEdgeToCol.h"

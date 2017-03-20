@@ -17,12 +17,26 @@ namespace hfp2d {
 
 struct Parameters_friction {
 
-  // Peak friction coefficient
-  double Peak_fric_coeff;
+  // Peak friction coefficient of layer 1
+  double Peak_fric_coeff_layer1;
+  // Residual friction coefficient of layer 1
+  double Resid_fric_coeff_layer1;
+  // slip dw for scaling of layer 1 (see linear law in the report)
+  double d_wf_layer1;
+
+  // Peak friction coefficient of layer 2
+  double Peak_fric_coeff_layer2;
   // Residual friction coefficient
-  double Resid_fric_coeff;
+  double Resid_fric_coeff_layer2;
   // slip dw for scaling (see linear law in the report)
-  double d_wf;
+  double d_wf_layer2;
+
+  // Peak friction coefficient of layer 3
+  double Peak_fric_coeff_layer3;
+  // Residual friction coefficient of layer 3
+  double Resid_fric_coeff_layer3;
+  // slip dw for scaling of layer 3 (see linear law in the report)
+  double d_wf_layer3;
 };
 
 il::Array<double> exp_friction(Parameters_friction &param,

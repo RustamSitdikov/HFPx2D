@@ -30,7 +30,7 @@ il::Array<double> dilatancy(Parameters_dilatancy &param,
 
   for (il::int_t i = 0; i < D.size(); ++i) {
 
-    D[i] = param.Init_dil + (param.Incr_dil * (1 - exp(-d[i] / param.d_wd)));
+    D[i] = param.Init_hydr_width + (param.Incr_dil * (1 - exp(-d[i] / param.d_wd)));
   }
 
   return D;

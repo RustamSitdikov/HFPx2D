@@ -17,8 +17,8 @@ namespace hfp2d {
 
 struct Parameters_dilatancy {
 
-  // Initial value of dilatancy
-  double Init_dil;
+  // Initial value of hydraulic width
+  double Init_hydr_width;
   // Increment of dilatancy (difference between residual/peak
   // dilatancy and initial dilatancy value)
   double Incr_dil;

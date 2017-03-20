@@ -30,9 +30,9 @@ il::Array<double> exp_friction(Parameters_friction &param,
 
   for (il::int_t i = 0; i < f.size(); ++i) {
 
-    f[i] = param.Peak_fric_coeff -
-           ((param.Peak_fric_coeff - param.Resid_fric_coeff) *
-            (1 - exp(-(d[i] / param.d_wf))));
+    f[i] = param.Peak_fric_coeff_layer1 -
+           ((param.Peak_fric_coeff_layer1 - param.Resid_fric_coeff_layer1) *
+            (1 - exp(-(d[i] / param.d_wf_layer1))));
   }
 
   return f;
@@ -50,18 +50,34 @@ il::Array<double> lin_friction(Parameters_friction &param,
   //    going to be mutated
 
   il::Array<double> f{d.size(), 0};
-  double_t sl;
-  sl = param.Peak_fric_coeff / param.d_wf;
+  double_t sl1;
+  sl1 = param.Peak_fric_coeff_layer1 / param.d_wf_layer1;
+  double_t sl2;
+  sl2 = param.Peak_fric_coeff_layer2 / param.d_wf_layer2;
+  double_t sl3;
+  sl3 = param.Peak_fric_coeff_layer3 / param.d_wf_layer3;
 
-  for (il::int_t i = 0; i < f.size(); ++i) {
-
-    if (d[i] < ((param.Peak_fric_coeff - param.Resid_fric_coeff) / sl)) {
-
-      f[i] = param.Peak_fric_coeff - (sl * d[i]);
-
+  for (il::int_t i = 0; i < f.size() / 2; ++i) {
+    if (d[i] < ((param.Peak_fric_coeff_layer1 - param.Resid_fric_coeff_layer1) / sl1)) {
+      f[i] = param.Peak_fric_coeff_layer1 - (sl1 * d[i]);
     } else {
+      f[i] = param.Resid_fric_coeff_layer1;
+    }
+  }
 
-      f[i] = param.Resid_fric_coeff;
+  for (il::int_t i = f.size() / 2; i < (f.size() - (f.size() / 4)); ++i) {
+    if (d[i] < ((param.Peak_fric_coeff_layer2 - param.Resid_fric_coeff_layer2) / sl2)) {
+      f[i] = param.Peak_fric_coeff_layer2 - (sl2 * d[i]);
+    } else {
+      f[i] = param.Resid_fric_coeff_layer2;
+    }
+  }
+
+  for (il::int_t i = (f.size() - (f.size() / 4)); i < f.size(); ++i) {
+    if (d[i] < ((param.Peak_fric_coeff_layer3 - param.Resid_fric_coeff_layer3) / sl3)) {
+      f[i] = param.Peak_fric_coeff_layer3 - (sl3 * d[i]);
+    } else {
+      f[i] = param.Resid_fric_coeff_layer3;
     }
   }
 

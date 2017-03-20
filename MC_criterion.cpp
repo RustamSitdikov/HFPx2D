@@ -18,7 +18,7 @@
 #include "AssemblyDDM.h"
 #include "DOF_Handles.h"
 #include "Dilatancy.h"
-#include "ELHDs.h"
+#include "EHLDs.h"
 #include "FromEdgeToCol.h"
 #include "TimeIncr.h"
 
@@ -226,13 +226,22 @@ void MC_criterion(Mesh mesh, int p, il::Array<double> cohes,
     }
 
     // Calculate current slippage length
-    SL = euclidean_distance(
-        XColl[res.active_set_collpoints[0]],
-        XColl[res.active_set_collpoints[res.active_set_collpoints.size() - 1]],
-        0, 0, il::io);
+      if(res.active_set_collpoints.size() == 0){
+          SL = 0;
+      } else {
+          SL = euclidean_distance(
+                  XColl[res.active_set_collpoints[0]],
+                  XColl[res.active_set_collpoints[
+                          res.active_set_collpoints.size() - 1]],
+                  0, 0, il::io);
+      }
 
     // Calculate the current shear crack velocity
+      if (SL == 0) {
+          crack_vel = 0;
+      } else{
     crack_vel = (SL - sl) / res.dt;
+      }
 
     // Assign the desired outputs to structure's members
     res.friction = fric;

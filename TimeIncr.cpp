@@ -13,6 +13,7 @@
 // Inclusion from Inside Loop library
 #include <il/linear_algebra.h>
 #include <il/linear_algebra/dense/norm.h>
+#include <il/Timer.h>
 
 // Inclusion from the project
 #include "AssemblyDDM.h"
