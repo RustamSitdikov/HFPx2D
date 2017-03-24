@@ -16,14 +16,14 @@
 namespace hfp2d {
 
 Results_solution_nonlinearsystem
-ELHDs(Mesh mesh, il::Array2D<double> &kmatd, il::Array2D<double> &Npc,
+EHLDs(Mesh mesh, il::Array2D<double> &kmatd, il::Array2D<double> &Npc,
       Parameters_friction fric_parameters,
       Parameters_dilatancy dilat_parameters, Parameters_fluid fluid_parameters,
-      Results_one_timeincrement &SolutionAtTj,
-      il::Array2D<double> sigma_eff_new, il::Array<double> press_prof,
+      Results_one_timeincrement &SolutionAtTj, il::Array<double> press_prof,
       il::Array<double> tot_slip, int dof_dim, int p, il::Array<double> cohes,
-      il::Status status, il::Norm norm, int inj_point, il::Array<double> S,
-      il::Array<int> Dof_slip_coll, il::Array2D<double> Sigma0, il::io_t) {
+      il::Status &status, il::Norm norm, int inj_point, il::Array<double> S,
+      il::Array<int> Dof_slip_coll, il::Array2D<double> Sigma0,
+      il::Array2D<double> sigma_tot, il::io_t) {
 
   Results_solution_nonlinearsystem Results_iterations;
 
@@ -38,14 +38,12 @@ ELHDs(Mesh mesh, il::Array2D<double> &kmatd, il::Array2D<double> &Npc,
   // Assembling just elasticity part of BigA
   hfp2d::set_submatrix_non_linear_system(BigA, 0, 0, kmatd);
 
-  /// Solution of the non-linear system of equations by using
-  /// fixed point iterations
+  /// Solution of the non-linear system of equations via fixed point iterations
 
   // Initialization of Finite Volume matrices
   il::Array2D<double> Vd;
   il::Array2D<double> Vp;
   il::Array2D<double> L{mesh.nelts() + 1, mesh.nelts() + 1, 0};
-  il::Array2D<double> incrdk{mesh.nelts(), 2, 0};
 
   // Initialization of the while loop
   double betarela = 0.6;
@@ -62,7 +60,9 @@ ELHDs(Mesh mesh, il::Array2D<double> &kmatd, il::Array2D<double> &Npc,
   il::Array<double> Dpold{press_prof.size(), 0};
   il::Array<double> DiffDp{Dp.size(), 0};
   il::Array<double> Ddd{Dd.size(), 0};
+  il::Array2D<double> incrdk{mesh.nelts(), 2, 0};
   il::Array<double> tot_slipk{SolutionAtTj.active_set_collpoints.size(), 0};
+  il::Array<double> tot_slip_prev{SolutionAtTj.active_set_collpoints.size(), 0};
 
   while (j < itermax_nonlinsystem && (errDd > tolerance || errDp > tolerance)) {
     ++j;
@@ -86,34 +86,35 @@ ELHDs(Mesh mesh, il::Array2D<double> &kmatd, il::Array2D<double> &Npc,
     // Pressure matrix "P"
     Vp = hfp2d::build_vp_matrix_p1(mesh, dilat_parameters, fluid_parameters,
                                    incrdk, il::io);
+
     // Finite Difference matrix "L"
     L = hfp2d::build_l_matrix(mesh, incrdk, fluid_parameters, dilat_parameters,
                               SolutionAtTj.dt, il::io);
 
     // Nf -> diagonal matrix that contains the current friction coefficient of
-    // the slipping collocation points
+    //       the slipping collocation points
     il::Array2D<double> Nf{SolutionAtTj.active_set_collpoints.size(),
                            SolutionAtTj.active_set_collpoints.size(), 0};
+    il::Array2D<double> fetc_dg = hfp2d::from_edge_to_col_dg(
+        dof_dim, hfp2d::dofhandle_dg(dof_dim, mesh.nelts(), il::io), il::io);
+
+    il::Array<double> incrdk_flat = flatten1(incrdk, il::io);
+    il::Array<double> incrdk_coll = il::dot(fetc_dg, incrdk_flat);
+    il::Array<double> frick_coll =
+        hfp2d::lin_friction(fric_parameters, incrdk_coll, il::io);
     for (il::int_t m2 = 0; m2 < Nf.size(0); ++m2) {
-      Nf(m2, m2) = hfp2d::lin_friction(
-          fric_parameters,
-          il::dot(hfp2d::from_edge_to_col_dg(
-                      dof_dim,
-                      hfp2d::dofhandle_dg(dof_dim, mesh.nelts(), il::io),
-                      il::io),
-                  flatten1(incrdk, il::io)),
-          il::io)[SolutionAtTj.active_set_collpoints[m2]];
+      Nf(m2, m2) = frick_coll[SolutionAtTj.active_set_collpoints[m2]];
     }
 
     /// Assembling the system ///
 
     // Matrix of coefficient
 
+    il::Array2D<double> Npk = il::dot(Nf, Npc);
     for (il::int_t k2 = 0; k2 < SolutionAtTj.active_set_collpoints.size();
          ++k2) {
       for (il::int_t i = 0; i < mesh.nelts() + 1; ++i) {
-        BigA(k2, SolutionAtTj.active_set_collpoints.size() + i) =
-            il::dot(Nf, Npc)(k2, i);
+        BigA(k2, SolutionAtTj.active_set_collpoints.size() + i) = Npk(k2, i);
       }
     }
 
@@ -136,30 +137,24 @@ ELHDs(Mesh mesh, il::Array2D<double> &kmatd, il::Array2D<double> &Npc,
     // Right hand side vector
 
     for (il::int_t l2 = 0; l2 < tot_slipk.size(); ++l2) {
-      tot_slipk[l2] =
-          flatten1(incrdk, il::io)[SolutionAtTj.active_set_collpoints[l2]];
+      tot_slipk[l2] = incrdk_flat[SolutionAtTj.active_set_collpoints[l2]];
     }
 
+    auto tau_prev = il::dot(kmatd, tot_slipk);
     for (il::int_t n = 0, n1 = 1; n < SolutionAtTj.active_set_collpoints.size();
          ++n, n1 = n1 + 2) {
       BigB[n] =
           (cohes[SolutionAtTj.active_set_collpoints[n]] +
-           hfp2d::lin_friction(
-               fric_parameters,
-               il::dot(hfp2d::from_edge_to_col_dg(
-                           dof_dim,
-                           hfp2d::dofhandle_dg(dof_dim, mesh.nelts(), il::io),
-                           il::io),
-                       flatten1(incrdk, il::io)),
-               il::io)[SolutionAtTj.active_set_collpoints[n]] *
-               sigma_eff_new(SolutionAtTj.active_set_collpoints[n], 1)) -
-          il::dot(kmatd, tot_slipk)[n] -
-          Sigma0(SolutionAtTj.active_set_collpoints[n], 0);
+           frick_coll[SolutionAtTj.active_set_collpoints[n]] *
+               (sigma_tot(SolutionAtTj.active_set_collpoints[n], 1) -
+                SolutionAtTj.Pcm(SolutionAtTj.active_set_collpoints[n], 1))) -
+          tau_prev[n] - Sigma0(SolutionAtTj.active_set_collpoints[n], 0);
     }
 
+    auto Lp = il::dot(L, press_prof);
     for (il::int_t i1 = 0; i1 < L.size(0); ++i1) {
       BigB[SolutionAtTj.active_set_collpoints.size() + i1] =
-          il::dot(L, press_prof)[i1] + (SolutionAtTj.dt * S[i1]);
+          Lp[i1] + (SolutionAtTj.dt * S[i1]);
     }
 
     /// Boundary conditions ///

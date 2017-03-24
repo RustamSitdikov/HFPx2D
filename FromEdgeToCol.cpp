@@ -37,7 +37,7 @@ il::Array2D<double> from_edge_to_col_dg_full2d(int dof_dim,
 
   // Note matrix on all the DDs dofs
   il::Array2D<double> Fetc{4 * Dof.size(0), 4 * Dof.size(0), 0};
-  il::Array2D<double> ShapeFunction{2, 4, 0};
+  il::StaticArray2D<double,2,4> ShapeFunction{0};
 
   ShapeFunction(0, 0) = (1 + (1 / sqrt(2))) / 2;
   ShapeFunction(0, 1) = (1 + (1 / sqrt(2))) / 2;
@@ -80,7 +80,7 @@ il::Array2D<double> from_edge_to_col_dg(int dof_dim,
 
   // Note matrix on all the DDs dofs
   il::Array2D<double> Fetc{2 * Dofw.size(0), 2 * Dofw.size(0), 0};
-  il::Array2D<double> ShapeFunction{2, 2, 0};
+  il::StaticArray2D<double,2,2> ShapeFunction{0};
 
   ShapeFunction(0, 0) = (1 + (1 / sqrt(2))) / 2;
   ShapeFunction(0, 1) = (1 - (1 / sqrt(2))) / 2;
@@ -107,7 +107,7 @@ il::Array2D<double> from_edge_to_col_dg(int dof_dim,
 // The collocation points are located in the reference unit element at location
 // {-1/sqrt(2) , +1/sqrt(2)}
 // It returns a matrix (size 4Nelts x Nelts+1) that, if multiplied by nodal
-// pressure valuse (size Nelts + 1), it returns the pressure values at
+// pressure values (size Nelts + 1), it returns the pressure values at
 // collocation points
 il::Array2D<double> from_edge_to_col_cg(int dof_dim,
                                         il::Array2D<int> Dof,
@@ -115,7 +115,7 @@ il::Array2D<double> from_edge_to_col_cg(int dof_dim,
 
   // Note matrix on all the DDs dofs
   il::Array2D<double> Fetc{4 * Dof.size(0), Dof.size(0) + 1, 0};
-  il::Array2D<double> ShapeFunction{2, 2, 0};
+  il::StaticArray2D<double,2,2> ShapeFunction{0};
 
   ShapeFunction(0, 0) = (1 + (1 / sqrt(2))) / 2;
   ShapeFunction(0, 1) = (1 - (1 / sqrt(2))) / 2;

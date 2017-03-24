@@ -11,9 +11,9 @@
 #include <iostream>
 
 // Inclusion from Inside Loop library
+#include <il/Timer.h>
 #include <il/linear_algebra.h>
 #include <il/linear_algebra/dense/norm.h>
-#include <il/Timer.h>
 
 // Inclusion from the project
 #include "AssemblyDDM.h"
@@ -28,16 +28,16 @@
 
 namespace hfp2d {
 
-void time_incr(double t_0plus, int inj_point, il::int_t NCollPoints, Mesh mesh,
-               int p, il::Array<double> cohes, const il::Array2D<double> &kmat,
+void time_incr(int inj_point, il::int_t NCollPoints, Mesh mesh, int p,
+               il::Array<double> cohes, const il::Array2D<double> &kmat,
                Parameters_friction fric_parameters,
                Parameters_dilatancy dilat_parameters,
                Parameters_fluid &fluid_parameters, il::Array<double> S,
                int dof_dim, il::Array2D<double> Sigma0,
                il::Array<double> Amb_press, il::Array<double> Pinit,
                const std::string &Directory_results, il::Array<double> XColl,
-               il::Array2D<double> &Fetc, double h, double TimeStep_max,
-               double TimeStep_min, il::io_t) {
+               il::Array2D<double> &Fetc, double h,
+               time_parameters time_parameters, il::io_t) {
 
   /// Initialization ///
 
@@ -71,13 +71,13 @@ void time_incr(double t_0plus, int inj_point, il::int_t NCollPoints, Mesh mesh,
   SolutionAtTj.P = Pin;
 
   il::Array2D<double> Pcm{2 * mesh.nelts(), 2, 0};
+  il::Array2D<double> fetc_cg = hfp2d::from_edge_to_col_cg(
+      dof_dim, hfp2d::dofhandle_dg_full2d(dof_dim, mesh.nelts(), p, il::io),
+      hfp2d::dofhandle_cg2d(dof_dim, mesh.nelts(), il::io), il::io);
+  il::Array<double> pcoll = il::dot(fetc_cg, Pin);
+
   for (il::int_t l = 0, k = 1; l < Pcm.size(0); ++l) {
-    Pcm(l, 1) = il::dot(
-        hfp2d::from_edge_to_col_cg(
-            dof_dim,
-            hfp2d::dofhandle_dg_full2d(dof_dim, mesh.nelts(), p, il::io),
-            hfp2d::dofhandle_cg2d(dof_dim, mesh.nelts(), il::io), il::io),
-        SolutionAtTj.P)[k];
+    Pcm(l, 1) = pcoll[k];
     k = k + 2;
   }
   SolutionAtTj.Pcm = Pcm;
@@ -95,21 +95,18 @@ void time_incr(double t_0plus, int inj_point, il::int_t NCollPoints, Mesh mesh,
   }
 
   // Initial time step
-  double TimeStep = TimeStep_min;
+  double TimeStep = time_parameters.TimeStep_min;
   SolutionAtTj.dt = TimeStep;
 
   // Initialization of time
   double t;
-  t = t_0plus;
-
-  // Maximum time
-  double tmax = 0.625;
+  t = time_parameters.t_0plus;
 
   // Parameter for adaptive time stepping
   double psi = 1;
 
   while (
-      t <= tmax &&
+      t <= time_parameters.t_max &&
       SolutionAtTj.slippagezone <=
           euclidean_distance(XColl[0], XColl[XColl.size() - 1], 0, 0, il::io)) {
 
@@ -122,15 +119,17 @@ void time_incr(double t_0plus, int inj_point, il::int_t NCollPoints, Mesh mesh,
                         Sigma0, il::io, SolutionAtTj);
 
     // Adaptive time stepping
-    if (psi * (h / SolutionAtTj.crack_velocity) >= TimeStep_max) {
-      SolutionAtTj.dt = TimeStep_max;
-    } else if (psi * (h / SolutionAtTj.crack_velocity) <= TimeStep_min) {
-      SolutionAtTj.dt = TimeStep_min;
+    if (psi * (h / SolutionAtTj.crack_velocity) >=
+        time_parameters.TimeStep_max) {
+      SolutionAtTj.dt = time_parameters.TimeStep_max;
+    } else if (psi * (h / SolutionAtTj.crack_velocity) <=
+               time_parameters.TimeStep_min) {
+      SolutionAtTj.dt = time_parameters.TimeStep_min;
     } else {
-        SolutionAtTj.dt = psi * (h / SolutionAtTj.crack_velocity);
+      SolutionAtTj.dt = psi * (h / SolutionAtTj.crack_velocity);
     }
 
-    /// To get a different output file per each iteration ///
+    // Export to get a different output file per each iteration
     hfp2d::export_results(SolutionAtTj, t, Directory_results,
                           std::string{"Test"} + std::to_string(t) +
                               std::string{".txt"});
@@ -143,7 +142,6 @@ void time_incr(double t_0plus, int inj_point, il::int_t NCollPoints, Mesh mesh,
 // Function that return the index of a given value ("seek") in a vector.
 // arr -> 1D array in which we want to find the index of a given value
 // seek ->  value for which we want to find out the index
-
 int find(const il::Array<double> &arr, double_t seek, il::io_t) {
 
   for (int i = 0; i < arr.size(); ++i) {
@@ -157,7 +155,6 @@ int find(const il::Array<double> &arr, double_t seek, il::io_t) {
 ////////////////////////////////////////////////////////////////////////////////
 // Function that return the max value in an vector.
 // arr1D -> vector in which we want to find the max
-
 double_t max_1d(const il::Array<double> &arr1D, il::io_t) {
 
   double_t max;
@@ -179,7 +176,7 @@ double_t max_1d(const il::Array<double> &arr1D, il::io_t) {
 // {x1,y1}, {x2,y2}
 // Input -> x- y- coordinates of the two points
 // Output -> double precision values that represents the euclidean distance
-// between the two aforementioned points
+//           between the two aforementioned points
 double euclidean_distance(double x1, double x2, double y1, double y2,
                           il::io_t) {
 
@@ -188,7 +185,7 @@ double euclidean_distance(double x1, double x2, double y1, double y2,
   double x = x1 - x2;
   double y = y1 - y2;
 
-  dist = pow(x, 2) + pow(y, 2);
+  dist = (x * x) + (y * y);
   dist = sqrt(dist);
 
   return dist;

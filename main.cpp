@@ -13,6 +13,8 @@
 #include <complex>
 #include <fstream>
 #include <iostream>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 // Inclusion from Inside Loop library
 #include <il/Array.h>
@@ -33,7 +35,8 @@
 #include <il/Toml.h>
 
 // FUNCTION PROTOTYPE
-il::Array<double> analytical_solution(double Dp, double alpha, double t_0plus,
+il::Array<double> analytical_solution(double Dp, double alpha,
+                                      hfp2d::time_parameters time_parameters,
                                       hfp2d::Mesh mesh, il::io_t);
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -244,6 +247,22 @@ int main() {
     l = 0;
   }
 
+  double t_max;
+  i = config.search("t_max");
+  if (config.found(i) && config.value(i).is_floating_point()) {
+    t_max = config.value(i).to_floating_point();
+  } else {
+    t_max = 0;
+  }
+
+  double t_0plus;
+  i = config.search("t_0plus");
+  if (config.found(i) && config.value(i).is_floating_point()) {
+    t_0plus = config.value(i).to_floating_point();
+  } else {
+    t_0plus = 0;
+  }
+
   double TimeStep_max;
   i = config.search("TimeStep_max");
   if (config.found(i) && config.value(i).is_floating_point()) {
@@ -278,6 +297,13 @@ int main() {
   dilat_parameters.Incr_dil = Incr_dil;
   dilat_parameters.d_wd = d_wdilatancy;
 
+  // Set the structure members for time parameters
+  hfp2d::time_parameters time_parameters;
+  time_parameters.t_0plus = t_0plus;
+  time_parameters.t_max = t_max;
+  time_parameters.TimeStep_max = TimeStep_max;
+  time_parameters.TimeStep_min = TimeStep_min;
+
   // Declare other variables:
   // Number of elements
   il::int_t Nelts = Nnodes - 1;
@@ -286,9 +312,17 @@ int main() {
   // Degrees of freedom per node
   int dof_dim = 2;
 
-  // Directory for output results
-  std::string Directory_results{
-      "/Users/federicociardo/ClionProjects/HFPx2D-Collscheme/Results/"};
+  // Creating a directory for output results
+  // Remember always to delete the existing directory (if already created)!
+  std::string Directory_results{"/Users/federicociardo/ClionProjects/"
+                                "HFPx2D-Collscheme/Results/"
+                                "Test1su100_NoDil_055(2)/"};
+
+  if (mkdir(Directory_results.c_str(), 0777) == -1) {
+    std::cerr << "Error in creating the output directory:  " << strerror(errno)
+              << std::endl;
+    exit(1);
+  }
 
   /* Create:
    *  - the matrix of density (rho)
@@ -333,7 +367,7 @@ int main() {
   // Element size -> for now UNIFORM mesh, but later it might be non-uniform
   double h = (2 * l) / Nelts;
 
-  /// Mesh ///
+  /// ****** Mesh ****** ///
   // create a basic 1D mesh
 
   // xy -> matrix of mesh coordinates {{x1,y1},{x2,y2},{x3,y3}..}
@@ -368,16 +402,15 @@ int main() {
   // alpha -> initial fault/fracture diffusivity [Lˆ2/T]
   // t_0plus -> initial time (starting time)
   double alpha = 10;
-  double t_0plus = 0.001;
   il::Array<double> Pinit{Nnodes, 0};
-  Pinit = analytical_solution(Dp, alpha, t_0plus, mesh, il::io);
+  Pinit = analytical_solution(Dp, alpha, time_parameters, mesh, il::io);
 
   // Find the injection point (position of the max value in Pinit)
   int inj_point;
   inj_point = hfp2d::find(Pinit, hfp2d::max_1d(Pinit, il::io), il::io);
 
   // Source vector whose size is Nnodes
-  // (for constant overpressure, source term is equal to zero)
+  // (for constant overpressure -> source term is equal to zero)
   il::Array<double> S{Nnodes, 0};
   S[inj_point] = Source;
 
@@ -396,10 +429,10 @@ int main() {
       kmat, mesh, hfp2d::dofhandle_dg_full2d(dof_dim, Nelts, p, il::io), p, Ep);
 
   /// Solution of fluid injection into frictional weakening dilatant fault ///
-  hfp2d::time_incr(t_0plus, inj_point, NCollPoints, mesh, p, cohes, kmat,
+  hfp2d::time_incr(inj_point, NCollPoints, mesh, p, cohes, kmat,
                    fric_parameters, dilat_parameters, fluid_parameters, S,
                    dof_dim, Sigma0, Amb_press, Pinit, Directory_results, XColl,
-                   Fetc, h, TimeStep_max, TimeStep_min, il::io);
+                   Fetc, h, time_parameters, il::io);
 
   return 0;
 }
@@ -414,13 +447,15 @@ int main() {
 // Remember -> pressure varies linearly and continuously over the elements
 ////////////////////////////////////////////////////////////////////////////////
 
-il::Array<double> analytical_solution(double Dp, double alpha, double t_0plus,
+il::Array<double> analytical_solution(double Dp, double alpha,
+                                      hfp2d::time_parameters time_parameters,
                                       hfp2d::Mesh mesh, il::io_t) {
 
   // Inputs:
   //  - Dp -> Constant overpressure in the middle of the fracture/fault
   //  - alpha -> Initial fault/fracture diffusivity (Lˆ2/T)
-  //  - t_0plus -> Initial time (starting time)
+  //  - hfp2d::time_parameters time_parameters -> structure that contains all
+  //    the time parameters
   //  - mesh -> mesh class
   //  - io_t -> everything on the left of il::io_t is read-only and is not
   //    going to be mutated
@@ -428,7 +463,10 @@ il::Array<double> analytical_solution(double Dp, double alpha, double t_0plus,
   il::Array<double> Pinit{mesh.nelts() + 1, 0};
 
   for (il::int_t j = 0; j < Pinit.size(); ++j) {
-    Pinit[j] = Dp * (erfc(fabs((mesh.node(j, 0)) / sqrt(alpha * t_0plus)) / 2));
+    Pinit[j] =
+        Dp *
+        (erfc(fabs((mesh.node(j, 0)) / sqrt(alpha * time_parameters.t_0plus)) /
+              2));
   }
 
   return Pinit;
