@@ -24,7 +24,6 @@
 #include "FromEdgeToCol.h"
 #include "MC_criterion.h"
 #include "Output_results.h"
-#include "TimeIncr.h"
 
 namespace hfp2d {
 
@@ -37,7 +36,7 @@ void time_incr(int inj_point, il::int_t NCollPoints, Mesh mesh, int p,
                il::Array<double> Amb_press, il::Array<double> Pinit,
                const std::string &Directory_results, il::Array<double> XColl,
                il::Array2D<double> &Fetc, double h,
-               time_parameters time_parameters, il::io_t) {
+               simulation_parameters simulation_parameters, il::io_t) {
 
   /// Initialization ///
 
@@ -95,18 +94,18 @@ void time_incr(int inj_point, il::int_t NCollPoints, Mesh mesh, int p,
   }
 
   // Initial time step
-  double TimeStep = time_parameters.TimeStep_min;
+  double TimeStep = simulation_parameters.TimeStep_min;
   SolutionAtTj.dt = TimeStep;
 
   // Initialization of time
   double t;
-  t = time_parameters.t_0plus;
+  t = simulation_parameters.t_0plus;
 
   // Parameter for adaptive time stepping
   double psi = 1;
 
   while (
-      t <= time_parameters.t_max &&
+      t <= simulation_parameters.t_max &&
       SolutionAtTj.slippagezone <=
           euclidean_distance(XColl[0], XColl[XColl.size() - 1], 0, 0, il::io)) {
 
@@ -116,15 +115,15 @@ void time_incr(int inj_point, il::int_t NCollPoints, Mesh mesh, int p,
 
     hfp2d::MC_criterion(mesh, p, cohes, kmat, fric_parameters, dilat_parameters,
                         fluid_parameters, S, inj_point, dof_dim, XColl, Fetc,
-                        Sigma0, il::io, SolutionAtTj);
+                        Sigma0, simulation_parameters, il::io, SolutionAtTj);
 
     // Adaptive time stepping
     if (psi * (h / SolutionAtTj.crack_velocity) >=
-        time_parameters.TimeStep_max) {
-      SolutionAtTj.dt = time_parameters.TimeStep_max;
+        simulation_parameters.TimeStep_max) {
+      SolutionAtTj.dt = simulation_parameters.TimeStep_max;
     } else if (psi * (h / SolutionAtTj.crack_velocity) <=
-               time_parameters.TimeStep_min) {
-      SolutionAtTj.dt = time_parameters.TimeStep_min;
+               simulation_parameters.TimeStep_min) {
+      SolutionAtTj.dt = simulation_parameters.TimeStep_min;
     } else {
       SolutionAtTj.dt = psi * (h / SolutionAtTj.crack_velocity);
     }

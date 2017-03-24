@@ -12,7 +12,7 @@
 
 namespace hfp2d {
 
-struct time_parameters {
+struct simulation_parameters {
 
   // initial time (starting time)
   double t_0plus;
@@ -29,6 +29,20 @@ struct time_parameters {
 
   // Maximum time step
   double TimeStep_max;
+
+  // Maximum number of iterations to satisfy MC criterion
+  il::int_t itermax_MCcriterion;
+
+  // Maximum number of iterations to solve non linear system of equations via
+  // fixed point iterations combined with under relaxation technique
+  il::int_t itermax_nonlinsystem;
+
+  // Tolerance for errors in the solution of the non linear system of equations
+  double tolerance;
+
+  // Coefficient for under relaxation technique
+  double under_relax_param;
+
 };
 
 void time_incr(int inj_point, il::int_t NCollPoints, Mesh mesh, int p,
@@ -40,7 +54,7 @@ void time_incr(int inj_point, il::int_t NCollPoints, Mesh mesh, int p,
                il::Array<double> Amb_press, il::Array<double> Pinit,
                const std::string &Directory_results, il::Array<double> XColl,
                il::Array2D<double> &Fetc, double h,
-               time_parameters time_parameters, il::io_t);
+               simulation_parameters simulation_parameters, il::io_t);
 
 int find(const il::Array<double> &arr, double_t seek, il::io_t);
 

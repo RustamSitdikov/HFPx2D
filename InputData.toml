@@ -40,8 +40,13 @@ Ambient_shear_stress = 0.55   # 0.55 * (Peak_fric*(Ambient_normal_stress
 Source = 0.0
 Constant_overpressure = 0.5 # 0.5*(Ambient_normal_stress-Ambient_pore_pressure)
 
-# Time parameters
+# Simulation parameters
 t_max = 0.625
 t_0plus = 0.0001
 TimeStep_max = 0.0005
 TimeStep_min = 0.00005
+itermax_MCcriterion = 100
+itermax_nonlinsystem = 100
+tolerance = 10e-6
+under_relaxation_parameter = 0.6
+

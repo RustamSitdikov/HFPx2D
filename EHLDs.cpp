@@ -22,8 +22,9 @@ EHLDs(Mesh mesh, il::Array2D<double> &kmatd, il::Array2D<double> &Npc,
       Results_one_timeincrement &SolutionAtTj, il::Array<double> press_prof,
       il::Array<double> tot_slip, int dof_dim, int p, il::Array<double> cohes,
       il::Status &status, il::Norm norm, int inj_point, il::Array<double> S,
-      il::Array<int> Dof_slip_coll, il::Array2D<double> Sigma0,
-      il::Array2D<double> sigma_tot, il::io_t) {
+      il::Array<il::int_t> Dof_slip_coll, il::Array2D<double> Sigma0,
+      il::Array2D<double> sigma_tot,
+      hfp2d::simulation_parameters simulation_parameters, il::io_t) {
 
   Results_solution_nonlinearsystem Results_iterations;
 
@@ -46,11 +47,8 @@ EHLDs(Mesh mesh, il::Array2D<double> &kmatd, il::Array2D<double> &Npc,
   il::Array2D<double> L{mesh.nelts() + 1, mesh.nelts() + 1, 0};
 
   // Initialization of the while loop
-  double betarela = 0.6;
-  double itermax_nonlinsystem = 100;
   double errDd = 2;
   double errDp = 2;
-  double tolerance = 10e-6;
   int j = 0;
   il::Array<double> BigX{BigA.size(0), 0};
   il::Array<double> Dd{tot_slip.size(), 0};
@@ -64,7 +62,9 @@ EHLDs(Mesh mesh, il::Array2D<double> &kmatd, il::Array2D<double> &Npc,
   il::Array<double> tot_slipk{SolutionAtTj.active_set_collpoints.size(), 0};
   il::Array<double> tot_slip_prev{SolutionAtTj.active_set_collpoints.size(), 0};
 
-  while (j < itermax_nonlinsystem && (errDd > tolerance || errDp > tolerance)) {
+  while (j < simulation_parameters.itermax_nonlinsystem &&
+         (errDd > simulation_parameters.tolerance ||
+          errDp > simulation_parameters.tolerance)) {
     ++j;
 
     // Current total slip
@@ -185,12 +185,14 @@ EHLDs(Mesh mesh, il::Array2D<double> &kmatd, il::Array2D<double> &Npc,
     }
 
     for (il::int_t m1 = 0; m1 < Dd.size(); ++m1) {
-      Dd[m1] = (1 - betarela) * Ddold[m1] + betarela * Ddd[m1];
+      Dd[m1] = (1 - simulation_parameters.under_relax_param) * Ddold[m1] +
+               simulation_parameters.under_relax_param * Ddd[m1];
     }
 
     for (il::int_t n1 = 0; n1 < Dp.size(); ++n1) {
-      Dp[n1] = (1 - betarela) * Dpold[n1] +
-               betarela * BigX[SolutionAtTj.active_set_collpoints.size() + n1];
+      Dp[n1] = (1 - simulation_parameters.under_relax_param) * Dpold[n1] +
+               simulation_parameters.under_relax_param *
+                   BigX[SolutionAtTj.active_set_collpoints.size() + n1];
     }
 
     // Error on increments

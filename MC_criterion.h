@@ -16,6 +16,7 @@
 
 // Inclusion from the project
 #include "Mesh.h"
+#include "TimeIncr.h"
 
 namespace hfp2d {
 
@@ -68,7 +69,8 @@ void MC_criterion(Mesh mesh, int p, il::Array<double> cohes,
                   Parameters_fluid &fluid_parameters, il::Array<double> S,
                   int inj_point, int dof_dim, il::Array<double> XColl,
                   il::Array2D<double> &Fetc, il::Array2D<double> Sigma0,
-                  il::io_t, Results_one_timeincrement &res);
+                  hfp2d::simulation_parameters simulationParameters, il::io_t,
+                  Results_one_timeincrement &res);
 
 il::Array<double> flatten1(const il::Array2D<double> &Arr, il::io_t);
 
@@ -92,7 +94,8 @@ take_submatrix_non_linear_system(int i0, int i1, int j0, int j1,
 il::Array<double> take_subvector_non_linear_system(int i0, int i1,
                                                    const il::Array<double> &A);
 
-il::Array<int> delete_duplicates(const il::Array<il::int_t> &arr, il::io_t);
+il::Array<il::int_t> delete_duplicates(const il::Array<il::int_t> &arr,
+                                       il::io_t);
 
 il::Array<il::int_t> delete_duplicates2(const il::Array<il::int_t> &arr,
                                         il::io_t);

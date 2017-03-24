@@ -62,12 +62,12 @@ il::Array<double> quarter(const il::Array2D<double> &d, il::io_t) {
 il::Array2D<int> position_2d_array(const il::Array2D<int> &arr2D, int seek,
                                    il::io_t) {
 
-  il::Array2D<il::int_t> M{arr2D.size(1) * arr2D.size(0), 2, -1};
-  il::int_t k = 0;
+  il::Array2D<int> M{arr2D.size(1) * arr2D.size(0), 2, -1};
+  int k = 0;
 
-  for (il::int_t i = 0; i < arr2D.size(0); ++i) {
+  for (int i = 0; i < arr2D.size(0); ++i) {
 
-    for (il::int_t j = 0; j < arr2D.size(1); ++j) {
+    for (int j = 0; j < arr2D.size(1); ++j) {
 
       if (arr2D(i, j) == seek) {
 
@@ -81,9 +81,9 @@ il::Array2D<int> position_2d_array(const il::Array2D<int> &arr2D, int seek,
 
   il::Array2D<int> outp{k, 2, 0};
 
-  for (il::int_t l = 0; l < k; ++l) {
+  for (int l = 0; l < k; ++l) {
 
-    for (il::int_t j = 0; j < 2; ++j) {
+    for (int j = 0; j < 2; ++j) {
 
       outp(l, j) = M(l, j);
     }
@@ -101,8 +101,8 @@ il::Array2D<int> search(const il::Array2D<int> &matrix, int x, il::io_t) {
   il::Array2D<int> ans{0, 2};
   il::int_t k = 0;
 
-  for (il::int_t j = 0; j < matrix.size(1); ++j) {
-    for (il::int_t i = 0; i < matrix.size(0); ++i) {
+  for (int j = 0; j < matrix.size(1); ++j) {
+    for (int i = 0; i < matrix.size(0); ++i) {
       if (matrix(i, j) == x) {
         ans.resize(k + 1, 2);
         ans(k, 0) = i;
@@ -262,16 +262,14 @@ il::Array2D<double> build_vp_matrix_p1(Mesh mesh,
 
   // Create an auxiliary vector for the assembling
   il::Array2D<int> h{2 * mesh.nelts() + 1, 2, 0};
-  for (il::int_t i = 0; i < h.size(0); ++i) {
-
+  for (int i = 0; i < h.size(0); ++i) {
     h(i, 0) = i;
     h(i, 1) = i + 1;
   }
 
   // mesh nodes {0,1,2,3..}
   il::Array<int> vertices{mesh.nelts() + 1, 0};
-  for (il::int_t j = 0; j < vertices.size(); ++j) {
-
+  for (int j = 0; j < vertices.size(); ++j) {
     vertices[j] = j;
   }
 
@@ -399,16 +397,14 @@ il::Array2D<double> build_vd_matrix_p1(Mesh mesh,
 
   // Create an auxiliary vector for the assembling
   il::Array2D<int> h{2 * mesh.nelts() + 1, 2, 0};
-  for (il::int_t i = 0; i < h.size(0); ++i) {
-
+  for (int i = 0; i < h.size(0); ++i) {
     h(i, 0) = i;
     h(i, 1) = i + 1;
   }
 
   // mesh nodes {0,1,2,3..}
   il::Array<int> vertices{mesh.nelts() + 1, 0};
-  for (il::int_t j = 0; j < vertices.size(); ++j) {
-
+  for (int j = 0; j < vertices.size(); ++j) {
     vertices[j] = j;
   }
 
@@ -562,14 +558,14 @@ il::Array2D<double> build_vp_matrix_p0(Mesh mesh,
 
   // Create an auxiliary vector for the assembling
   il::Array2D<int> h{2 * mesh.nelts() + 1, 2, 0};
-  for (il::int_t i = 0; i < h.size(0); ++i) {
+  for (int i = 0; i < h.size(0); ++i) {
     h(i, 0) = i;
     h(i, 1) = i + 1;
   }
 
   // mesh nodes {0,1,2,3..}
   il::Array<int> vertices{mesh.nelts() + 1, 0};
-  for (il::int_t j = 0; j < vertices.size(); ++j) {
+  for (int j = 0; j < vertices.size(); ++j) {
     vertices[j] = j;
   }
 
@@ -664,14 +660,14 @@ il::Array2D<double> build_vd_matrix_p0(Mesh mesh,
 
   // Create an auxiliary vector for the assembling
   il::Array2D<int> h{2 * mesh.nelts() + 1, 2, 0};
-  for (il::int_t i = 0; i < h.size(0); ++i) {
+  for (int i = 0; i < h.size(0); ++i) {
     h(i, 0) = i;
     h(i, 1) = i + 1;
   }
 
   // mesh nodes {0,1,2,3..}
   il::Array<int> vertices{mesh.nelts() + 1, 0};
-  for (il::int_t j = 0; j < vertices.size(); ++j) {
+  for (int j = 0; j < vertices.size(); ++j) {
     vertices[j] = j;
   }
 
@@ -703,7 +699,6 @@ il::Array2D<double> build_vd_matrix_p0(Mesh mesh,
   il::Array<double> Bi{mesh.nelts(), 0};
 
   Bi = d_dilatancy(dilat_parameters, d, il::io);
-  // B_{i} = B_{imid} = B_{iquart}
 
   // Initialization
   il::Array2D<double> Vd{mesh.nelts() + 1, 4 * mesh.nelts(), 0};

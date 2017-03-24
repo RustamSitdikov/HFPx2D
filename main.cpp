@@ -14,7 +14,6 @@
 #include <fstream>
 #include <iostream>
 #include <sys/stat.h>
-#include <sys/types.h>
 
 // Inclusion from Inside Loop library
 #include <il/Array.h>
@@ -31,13 +30,13 @@
 #include "Friction.h"
 #include "FromEdgeToCol.h"
 #include "MC_criterion.h"
-#include "TimeIncr.h"
 #include <il/Toml.h>
 
 // FUNCTION PROTOTYPE
-il::Array<double> analytical_solution(double Dp, double alpha,
-                                      hfp2d::time_parameters time_parameters,
-                                      hfp2d::Mesh mesh, il::io_t);
+il::Array<double>
+analytical_solution(double Dp, double alpha,
+                    hfp2d::simulation_parameters simulation_parameters,
+                    hfp2d::Mesh mesh, il::io_t);
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -279,6 +278,38 @@ int main() {
     TimeStep_min = 0;
   }
 
+  il::int_t itermax_nonlinsystem = 0;
+  i = config.search("itermax_nonlinsystem");
+  if (config.found(i) && config.value(i).is_integer()) {
+    itermax_nonlinsystem = config.value(i).to_integer();
+  } else {
+    itermax_nonlinsystem = 0;
+  }
+
+  il::int_t itermax_MCcriterion = 0;
+  i = config.search("itermax_MCcriterion");
+  if (config.found(i) && config.value(i).is_integer()) {
+    itermax_MCcriterion = config.value(i).to_integer();
+  } else {
+    itermax_MCcriterion = 0;
+  }
+
+  double tolerance;
+  i = config.search("tolerance");
+  if (config.found(i) && config.value(i).is_floating_point()) {
+    tolerance = config.value(i).to_floating_point();
+  } else {
+    tolerance = 0;
+  }
+
+  double betarela;
+  i = config.search("under_relaxation_parameter");
+  if (config.found(i) && config.value(i).is_floating_point()) {
+    betarela = config.value(i).to_floating_point();
+  } else {
+    betarela = 0;
+  }
+
   // Set the structure members of friction
   hfp2d::Parameters_friction fric_parameters;
   fric_parameters.Peak_fric_coeff_layer1 = Peak_fric_layer1;
@@ -297,12 +328,16 @@ int main() {
   dilat_parameters.Incr_dil = Incr_dil;
   dilat_parameters.d_wd = d_wdilatancy;
 
-  // Set the structure members for time parameters
-  hfp2d::time_parameters time_parameters;
-  time_parameters.t_0plus = t_0plus;
-  time_parameters.t_max = t_max;
-  time_parameters.TimeStep_max = TimeStep_max;
-  time_parameters.TimeStep_min = TimeStep_min;
+  // Set the structure members for simulation parameters
+  hfp2d::simulation_parameters simulation_parameters;
+  simulation_parameters.t_0plus = t_0plus;
+  simulation_parameters.t_max = t_max;
+  simulation_parameters.TimeStep_max = TimeStep_max;
+  simulation_parameters.TimeStep_min = TimeStep_min;
+  simulation_parameters.itermax_MCcriterion = itermax_MCcriterion;
+  simulation_parameters.itermax_nonlinsystem = itermax_nonlinsystem;
+  simulation_parameters.tolerance = tolerance;
+  simulation_parameters.under_relax_param = betarela;
 
   // Declare other variables:
   // Number of elements
@@ -379,7 +414,7 @@ int main() {
 
   // Connectivity matrix
   il::Array2D<int> myconn{Nelts, 2, 0};
-  for (il::int_t i4 = 0; i4 < myconn.size(0); ++i4) {
+  for (int i4 = 0; i4 < myconn.size(0); ++i4) {
     myconn(i4, 0) = i4;
     myconn(i4, 1) = i4 + 1;
   }
@@ -391,7 +426,7 @@ int main() {
   // Get collocation points' information
   il::Array<double> XColl{2 * mesh.nelts(), 0};
   hfp2d::SegmentCharacteristic coo_coll;
-  for (il::int_t m = 0, m4 = 0; m < mesh.nelts(); ++m, m4 = m4 + 2) {
+  for (int m = 0, m4 = 0; m < mesh.nelts(); ++m, m4 = m4 + 2) {
     coo_coll = hfp2d::get_segment_DD_characteristic(mesh, m, p);
     XColl[m4] = coo_coll.CollocationPoints(0, 0);
     XColl[m4 + 1] = coo_coll.CollocationPoints(1, 0);
@@ -403,7 +438,7 @@ int main() {
   // t_0plus -> initial time (starting time)
   double alpha = 10;
   il::Array<double> Pinit{Nnodes, 0};
-  Pinit = analytical_solution(Dp, alpha, time_parameters, mesh, il::io);
+  Pinit = analytical_solution(Dp, alpha, simulation_parameters, mesh, il::io);
 
   // Find the injection point (position of the max value in Pinit)
   int inj_point;
@@ -415,7 +450,7 @@ int main() {
   S[inj_point] = Source;
 
   // Total number of dofs
-  int Ndof = (Nnodes - 1) * (p + 1) * 2;
+  il::int_t Ndof = (Nnodes - 1) * (p + 1) * 2;
 
   // Matrix to switch from nodal points to collocation points
   il::Array2D<double> Fetc{4 * mesh.nelts(), mesh.nelts() + 1, 0};
@@ -432,7 +467,7 @@ int main() {
   hfp2d::time_incr(inj_point, NCollPoints, mesh, p, cohes, kmat,
                    fric_parameters, dilat_parameters, fluid_parameters, S,
                    dof_dim, Sigma0, Amb_press, Pinit, Directory_results, XColl,
-                   Fetc, h, time_parameters, il::io);
+                   Fetc, h, simulation_parameters, il::io);
 
   return 0;
 }
@@ -447,15 +482,16 @@ int main() {
 // Remember -> pressure varies linearly and continuously over the elements
 ////////////////////////////////////////////////////////////////////////////////
 
-il::Array<double> analytical_solution(double Dp, double alpha,
-                                      hfp2d::time_parameters time_parameters,
-                                      hfp2d::Mesh mesh, il::io_t) {
+il::Array<double>
+analytical_solution(double Dp, double alpha,
+                    hfp2d::simulation_parameters simulation_parameters,
+                    hfp2d::Mesh mesh, il::io_t) {
 
   // Inputs:
   //  - Dp -> Constant overpressure in the middle of the fracture/fault
   //  - alpha -> Initial fault/fracture diffusivity (Lˆ2/T)
-  //  - hfp2d::time_parameters time_parameters -> structure that contains all
-  //    the time parameters
+  //  - hfp2d::simulation_parameters simulation_parameters -> structure that
+  //    contains all the simulation parameters
   //  - mesh -> mesh class
   //  - io_t -> everything on the left of il::io_t is read-only and is not
   //    going to be mutated
@@ -463,10 +499,9 @@ il::Array<double> analytical_solution(double Dp, double alpha,
   il::Array<double> Pinit{mesh.nelts() + 1, 0};
 
   for (il::int_t j = 0; j < Pinit.size(); ++j) {
-    Pinit[j] =
-        Dp *
-        (erfc(fabs((mesh.node(j, 0)) / sqrt(alpha * time_parameters.t_0plus)) /
-              2));
+    Pinit[j] = Dp * (erfc(fabs((mesh.node(j, 0)) /
+                               sqrt(alpha * simulation_parameters.t_0plus)) /
+                          2));
   }
 
   return Pinit;

@@ -14,7 +14,7 @@
 namespace hfp2d {
 
 //  FUNCTION TO CREATE A DOF HANDLE
-il::Array2D<int> dofhandle_dg_full2d(int dof_dim, int Nelts, int p, il::io_t) {
+il::Array2D<int> dofhandle_dg_full2d(int dof_dim, il::int_t Nelts, int p, il::io_t) {
   // function creating a matrix of dof handle - for a piece-wise linear
   // variation per element of BOTH shear AND opening DDs
   // (Discontinous Galerkin type)
@@ -40,7 +40,7 @@ il::Array2D<int> dofhandle_dg_full2d(int dof_dim, int Nelts, int p, il::io_t) {
   return Dof;
 }
 
-il::Array2D<int> dofhandle_dg(int dof_dim, int Nelts, il::io_t) {
+il::Array2D<int> dofhandle_dg(int dof_dim, il::int_t Nelts, il::io_t) {
   // function creating a matrix of dof handle - for a piece-wise linear
   // variation per element of EITHER shear OR opening DDs
   // (Discontinous Galerkin type)
@@ -54,11 +54,11 @@ il::Array2D<int> dofhandle_dg(int dof_dim, int Nelts, il::io_t) {
 
   il::Array2D<int> Dofw{Nelts, dof_dim, 0};
 
-  for (il::int_t k = 0, j; k < Dofw.size(0); ++k) {
+  for (int k = 0, j; k < Dofw.size(0); ++k) {
 
     j = k * dof_dim;
 
-    for (il::int_t i = 0; i < Dofw.size(1); ++i) {
+    for (int i = 0; i < Dofw.size(1); ++i) {
 
       Dofw(k, i) = i + j;
     }
@@ -67,7 +67,7 @@ il::Array2D<int> dofhandle_dg(int dof_dim, int Nelts, il::io_t) {
   return Dofw;
 }
 
-il::Array2D<int> dofhandle_cg2d(int dof_dim, int Nelts, il::io_t) {
+il::Array2D<int> dofhandle_cg2d(int dof_dim, il::int_t Nelts, il::io_t) {
   // function creating a matrix of dof handle - for continuous linear
   // variation per element (Continuous Galerkin type)
   // on a 1d Mesh object for the case of dof_dim Degrees of Freedoms per node
@@ -79,7 +79,7 @@ il::Array2D<int> dofhandle_cg2d(int dof_dim, int Nelts, il::io_t) {
 
   il::Array2D<int> Dofp{Nelts, dof_dim, 0};
 
-  for (il::int_t i = 0; i < Dofp.size(0); ++i) {
+  for (int i = 0; i < Dofp.size(0); ++i) {
 
     Dofp(i, 0) = i;
     Dofp(i, 1) = i + 1;

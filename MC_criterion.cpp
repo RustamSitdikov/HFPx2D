@@ -21,7 +21,6 @@
 #include "Dilatancy.h"
 #include "EHLDs.h"
 #include "FromEdgeToCol.h"
-#include "TimeIncr.h"
 
 namespace hfp2d {
 
@@ -32,7 +31,8 @@ void MC_criterion(Mesh mesh, int p, il::Array<double> cohes,
                   Parameters_fluid &fluid_parameters, il::Array<double> S,
                   int inj_point, int dof_dim, il::Array<double> XColl,
                   il::Array2D<double> &Fetc, il::Array2D<double> Sigma0,
-                  il::io_t, Results_one_timeincrement &res) {
+                  hfp2d::simulation_parameters simulation_parameters, il::io_t,
+                  Results_one_timeincrement &res) {
 
   // Vector of friction at the beginning of each time step
   il::Array<double> fric{res.friction.size(), 0};
@@ -72,7 +72,7 @@ void MC_criterion(Mesh mesh, int p, il::Array<double> cohes,
   }
 
   // Initialization of vector of DOFs of active set of collocation points
-  il::Array<int> Dof_slip_coll{};
+  il::Array<il::int_t> Dof_slip_coll{};
 
   // Declaration of variables
   double SL;
@@ -86,7 +86,6 @@ void MC_criterion(Mesh mesh, int p, il::Array<double> cohes,
   il::Array2D<double> sigma_eff_new = sigma_eff;
   il::Array<double> press_prof_new{press_prof.size(), 0};
   int iter = 1;
-  int itermax = 100;
   MCcheck check;
   int cvg = 0;
   il::Array<double> s{2 * mesh.nelts(), 0};
@@ -94,7 +93,7 @@ void MC_criterion(Mesh mesh, int p, il::Array<double> cohes,
   double crack_vel;
 
   // Iterate until each point falls below the Mohr-Coulomb failure line
-  while (cvg != 1 && iter <= itermax) {
+  while (cvg != 1 && iter <= simulation_parameters.itermax_MCcriterion) {
 
     std::cout << "Iter to satisfy M-C criterion = " << iter << "\n";
 
@@ -130,8 +129,8 @@ void MC_criterion(Mesh mesh, int p, il::Array<double> cohes,
     // of the fully implicit coupled problem
     res_nonlinearsystem = hfp2d::EHLDs(
         mesh, kmatd, Npc, fric_parameters, dilat_parameters, fluid_parameters,
-        res, press_prof, tot_slip, dof_dim, p, cohes, status,
-        norm, inj_point, S, Dof_slip_coll, Sigma0, sigma_tot, il::io);
+        res, press_prof, tot_slip, dof_dim, p, cohes, status, norm, inj_point,
+        S, Dof_slip_coll, Sigma0, sigma_tot, simulation_parameters, il::io);
 
     std::cout << "Total N. of iterations for solving non-linear system of "
                  "equations = "
@@ -277,7 +276,7 @@ void MC_criterion(Mesh mesh, int p, il::Array<double> cohes,
 //   - Arr -> 2D array that we want to "flat"
 il::Array<double> flatten1(const il::Array2D<double> &Arr, il::io_t) {
 
-  il::Array2D<int> A{Arr.size(0), 2, 0};
+  il::Array2D<il::int_t> A{Arr.size(0), 2, 0};
 
   for (il::int_t k = 0, j; k < A.size(0); ++k) {
 
@@ -309,7 +308,7 @@ il::Array<double> flatten1(const il::Array2D<double> &Arr, il::io_t) {
 //   - Arr -> 2D array that we want to "flat"
 il::Array<int> flatten2(const il::Array2D<int> &Arr, il::io_t) {
 
-  il::Array2D<int> A{Arr.size(0), 2, 0};
+  il::Array2D<il::int_t> A{Arr.size(0), 2, 0};
 
   for (il::int_t k = 0, j; k < A.size(0); ++k) {
 
@@ -487,9 +486,9 @@ il::Array<int> find_2d(const il::Array2D<double> &arr2D, double_t seek,
 
   il::Array<int> outp{2};
 
-  for (il::int_t i = 0; i < arr2D.size(0); ++i) {
+  for (int i = 0; i < arr2D.size(0); ++i) {
 
-    for (il::int_t j = 0; j < arr2D.size(1); ++j) {
+    for (int j = 0; j < arr2D.size(1); ++j) {
 
       if (arr2D(i, j) == seek)
         outp[0] = i, outp[1] = j;
@@ -501,9 +500,10 @@ il::Array<int> find_2d(const il::Array2D<double> &arr2D, double_t seek,
 
 /// 10
 
-il::Array<int> delete_duplicates(const il::Array<il::int_t> &arr, il::io_t) {
+il::Array<il::int_t> delete_duplicates(const il::Array<il::int_t> &arr,
+                                       il::io_t) {
 
-  il::Array<int> out{0};
+  il::Array<il::int_t> out{0};
 
   for (il::int_t i = 0, k = 0; i < arr.size(); ++i) {
 
