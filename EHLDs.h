@@ -47,7 +47,8 @@ struct Results_solution_nonlinearsystem {
 
 Results_solution_nonlinearsystem
 EHLDs(Mesh mesh, il::Array2D<double> &kmatd, il::Array2D<double> &Npc,
-      Parameters_friction fric_parameters,
+      LayerParameters1 &layer_parameters1, LayerParameters2 &layer_parameters2,
+      LayerParameters3 &layer_parameters3, il::Array<il::int_t> id_layers,
       Parameters_dilatancy dilat_parameters, Parameters_fluid fluid_parameters,
       Results_one_timeincrement &SolutionAtTj, il::Array<double> press_prof,
       il::Array<double> tot_slip, int dof_dim, int p, il::Array<double> cohes,

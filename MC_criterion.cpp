@@ -24,15 +24,15 @@
 
 namespace hfp2d {
 
-void MC_criterion(Mesh mesh, int p, il::Array<double> cohes,
-                  const il::Array2D<double> &kmat,
-                  Parameters_friction &fric_parameters,
-                  Parameters_dilatancy &dilat_parameters,
-                  Parameters_fluid &fluid_parameters, il::Array<double> S,
-                  int inj_point, int dof_dim, il::Array<double> XColl,
-                  il::Array2D<double> &Fetc, il::Array2D<double> Sigma0,
-                  hfp2d::simulation_parameters simulation_parameters, il::io_t,
-                  Results_one_timeincrement &res) {
+void MC_criterion(
+    Mesh mesh, int p, il::Array<double> cohes, const il::Array2D<double> &kmat,
+    LayerParameters1 &layer_parameters1, LayerParameters2 &layer_parameters2,
+    LayerParameters3 &layer_parameters3, il::Array<il::int_t> id_layers,
+    Parameters_dilatancy &dilat_parameters, Parameters_fluid &fluid_parameters,
+    il::Array<double> S, int inj_point, int dof_dim, il::Array<double> XColl,
+    il::Array2D<double> &Fetc, il::Array2D<double> Sigma0,
+    hfp2d::simulation_parameters simulation_parameters, il::io_t,
+    Results_one_timeincrement &res) {
 
   // Vector of friction at the beginning of each time step
   il::Array<double> fric{res.friction.size(), 0};
@@ -128,9 +128,10 @@ void MC_criterion(Mesh mesh, int p, il::Array<double> cohes,
     // Call the Elasto-Hydrodynamic Lubrication Dilatant solver for the solution
     // of the fully implicit coupled problem
     res_nonlinearsystem = hfp2d::EHLDs(
-        mesh, kmatd, Npc, fric_parameters, dilat_parameters, fluid_parameters,
-        res, press_prof, tot_slip, dof_dim, p, cohes, status, norm, inj_point,
-        S, Dof_slip_coll, Sigma0, sigma_tot, simulation_parameters, il::io);
+        mesh, kmatd, Npc, layer_parameters1, layer_parameters2,
+        layer_parameters3, id_layers, dilat_parameters, fluid_parameters, res,
+        press_prof, tot_slip, dof_dim, p, cohes, status, norm, inj_point, S,
+        Dof_slip_coll, Sigma0, sigma_tot, simulation_parameters, il::io);
 
     std::cout << "Total N. of iterations for solving non-linear system of "
                  "equations = "
@@ -179,7 +180,9 @@ void MC_criterion(Mesh mesh, int p, il::Array<double> cohes,
                 flatten1(res_nonlinearsystem.new_tot_slip, il::io));
 
     // Update friction coefficient
-    fric = hfp2d::lin_friction(fric_parameters, s, il::io);
+    fric = hfp2d::lin_friction(
+        layer_parameters1, layer_parameters2, layer_parameters3, id_layers,
+        hfp2d::dofhandle_dg(dof_dim, mesh.nelts(), il::io), s, il::io);
 
     // Force the slipping nodes at the first iteration to stay in the MC
     // line in the next iterations (because all the slipping nodes in one time

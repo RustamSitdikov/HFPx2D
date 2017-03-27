@@ -27,7 +27,7 @@ void Mesh::set_values(il::Array2D<double> xy, il::Array2D<int> ien) {
       2); // check array dimensions ??? -> this is only for 1D mesh so far
 
   node_ = xy;          // list of coordinates of points in the mesh
-  connectivity_ = ien; //  connectivity array -
+  connectivity_ = ien; // connectivity array -
 }
 
 double Mesh::node(il::int_t k, il::int_t i) { return node_(k, i); }
@@ -143,5 +143,32 @@ SegmentCharacteristic get_segment_DD_characteristic(Mesh mesh, int const ne,
   segment.CollocationPoints = Xcol;
 
   return segment; // return structure with all we need on the segment.
+}
+
+il::Array<il::int_t> id_mesh_layers(Mesh mesh,
+                                    LayerParameters1 layer_parameters1,
+                                    LayerParameters2 layer_parameters2,
+                                    LayerParameters3 layer_parameters3) {
+
+  il::Array<il::int_t> id_mesh_layers{mesh.nelts(), 0};
+
+  for (il::int_t i = 0; i < layer_parameters1.Last_elem_layer1; ++i) {
+
+    id_mesh_layers[i] = layer_parameters1.id_layer1;
+  }
+
+  for (il::int_t i = layer_parameters2.First_elem_layer2;
+       i < layer_parameters2.Last_elem_layer2; ++i) {
+
+    id_mesh_layers[i] = layer_parameters2.id_layer2;
+  }
+
+  for (il::int_t i = layer_parameters3.First_elem_layer3;
+       i < layer_parameters3.Last_elem_layer3; ++i) {
+
+    id_mesh_layers[i] = layer_parameters3.id_layer3;
+  }
+
+  return id_mesh_layers;
 }
 }

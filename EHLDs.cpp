@@ -17,7 +17,8 @@ namespace hfp2d {
 
 Results_solution_nonlinearsystem
 EHLDs(Mesh mesh, il::Array2D<double> &kmatd, il::Array2D<double> &Npc,
-      Parameters_friction fric_parameters,
+      LayerParameters1 &layer_parameters1, LayerParameters2 &layer_parameters2,
+      LayerParameters3 &layer_parameters3, il::Array<il::int_t> id_layers,
       Parameters_dilatancy dilat_parameters, Parameters_fluid fluid_parameters,
       Results_one_timeincrement &SolutionAtTj, il::Array<double> press_prof,
       il::Array<double> tot_slip, int dof_dim, int p, il::Array<double> cohes,
@@ -100,8 +101,10 @@ EHLDs(Mesh mesh, il::Array2D<double> &kmatd, il::Array2D<double> &Npc,
 
     il::Array<double> incrdk_flat = flatten1(incrdk, il::io);
     il::Array<double> incrdk_coll = il::dot(fetc_dg, incrdk_flat);
-    il::Array<double> frick_coll =
-        hfp2d::lin_friction(fric_parameters, incrdk_coll, il::io);
+    il::Array<double> frick_coll = hfp2d::lin_friction(
+        layer_parameters1, layer_parameters2, layer_parameters3, id_layers,
+        hfp2d::dofhandle_dg(dof_dim, mesh.nelts(), il::io), incrdk_coll,
+        il::io);
     for (il::int_t m2 = 0; m2 < Nf.size(0); ++m2) {
       Nf(m2, m2) = frick_coll[SolutionAtTj.active_set_collpoints[m2]];
     }

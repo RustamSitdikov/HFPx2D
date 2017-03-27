@@ -62,15 +62,15 @@ struct MCcheck {
   il::Array<il::int_t> CollPoint_notsatisfMC{};
 };
 
-void MC_criterion(Mesh mesh, int p, il::Array<double> cohes,
-                  const il::Array2D<double> &kmat,
-                  Parameters_friction &fric_parameters,
-                  Parameters_dilatancy &dilat_parameters,
-                  Parameters_fluid &fluid_parameters, il::Array<double> S,
-                  int inj_point, int dof_dim, il::Array<double> XColl,
-                  il::Array2D<double> &Fetc, il::Array2D<double> Sigma0,
-                  hfp2d::simulation_parameters simulationParameters, il::io_t,
-                  Results_one_timeincrement &res);
+void MC_criterion(
+    Mesh mesh, int p, il::Array<double> cohes, const il::Array2D<double> &kmat,
+    LayerParameters1 &layer_parameters1, LayerParameters2 &layer_parameters2,
+    LayerParameters3 &layer_parameters3, il::Array<il::int_t> id_layers,
+    Parameters_dilatancy &dilat_parameters, Parameters_fluid &fluid_parameters,
+    il::Array<double> S, int inj_point, int dof_dim, il::Array<double> XColl,
+    il::Array2D<double> &Fetc, il::Array2D<double> Sigma0,
+    hfp2d::simulation_parameters simulationParameters, il::io_t,
+    Results_one_timeincrement &res);
 
 il::Array<double> flatten1(const il::Array2D<double> &Arr, il::io_t);
 

@@ -55,6 +55,65 @@ il::StaticArray2D<double, 2, 2> rotation_matrix_2D(double theta);
 
 SegmentCharacteristic get_segment_DD_characteristic(Mesh mesh, int const ne,
                                                     int const p);
+
+struct LayerParameters1 {
+  // id number to identify layer 1
+  il::int_t id_layer1;
+  // To set the layer size in the mesh
+  // First element of layer 1
+  il::int_t First_elem_layer1;
+  // Last element of layer 1
+  il::int_t Last_elem_layer1;
+  // Cohesion of layer 1
+  double Cohesion_layer1;
+  // Peak friction coefficient of layer 1
+  double Peak_fric_coeff_layer1;
+  // Residual friction coefficient of layer 1
+  double Resid_fric_coeff_layer1;
+  // slip dw for scaling of layer 1 (see linear law in the report)
+  double d_wf_layer1;
+};
+
+struct LayerParameters2 {
+  // id number to identify layer 2
+  il::int_t id_layer2;
+  // To set the layer size in the mesh
+  // First element of layer 2
+  il::int_t First_elem_layer2;
+  // Last element of layer 2
+  il::int_t Last_elem_layer2;
+  // Cohesion of layer 2
+  double Cohesion_layer2;
+  // Peak friction coefficient of layer 2
+  double Peak_fric_coeff_layer2;
+  // Residual friction coefficient
+  double Resid_fric_coeff_layer2;
+  // slip dw for scaling (see linear law in the report)
+  double d_wf_layer2;
+};
+
+struct LayerParameters3 {
+  // id number to identify layer 3
+  il::int_t id_layer3;
+  // To set the layer size in the mesh
+  // First element of layer 3
+  il::int_t First_elem_layer3;
+  // Last element of layer 3
+  il::int_t Last_elem_layer3;
+  // Cohesion of layer 3
+  double Cohesion_layer3;
+  // Peak friction coefficient of layer 3
+  double Peak_fric_coeff_layer3;
+  // Residual friction coefficient of layer 3
+  double Resid_fric_coeff_layer3;
+  // slip dw for scaling of layer 3 (see linear law in the report)
+  double d_wf_layer3;
+};
+
+il::Array<il::int_t> id_mesh_layers(Mesh mesh,
+                                    LayerParameters1 layer_parameter1,
+                                    LayerParameters2 layer_parameter2,
+                                    LayerParameters3 layer_parameter3);
 }
 
 #endif // HFPX2D_MESH_H

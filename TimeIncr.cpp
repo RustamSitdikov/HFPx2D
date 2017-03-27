@@ -29,7 +29,10 @@ namespace hfp2d {
 
 void time_incr(int inj_point, il::int_t NCollPoints, Mesh mesh, int p,
                il::Array<double> cohes, const il::Array2D<double> &kmat,
-               Parameters_friction fric_parameters,
+               LayerParameters1 layer_parameters1,
+               LayerParameters2 layer_parameters2,
+               LayerParameters3 layer_parameters3,
+               il::Array<il::int_t> id_layers,
                Parameters_dilatancy dilat_parameters,
                Parameters_fluid &fluid_parameters, il::Array<double> S,
                int dof_dim, il::Array2D<double> Sigma0,
@@ -54,7 +57,9 @@ void time_incr(int inj_point, il::int_t NCollPoints, Mesh mesh, int p,
   SolutionAtTj.d_tot = no_slip;
 
   // Initialization of friction vector at time t_0 (before the injection)
-  SolutionAtTj.friction = hfp2d::lin_friction(fric_parameters, no_slip, il::io);
+  SolutionAtTj.friction = hfp2d::lin_friction(
+      layer_parameters1, layer_parameters2, layer_parameters3, id_layers,
+      hfp2d::dofhandle_dg(dof_dim, mesh.nelts(), il::io), no_slip, il::io);
 
   // Initialization of slippage length (before the injection)
   SolutionAtTj.slippagezone = 0;
@@ -113,9 +118,11 @@ void time_incr(int inj_point, il::int_t NCollPoints, Mesh mesh, int p,
               << " "
               << "t = " << t << "\n";
 
-    hfp2d::MC_criterion(mesh, p, cohes, kmat, fric_parameters, dilat_parameters,
-                        fluid_parameters, S, inj_point, dof_dim, XColl, Fetc,
-                        Sigma0, simulation_parameters, il::io, SolutionAtTj);
+    hfp2d::MC_criterion(mesh, p, cohes, kmat, layer_parameters1,
+                        layer_parameters2, layer_parameters3, id_layers,
+                        dilat_parameters, fluid_parameters, S, inj_point,
+                        dof_dim, XColl, Fetc, Sigma0, simulation_parameters,
+                        il::io, SolutionAtTj);
 
     // Adaptive time stepping
     if (psi * (h / SolutionAtTj.crack_velocity) >=

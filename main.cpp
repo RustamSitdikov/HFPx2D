@@ -48,11 +48,14 @@ int main() {
       "/Users/federicociardo/ClionProjects/HFPx2D-Collscheme/InputData.toml";
 
   il::Status status{};
+
   auto config =
       il::load<il::HashMap<il::String, il::Dynamic>>(filename, il::io, status);
   status.abort_on_error();
 
   il::int_t i;
+
+  // Read mesh parameters
 
   il::int_t Nnodes = 0;
   i = config.search("Number_of_nodes");
@@ -62,6 +65,16 @@ int main() {
     Nnodes = 0;
   }
 
+  double l;
+  i = config.search("Half_fault_length");
+  if (config.found(i) && config.value(i).is_floating_point()) {
+    l = config.value(i).to_floating_point();
+  } else {
+    l = 0;
+  }
+
+  // Read material parameters
+
   double Ep;
   i = config.search("Plain_strain_modulus");
   if (config.found(i) && config.value(i).is_floating_point()) {
@@ -70,21 +83,7 @@ int main() {
     Ep = 0;
   }
 
-  double Density;
-  i = config.search("Density");
-  if (config.found(i) && config.value(i).is_floating_point()) {
-    Density = config.value(i).to_floating_point();
-  } else {
-    Density = 0;
-  }
-
-  double Cohes;
-  i = config.search("Cohesion");
-  if (config.found(i) && config.value(i).is_floating_point()) {
-    Cohes = config.value(i).to_floating_point();
-  } else {
-    Cohes = 0;
-  }
+  // Read fluid parameters
 
   double CompressFluid;
   i = config.search("Fluid_compressibility");
@@ -102,6 +101,16 @@ int main() {
     Visc = 0;
   }
 
+  double Density;
+  i = config.search("Density");
+  if (config.found(i) && config.value(i).is_floating_point()) {
+    Density = config.value(i).to_floating_point();
+  } else {
+    Density = 0;
+  }
+
+  // Read dilatancy parameters
+
   double Init_hydr_width;
   i = config.search("Initial_hydraulic_width");
   if (config.found(i) && config.value(i).is_floating_point()) {
@@ -118,36 +127,48 @@ int main() {
     Incr_dil = 0;
   }
 
-  double d_wfriction_layer1;
-  i = config.search("Slip_dw_for_friction_layer1");
-  if (config.found(i) && config.value(i).is_floating_point()) {
-    d_wfriction_layer1 = config.value(i).to_floating_point();
-  } else {
-    d_wfriction_layer1 = 0;
-  }
-
-  double d_wfriction_layer2;
-  i = config.search("Slip_dw_for_friction_layer2");
-  if (config.found(i) && config.value(i).is_floating_point()) {
-    d_wfriction_layer2 = config.value(i).to_floating_point();
-  } else {
-    d_wfriction_layer2 = 0;
-  }
-
-  double d_wfriction_layer3;
-  i = config.search("Slip_dw_for_friction_layer3");
-  if (config.found(i) && config.value(i).is_floating_point()) {
-    d_wfriction_layer3 = config.value(i).to_floating_point();
-  } else {
-    d_wfriction_layer3 = 0;
-  }
-
   double d_wdilatancy;
   i = config.search("Slip_dw_for_dilatancy");
   if (config.found(i) && config.value(i).is_floating_point()) {
     d_wdilatancy = config.value(i).to_floating_point();
   } else {
     d_wdilatancy = 0;
+  }
+
+  // Read layers parameters
+
+  // Layer 1
+
+  il::int_t id_layer1 = 0;
+  i = config.search("id_layer1");
+  if (config.found(i) && config.value(i).is_integer()) {
+    id_layer1 = config.value(i).to_integer();
+  } else {
+    id_layer1 = 0;
+  }
+
+  il::int_t first_element_layer1 = 0;
+  i = config.search("First_element_layer1");
+  if (config.found(i) && config.value(i).is_integer()) {
+    first_element_layer1 = config.value(i).to_integer();
+  } else {
+    first_element_layer1 = 0;
+  }
+
+  il::int_t last_element_layer1 = 0;
+  i = config.search("Last_element_layer1");
+  if (config.found(i) && config.value(i).is_integer()) {
+    last_element_layer1 = config.value(i).to_integer();
+  } else {
+    last_element_layer1 = 0;
+  }
+
+  double Cohes1;
+  i = config.search("Cohesion_layer1");
+  if (config.found(i) && config.value(i).is_floating_point()) {
+    Cohes1 = config.value(i).to_floating_point();
+  } else {
+    Cohes1 = 0;
   }
 
   double Peak_fric_layer1;
@@ -166,6 +187,48 @@ int main() {
     Resid_fric_layer1 = 0;
   }
 
+  double d_wfriction_layer1;
+  i = config.search("Slip_dw_for_friction_layer1");
+  if (config.found(i) && config.value(i).is_floating_point()) {
+    d_wfriction_layer1 = config.value(i).to_floating_point();
+  } else {
+    d_wfriction_layer1 = 0;
+  }
+
+  // Layer 2
+
+  il::int_t id_layer2 = 0;
+  i = config.search("id_layer2");
+  if (config.found(i) && config.value(i).is_integer()) {
+    id_layer2 = config.value(i).to_integer();
+  } else {
+    id_layer2 = 0;
+  }
+
+  il::int_t first_element_layer2 = 0;
+  i = config.search("First_element_layer2");
+  if (config.found(i) && config.value(i).is_integer()) {
+    first_element_layer2 = config.value(i).to_integer();
+  } else {
+    first_element_layer2 = 0;
+  }
+
+  il::int_t last_element_layer2 = 0;
+  i = config.search("Last_element_layer2");
+  if (config.found(i) && config.value(i).is_integer()) {
+    last_element_layer2 = config.value(i).to_integer();
+  } else {
+    last_element_layer2 = 0;
+  }
+
+  double Cohes2;
+  i = config.search("Cohesion_layer2");
+  if (config.found(i) && config.value(i).is_floating_point()) {
+    Cohes2 = config.value(i).to_floating_point();
+  } else {
+    Cohes2 = 0;
+  }
+
   double Peak_fric_layer2;
   i = config.search("Peak_friction_coefficient_layer2");
   if (config.found(i) && config.value(i).is_floating_point()) {
@@ -180,6 +243,48 @@ int main() {
     Resid_fric_layer2 = config.value(i).to_floating_point();
   } else {
     Resid_fric_layer2 = 0;
+  }
+
+  double d_wfriction_layer2;
+  i = config.search("Slip_dw_for_friction_layer2");
+  if (config.found(i) && config.value(i).is_floating_point()) {
+    d_wfriction_layer2 = config.value(i).to_floating_point();
+  } else {
+    d_wfriction_layer2 = 0;
+  }
+
+  // Layer 3
+
+  il::int_t id_layer3 = 0;
+  i = config.search("id_layer3");
+  if (config.found(i) && config.value(i).is_integer()) {
+    id_layer3 = config.value(i).to_integer();
+  } else {
+    id_layer3 = 0;
+  }
+
+  il::int_t first_element_layer3 = 0;
+  i = config.search("First_element_layer3");
+  if (config.found(i) && config.value(i).is_integer()) {
+    first_element_layer2 = config.value(i).to_integer();
+  } else {
+    first_element_layer3 = 0;
+  }
+
+  il::int_t last_element_layer3 = 0;
+  i = config.search("Last_element_layer3");
+  if (config.found(i) && config.value(i).is_integer()) {
+    last_element_layer3 = config.value(i).to_integer();
+  } else {
+    last_element_layer3 = 0;
+  }
+
+  double Cohes3;
+  i = config.search("Cohesion_layer3");
+  if (config.found(i) && config.value(i).is_floating_point()) {
+    Cohes3 = config.value(i).to_floating_point();
+  } else {
+    Cohes3 = 0;
   }
 
   double Peak_fric_layer3;
@@ -198,20 +303,22 @@ int main() {
     Resid_fric_layer3 = 0;
   }
 
+  double d_wfriction_layer3;
+  i = config.search("Slip_dw_for_friction_layer3");
+  if (config.found(i) && config.value(i).is_floating_point()) {
+    d_wfriction_layer3 = config.value(i).to_floating_point();
+  } else {
+    d_wfriction_layer3 = 0;
+  }
+
+  // Read stress state parameters + inital pore pressure
+
   double sigma_n0;
   i = config.search("Ambient_normal_stress");
   if (config.found(i) && config.value(i).is_floating_point()) {
     sigma_n0 = config.value(i).to_floating_point();
   } else {
     sigma_n0 = 0;
-  }
-
-  double sigma_s0;
-  i = config.search("Ambient_shear_stress");
-  if (config.found(i) && config.value(i).is_floating_point()) {
-    sigma_s0 = config.value(i).to_floating_point();
-  } else {
-    sigma_s0 = 0;
   }
 
   double P0;
@@ -221,6 +328,8 @@ int main() {
   } else {
     P0 = 0;
   }
+
+  // Read fluid injection parameters
 
   double Dp;
   i = config.search("Constant_overpressure");
@@ -238,13 +347,7 @@ int main() {
     Source = 0;
   }
 
-  double l;
-  i = config.search("Half_fault_length");
-  if (config.found(i) && config.value(i).is_floating_point()) {
-    l = config.value(i).to_floating_point();
-  } else {
-    l = 0;
-  }
+  // Read simulation parameters
 
   double t_max;
   i = config.search("t_max");
@@ -310,17 +413,33 @@ int main() {
     betarela = 0;
   }
 
-  // Set the structure members of friction
-  hfp2d::Parameters_friction fric_parameters;
-  fric_parameters.Peak_fric_coeff_layer1 = Peak_fric_layer1;
-  fric_parameters.Resid_fric_coeff_layer1 = Resid_fric_layer1;
-  fric_parameters.d_wf_layer1 = d_wfriction_layer1;
-  fric_parameters.Peak_fric_coeff_layer2 = Peak_fric_layer2;
-  fric_parameters.Resid_fric_coeff_layer2 = Resid_fric_layer2;
-  fric_parameters.d_wf_layer2 = d_wfriction_layer2;
-  fric_parameters.Peak_fric_coeff_layer3 = Peak_fric_layer3;
-  fric_parameters.Resid_fric_coeff_layer3 = Resid_fric_layer3;
-  fric_parameters.d_wf_layer3 = d_wfriction_layer3;
+  // Set the structure members of each layer
+  hfp2d::LayerParameters1 layer_parameters1;
+  layer_parameters1.id_layer1 = id_layer1;
+  layer_parameters1.First_elem_layer1 = first_element_layer1;
+  layer_parameters1.Last_elem_layer1 = last_element_layer1;
+  layer_parameters1.Cohesion_layer1 = Cohes1;
+  layer_parameters1.Peak_fric_coeff_layer1 = Peak_fric_layer1;
+  layer_parameters1.Resid_fric_coeff_layer1 = Resid_fric_layer1;
+  layer_parameters1.d_wf_layer1 = d_wfriction_layer1;
+
+  hfp2d::LayerParameters2 layer_parameters2;
+  layer_parameters2.id_layer2 = id_layer2;
+  layer_parameters2.First_elem_layer2 = first_element_layer2;
+  layer_parameters2.Last_elem_layer2 = last_element_layer2;
+  layer_parameters2.Cohesion_layer2 = Cohes2;
+  layer_parameters2.Peak_fric_coeff_layer2 = Peak_fric_layer2;
+  layer_parameters2.Resid_fric_coeff_layer2 = Resid_fric_layer2;
+  layer_parameters2.d_wf_layer2 = d_wfriction_layer2;
+
+  hfp2d::LayerParameters3 layer_parameters3;
+  layer_parameters3.id_layer3 = id_layer3;
+  layer_parameters3.First_elem_layer3 = first_element_layer3;
+  layer_parameters3.Last_elem_layer3 = last_element_layer3;
+  layer_parameters3.Cohesion_layer3 = Cohes3;
+  layer_parameters3.Peak_fric_coeff_layer3 = Peak_fric_layer3;
+  layer_parameters3.Resid_fric_coeff_layer3 = Resid_fric_layer3;
+  layer_parameters3.d_wf_layer3 = d_wfriction_layer3;
 
   // Set the structure members of dilatancy
   hfp2d::Parameters_dilatancy dilat_parameters;
@@ -375,25 +494,11 @@ int main() {
   fluid_parameters.density = rho;
   fluid_parameters.viscosity = Visc;
 
-  // Matrix of initial stress state
-  // {Ambient SHEAR stress , Ambient NORMAL stress} for each collocation points
-  il::Array2D<double> Sigma0{NCollPoints, 2, 0};
-  for (il::int_t i3 = 0; i3 < Sigma0.size(0); ++i3) {
-    Sigma0(i3, 0) = sigma_s0;
-    Sigma0(i3, 1) = sigma_n0;
-  }
-
   // Ambient pore pressure at nodal points {P0_1, P0_2, P0_3, ..}
   // Remember -> Pressure varies linearly and continuously over the elements
   il::Array<double> Amb_press{Nnodes, 0};
   for (il::int_t k = 0; k < Amb_press.size(); ++k) {
     Amb_press[k] = P0;
-  }
-
-  // Matrix of cohesion at collocation points
-  il::Array<double> cohes{NCollPoints, 0};
-  for (il::int_t n = 0; n < cohes.size(); ++n) {
-    cohes[n] = Cohes;
   }
 
   // Interpolation order
@@ -422,6 +527,69 @@ int main() {
   // Create mesh object
   hfp2d::Mesh mesh;
   mesh.set_values(xy, myconn);
+
+  // Get id mesh layer vector
+  il::Array<il::int_t> id_layers{mesh.nelts(), 0};
+  id_layers = hfp2d::id_mesh_layers(mesh, layer_parameters1, layer_parameters2,
+                                    layer_parameters3);
+
+  // Get matrix of dof handle for a piece-wise linear
+  // variation per element for just shear DDs
+  il::Array2D<int> Dofw{2 * mesh.nelts(), 0};
+  Dofw = hfp2d::dofhandle_dg(dof_dim, mesh.nelts(), il::io);
+
+  // Matrix of cohesion at collocation points
+  il::Array<double> cohes{NCollPoints, 0};
+  for (il::int_t n = 0; n < id_layers.size(); ++n) {
+    if (id_layers[n] == layer_parameters1.id_layer1) {
+
+      cohes[Dofw(n, 0)] = layer_parameters1.Cohesion_layer1;
+      cohes[Dofw(n, 1)] = layer_parameters1.Cohesion_layer1;
+
+    } else if (id_layers[n] == layer_parameters2.id_layer2) {
+
+      cohes[Dofw(n, 0)] = layer_parameters2.Cohesion_layer2;
+      cohes[Dofw(n, 1)] = layer_parameters2.Cohesion_layer2;
+
+    } else if (id_layers[n] == layer_parameters3.id_layer3) {
+
+      cohes[Dofw(n, 0)] = layer_parameters3.Cohesion_layer3;
+      cohes[Dofw(n, 1)] = layer_parameters3.Cohesion_layer3;
+    }
+  }
+
+  // Matrix of initial stress state
+  // {Ambient SHEAR stress , Ambient NORMAL stress} for each collocation points
+  il::Array2D<double> Sigma0{NCollPoints, 2, 0};
+  for (il::int_t n = 0; n < id_layers.size(); ++n) {
+    if (id_layers[n] == layer_parameters1.id_layer1) {
+
+      Sigma0(Dofw(n, 0), 0) =
+              0.55*(layer_parameters1.Peak_fric_coeff_layer1 * (sigma_n0 - P0));
+      Sigma0(Dofw(n, 1), 0) =
+              0.55*(layer_parameters1.Peak_fric_coeff_layer1 * (sigma_n0 - P0));
+      Sigma0(Dofw(n, 0), 1) = sigma_n0;
+      Sigma0(Dofw(n, 1), 1) = sigma_n0;
+
+    } else if (id_layers[n] == layer_parameters2.id_layer2) {
+
+      Sigma0(Dofw(n, 0), 0) =
+              0.55*(layer_parameters2.Peak_fric_coeff_layer2 * (sigma_n0 - P0));
+      Sigma0(Dofw(n, 1), 0) =
+              0.55*(layer_parameters2.Peak_fric_coeff_layer2 * (sigma_n0 - P0));
+      Sigma0(Dofw(n, 0), 1) = sigma_n0;
+      Sigma0(Dofw(n, 1), 1) = sigma_n0;
+
+    } else if (id_layers[n] == layer_parameters3.id_layer3) {
+
+      Sigma0(Dofw(n, 0), 0) =
+              0.55*(layer_parameters3.Peak_fric_coeff_layer3 * (sigma_n0 - P0));
+      Sigma0(Dofw(n, 1), 0) =
+              0.55*(layer_parameters3.Peak_fric_coeff_layer3 * (sigma_n0 - P0));
+      Sigma0(Dofw(n, 0), 1) = sigma_n0;
+      Sigma0(Dofw(n, 1), 1) = sigma_n0;
+    }
+  }
 
   // Get collocation points' information
   il::Array<double> XColl{2 * mesh.nelts(), 0};
@@ -465,9 +633,10 @@ int main() {
 
   /// Solution of fluid injection into frictional weakening dilatant fault ///
   hfp2d::time_incr(inj_point, NCollPoints, mesh, p, cohes, kmat,
-                   fric_parameters, dilat_parameters, fluid_parameters, S,
-                   dof_dim, Sigma0, Amb_press, Pinit, Directory_results, XColl,
-                   Fetc, h, simulation_parameters, il::io);
+                   layer_parameters1, layer_parameters2, layer_parameters3,
+                   id_layers, dilat_parameters, fluid_parameters, S, dof_dim,
+                   Sigma0, Amb_press, Pinit, Directory_results, XColl, Fetc, h,
+                   simulation_parameters, il::io);
 
   return 0;
 }
