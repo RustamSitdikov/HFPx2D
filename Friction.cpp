@@ -25,7 +25,14 @@ il::Array<double> exp_friction(LayerParameters1 &layer_parameters1,
                                const il::Array<double> &d, il::io_t) {
 
   // Inputs:
-  //  - param -> structure that contains all the friction parameters we need
+  //  - layer_parameters1 -> structure that contains all the friction parameters
+  //  we need for layer 1
+  //  - layer_parameters2 -> structure that contains all the friction parameters
+  //  we need for layer 2
+  //  - layer_parameters3 -> structure that contains all the friction parameters
+  //  we need for layer 3
+  //  - id_layers -> vector that contains id number of each layer
+  //  - Dofw -> dof handle for piecewise linear shear or opening DDs
   //  - d -> vector that contains the slip
   //  - io_t -> everything on the left of il::io_t is read-only and is not
   //    going to be mutated
@@ -91,7 +98,14 @@ il::Array<double> lin_friction(LayerParameters1 &layer_parameters1,
                                const il::Array<double> &d, il::io_t) {
 
   // Inputs:
-  //  - param -> structure that contains all the friction parameters we need
+  //  - layer_parameters1 -> structure that contains all the friction parameters
+  //  we need for layer 1
+  //  - layer_parameters2 -> structure that contains all the friction parameters
+  //  we need for layer 2
+  //  - layer_parameters3 -> structure that contains all the friction parameters
+  //  we need for layer 3
+  //  - id_layers -> vector that contains id number of each layer
+  //  - Dofw -> dof handle for piecewise linear shear or opening DDs
   //  - d -> vector that contains the slip
   //  - io_t -> everything on the left of il::io_t is read-only and is not
   //    going to be mutated

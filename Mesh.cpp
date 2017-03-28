@@ -152,13 +152,13 @@ il::Array<il::int_t> id_mesh_layers(Mesh mesh,
 
   il::Array<il::int_t> id_mesh_layers{mesh.nelts(), 0};
 
-  for (il::int_t i = 0; i < layer_parameters1.Last_elem_layer1; ++i) {
+  for (il::int_t i = 0; i <= layer_parameters1.Last_elem_layer1; ++i) {
 
     id_mesh_layers[i] = layer_parameters1.id_layer1;
   }
 
   for (il::int_t i = layer_parameters2.First_elem_layer2;
-       i < layer_parameters2.Last_elem_layer2; ++i) {
+       i <= layer_parameters2.Last_elem_layer2; ++i) {
 
     id_mesh_layers[i] = layer_parameters2.id_layer2;
   }

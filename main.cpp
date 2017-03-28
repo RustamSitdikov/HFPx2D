@@ -46,7 +46,6 @@ int main() {
 
   il::String filename =
       "/Users/federicociardo/ClionProjects/HFPx2D-Collscheme/InputData.toml";
-
   il::Status status{};
 
   auto config =
@@ -57,12 +56,12 @@ int main() {
 
   // Read mesh parameters
 
-  il::int_t Nnodes = 0;
-  i = config.search("Number_of_nodes");
+  il::int_t Nelts = 0;
+  i = config.search("Number_of_elements");
   if (config.found(i) && config.value(i).is_integer()) {
-    Nnodes = config.value(i).to_integer();
+    Nelts = config.value(i).to_integer();
   } else {
-    Nnodes = 0;
+    Nelts = 0;
   }
 
   double l;
@@ -266,7 +265,7 @@ int main() {
   il::int_t first_element_layer3 = 0;
   i = config.search("First_element_layer3");
   if (config.found(i) && config.value(i).is_integer()) {
-    first_element_layer2 = config.value(i).to_integer();
+    first_element_layer3 = config.value(i).to_integer();
   } else {
     first_element_layer3 = 0;
   }
@@ -321,6 +320,14 @@ int main() {
     sigma_n0 = 0;
   }
 
+  double N_sigma_s;
+  i = config.search("Normalized_shear_stress");
+  if (config.found(i) && config.value(i).is_floating_point()) {
+    N_sigma_s = config.value(i).to_floating_point();
+  } else {
+    N_sigma_s = 0;
+  }
+
   double P0;
   i = config.search("Ambient pore pressure");
   if (config.found(i) && config.value(i).is_floating_point()) {
@@ -331,12 +338,12 @@ int main() {
 
   // Read fluid injection parameters
 
-  double Dp;
-  i = config.search("Constant_overpressure");
+  double N_overpressure;
+  i = config.search("Normalized_overpressure");
   if (config.found(i) && config.value(i).is_floating_point()) {
-    Dp = config.value(i).to_floating_point();
+    N_overpressure = config.value(i).to_floating_point();
   } else {
-    Dp = 0;
+    N_overpressure = 0;
   }
 
   double Source;
@@ -460,14 +467,14 @@ int main() {
 
   // Declare other variables:
   // Number of elements
-  il::int_t Nelts = Nnodes - 1;
+  il::int_t Nnodes = Nelts + 1;
   // Number of collocation points
   il::int_t NCollPoints = 2 * Nelts;
   // Degrees of freedom per node
   int dof_dim = 2;
 
   // Creating a directory for output results
-  // Remember always to delete the existing directory (if already created)!
+  // REMEMBER ALWAYS TO DELETE THE EXISTING DIRECTORY (IF ALREADY CREATED)!
   std::string Directory_results{"/Users/federicociardo/ClionProjects/"
                                 "HFPx2D-Collscheme/Results/"
                                 "Test1su100_NoDil_055(2)/"};
@@ -565,27 +572,33 @@ int main() {
     if (id_layers[n] == layer_parameters1.id_layer1) {
 
       Sigma0(Dofw(n, 0), 0) =
-              0.55*(layer_parameters1.Peak_fric_coeff_layer1 * (sigma_n0 - P0));
+          N_sigma_s *
+          (layer_parameters1.Peak_fric_coeff_layer1 * (sigma_n0 - P0));
       Sigma0(Dofw(n, 1), 0) =
-              0.55*(layer_parameters1.Peak_fric_coeff_layer1 * (sigma_n0 - P0));
+          N_sigma_s *
+          (layer_parameters1.Peak_fric_coeff_layer1 * (sigma_n0 - P0));
       Sigma0(Dofw(n, 0), 1) = sigma_n0;
       Sigma0(Dofw(n, 1), 1) = sigma_n0;
 
     } else if (id_layers[n] == layer_parameters2.id_layer2) {
 
       Sigma0(Dofw(n, 0), 0) =
-              0.55*(layer_parameters2.Peak_fric_coeff_layer2 * (sigma_n0 - P0));
+          N_sigma_s *
+          (layer_parameters2.Peak_fric_coeff_layer2 * (sigma_n0 - P0));
       Sigma0(Dofw(n, 1), 0) =
-              0.55*(layer_parameters2.Peak_fric_coeff_layer2 * (sigma_n0 - P0));
+          N_sigma_s *
+          (layer_parameters2.Peak_fric_coeff_layer2 * (sigma_n0 - P0));
       Sigma0(Dofw(n, 0), 1) = sigma_n0;
       Sigma0(Dofw(n, 1), 1) = sigma_n0;
 
     } else if (id_layers[n] == layer_parameters3.id_layer3) {
 
       Sigma0(Dofw(n, 0), 0) =
-              0.55*(layer_parameters3.Peak_fric_coeff_layer3 * (sigma_n0 - P0));
+          N_sigma_s *
+          (layer_parameters3.Peak_fric_coeff_layer3 * (sigma_n0 - P0));
       Sigma0(Dofw(n, 1), 0) =
-              0.55*(layer_parameters3.Peak_fric_coeff_layer3 * (sigma_n0 - P0));
+          N_sigma_s *
+          (layer_parameters3.Peak_fric_coeff_layer3 * (sigma_n0 - P0));
       Sigma0(Dofw(n, 0), 1) = sigma_n0;
       Sigma0(Dofw(n, 1), 1) = sigma_n0;
     }
@@ -599,6 +612,10 @@ int main() {
     XColl[m4] = coo_coll.CollocationPoints(0, 0);
     XColl[m4 + 1] = coo_coll.CollocationPoints(1, 0);
   }
+
+  // Overpressure at the crack/fault center
+  double Dp;
+  Dp = N_overpressure * (sigma_n0 - P0);
 
   // Initial pore pressure profile needed to activate the shear crack (which
   // must be added to the ambient pressure in the crack/fault)
