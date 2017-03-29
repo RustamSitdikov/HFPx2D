@@ -27,19 +27,17 @@
 
 namespace hfp2d {
 
-void time_incr(int inj_point, il::int_t NCollPoints, Mesh mesh, int p,
-               il::Array<double> cohes, const il::Array2D<double> &kmat,
-               LayerParameters1 layer_parameters1,
-               LayerParameters2 layer_parameters2,
-               LayerParameters3 layer_parameters3,
-               il::Array<il::int_t> id_layers,
-               Parameters_dilatancy dilat_parameters,
-               Parameters_fluid &fluid_parameters, il::Array<double> S,
-               int dof_dim, il::Array2D<double> Sigma0,
-               il::Array<double> Amb_press, il::Array<double> Pinit,
-               const std::string &Directory_results, il::Array<double> XColl,
-               il::Array2D<double> &Fetc, double h,
-               simulation_parameters simulation_parameters, il::io_t) {
+void time_incr(
+    int inj_point, il::int_t NCollPoints, Mesh mesh, int p,
+    il::Array<double> cohes, const il::Array2D<double> &kmat,
+    LayerParameters1 layer_parameters1, LayerParameters2 layer_parameters2,
+    LayerParameters3 layer_parameters3, il::Array<il::int_t> id_layers,
+    Parameters_dilatancy dilat_parameters, Parameters_fluid &fluid_parameters,
+    il::Array<double> S, int dof_dim, il::Array2D<double> Sigma0,
+    il::Array<double> Amb_press, il::Array<double> Pinit,
+    const std::string &Directory_results, il::Array<double> XColl,
+    il::Array2D<double> &Fetc, double h,
+    simulation_parameters simulation_parameters, double kf, il::io_t) {
 
   /// Initialization ///
 
@@ -121,7 +119,7 @@ void time_incr(int inj_point, il::int_t NCollPoints, Mesh mesh, int p,
     hfp2d::MC_criterion(mesh, p, cohes, kmat, layer_parameters1,
                         layer_parameters2, layer_parameters3, id_layers,
                         dilat_parameters, fluid_parameters, S, inj_point,
-                        dof_dim, XColl, Fetc, Sigma0, simulation_parameters,
+                        dof_dim, XColl, Fetc, Sigma0, simulation_parameters, kf,
                         il::io, SolutionAtTj);
 
     // Adaptive time stepping

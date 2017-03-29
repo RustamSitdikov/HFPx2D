@@ -25,7 +25,7 @@ EHLDs(Mesh mesh, il::Array2D<double> &kmatd, il::Array2D<double> &Npc,
       il::Status &status, il::Norm norm, int inj_point, il::Array<double> S,
       il::Array<il::int_t> Dof_slip_coll, il::Array2D<double> Sigma0,
       il::Array2D<double> sigma_tot,
-      hfp2d::simulation_parameters simulation_parameters, il::io_t) {
+      hfp2d::simulation_parameters simulation_parameters, double kf, il::io_t) {
 
   Results_solution_nonlinearsystem Results_iterations;
 
@@ -90,7 +90,7 @@ EHLDs(Mesh mesh, il::Array2D<double> &kmatd, il::Array2D<double> &Npc,
 
     // Finite Difference matrix "L"
     L = hfp2d::build_l_matrix(mesh, incrdk, fluid_parameters, dilat_parameters,
-                              SolutionAtTj.dt, il::io);
+                              SolutionAtTj.dt, kf, il::io);
 
     // Nf -> diagonal matrix that contains the current friction coefficient of
     //       the slipping collocation points

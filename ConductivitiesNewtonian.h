@@ -23,7 +23,7 @@ il::Array<double> conductivities_newtonian(const il::Array<double> &rho,
                                            const il::Array<double> &vector,
                                            il::Array<double> EltSizes,
                                            Parameters_fluid &fluid_parameters,
-                                           il::io_t);
+                                           double kf, il::io_t);
 }
 
 #endif // HFPX2D_CONDUCTIVITIESNEWTONIAN_H

@@ -55,7 +55,7 @@ EHLDs(Mesh mesh, il::Array2D<double> &kmatd, il::Array2D<double> &Npc,
       il::Status &status, il::Norm norm, int inj_point, il::Array<double> S,
       il::Array<il::int_t> Dof_slip_coll, il::Array2D<double> Sigma0,
       il::Array2D<double> sigma_tot,
-      hfp2d::simulation_parameters simulation_parameters, il::io_t);
+      hfp2d::simulation_parameters simulation_parameters, double kf, il::io_t);
 }
 
 #endif // HFPX2D_EHLDS_H

@@ -8,8 +8,8 @@
 //
 
 // Inclusion from standard library
-#include <iostream>
 #include <il/math.h>
+#include <iostream>
 
 // Inclusion from the project
 #include "ConductivitiesNewtonian.h"
@@ -21,7 +21,7 @@ il::Array<double> conductivities_newtonian(const il::Array<double> &rho,
                                            const il::Array<double> &vector,
                                            il::Array<double> EltSizes,
                                            Parameters_fluid &fluid_parameters,
-                                           il::io_t) {
+                                           double kf, il::io_t) {
 
   // Inputs:
   //  - rho -> vector of fluid density values at the middle of each element
@@ -29,7 +29,8 @@ il::Array<double> conductivities_newtonian(const il::Array<double> &rho,
   //  - vector -> vector of shear DD or opening DD at the middle of the elements
   //  (size -> Nelts)
   //  - EltSizes -> vector that contains the element sizes
-  //  - Visc -> fluid viscosity (floating point value)
+  //  - fluid_parameters -> structure that contains all the fluid parameters
+  //  - kf -> fault permeability
   //  - io_t -> everything on the left of il::io_t is read-only and is not
   //    going to be mutated
 
@@ -37,10 +38,11 @@ il::Array<double> conductivities_newtonian(const il::Array<double> &rho,
 
   for (il::int_t i = 0; i < Res.size(); ++i) {
 
-//    Res[i] = ((rho[i] * (pow(vector[i], 3))) / EltSizes[i]) *
+//    Res[i] = ((rho[i] * (vector[i] * vector[i] * vector[i])) / EltSizes[i]) *
 //             (1 / (12 * fluid_parameters.viscosity));
-    Res[i] = ((rho[i] * (vector[i]*vector[i]*vector[i])) / EltSizes[i]) *
-             (1 / (12 * fluid_parameters.viscosity));
+
+      Res[i] = ((rho[i] * (vector[i] * kf)) / EltSizes[i]) *
+               (1 / (12 * fluid_parameters.viscosity));
   }
 
   return Res;

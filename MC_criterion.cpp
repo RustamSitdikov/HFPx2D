@@ -31,7 +31,7 @@ void MC_criterion(
     Parameters_dilatancy &dilat_parameters, Parameters_fluid &fluid_parameters,
     il::Array<double> S, int inj_point, int dof_dim, il::Array<double> XColl,
     il::Array2D<double> &Fetc, il::Array2D<double> Sigma0,
-    hfp2d::simulation_parameters simulation_parameters, il::io_t,
+    hfp2d::simulation_parameters simulation_parameters, double kf, il::io_t,
     Results_one_timeincrement &res) {
 
   // Vector of friction at the beginning of each time step
@@ -131,7 +131,7 @@ void MC_criterion(
         mesh, kmatd, Npc, layer_parameters1, layer_parameters2,
         layer_parameters3, id_layers, dilat_parameters, fluid_parameters, res,
         press_prof, tot_slip, dof_dim, p, cohes, status, norm, inj_point, S,
-        Dof_slip_coll, Sigma0, sigma_tot, simulation_parameters, il::io);
+        Dof_slip_coll, Sigma0, sigma_tot, simulation_parameters, kf, il::io);
 
     std::cout << "Total N. of iterations for solving non-linear system of "
                  "equations = "

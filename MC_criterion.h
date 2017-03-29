@@ -69,7 +69,7 @@ void MC_criterion(
     Parameters_dilatancy &dilat_parameters, Parameters_fluid &fluid_parameters,
     il::Array<double> S, int inj_point, int dof_dim, il::Array<double> XColl,
     il::Array2D<double> &Fetc, il::Array2D<double> Sigma0,
-    hfp2d::simulation_parameters simulationParameters, il::io_t,
+    hfp2d::simulation_parameters simulationParameters, double kf, il::io_t,
     Results_one_timeincrement &res);
 
 il::Array<double> flatten1(const il::Array2D<double> &Arr, il::io_t);

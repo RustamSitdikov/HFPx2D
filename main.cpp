@@ -108,6 +108,16 @@ int main() {
     Density = 0;
   }
 
+  // Read fault parameters
+
+  double kf;
+  i = config.search("Fault_permeability");
+  if (config.found(i) && config.value(i).is_floating_point()) {
+    kf = config.value(i).to_floating_point();
+  } else {
+    kf = 0;
+  }
+
   // Read dilatancy parameters
 
   double Init_hydr_width;
@@ -119,7 +129,7 @@ int main() {
   }
 
   double Incr_dil;
-  i = config.search("Increment_of_dilatancy");
+  i = config.search("Dilatant_hardening");
   if (config.found(i) && config.value(i).is_floating_point()) {
     Incr_dil = config.value(i).to_floating_point();
   } else {
@@ -466,7 +476,7 @@ int main() {
   simulation_parameters.under_relax_param = betarela;
 
   // Declare other variables:
-  // Number of elements
+  // Number of nodes
   il::int_t Nnodes = Nelts + 1;
   // Number of collocation points
   il::int_t NCollPoints = 2 * Nelts;
@@ -477,7 +487,7 @@ int main() {
   // REMEMBER ALWAYS TO DELETE THE EXISTING DIRECTORY (IF ALREADY CREATED)!
   std::string Directory_results{"/Users/federicociardo/ClionProjects/"
                                 "HFPx2D-Collscheme/Results/"
-                                "Test1su100_NoDil_055(2)/"};
+                                "TEST2/"};
 
   if (mkdir(Directory_results.c_str(), 0777) == -1) {
     std::cerr << "Error in creating the output directory:  " << strerror(errno)
@@ -485,12 +495,7 @@ int main() {
     exit(1);
   }
 
-  /* Create:
-   *  - the matrix of density (rho)
-   *  - initial stress state Sigma0 (uniform for now)
-   *  - initial/ambient pore pressure (Amb_press)
-   *  - the matrix of cohesion for each collocation point */
-
+  // Create the fluid density matrix (rho)
   // Fluid density matrix {{rho_1left, rho_1right},{rho_2left,rho_2right} ..}
   // Remember: continuous linear variation -> rho_2right = rho_1left and so on..
   il::Array2D<double> rho{Nelts, 2, Density};
@@ -566,7 +571,12 @@ int main() {
   }
 
   // Matrix of initial stress state
-  // {Ambient SHEAR stress , Ambient NORMAL stress} for each collocation points
+  // {Ambient SHEAR stress , Ambient NORMAL stress} for each collocation points]
+  // The ambient shear stress is related to the normalized shear stress through:
+  //   ambient_shear_stress / peak_shear_strenght = normalized shear stress,
+  // where peak_shear_strenght = peak_fric_coeff*(ambient_normal_stress -
+  //                                              ambient_pore_pressure)
+
   il::Array2D<double> Sigma0{NCollPoints, 2, 0};
   for (il::int_t n = 0; n < id_layers.size(); ++n) {
     if (id_layers[n] == layer_parameters1.id_layer1) {
@@ -653,7 +663,7 @@ int main() {
                    layer_parameters1, layer_parameters2, layer_parameters3,
                    id_layers, dilat_parameters, fluid_parameters, S, dof_dim,
                    Sigma0, Amb_press, Pinit, Directory_results, XColl, Fetc, h,
-                   simulation_parameters, il::io);
+                   simulation_parameters, kf, il::io);
 
   return 0;
 }

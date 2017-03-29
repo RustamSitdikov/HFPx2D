@@ -47,12 +47,12 @@ il::Array<int> row_selection(const il::Array2D<int> &arr, il::int_t idx,
 
 il::Array<double> shear_conductivities_newtonian(
     Parameters_fluid &fluid_parameters, Mesh mesh, const il::Array2D<double> &d,
-    Parameters_dilatancy &dilat_parameters, il::io_t);
+    Parameters_dilatancy &dilat_parameters, double kf, il::io_t);
 
 il::Array2D<double> build_l_matrix(Mesh mesh, const il::Array2D<double> &d,
                                    Parameters_fluid &fluid_parameters,
                                    Parameters_dilatancy &dilat_parameters,
-                                   const double &TimeStep, il::io_t);
+                                   const double &TimeStep, double kf, il::io_t);
 
 il::Array2D<double> build_vp_matrix_p1(Mesh mesh,
                                        Parameters_dilatancy &dilat_parameters,
