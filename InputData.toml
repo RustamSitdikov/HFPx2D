@@ -48,13 +48,13 @@ Residual_friction_coefficient_layer3 = 0.6
 Slip_dw_for_friction_layer3 = 1.0
 
 # Stress state parameters + inital pore pressure
-Ambient_normal_stress = 1.0
-Normalized_shear_stress = 0.55
+Background_normal_stress = 1.0
+Background_shear_stress = 0.55
 Ambient_pore_pressure = 0.0
 
 # Fluid injection parameters
 Source = 0.0
-Normalized_overpressure = 0.5
+Constant_overpressure = 0.5
 
 # Simulation parameters
 t_max = 0.625

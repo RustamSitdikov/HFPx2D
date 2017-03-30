@@ -38,9 +38,6 @@ il::Array<double> conductivities_newtonian(const il::Array<double> &rho,
 
   for (il::int_t i = 0; i < Res.size(); ++i) {
 
-//    Res[i] = ((rho[i] * (vector[i] * vector[i] * vector[i])) / EltSizes[i]) *
-//             (1 / (12 * fluid_parameters.viscosity));
-
       Res[i] = ((rho[i] * (vector[i] * kf)) / EltSizes[i]) *
                (1 / (12 * fluid_parameters.viscosity));
   }

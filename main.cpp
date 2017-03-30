@@ -19,6 +19,7 @@
 #include <il/Array.h>
 #include <il/StaticArray.h>
 #include <il/Timer.h>
+#include <il/Toml.h>
 #include <il/linear_algebra.h>
 #include <il/linear_algebra/dense/factorization/LU.h>
 
@@ -30,7 +31,6 @@
 #include "Friction.h"
 #include "FromEdgeToCol.h"
 #include "MC_criterion.h"
-#include <il/Toml.h>
 
 // FUNCTION PROTOTYPE
 il::Array<double>
@@ -323,19 +323,19 @@ int main() {
   // Read stress state parameters + inital pore pressure
 
   double sigma_n0;
-  i = config.search("Ambient_normal_stress");
+  i = config.search("Background_normal_stress");
   if (config.found(i) && config.value(i).is_floating_point()) {
     sigma_n0 = config.value(i).to_floating_point();
   } else {
     sigma_n0 = 0;
   }
 
-  double N_sigma_s;
-  i = config.search("Normalized_shear_stress");
+  double sigma_s0;
+  i = config.search("Background_shear_stress");
   if (config.found(i) && config.value(i).is_floating_point()) {
-    N_sigma_s = config.value(i).to_floating_point();
+    sigma_s0 = config.value(i).to_floating_point();
   } else {
-    N_sigma_s = 0;
+    sigma_s0 = 0;
   }
 
   double P0;
@@ -348,12 +348,12 @@ int main() {
 
   // Read fluid injection parameters
 
-  double N_overpressure;
-  i = config.search("Normalized_overpressure");
+  double Dp;
+  i = config.search("Constant_overpressure");
   if (config.found(i) && config.value(i).is_floating_point()) {
-    N_overpressure = config.value(i).to_floating_point();
+    Dp = config.value(i).to_floating_point();
   } else {
-    N_overpressure = 0;
+    Dp = 0;
   }
 
   double Source;
@@ -487,7 +487,7 @@ int main() {
   // REMEMBER ALWAYS TO DELETE THE EXISTING DIRECTORY (IF ALREADY CREATED)!
   std::string Directory_results{"/Users/federicociardo/ClionProjects/"
                                 "HFPx2D-Collscheme/Results/"
-                                "TEST2/"};
+                                "TEST1su100_NODIL_055_PERMEAB(2)/"};
 
   if (mkdir(Directory_results.c_str(), 0777) == -1) {
     std::cerr << "Error in creating the output directory:  " << strerror(errno)
@@ -571,44 +571,30 @@ int main() {
   }
 
   // Matrix of initial stress state
-  // {Ambient SHEAR stress , Ambient NORMAL stress} for each collocation points]
-  // The ambient shear stress is related to the normalized shear stress through:
-  //   ambient_shear_stress / peak_shear_strenght = normalized shear stress,
-  // where peak_shear_strenght = peak_fric_coeff*(ambient_normal_stress -
-  //                                              ambient_pore_pressure)
-
+  // {Ambient SHEAR stress , Ambient NORMAL stress} for each collocation points
+  // Remember that if the peak coefficient change with the layer, the background
+  // shear stress change too (in order to run a DIMENSIONLESS simulation, the
+  // background shear stress is normalized with the peak strength of the fault)
   il::Array2D<double> Sigma0{NCollPoints, 2, 0};
   for (il::int_t n = 0; n < id_layers.size(); ++n) {
     if (id_layers[n] == layer_parameters1.id_layer1) {
 
-      Sigma0(Dofw(n, 0), 0) =
-          N_sigma_s *
-          (layer_parameters1.Peak_fric_coeff_layer1 * (sigma_n0 - P0));
-      Sigma0(Dofw(n, 1), 0) =
-          N_sigma_s *
-          (layer_parameters1.Peak_fric_coeff_layer1 * (sigma_n0 - P0));
+      Sigma0(Dofw(n, 0), 0) = sigma_s0;
+      Sigma0(Dofw(n, 1), 0) = sigma_s0;
       Sigma0(Dofw(n, 0), 1) = sigma_n0;
       Sigma0(Dofw(n, 1), 1) = sigma_n0;
 
     } else if (id_layers[n] == layer_parameters2.id_layer2) {
 
-      Sigma0(Dofw(n, 0), 0) =
-          N_sigma_s *
-          (layer_parameters2.Peak_fric_coeff_layer2 * (sigma_n0 - P0));
-      Sigma0(Dofw(n, 1), 0) =
-          N_sigma_s *
-          (layer_parameters2.Peak_fric_coeff_layer2 * (sigma_n0 - P0));
+      Sigma0(Dofw(n, 0), 0) = sigma_s0;
+      Sigma0(Dofw(n, 1), 0) = sigma_s0;
       Sigma0(Dofw(n, 0), 1) = sigma_n0;
       Sigma0(Dofw(n, 1), 1) = sigma_n0;
 
     } else if (id_layers[n] == layer_parameters3.id_layer3) {
 
-      Sigma0(Dofw(n, 0), 0) =
-          N_sigma_s *
-          (layer_parameters3.Peak_fric_coeff_layer3 * (sigma_n0 - P0));
-      Sigma0(Dofw(n, 1), 0) =
-          N_sigma_s *
-          (layer_parameters3.Peak_fric_coeff_layer3 * (sigma_n0 - P0));
+      Sigma0(Dofw(n, 0), 0) = sigma_s0;
+      Sigma0(Dofw(n, 1), 0) = sigma_s0;
       Sigma0(Dofw(n, 0), 1) = sigma_n0;
       Sigma0(Dofw(n, 1), 1) = sigma_n0;
     }
@@ -622,10 +608,6 @@ int main() {
     XColl[m4] = coo_coll.CollocationPoints(0, 0);
     XColl[m4 + 1] = coo_coll.CollocationPoints(1, 0);
   }
-
-  // Overpressure at the crack/fault center
-  double Dp;
-  Dp = N_overpressure * (sigma_n0 - P0);
 
   // Initial pore pressure profile needed to activate the shear crack (which
   // must be added to the ambient pressure in the crack/fault)
