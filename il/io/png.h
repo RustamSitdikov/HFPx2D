@@ -10,8 +10,10 @@
 #ifndef IL_PNG_H
 #define IL_PNG_H
 
+#include <string>
+
 #include <il/Array3D.h>
-#include <il/core/Status.h>
+#include <il/Status.h>
 
 namespace il {
 

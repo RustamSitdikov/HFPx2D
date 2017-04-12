@@ -10,7 +10,7 @@
 
 #include <cstring>
 
-#include <il/core/Status.h>
+#include <il/Status.h>
 
 namespace il {
 
@@ -27,18 +27,20 @@ int parse<int>(const std::string& src, il::io_t, il::Status& status) {
   const long int long_value = strtol(src.c_str(), &end, base);
 
   if (*end != '\0') {
-    status.set(il::ErrorCode::wrong_input);
+    status.set_error(il::Error::wrong_input);
+    IL_SET_SOURCE(status);
     return 0;
   }
 
   const int value = static_cast<int>(long_value);
   if (long_value == std::numeric_limits<long>::min() ||
       long_value == std::numeric_limits<long>::max() || value != long_value) {
-    status.set(il::ErrorCode::wrong_input);
+    status.set_error(il::Error::wrong_input);
+    IL_SET_SOURCE(status);
     return 0;
   }
 
-  status.set(il::ErrorCode::ok);
+  status.set_ok();
   return value;
 }
 
@@ -48,11 +50,12 @@ double parse<double>(const std::string& src, il::io_t, il::Status& status) {
   const double value = strtod(src.c_str(), &end);
 
   if (*end != '\0') {
-    status.set(il::ErrorCode::wrong_input);
+    status.set_error(il::Error::wrong_input);
+    IL_SET_SOURCE(status);
     return 0;
   }
 
-  status.set(il::ErrorCode::ok);
+  status.set_ok();
   return value;
 }
 
