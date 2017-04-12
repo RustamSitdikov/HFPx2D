@@ -1,4 +1,4 @@
-# Install script for directory: /Users/bricelecampion/ClionProjects/HFPx2D
+# Install script for directory: /Users/federicociardo/ClionProjects/HFPx2D-Collscheme
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -35,5 +35,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "/Users/bricelecampion/ClionProjects/HFPx2D/cmake-build-debug/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "/Users/federicociardo/ClionProjects/HFPx2D-Collscheme/cmake-build-debug/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")
