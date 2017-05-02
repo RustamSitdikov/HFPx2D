@@ -6,27 +6,50 @@
 // See the LICENSE.TXT file for more details.
 //
 
+//using namespace hfp_opening;
+
+//#include <cmath>
+//#include <complex>
+//#include <iostream>
+//#include <string>
+//
+//#include <il/Array.h>
+//#include <il/math.h>
+////#include <il/Array2C.h>
+//#include <il/StaticArray.h>
+//#include <il/linear_algebra.h>
+////#include <il/linear_algebra/dense/factorization/LU.h>
+//
+//#include "AssemblyDDM.h"
+//#include "DOF_Handles.h"
+//#include "Mesh.h"
+//#include "Stress.h"
+//#include "Coh_Propagation.h"
+//#include "Coh_Prop_new.h"
+//#include <fstream>
+
 #include <cmath>
 #include <complex>
 #include <iostream>
 #include <string>
+#include <fstream>
 
-#include <il/Array.h>
-#include <il/math.h>
+#include "il/Array.h"
+#include "il/math.h"
 //#include <il/Array2C.h>
 #include <il/StaticArray.h>
 #include <il/linear_algebra.h>
-#include <il/linear_algebra/dense/factorization/LU.h>
-#include "AssemblyDDM.h"
-#include "DOF_Handles.h"
-#include "Mesh.h"
-#include "Stress.h"
-#include "Coh_Propagation.h"
-#include "Coh_Prop_new.h"
-#include <fstream>
+#include <il/Timer.h>
 
+//#include "il/linear_algebra/dense/factorization/LU.h"
 
+#include "src/AssemblyDDM.h"
+#include "src/DOF_Handles.h"
+#include "src/Mesh.h"
+#include "Coh_Prop_Col.h"
+#include "src/FVM.h"
 
+//#include "Coh_Prop_new.h"
 ////////////////////////////////////////////////////////////////////////////////
 // analytical solution of the griffith-crack (ct pressure)
 il::Array<double> griffithcrack(const il::Array<double>& x, double a, double Ep,
@@ -44,121 +67,130 @@ il::Array<double> griffithcrack(const il::Array<double>& x, double a, double Ep,
 
 ////////////////////////////////////////////////////////////////////////////////
 int main() {
-  int n = 1001, p = 1;
-  double h = 2. / (n - 1);  //  element size
+        int nelts = 100, p = 1 ;
+        double h = 2. / (nelts);  //  element size
 
-  il::Array<double> x{n};
+        il::Array<double> x{nelts+1};
 
-  il::Array2D<double> xy{n, 2, 0.0};
-  il::Array2D<int> myconn{n - 1, 2, 0.0};
-  il::Array2D<int> id{n - 1, 4, 0};
+        il::Array2D<double> xy{nelts+1, 2, 0.0};
+        il::Array2D<int> myconn{nelts, 2, 0.0};
+        il::Array2D<int> id{nelts, 4, 0};
 
-  int ndof = (n - 1) * (p + 1) * 2;  // number of dofs
-  double Ep = 100.;                    // Plane strain Young's modulus
+        int ndof = (nelts) * (p + 1) * 2;  // number of dofs
+        double Ep = 1.;                    // Plane strain Young's modulus
 
-  //  std::complex(double re = 0.0, double im = 0.0) myC2;
-  //  myC.real(2.);
-  //  myC.imag(1.);
-  //  Array2D M(i, j) -> M(i + 1, j) (Ordre Fortran)
-  //  Array2C M(i, j) -> M(i, j + 1) (Ordre C)
+        //  Array2D M(i, j) -> M(i + 1, j) (Ordre Fortran)
+        //  Array2C M(i, j) -> M(i, j + 1) (Ordre C)
 
-  // create a basic 1D mesh ....
-  for (int i = 0; i < xy.size(0); ++i) {
-    xy(i, 0) = -1. + i * h;
-    xy(i, 1) = 0.;
-  }
+        // create a basic 1D mesh ....
+        for (int i = 0; i < xy.size(0); ++i) {
+            xy(i, 0) = -1. + i * h;
+            xy(i, 1) = 0.;
+        };
 
-  for (int i = 0; i < myconn.size(0); ++i) {
-    myconn(i, 0) = i;
-    myconn(i, 1) = i + 1;
-  }
+        for (int i = 0; i < myconn.size(0); ++i) {
+            myconn(i, 0) = i;
+            myconn(i, 1) = i + 1;
+        };
 
-  // create mesh object
-  Mesh mesh;
-  mesh.set_values(xy, myconn);
+        // create mesh object
+        hfp2d::Mesh mesh;
+        mesh.set_values(xy, myconn);
 
-  dofhandle_DG2D(id, 2, n - 1, p);  // dof handle for DDs
+        id=hfp2d::dofhandle_dg_full2d( 2, nelts, p,il::io);  // dof handle for DDs
 
-  // some definitions needed for matrix assembly
-  il::Array2D<double> xe{2, 2, 0}, xec{2, 2, 0};
+        // some definitions needed for matrix assembly
+        il::Array2D<double> xe{2, 2, 0}, xec{2, 2, 0};
 
-  //  SegmentCharacteristic mysege,mysegc;
+        //  SegmentCharacteristic mysege,mysegc;
 
-  il::Array2D<double> K{ndof, ndof, 0.};
+        il::Array2D<double> K{ndof, ndof };
 
-  std::cout << "Number of elements : " << mesh.nelts() << "\n";
-  std::cout << "Number of dofs :" << id.size(0) * id.size(1) << "---"
-            << (n - 1) * (p + 1) * 2 << "---" << ndof << "\n";
-  std::cout << myconn.size(0) << "\n";
+        std::cout << "Number of elements : " << mesh.nelts() << "\n";
+        std::cout << "Number of dofs :" << id.size(0) * id.size(1) << "---"
+                  << (nelts) * (p + 1) * 2 << "---" << ndof << "\n";
+        std::cout << myconn.size(0) << "\n";
 
-  std::cout << "------\n";
-  std::time_t result = std::time(nullptr);
-  std::cout << std::asctime(std::localtime(&result));
+        std::cout << "------\n";
+        std::time_t result = std::time(nullptr);
+        std::cout << std::asctime(std::localtime(&result));
 
-  BasicAssembly(K, mesh, id, p, Ep);  // passing p could be avoided here.
+        il::Timer timer{};
+        timer.start();
+        K=hfp2d::basic_assembly( mesh, id, p, Ep);  // passing p could be avoided here.
+        timer.stop();
+        std::cout << "------ " << timer.elapsed() << "  \n";
+        std::cout << "---#---\n";
+        result = std::time(nullptr);
+        std::cout << std::asctime(std::localtime(&result));
 
-  std::cout << "------\n";
-  result = std::time(nullptr);
-  std::cout << std::asctime(std::localtime(&result));
-  // solve a constant pressurized crack problem...
-  il::Array<double> f{ndof, -1.};
-  // just opening dds - set shear loads to zero
-  for (int i = 0; i < ndof / 2; ++i) {
-    f[2 * i] = 0;
-  }
-//  il::Status status1;
-//  il::Array2D<double> k1{4,4,1};
-//  il::Array<double> f1{4,1};
-//  il::Array<double> ddd=linear_solve(k1,f1,il::io,status1);
-//  std::cout<<ddd[1];
+        // solve a constant pressurized crack problem...
+        il::Array<double> f{ndof, -1.};
+        // just opening dds - set shear loads to zero
+        for (int i = 0; i < ndof / 2; ++i) {
+            f[2 * i] = 0;
+        }
+
+        il::Status status;
+        // example if LU decomposition
+        //  il::LU<il::Array2D<double>> lu_decomposition(K, il::io, status);
+        //  if (!status.ok()) {
+        //    // The matrix is singular to the machine precision. You should deal with
+        //    the error.
+        //  }
+        // il::Array<double> dd = lu_decomposition.solve(f);
+
+        // use a direct solver
+        il::Array<double> dd = il::linear_solve(K, f, il::io, status);  // lu_decomposition.solve(f);
+//
 
 
 
-  il::Status status;
-  // example if LU decomposition
-  //  il::LU<il::Array2D<double>> lu_decomposition(K, il::io, status);
-  //  if (!status.ok()) {
-  //    // The matrix is singular to the machine precision. You should deal with
-  //    the error.
-  //  }
-  // il::Array<double> dd = lu_decomposition.solve(f);
 
-  // use a direct solver
-  il::Array<double> dd =
-      linear_solve(K, f, il::io, status);  // lu_decomposition.solve(f);//
 
-//    //we add here to test the stress calculation code part;
-//    il::Array<double> stress;
-//    stress=stressoutput(mesh,id,p,Ep,2.0,0.0,dd);
-//    std::cout << stress[1];
 
   //we add here to test the propagation code.
-  il::Array2D<double> widthlist;
+  il::Array2C<double> widthlist;
   il::Array<double> plist;
     il::Array<double> l_coh;
     il::Array<double> l_c;
-  Material material;
-  Initial_condition initial_condition;
+    il::Array2C<double> cohlist;
+  hfp2d::Material material;
+  hfp2d::Initial_condition initial_condition;
 
-  material_condition(material, initial_condition,
-                    0.0001, 2.,100.0,0.,
-          0.00001,0.001,0.01,0.);
+ // material_condition(0.001, 2.,100.0,0,
+ //         0.00001,0.0005,1,0,il::io,material, initial_condition);
+    hfp2d::material_condition_col (0.001, 2.,100.0,0,
+                       0.00001,0.0005,1,0,il::io,material, initial_condition);
 //  void material_condition(Material &material, Initial_condition &initial_condition,
 //                          double wc1, double sigma_t1,double Ep1,double U1,
 //                          double pini1,double Q01,double timestep1,double sigma01);
 
-
+    //wc before=0.0001 changes on the 7th April
+//tstepbefore=0.01 changes on the 7th April
 
     il::Array<double> widthB;
+    il::Array<int> mvalue;
+    int break_time=0;
 
     il::Status status2;
-  propagation_loop_new(widthlist,plist,l_coh,l_c,
-                   mesh,id,p,material,initial_condition,490,510,25,status2);
-  il::Array<double> xlist{2*mesh.nelts(),0.};
-  get_xlist(xlist,mesh);
+  //propagation_loop_new(mesh,id,p,material,initial_condition,199,201,28,status2,il::io,widthlist,plist,l_coh,l_c,cohlist);
+  //il::Array<double> xlist{2*mesh.nelts(),0.};
+  //get_xlist(xlist,mesh);
+    hfp2d::propagation_loop_col(mesh,id,p,material,initial_condition,49,51,68,status2,il::io,widthlist,plist,l_coh,l_c,cohlist,mvalue,break_time);
+    std::cout<<"Oups! At the "<<break_time<< "th time step, the fracture reaches the mesh end point"<<"\n";
+    std::cout<<"To draw the curves,nstep="<<break_time<<"\n";
+    std::ofstream foutit;
+    foutit.open("iteration.txt");
+    for(int itera=0;itera<break_time;++itera){
+        foutit<<mvalue[itera]<<"\n";
+    }
+    foutit.close();
 
+    il::Array<double> xlist{2*mesh.nelts(),0.};
+    hfp2d::get_xlist_col(xlist,mesh);
   std::ofstream fout;
-  fout.open("output2.txt");
+  fout.open("outputcn1.txt");
 //    fout<<initial_condition.timestep<<"\n";
 //    for(int pp=0;pp<plist.size();++pp){
 //        fout<<plist[pp]<<"\t";
@@ -168,7 +200,7 @@ int main() {
 //        fout<<xlist[xx]<<"\t";
 //    }
 //    fout<<"\n";
-  for(int qq=0;qq<widthlist.size(0);++qq){
+  for(int qq=0;qq<break_time;++qq){//qq<widthlist.size(0)
     for(int qqq=0;qqq<widthlist.size(1);++qqq){
       fout<<widthlist(qq,qqq)<<"\t";
     }
@@ -177,7 +209,7 @@ int main() {
   fout.close();
 
   std::ofstream fout1;
-  fout1.open("outputpressure.txt");
+  fout1.open("outputpressurecn1.txt");
 //    fout<<initial_condition.timestep<<"\n";
 //    for(int pp=0;pp<plist.size();++pp){
 //        fout<<plist[pp]<<"\t";
@@ -187,38 +219,59 @@ int main() {
 //        fout<<xlist[xx]<<"\t";
 //    }
 //    fout<<"\n";
-  for(int mm=0;mm<plist.size();++mm){
+  for(int mm=0;mm<break_time+1;++mm){//mm<plist.size()
       fout1<<plist[mm]<<"\n";
     }
 
   fout1.close();
 
+    std::ofstream fout2;
+    fout2.open("outputlcohcn1.txt");
+    for(int cc=0;cc<break_time;++cc){//cc<l_coh.size()
+        fout2<<l_coh[cc]<<"\n";
+    }
+    fout2.close();
+
+    std::ofstream foutf;
+    foutf.open("outputcohfcn1.txt");
+    for(int cf=0;cf<break_time;++cf){//cf<cohlist.size(0)
+        for(int cff=0;cff<cohlist.size(1);++cff){
+            foutf<<cohlist(cf,cff)<<"\t";
+        }
+        foutf<<"\n";
+    }
+    foutf.close();
+
+
+
+
+
 
   // Analytical solution at nodes
-  il::Array<double> thex{ndof / 2, 0}, wsol{ndof / 2, 0};
+//  il::Array<double> thex{ndof / 2, 0}, wsol{ndof / 2, 0};
 
-  int i = 0;
-  for (int e = 0; e < n - 1;
-       ++e) {  // this piece of codes gets 1D mesh of x doubling the nodes of
-               // adjacent elements (for comparison with analytical solution)
-    thex[i] = mesh.Coor(mesh.conn(e, 0), 0);
-    thex[i + 1] = mesh.Coor(mesh.conn(e, 1), 0);
-    i = i + 2;
-  }
-
-  wsol = griffithcrack(thex, 1., 1., 1.);  // call to analytical solution
-
-  // printing out the comparisons for each nodes (left and right values at each
-  // nodes due to the piece-wise constant nature of the solution)...
-  double rel_err;
-  for (int j = 0; j < ndof / 2; ++j) {
-    rel_err = sqrt(pow(dd[j * 2 + 1] - wsol[j], 2)) / wsol[j];
-
-    //    std::cout << "x : " << thex[j] <<"..w anal:" << wsol[j] << " w num: "
-    //    << dd[j*2+1]<<  " rel error: " << rel_err << "\n";
-  }
-
-  return 0;
+//  int i = 0;
+//  for (int e = 0; e < n - 1;
+//       ++e) {  // this piece of codes gets 1D mesh of x doubling the nodes of
+//               // adjacent elements (for comparison with analytical solution)
+//    thex[i] = mesh.Coor(mesh.conn(e, 0), 0);
+//    thex[i + 1] = mesh.Coor(mesh.conn(e, 1), 0);
+//    i = i + 2;
+//  }
+//
+//  wsol = griffithcrack(thex, 1., 1., 1.);  // call to analytical solution
+//
+//  // printing out the comparisons for each nodes (left and right values at each
+//  // nodes due to the piece-wise constant nature of the solution)...
+//  double rel_err;
+//  for (int j = 0; j < ndof / 2; ++j) {
+//    rel_err = sqrt(pow(dd[j * 2 + 1] - wsol[j], 2)) / wsol[j];
+//
+//    //    std::cout << "x : " << thex[j] <<"..w anal:" << wsol[j] << " w num: "
+//    //    << dd[j*2+1]<<  " rel error: " << rel_err << "\n";
+//  }
+//
+//  return 0;
 }
 
 
