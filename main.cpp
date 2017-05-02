@@ -71,7 +71,7 @@ int main() {
   hfp2d::Mesh mesh;
   mesh.set_values(xy, myconn);
 
-  id=hfp2d::dofhandle_dp( 2, nelts, p);  // dof handle for DDs
+  id= hfp2d::dofhandle_dp(2, nelts, p,il::io);  // dof handle for DDs
 
   // some definitions needed for matrix assembly
   il::Array2D<double> xe{2, 2, 0}, xec{2, 2, 0};

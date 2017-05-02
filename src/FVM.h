@@ -17,51 +17,64 @@
 #include <il/linear_algebra.h>
 
 // Inclusion from the project
+#include "Dilatancy.h"
 #include "Mesh.h"
 
 namespace hfp2d {
 
-il::Array<double> average(const il::Array2D<double> &d);
+struct Parameters_fluid {
 
-il::Array<double> quarter(const il::Array2D<double> &d);
+  // Fluid viscosity
+  double viscosity;
+  // Fluid compressibility
+  double compressibility;
+  // Fluid density matrix
+  // {{rho_1left, rho_2right},{rho_2left, rho_2right}, ...} (size -> Nelts + 1)
+  il::Array2D<double> density;
+};
 
-il::Array2D<int> position_2d_array(const il::Array2D<int> &arr2D, int seek);
+il::Array<double> average(const il::Array2D<double> &d, il::io_t);
 
-il::Array2D<int> search(const il::Array2D<int> &matrix, int x);
+il::Array<double> quarter(const il::Array2D<double> &d, il::io_t);
 
-il::Array<int> row_selection(il::Array2D<int> &arr, il::int_t idx);
+il::Array2D<int> position_2d_array(const il::Array2D<int> &arr2D, int seek,
+                                   il::io_t);
+
+il::Array2D<int> search(const il::Array2D<int> &matrix, int x, il::io_t);
+
+il::Array<int> row_selection(const il::Array2D<int> &arr, il::int_t idx,
+                             il::io_t);
 
 il::Array<double> shear_conductivities_newtonian(
-    const int Visc, Mesh mesh, il::Array2D<double> rho, il::Array2D<double> &d,
-    const double Incr_dil, const double d_wd, const double Init_dil);
+    Parameters_fluid &fluid_parameters, Mesh mesh, const il::Array2D<double> &d,
+    Parameters_dilatancy &dilat_parameters, double kf, il::io_t);
 
-il::Array2D<double> build_l_matrix(Mesh mesh, il::Array2D<double> &d,
-                                   il::Array2D<double> &rho, const int Visc,
-                                   const double Incr_dil, const double d_wd,
-                                   const double Init_dil,
-                                   const double &TimeStep);
+il::Array2D<double> build_l_matrix(Mesh mesh, const il::Array2D<double> &d,
+                                   Parameters_fluid &fluid_parameters,
+                                   Parameters_dilatancy &dilat_parameters,
+                                   const double &TimeStep, double kf, il::io_t);
 
-il::Array2D<double> build_vp_matrix_p1(Mesh mesh, const double Incr_dil,
-                                       const double Init_dil,
-                                       const double CompressFluid,
-                                       il::Array2D<double> &d,
-                                       const double d_wd);
+il::Array2D<double> build_vp_matrix_p1(Mesh mesh,
+                                       Parameters_dilatancy &dilat_parameters,
+                                       Parameters_fluid &fluid_parameters,
+                                       const il::Array2D<double> &d, il::io_t);
 
-il::Array2D<double> build_vd_matrix_p1(Mesh mesh, const double Incr_dil,
-                                       const double d_wd, il::Array2D<int> &Dof,
-                                       il::Array2D<double> rho,
-                                       il::Array2D<double> &d);
+il::Array2D<double> build_vd_matrix_p1(Mesh mesh,
+                                       Parameters_dilatancy &dilat_parameters,
+                                       il::Array2D<int> Dof,
+                                       Parameters_fluid &fluid_parameters,
+                                       const il::Array2D<double> &d, il::io_t);
 
-il::Array2D<double> build_vp_matrix_p0(Mesh mesh, const double Incr_dil,
-                                       const double Init_dil,
-                                       const double CompressFluid,
-                                       il::Array<double> &d,
-                                       const double d_wd);
+il::Array2D<double> build_vp_matrix_p0(Mesh mesh,
+                                       Parameters_dilatancy &dilat_parameters,
+                                       Parameters_fluid &fluid_parameters,
+                                       const il::Array<double> &d, il::io_t);
 
-il::Array2D<double> build_vd_matrix_p0(Mesh mesh, const double Incr_dil,
-                                       const double d_wd, il::Array2D<int> &Dof,
-                                       il::Array2D<double> rho,
-                                       il::Array<double> &d);
+il::Array2D<double> build_vd_matrix_p0(Mesh mesh,
+                                       Parameters_dilatancy &dilat_parameters,
+                                       il::Array2D<int> &Dof,
+                                       Parameters_fluid &fluid_parameters,
+                                       const il::Array<double> &d, il::io_t);
 }
 
 #endif // HFPX2D_FVM_H

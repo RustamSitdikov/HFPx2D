@@ -17,7 +17,10 @@
 #include <il/StaticArray2D.h>
 
 namespace hfp2d {
-///// 1D mesh class
+/// Mesh
+///
+/// @brief
+/// 1D mesh class
 class Mesh {  // class for 1D mesh of 1D segment elements ?
 
  private:
