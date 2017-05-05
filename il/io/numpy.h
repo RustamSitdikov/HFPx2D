@@ -16,7 +16,7 @@
 #include <il/Array2D.h>
 #include <il/SparseMatrixCSR.h>
 #include <il/String.h>
-#include <il/core/Status.h>
+#include <il/Status.h>
 #include <il/io/io_base.h>
 
 namespace il {
@@ -53,7 +53,8 @@ class SaveHelper<il::Array<T>> {
                    il::Status& status) {
     std::FILE* file = std::fopen(filename.c_string(), "wb");
     if (!file) {
-      status.set_error(il::ErrorCode::file_not_found);
+      status.set_error(il::Error::filesystem_file_not_found);
+      IL_SET_SOURCE(status);
       return;
     }
 
@@ -69,20 +70,22 @@ class SaveHelper<il::Array<T>> {
       if (error != 0) {
         il::abort();
       }
-      status = info_status;
+      status = std::move(info_status);
       return;
     }
 
     std::size_t written = std::fwrite(v.data(), sizeof(T),
                                       static_cast<std::size_t>(v.size()), file);
     if (static_cast<il::int_t>(written) != v.size()) {
-      status.set_error(il::ErrorCode::cannot_write_to_file);
+      status.set_error(il::Error::filesystem_no_write_access);
+      IL_SET_SOURCE(status);
       return;
     }
 
     const int error = std::fclose(file);
     if (error != 0) {
-      status.set_error(il::ErrorCode::cannot_close_file);
+      status.set_error(il::Error::filesystem_cannot_close_file);
+      IL_SET_SOURCE(status);
       return;
     }
 
@@ -98,7 +101,8 @@ class SaveHelper<il::Array2D<T>> {
                    il::io_t, il::Status& status) {
     std::FILE* file = std::fopen(filename.c_string(), "wb");
     if (!file) {
-      status.set_error(il::ErrorCode::file_not_found);
+      status.set_error(il::Error::filesystem_file_not_found);
+      IL_SET_SOURCE(status);
       return;
     }
 
@@ -114,7 +118,7 @@ class SaveHelper<il::Array2D<T>> {
       if (error != 0) {
         il::abort();
       }
-      status = info_status;
+      status = std::move(info_status);
       return;
     }
 
@@ -122,13 +126,15 @@ class SaveHelper<il::Array2D<T>> {
         std::fwrite(A.data(), sizeof(T),
                     static_cast<std::size_t>(A.size(0) * A.size(1)), file);
     if (static_cast<il::int_t>(written) != A.size(0) * A.size(1)) {
-      status.set_error(il::ErrorCode::cannot_write_to_file);
+      status.set_error(il::Error::filesystem_no_write_access);
+      IL_SET_SOURCE(status);
       return;
     }
 
     const int error = std::fclose(file);
     if (error != 0) {
-      status.set_error(il::ErrorCode::cannot_close_file);
+      status.set_error(il::Error::filesystem_cannot_close_file);
+      IL_SET_SOURCE(status);
       return;
     }
 
@@ -147,35 +153,40 @@ class LoadHelper<il::Array<T>> {
 
     std::FILE* file = std::fopen(filename.c_string(), "r+b");
     if (!file) {
-      status.set_error(il::ErrorCode::file_not_found);
+      status.set_error(il::Error::filesystem_file_not_found);
+      IL_SET_SOURCE(status);
       return v;
     }
 
     il::Status info_status{};
     il::NumpyInfo numpy_info = il::get_numpy_info(il::io, file, info_status);
     if (!info_status.ok()) {
-      status = info_status;
+      status = std::move(info_status);
       return v;
     }
 
     if (!(numpy_info.type == il::numpy_type<T>::value)) {
-      status.set_error(il::ErrorCode::wrong_type);
+      status.set_error(il::Error::binary_file_wrong_type);
+      IL_SET_SOURCE(status);
       return v;
     } else if (numpy_info.shape.size() != 1) {
-      status.set_error(il::ErrorCode::wrong_rank);
+      status.set_error(il::Error::binary_file_wrong_rank);
+      IL_SET_SOURCE(status);
       return v;
     }
 
     v.resize(numpy_info.shape[0]);
     const std::size_t read = fread(v.data(), sizeof(T), v.size(), file);
     if (static_cast<il::int_t>(read) != v.size()) {
-      status.set_error(il::ErrorCode::wrong_file_format);
+      status.set_error(il::Error::binary_file_wrong_format);
+      IL_SET_SOURCE(status);
       return v;
     }
 
     const int error = std::fclose(file);
     if (error != 0) {
-      status.set_error(il::ErrorCode::cannot_close_file);
+      status.set_error(il::Error::filesystem_cannot_close_file);
+      IL_SET_SOURCE(status);
       return v;
     }
 
@@ -193,25 +204,29 @@ class LoadHelper<il::Array2D<T>> {
 
     std::FILE* file = std::fopen(filename.c_string(), "r+b");
     if (!file) {
-      status.set_error(il::ErrorCode::file_not_found);
+      status.set_error(il::Error::filesystem_file_not_found);
+      IL_SET_SOURCE(status);
       return v;
     }
 
     il::Status info_status{};
     il::NumpyInfo numpy_info = il::get_numpy_info(il::io, file, info_status);
     if (!info_status.ok()) {
-      status = info_status;
+      status = std::move(info_status);
       return v;
     }
 
     if (!(numpy_info.type == il::numpy_type<T>::value)) {
-      status.set_error(il::ErrorCode::wrong_type);
+      status.set_error(il::Error::binary_file_wrong_type);
+      IL_SET_SOURCE(status);
       return v;
     } else if (numpy_info.shape.size() != 2) {
-      status.set_error(il::ErrorCode::wrong_rank);
+      status.set_error(il::Error::binary_file_wrong_rank);
+      IL_SET_SOURCE(status);
       return v;
     } else if (!numpy_info.fortran_order) {
-      status.set_error(il::ErrorCode::wrong_order);
+      status.set_error(il::Error::binary_file_wrong_endianness);
+      IL_SET_SOURCE(status);
       return v;
     }
 
@@ -219,13 +234,15 @@ class LoadHelper<il::Array2D<T>> {
     const il::int_t n = v.size(0) * v.size(1);
     const std::size_t read = fread(v.data(), sizeof(T), n, file);
     if (static_cast<il::int_t>(read) != n) {
-      status.set_error(il::ErrorCode::wrong_file_format);
+      status.set_error(il::Error::binary_file_wrong_format);
+      IL_SET_SOURCE(status);
       return v;
     }
 
     const int error = std::fclose(file);
     if (error != 0) {
-      status.set_error(il::ErrorCode::cannot_close_file);
+      status.set_error(il::Error::filesystem_cannot_close_file);
+      IL_SET_SOURCE(status);
       return v;
     }
 

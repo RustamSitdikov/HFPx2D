@@ -108,16 +108,6 @@ int main() {
     Density = 0;
   }
 
-  // Read fault parameters
-
-  double kf;
-  i = config.search("Fault_permeability");
-  if (config.found(i) && config.value(i).is_floating_point()) {
-    kf = config.value(i).to_floating_point();
-  } else {
-    kf = 0;
-  }
-
   // Read dilatancy parameters
 
   double Init_hydr_width;
@@ -142,6 +132,32 @@ int main() {
     d_wdilatancy = config.value(i).to_floating_point();
   } else {
     d_wdilatancy = 0;
+  }
+
+  // Read permeability parameters
+
+  double Init_fault_permeab;
+  i = config.search("Initial_fault_permeability");
+  if (config.found(i) && config.value(i).is_floating_point()) {
+    Init_fault_permeab = config.value(i).to_floating_point();
+  } else {
+    Init_fault_permeab = 0;
+  }
+
+  double Incr_permeab;
+  i = config.search("Permeability_increment");
+  if (config.found(i) && config.value(i).is_floating_point()) {
+    Incr_permeab = config.value(i).to_floating_point();
+  } else {
+    Incr_permeab = 0;
+  }
+
+  double d_wpermeability;
+  i = config.search("Slip_dw_for_permeability");
+  if (config.found(i) && config.value(i).is_floating_point()) {
+    d_wpermeability = config.value(i).to_floating_point();
+  } else {
+    d_wpermeability = 0;
   }
 
   // Read layers parameters
@@ -464,6 +480,12 @@ int main() {
   dilat_parameters.Incr_dil = Incr_dil;
   dilat_parameters.d_wd = d_wdilatancy;
 
+  // Set the structure members of permeability
+  hfp2d::Parameters_permeability permeab_parameters;
+  permeab_parameters.Init_permeab = Init_fault_permeab;
+  permeab_parameters.Incr_permeab = Incr_permeab;
+  permeab_parameters.d_wd = d_wpermeability;
+
   // Set the structure members for simulation parameters
   hfp2d::simulation_parameters simulation_parameters;
   simulation_parameters.t_0plus = t_0plus;
@@ -487,7 +509,7 @@ int main() {
   // REMEMBER ALWAYS TO DELETE THE EXISTING DIRECTORY (IF ALREADY CREATED)!
   std::string Directory_results{"/Users/federicociardo/ClionProjects/"
                                 "HFPx2D-Collscheme/Results/"
-                                "TEST1su100_NODIL_055_PERMEAB(2)/"};
+                                "Results1su50_Dil05_075_CHECKNEWCODE/"};
 
   if (mkdir(Directory_results.c_str(), 0777) == -1) {
     std::cerr << "Error in creating the output directory:  " << strerror(errno)
@@ -546,9 +568,9 @@ int main() {
                                     layer_parameters3);
 
   // Get matrix of dof handle for a piece-wise linear
-  // variation per element for just shear DDs
+  // variation per element for JUST shear DDs
   il::Array2D<int> Dofw{2 * mesh.nelts(), 0};
-  Dofw = hfp2d::dofhandle_dg(dof_dim, mesh.nelts(), il::io);
+  Dofw = hfp2d::dofhandle_dp(1, mesh.nelts(), p, il::io);
 
   // Matrix of cohesion at collocation points
   il::Array<double> cohes{NCollPoints, 0};
@@ -632,20 +654,20 @@ int main() {
   // Matrix to switch from nodal points to collocation points
   il::Array2D<double> Fetc{4 * mesh.nelts(), mesh.nelts() + 1, 0};
   Fetc = hfp2d::from_edge_to_col_cg(
-      dof_dim, hfp2d::dofhandle_dg_full2d(dof_dim, mesh.nelts(), p, il::io),
-      hfp2d::dofhandle_cg2d(dof_dim, mesh.nelts(), il::io), il::io);
+      dof_dim, hfp2d::dofhandle_dp(dof_dim, mesh.nelts(), p, il::io),
+      hfp2d::dofhandle_cg(dof_dim, mesh.nelts(), il::io), il::io);
 
   // Get the elasticity matrix
   il::Array2D<double> kmat{Ndof, Ndof, 0};
-  hfp2d::basic_assembly(
-      kmat, mesh, hfp2d::dofhandle_dg_full2d(dof_dim, Nelts, p, il::io), p, Ep);
+  hfp2d::basic_assembly(kmat, mesh,
+                        hfp2d::dofhandle_dp(dof_dim, Nelts, p, il::io), p, Ep);
 
   /// Solution of fluid injection into frictional weakening dilatant fault ///
   hfp2d::time_incr(inj_point, NCollPoints, mesh, p, cohes, kmat,
                    layer_parameters1, layer_parameters2, layer_parameters3,
                    id_layers, dilat_parameters, fluid_parameters, S, dof_dim,
                    Sigma0, Amb_press, Pinit, Directory_results, XColl, Fetc, h,
-                   simulation_parameters, kf, il::io);
+                   simulation_parameters, permeab_parameters, il::io);
 
   return 0;
 }

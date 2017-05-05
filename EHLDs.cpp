@@ -19,13 +19,15 @@ Results_solution_nonlinearsystem
 EHLDs(Mesh mesh, il::Array2D<double> &kmatd, il::Array2D<double> &Npc,
       LayerParameters1 &layer_parameters1, LayerParameters2 &layer_parameters2,
       LayerParameters3 &layer_parameters3, il::Array<il::int_t> id_layers,
-      Parameters_dilatancy dilat_parameters, Parameters_fluid fluid_parameters,
+      Parameters_dilatancy &dilat_parameters,
+      Parameters_fluid &fluid_parameters,
       Results_one_timeincrement &SolutionAtTj, il::Array<double> press_prof,
       il::Array<double> tot_slip, int dof_dim, int p, il::Array<double> cohes,
       il::Status &status, il::Norm norm, int inj_point, il::Array<double> S,
       il::Array<il::int_t> Dof_slip_coll, il::Array2D<double> Sigma0,
       il::Array2D<double> sigma_tot,
-      hfp2d::simulation_parameters simulation_parameters, double kf, il::io_t) {
+      hfp2d::simulation_parameters simulation_parameters,
+      Parameters_permeability &permeab_parameters, il::io_t) {
 
   Results_solution_nonlinearsystem Results_iterations;
 
@@ -72,17 +74,16 @@ EHLDs(Mesh mesh, il::Array2D<double> &kmatd, il::Array2D<double> &Npc,
     for (il::int_t i = 0; i < incrdk.size(0); ++i) {
       for (il::int_t l = 0; l < incrdk.size(1); ++l) {
         incrdk(i, l) =
-            SolutionAtTj.d_tot[hfp2d::dofhandle_dg(dof_dim, mesh.nelts(),
-                                                   il::io)(i, l)] +
-            Dd[hfp2d::dofhandle_dg(dof_dim, mesh.nelts(), il::io)(i, l)];
+            SolutionAtTj.d_tot[hfp2d::dofhandle_dp(1, mesh.nelts(), p, il::io)(i, l)] +
+            Dd[hfp2d::dofhandle_dp(1, mesh.nelts(), p, il::io)(i, l)];
       }
     }
 
     // Mass matrix "Vd"
     Vd = hfp2d::build_vd_matrix_p1(
         mesh, dilat_parameters,
-        hfp2d::dofhandle_dg_full2d(dof_dim, mesh.nelts(), p, il::io),
-        fluid_parameters, incrdk, il::io);
+        hfp2d::dofhandle_dp(dof_dim, mesh.nelts(), p, il::io), fluid_parameters,
+        incrdk, il::io);
 
     // Pressure matrix "P"
     Vp = hfp2d::build_vp_matrix_p1(mesh, dilat_parameters, fluid_parameters,
@@ -90,20 +91,20 @@ EHLDs(Mesh mesh, il::Array2D<double> &kmatd, il::Array2D<double> &Npc,
 
     // Finite Difference matrix "L"
     L = hfp2d::build_l_matrix(mesh, incrdk, fluid_parameters, dilat_parameters,
-                              SolutionAtTj.dt, kf, il::io);
+                              SolutionAtTj.dt, permeab_parameters, il::io);
 
     // Nf -> diagonal matrix that contains the current friction coefficient of
     //       the slipping collocation points
     il::Array2D<double> Nf{SolutionAtTj.active_set_collpoints.size(),
                            SolutionAtTj.active_set_collpoints.size(), 0};
     il::Array2D<double> fetc_dg = hfp2d::from_edge_to_col_dg(
-        dof_dim, hfp2d::dofhandle_dg(dof_dim, mesh.nelts(), il::io), il::io);
+        dof_dim, hfp2d::dofhandle_dp(1, mesh.nelts(), p, il::io), il::io);
 
     il::Array<double> incrdk_flat = flatten1(incrdk, il::io);
     il::Array<double> incrdk_coll = il::dot(fetc_dg, incrdk_flat);
     il::Array<double> frick_coll = hfp2d::lin_friction(
         layer_parameters1, layer_parameters2, layer_parameters3, id_layers,
-        hfp2d::dofhandle_dg(dof_dim, mesh.nelts(), il::io), incrdk_coll,
+        hfp2d::dofhandle_dp(1, mesh.nelts(), p, il::io), incrdk_coll,
         il::io);
     for (il::int_t m2 = 0; m2 < Nf.size(0); ++m2) {
       Nf(m2, m2) = frick_coll[SolutionAtTj.active_set_collpoints[m2]];

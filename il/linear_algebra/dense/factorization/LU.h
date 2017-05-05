@@ -15,7 +15,7 @@
 #include <il/container/2d/Array2D.h>
 #include <il/container/2d/LowerArray2D.h>
 #include <il/container/2d/UpperArray2D.h>
-#include <il/core/Status.h>
+#include <il/Status.h>
 #include <il/linear_algebra/dense/norm.h>
 
 #ifdef IL_MKL
@@ -89,11 +89,13 @@ LU<il::Array2D<double>>::LU(il::Array2D<double> A, il::io_t,
 
   IL_EXPECT_FAST(lapack_error >= 0);
   if (lapack_error == 0) {
-    status.set_error(ErrorCode::ok);
+    status.set_ok();
     ipiv_ = std::move(ipiv);
     lu_ = std::move(A);
   } else {
-    status.set_error(ErrorCode::division_by_zero);
+    status.set_error(il::Error::matrix_singular);
+    IL_SET_SOURCE(status);
+    status.set_info("rank", il::int_t{lapack_error - 1});
   }
 }
 

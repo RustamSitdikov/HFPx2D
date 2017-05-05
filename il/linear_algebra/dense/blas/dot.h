@@ -63,21 +63,42 @@ inline il::Array<double> dot(const il::Array2C<double>& A,
   return y;
 }
 
+inline il::Array2D<float> dot(const il::Array2D<float>& A,
+                              const il::Array2D<float>& B) {
+  IL_EXPECT_FAST(A.size(1) == B.size(0));
+
+  il::Array2D<float> C{A.size(0), B.size(1)};
+  const IL_CBLAS_LAYOUT layout = CblasColMajor;
+  const CBLAS_TRANSPOSE transpose = CblasNoTrans;
+  const IL_CBLAS_INT m = static_cast<IL_CBLAS_INT>(A.size(0));
+  const IL_CBLAS_INT n = static_cast<IL_CBLAS_INT>(B.size(1));
+  const IL_CBLAS_INT k = static_cast<IL_CBLAS_INT>(A.size(1));
+  const float alpha = 1.0f;
+  const float beta = 0.0f;
+  const IL_CBLAS_INT lda = static_cast<IL_CBLAS_INT>(A.stride(1));
+  const IL_CBLAS_INT ldb = static_cast<IL_CBLAS_INT>(B.stride(1));
+  const IL_CBLAS_INT ldc = static_cast<IL_CBLAS_INT>(C.stride(1));
+  cblas_sgemm(layout, transpose, transpose, m, n, k, alpha, A.data(), lda,
+              B.data(), ldb, beta, C.data(), ldc);
+
+  return C;
+}
+
 inline il::Array2D<double> dot(const il::Array2D<double>& A,
                                const il::Array2D<double>& B) {
   IL_EXPECT_FAST(A.size(1) == B.size(0));
 
   il::Array2D<double> C{A.size(0), B.size(1)};
-  const IL_CBLAS_LAYOUT layout{CblasColMajor};
-  const CBLAS_TRANSPOSE transpose{CblasNoTrans};
-  const IL_CBLAS_INT m{static_cast<IL_CBLAS_INT>(A.size(0))};
-  const IL_CBLAS_INT n{static_cast<IL_CBLAS_INT>(B.size(1))};
-  const IL_CBLAS_INT k{static_cast<IL_CBLAS_INT>(A.size(1))};
+  const IL_CBLAS_LAYOUT layout = CblasColMajor;
+  const CBLAS_TRANSPOSE transpose = CblasNoTrans;
+  const IL_CBLAS_INT m = static_cast<IL_CBLAS_INT>(A.size(0));
+  const IL_CBLAS_INT n = static_cast<IL_CBLAS_INT>(B.size(1));
+  const IL_CBLAS_INT k = static_cast<IL_CBLAS_INT>(A.size(1));
   const double alpha = 1.0;
   const double beta = 0.0;
-  const IL_CBLAS_INT lda{static_cast<IL_CBLAS_INT>(A.stride(1))};
-  const IL_CBLAS_INT ldb{static_cast<IL_CBLAS_INT>(B.stride(1))};
-  const IL_CBLAS_INT ldc{static_cast<IL_CBLAS_INT>(C.stride(1))};
+  const IL_CBLAS_INT lda = static_cast<IL_CBLAS_INT>(A.stride(1));
+  const IL_CBLAS_INT ldb = static_cast<IL_CBLAS_INT>(B.stride(1));
+  const IL_CBLAS_INT ldc = static_cast<IL_CBLAS_INT>(C.stride(1));
   cblas_dgemm(layout, transpose, transpose, m, n, k, alpha, A.data(), lda,
               B.data(), ldb, beta, C.data(), ldc);
 
@@ -89,22 +110,31 @@ inline il::Array2C<double> dot(const il::Array2C<double>& A,
   IL_EXPECT_FAST(A.size(1) == B.size(0));
 
   il::Array2C<double> C{A.size(0), B.size(1)};
-  const IL_CBLAS_LAYOUT layout{CblasRowMajor};
-  const CBLAS_TRANSPOSE transpose{CblasNoTrans};
-  const IL_CBLAS_INT m{static_cast<IL_CBLAS_INT>(A.size(0))};
-  const IL_CBLAS_INT n{static_cast<IL_CBLAS_INT>(B.size(1))};
-  const IL_CBLAS_INT k{static_cast<IL_CBLAS_INT>(A.size(1))};
+  const IL_CBLAS_LAYOUT layout = CblasRowMajor;
+  const CBLAS_TRANSPOSE transpose = CblasNoTrans;
+  const IL_CBLAS_INT m = static_cast<IL_CBLAS_INT>(A.size(0));
+  const IL_CBLAS_INT n = static_cast<IL_CBLAS_INT>(B.size(1));
+  const IL_CBLAS_INT k = static_cast<IL_CBLAS_INT>(A.size(1));
   const double alpha = 1.0;
   const double beta = 0.0;
-  const IL_CBLAS_INT lda{static_cast<IL_CBLAS_INT>(A.stride(0))};
-  const IL_CBLAS_INT ldb{static_cast<IL_CBLAS_INT>(B.stride(0))};
-  const IL_CBLAS_INT ldc{static_cast<IL_CBLAS_INT>(C.stride(0))};
+  const IL_CBLAS_INT lda = static_cast<IL_CBLAS_INT>(A.stride(0));
+  const IL_CBLAS_INT ldb = static_cast<IL_CBLAS_INT>(B.stride(0));
+  const IL_CBLAS_INT ldc = static_cast<IL_CBLAS_INT>(C.stride(0));
   cblas_dgemm(layout, transpose, transpose, m, n, k, alpha, A.data(), lda,
               B.data(), ldb, beta, C.data(), ldc);
 
   return C;
 }
 #endif
+
+template <typename T, il::int_t n>
+T dot(const il::StaticArray<T, n>& x, const il::StaticArray<T, n>& y) {
+  T ans{0};
+  for (il::int_t i = 0; i < n; ++i) {
+    ans += x[i] * y[i];
+  }
+  return ans;
+}
 
 template <typename T, il::int_t n0, il::int_t n>
 il::StaticArray<T, n0> dot(const il::StaticArray2D<T, n0, n>& A,
@@ -122,6 +152,7 @@ template <typename T, il::int_t n0, il::int_t n>
 il::StaticArray<T, n0> dot(const il::StaticArray2D<T, n, n0>& A,
                            il::Blas A_info, const il::StaticArray<T, n>& B) {
   IL_EXPECT_FAST(A_info == il::Blas::transpose);
+  IL_UNUSED(A_info);
 
   il::StaticArray<T, n0> C{};
   for (il::int_t i0 = 0; i0 < n0; ++i0) {
@@ -165,6 +196,7 @@ il::StaticArray2D<T, n0, n1> dot(const il::StaticArray2D<T, n, n0>& A,
                                  il::Blas A_info,
                                  const il::StaticArray2D<T, n, n1>& B) {
   IL_EXPECT_FAST(A_info == il::Blas::transpose);
+  IL_UNUSED(A_info);
 
   il::StaticArray2D<T, n0, n1> C{};
   for (il::int_t i1 = 0; i1 < n1; ++i1) {
@@ -226,7 +258,6 @@ il::StaticArray3D<T, n0, n1, n2> dot(
   }
   return C;
 }
-
 }
 
 #endif  // IL_DOT_H

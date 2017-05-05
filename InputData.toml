@@ -2,7 +2,7 @@
 # simulation with the code HFPx2D
 
 # Mesh parameters
-Number_of_elements = 2000
+Number_of_elements = 1000
 Half_fault_length = 10.0
 
 # Material parameter
@@ -13,35 +13,37 @@ Fluid_compressibility = 1.0
 Fluid_viscosity = 3.0e-3
 Density = 1.0
 
-# Fault parameter
-Fault_permeability = 0.36 # [L^2] -> 0.6*0.6
+# Permeability parameters
+Initial_fault_permeability = 0.36 # [L^2] -> 0.6*0.6
+Permeability_increment = 0.0
+Slip_dw_for_permeability = 1.0
 
 # Dilatancy parameters
 Initial_hydraulic_width = 0.6
-Dilatant_hardening = 0.0
+Dilatant_hardening = 0.3
 Slip_dw_for_dilatancy = 1.0
 
 # Layers parameters
 # Layer1
 id_layer1 = 1
-First_element_layer1 = 1
-Last_element_layer1 = 1000
+First_element_layer1 = 0.0
+Last_element_layer1 = 499
 Cohesion_layer1 = 0.0
 Peak_friction_coefficient_layer1 = 1.0
 Residual_friction_coefficient_layer1 = 0.6
 Slip_dw_for_friction_layer1 = 1.0
 #Layer2
 id_layer2 = 2
-First_element_layer2 = 1001
-Last_element_layer2 = 1800
+First_element_layer2 = 500
+Last_element_layer2 = 899
 Cohesion_layer2 = 0.0
 Peak_friction_coefficient_layer2 = 1.0
 Residual_friction_coefficient_layer2 = 0.6
 Slip_dw_for_friction_layer2 = 1.0
 #Layer3
 id_layer3 = 3
-First_element_layer3 = 1801
-Last_element_layer3 = 2000
+First_element_layer3 = 900
+Last_element_layer3 = 1000
 Cohesion_layer3 = 0.0
 Peak_friction_coefficient_layer3 = 1.0
 Residual_friction_coefficient_layer3 = 0.6
@@ -49,7 +51,7 @@ Slip_dw_for_friction_layer3 = 1.0
 
 # Stress state parameters + inital pore pressure
 Background_normal_stress = 1.0
-Background_shear_stress = 0.55
+Background_shear_stress = 0.75
 Ambient_pore_pressure = 0.0
 
 # Fluid injection parameters
@@ -58,9 +60,9 @@ Constant_overpressure = 0.5
 
 # Simulation parameters
 t_max = 0.625
-t_0plus = 0.0001
-TimeStep_max = 0.0005
-TimeStep_min = 0.00005
+t_0plus = 0.00001
+TimeStep_max = 0.0001
+TimeStep_min = 0.00001
 itermax_MCcriterion = 100
 itermax_nonlinsystem = 100
 tolerance = 10e-6
