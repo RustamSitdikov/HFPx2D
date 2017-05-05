@@ -14,7 +14,7 @@
 namespace hfp2d {
 
 //  FUNCTION TO CREATE A DOF HANDLE
-il::Array2D<int> dofhandle_dg_full2d(int dof_dim, il::int_t Nelts, int p, il::io_t) {
+il::Array2D<int> dofhandle_dp(int dof_dim, il::int_t Nelts, int p, il::io_t) {
   // function creating a matrix of dof handle - for a piece-wise linear
   // variation per element of BOTH shear AND opening DDs
   // (Discontinous Galerkin type)
@@ -28,9 +28,7 @@ il::Array2D<int> dofhandle_dg_full2d(int dof_dim, il::int_t Nelts, int p, il::io
 
   il::Array2D<int> Dof{Nelts, 2 * dof_dim, 0};
 
-  int j;
-
-  for (int i = 0; i < Nelts; ++i) {
+  for (int i = 0, j; i < Nelts; ++i) {
     j = i * dof_dim * (p + 1);
     for (int k = 0; k < dof_dim * (p + 1); ++k) {
       Dof(i, k) = j + k;
@@ -40,34 +38,7 @@ il::Array2D<int> dofhandle_dg_full2d(int dof_dim, il::int_t Nelts, int p, il::io
   return Dof;
 }
 
-il::Array2D<int> dofhandle_dg(int dof_dim, il::int_t Nelts, il::io_t) {
-  // function creating a matrix of dof handle - for a piece-wise linear
-  // variation per element of EITHER shear OR opening DDs
-  // (Discontinous Galerkin type)
-  // on a 1d Mesh object for the case of dof_dim Degrees of Freedoms per node
-  // format of the handle : number of elements \times number of dof of either
-  // shear or opening per element
-  // dof_dim :: number of dof per node
-  // Nelts :: number of elements in the mesh
-  // io_t -> everything on the left of il::io_t is read-only and is not
-  //         going to be mutated
-
-  il::Array2D<int> Dofw{Nelts, dof_dim, 0};
-
-  for (int k = 0, j; k < Dofw.size(0); ++k) {
-
-    j = k * dof_dim;
-
-    for (int i = 0; i < Dofw.size(1); ++i) {
-
-      Dofw(k, i) = i + j;
-    }
-  }
-
-  return Dofw;
-}
-
-il::Array2D<int> dofhandle_cg2d(int dof_dim, il::int_t Nelts, il::io_t) {
+il::Array2D<int> dofhandle_cg(int dof_dim, il::int_t Nelts, il::io_t) {
   // function creating a matrix of dof handle - for continuous linear
   // variation per element (Continuous Galerkin type)
   // on a 1d Mesh object for the case of dof_dim Degrees of Freedoms per node

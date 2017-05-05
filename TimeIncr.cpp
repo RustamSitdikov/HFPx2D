@@ -27,17 +27,20 @@
 
 namespace hfp2d {
 
-void time_incr(
-    int inj_point, il::int_t NCollPoints, Mesh mesh, int p,
-    il::Array<double> cohes, const il::Array2D<double> &kmat,
-    LayerParameters1 layer_parameters1, LayerParameters2 layer_parameters2,
-    LayerParameters3 layer_parameters3, il::Array<il::int_t> id_layers,
-    Parameters_dilatancy dilat_parameters, Parameters_fluid &fluid_parameters,
-    il::Array<double> S, int dof_dim, il::Array2D<double> Sigma0,
-    il::Array<double> Amb_press, il::Array<double> Pinit,
-    const std::string &Directory_results, il::Array<double> XColl,
-    il::Array2D<double> &Fetc, double h,
-    simulation_parameters simulation_parameters, double kf, il::io_t) {
+void time_incr(int inj_point, il::int_t NCollPoints, Mesh mesh, int p,
+               il::Array<double> cohes, const il::Array2D<double> &kmat,
+               LayerParameters1 layer_parameters1,
+               LayerParameters2 layer_parameters2,
+               LayerParameters3 layer_parameters3,
+               il::Array<il::int_t> id_layers,
+               Parameters_dilatancy &dilat_parameters,
+               Parameters_fluid &fluid_parameters, il::Array<double> S,
+               int dof_dim, il::Array2D<double> Sigma0,
+               il::Array<double> Amb_press, il::Array<double> Pinit,
+               const std::string &Directory_results, il::Array<double> XColl,
+               il::Array2D<double> &Fetc, double h,
+               simulation_parameters simulation_parameters,
+               Parameters_permeability &permeab_parameters, il::io_t) {
 
   /// Initialization ///
 
@@ -57,7 +60,7 @@ void time_incr(
   // Initialization of friction vector at time t_0 (before the injection)
   SolutionAtTj.friction = hfp2d::lin_friction(
       layer_parameters1, layer_parameters2, layer_parameters3, id_layers,
-      hfp2d::dofhandle_dg(dof_dim, mesh.nelts(), il::io), no_slip, il::io);
+      hfp2d::dofhandle_dp(1, mesh.nelts(), p, il::io), no_slip, il::io);
 
   // Initialization of slippage length (before the injection)
   SolutionAtTj.slippagezone = 0;
@@ -74,8 +77,8 @@ void time_incr(
 
   il::Array2D<double> Pcm{2 * mesh.nelts(), 2, 0};
   il::Array2D<double> fetc_cg = hfp2d::from_edge_to_col_cg(
-      dof_dim, hfp2d::dofhandle_dg_full2d(dof_dim, mesh.nelts(), p, il::io),
-      hfp2d::dofhandle_cg2d(dof_dim, mesh.nelts(), il::io), il::io);
+      dof_dim, hfp2d::dofhandle_dp(dof_dim, mesh.nelts(), p, il::io),
+      hfp2d::dofhandle_cg(dof_dim, mesh.nelts(), il::io), il::io);
   il::Array<double> pcoll = il::dot(fetc_cg, Pin);
 
   for (il::int_t l = 0, k = 1; l < Pcm.size(0); ++l) {
@@ -119,8 +122,8 @@ void time_incr(
     hfp2d::MC_criterion(mesh, p, cohes, kmat, layer_parameters1,
                         layer_parameters2, layer_parameters3, id_layers,
                         dilat_parameters, fluid_parameters, S, inj_point,
-                        dof_dim, XColl, Fetc, Sigma0, simulation_parameters, kf,
-                        il::io, SolutionAtTj);
+                        dof_dim, XColl, Fetc, Sigma0, simulation_parameters,
+                        permeab_parameters, il::io, SolutionAtTj);
 
     // Adaptive time stepping
     if (psi * (h / SolutionAtTj.crack_velocity) >=

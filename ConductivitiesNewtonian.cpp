@@ -21,16 +21,18 @@ il::Array<double> conductivities_newtonian(const il::Array<double> &rho,
                                            const il::Array<double> &vector,
                                            il::Array<double> EltSizes,
                                            Parameters_fluid &fluid_parameters,
-                                           double kf, il::io_t) {
+                                           const il::Array<double> &permeab,
+                                           il::io_t) {
 
   // Inputs:
   //  - rho -> vector of fluid density values at the middle of each element
   //  (size -> Nelts)
-  //  - vector -> vector of shear DD or opening DD at the middle of the elements
-  //  (size -> Nelts)
+  //  - vector -> vector of dilatancy value for slip at the middle of the
+  //  elements (size -> Nelts)
   //  - EltSizes -> vector that contains the element sizes
   //  - fluid_parameters -> structure that contains all the fluid parameters
-  //  - kf -> fault permeability
+  //  - permeab -> vector that contains the permeability for each element (size
+  //  -> Nelts)
   //  - io_t -> everything on the left of il::io_t is read-only and is not
   //    going to be mutated
 
@@ -38,8 +40,8 @@ il::Array<double> conductivities_newtonian(const il::Array<double> &rho,
 
   for (il::int_t i = 0; i < Res.size(); ++i) {
 
-      Res[i] = ((rho[i] * (vector[i] * kf)) / EltSizes[i]) *
-               (1 / (12 * fluid_parameters.viscosity));
+    Res[i] = ((rho[i] * (vector[i] * permeab[i])) / EltSizes[i]) *
+             (1 / (12 * fluid_parameters.viscosity));
   }
 
   return Res;

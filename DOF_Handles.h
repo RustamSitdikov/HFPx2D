@@ -16,11 +16,9 @@
 
 namespace hfp2d {
 
-il::Array2D<int> dofhandle_dg_full2d(int dof_dim, il::int_t Nelts, int p, il::io_t);
+il::Array2D<int> dofhandle_dp(int dof_dim, il::int_t Nelts, int p, il::io_t);
 
-il::Array2D<int> dofhandle_dg(int dof_dim, il::int_t Nelts, il::io_t);
-
-il::Array2D<int> dofhandle_cg2d(int dof_dim, il::int_t Nelts, il::io_t);
+il::Array2D<int> dofhandle_cg(int dof_dim, il::int_t Nelts, il::io_t);
 }
 
 #endif // HFPX2D_DOF_HANDLES_H

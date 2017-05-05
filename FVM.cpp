@@ -138,7 +138,8 @@ il::Array<int> row_selection(const il::Array2D<int> &arr, il::int_t idx,
 // Output: array (vector) that contains all the coefficients for each element
 il::Array<double> shear_conductivities_newtonian(
     Parameters_fluid &fluid_parameters, Mesh mesh, const il::Array2D<double> &d,
-    Parameters_dilatancy &dilat_parameters, double kf, il::io_t) {
+    Parameters_dilatancy &dilat_parameters,
+    Parameters_permeability &permeab_parameters, il::io_t) {
 
   // Inputs:
   //  - fluid_parameters -> structure that contains all the fluid parameters
@@ -146,15 +147,20 @@ il::Array<double> shear_conductivities_newtonian(
   //  - d -> matrix of slip at nodes {{d1_left,d1_right},{d2_left,d2_right}..}
   //  (size -> Nelts x 2)
   //  - dilat_parameters -> structure that contains all the dilatancy parameters
-  //  - kf -> fault permeability
+  //  - permeab_parameters -> structure that contains all the permeability
+  //  parameters
   //  - io_t -> everything on the left of il::io_t is read-only and is not
   //    going to be mutated
 
-  il::Array<double> d_mid, wh_mid, rho_mid;
+  il::Array<double> d_mid;
+  il::Array<double> wh_mid;
+  il::Array<double> rho_mid;
+  il::Array<double> kf_mid;
 
   d_mid = average(d, il::io);
   wh_mid = dilatancy(dilat_parameters, d_mid, il::io);
   rho_mid = average(fluid_parameters.density, il::io);
+  kf_mid = permeability(permeab_parameters, d_mid, il::io);
 
   // create the array of element size
   il::Array<double> EltSizes{mesh.nelts(), 0.};
@@ -168,7 +174,7 @@ il::Array<double> shear_conductivities_newtonian(
 
   il::Array<double> Out{mesh.nelts(), 0};
   Out = conductivities_newtonian(rho_mid, wh_mid, EltSizes, fluid_parameters,
-                                 kf, il::io);
+                                 kf_mid, il::io);
 
   return Out;
 };
@@ -178,7 +184,8 @@ il::Array<double> shear_conductivities_newtonian(
 il::Array2D<double> build_l_matrix(Mesh mesh, const il::Array2D<double> &d,
                                    Parameters_fluid &fluid_parameters,
                                    Parameters_dilatancy &dilat_parameters,
-                                   const double &TimeStep, double kf,
+                                   const double &TimeStep,
+                                   Parameters_permeability &permeab_parameters,
                                    il::io_t) {
 
   // Inputs:
@@ -188,7 +195,8 @@ il::Array2D<double> build_l_matrix(Mesh mesh, const il::Array2D<double> &d,
   //  - fluid_parameters -> structure that contains all the fluid parameters
   //  - dilat_parameters -> structure that contains all the dilatancy parameters
   //  - TimeStep -> time step
-  //  - kf -> fault permeability
+  //  - permeab_paramters -> structure that contains all the permeability
+  //  parameters
   //  - io_t -> everything on the left of il::io_t is read-only and is not
   //    going to be mutated
 
@@ -196,8 +204,8 @@ il::Array2D<double> build_l_matrix(Mesh mesh, const il::Array2D<double> &d,
   //  - Finite difference matrix "L" (size -> Nnodes x Nnodes)
 
   il::Array<double> Kk;
-  Kk = shear_conductivities_newtonian(fluid_parameters, mesh, d,
-                                      dilat_parameters, kf, il::io);
+  Kk = shear_conductivities_newtonian(
+      fluid_parameters, mesh, d, dilat_parameters, permeab_parameters, il::io);
 
   il::Array2D<double> LL{mesh.nelts() + 1, mesh.nelts() + 1, 0};
   il::Array2D<int> ed;
@@ -206,7 +214,7 @@ il::Array2D<double> build_l_matrix(Mesh mesh, const il::Array2D<double> &d,
   il::int_t dofj;
   il::Array<int> t;
   il::Array2D<int> Dofp;
-  Dofp = hfp2d::dofhandle_cg2d(2, mesh.nelts(), il::io);
+  Dofp = hfp2d::dofhandle_cg(2, mesh.nelts(), il::io);
 
   // Loop over the pressure nodes
   for (il::int_t i = 0; i < LL.size(0); ++i) {

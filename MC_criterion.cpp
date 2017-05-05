@@ -31,7 +31,8 @@ void MC_criterion(
     Parameters_dilatancy &dilat_parameters, Parameters_fluid &fluid_parameters,
     il::Array<double> S, int inj_point, int dof_dim, il::Array<double> XColl,
     il::Array2D<double> &Fetc, il::Array2D<double> Sigma0,
-    hfp2d::simulation_parameters simulation_parameters, double kf, il::io_t,
+    hfp2d::simulation_parameters simulation_parameters,
+    Parameters_permeability &permeab_parameters, il::io_t,
     Results_one_timeincrement &res) {
 
   // Vector of friction at the beginning of each time step
@@ -131,7 +132,8 @@ void MC_criterion(
         mesh, kmatd, Npc, layer_parameters1, layer_parameters2,
         layer_parameters3, id_layers, dilat_parameters, fluid_parameters, res,
         press_prof, tot_slip, dof_dim, p, cohes, status, norm, inj_point, S,
-        Dof_slip_coll, Sigma0, sigma_tot, simulation_parameters, kf, il::io);
+        Dof_slip_coll, Sigma0, sigma_tot, simulation_parameters,
+        permeab_parameters, il::io);
 
     std::cout << "Total N. of iterations for solving non-linear system of "
                  "equations = "
@@ -148,9 +150,8 @@ void MC_criterion(
     // Update the pore pressure profile at collocation points
     auto press_prof_coll_new = il::dot(
         hfp2d::from_edge_to_col_cg(
-            dof_dim,
-            hfp2d::dofhandle_dg_full2d(dof_dim, mesh.nelts(), p, il::io),
-            hfp2d::dofhandle_cg2d(dof_dim, mesh.nelts(), il::io), il::io),
+            dof_dim, hfp2d::dofhandle_dp(dof_dim, mesh.nelts(), p, il::io),
+            hfp2d::dofhandle_cg(dof_dim, mesh.nelts(), il::io), il::io),
         press_prof_new);
 
     for (il::int_t l = 0, k = 1; l < Pcm.size(0); ++l) {
@@ -175,14 +176,14 @@ void MC_criterion(
 
     // Cumulative slip at collocation points
     s = il::dot(hfp2d::from_edge_to_col_dg(
-                    dof_dim, hfp2d::dofhandle_dg(dof_dim, mesh.nelts(), il::io),
+                    dof_dim, hfp2d::dofhandle_dp(1, mesh.nelts(), p, il::io),
                     il::io),
                 flatten1(res_nonlinearsystem.new_tot_slip, il::io));
 
     // Update friction coefficient
     fric = hfp2d::lin_friction(
         layer_parameters1, layer_parameters2, layer_parameters3, id_layers,
-        hfp2d::dofhandle_dg(dof_dim, mesh.nelts(), il::io), s, il::io);
+        hfp2d::dofhandle_dp(1, mesh.nelts(), p, il::io), s, il::io);
 
     // Force the slipping nodes at the first iteration to stay in the MC
     // line in the next iterations (because all the slipping nodes in one time

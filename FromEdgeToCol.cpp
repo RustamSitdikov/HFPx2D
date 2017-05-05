@@ -62,7 +62,7 @@ il::Array2D<double> from_edge_to_col_dg_full2d(int dof_dim,
 
   return Fetc;
 };
-
+// TODO store the matrix as sparse
 // Function which allow us to switch from end points (two values per node ->
 // discontinuous polinomial) to collocation points
 // Remember: the elasticity is evaluated at collocation points
