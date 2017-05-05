@@ -15,7 +15,7 @@ TEST(linear_solve, square_matrix_0) {
   il::int_t test_passed{false};
 
   il::Array2D<double> A{3, 4, 0.0};
-  for (il::int_t i{0}; i < 3; ++i) {
+  for (il::int_t i = 0; i < 3; ++i) {
     A(i, i) = 1.0;
   }
   il::Array<double> y{3, 0.0};
@@ -35,7 +35,7 @@ TEST(linear_solve, square_matrix_1) {
   il::int_t test_passed{false};
 
   il::Array2D<double> A{4, 3, 0.0};
-  for (il::int_t i{0}; i < 3; ++i) {
+  for (il::int_t i = 0; i < 3; ++i) {
     A(i, i) = 1.0;
   }
   il::Array<double> y{4, 0.0};
@@ -55,7 +55,7 @@ TEST(linear_solve, size_y) {
   il::int_t test_passed{false};
 
   il::Array2D<double> A{3, 3, 0.0};
-  for (il::int_t i{0}; i < 3; ++i) {
+  for (il::int_t i = 0; i < 3; ++i) {
     A(i, i) = 1.0;
   }
   il::Array<double> y{4, 0.0};
@@ -101,7 +101,7 @@ TEST(linear_solve, singular_matrix_0) {
   il::Status status{};
   il::Array<double> x{il::linear_solve(A, y, il::io, status)};
   if (!status.ok() &&
-      status.error_code() == il::ErrorCode::division_by_zero) {
+      status.error() == il::Error::matrix_singular) {
     test_passed = true;
   }
 
@@ -116,7 +116,7 @@ TEST(linear_solve, singular_matrix_1) {
   il::Status status{};
   il::Array<double> x{il::linear_solve(A, y, il::io, status)};
   if (!status.ok() &&
-      status.error_code() == il::ErrorCode::division_by_zero) {
+      status.error() == il::Error::matrix_singular) {
     test_passed = true;
   }
 

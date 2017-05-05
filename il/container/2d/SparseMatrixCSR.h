@@ -14,7 +14,7 @@
 #include <il/Array2C.h>
 #include <il/SmallArray.h>
 #include <il/StaticArray.h>
-#include <il/linear_algebra/dense/blas/norm.h>
+#include <il/linear_algebra/dense/norm.h>
 #include <il/math.h>
 
 namespace il {
@@ -71,7 +71,7 @@ SparseMatrixCSR<Index, T>::SparseMatrixCSR(il::int_t height, il::int_t width,
       element_{column.size()},
       column_{std::move(column)},
       row_{std::move(row)} {
-  IL_ASSERT(row_.size() == height + 1);
+  IL_EXPECT_FAST(row_.size() == height + 1);
 }
 
 template <typename Index, typename T>
@@ -84,7 +84,7 @@ SparseMatrixCSR<Index, T>::SparseMatrixCSR(il::int_t height, il::int_t width,
       element_{std::move(element)},
       column_{std::move(column)},
       row_{std::move(row)} {
-  IL_ASSERT(row_.size() == height + 1);
+  IL_EXPECT_FAST(row_.size() == height + 1);
 }
 
 template <typename Index, typename T>
@@ -93,16 +93,16 @@ SparseMatrixCSR<Index, T>::SparseMatrixCSR(
     il::int_t width, il::int_t height,
     const il::Array<il::SmallArray<Index, n>> &column)
     : n1_{width}, n0_{height}, element_{}, column_{}, row_{height + 1} {
-  Index nb_nonzero{0};
-  for (Index i{0}; i < column.size(); ++i) {
+  Index nb_nonzero = 0;
+  for (Index i = 0; i < column.size(); ++i) {
     nb_nonzero += column[i].size();
   }
 
   element_.resize(nb_nonzero);
   column_.resize(nb_nonzero);
   row_[0] = 0;
-  for (Index i{0}; i < column.size(); ++i) {
-    for (Index k{0}; k < column[i].size(); ++k) {
+  for (Index i = 0; i < column.size(); ++i) {
+    for (Index k = 0; k < column[i].size(); ++k) {
       column_[row_[i] + k] = column[i][k];
     }
     row_[i + 1] = row_[i] + column[i].size();
@@ -114,7 +114,7 @@ SparseMatrixCSR<Index, T>::SparseMatrixCSR(
     il::int_t n, const il::Array<il::StaticArray<Index, 2>> &position, il::io_t,
     il::Array<Index> &index)
     : element_{}, column_{}, row_{} {
-  IL_ASSERT(n >= 0);
+  IL_EXPECT_FAST(n >= 0);
   //
   // element_
   // column_
@@ -240,23 +240,23 @@ T &SparseMatrixCSR<Index, T>::operator[](il::int_t k) {
 
 template <typename Index, typename T>
 T const &SparseMatrixCSR<Index, T>::operator()(il::int_t i, il::int_t k) const {
-  IL_ASSERT(static_cast<il::uint_t>(i) < static_cast<il::uint_t>(n0_));
-  IL_ASSERT(static_cast<il::uint_t>(row_[i] + k) <
-            static_cast<il::uint_t>(row_[i + 1]));
+  IL_EXPECT_FAST(static_cast<std::size_t>(i) < static_cast<std::size_t>(n0_));
+  IL_EXPECT_FAST(static_cast<std::size_t>(row_[i] + k) <
+            static_cast<std::size_t>(row_[i + 1]));
   return element_[row_[i] + k];
 }
 
 template <typename Index, typename T>
 T &SparseMatrixCSR<Index, T>::operator()(il::int_t i, il::int_t k) {
-  IL_ASSERT(static_cast<il::uint_t>(i) < static_cast<il::uint_t>(n0_));
-  IL_ASSERT(static_cast<il::uint_t>(row_[i] + k) <
-            static_cast<il::uint_t>(row_[i + 1]));
+  IL_EXPECT_FAST(static_cast<std::size_t>(i) < static_cast<std::size_t>(n0_));
+  IL_EXPECT_FAST(static_cast<std::size_t>(row_[i] + k) <
+            static_cast<std::size_t>(row_[i + 1]));
   return element_[row_[i] + k];
 }
 
 template <typename Index, typename T>
 il::int_t SparseMatrixCSR<Index, T>::size(il::int_t d) const {
-  IL_ASSERT_BOUNDS(static_cast<il::uint_t>(d) < static_cast<il::uint_t>(2));
+  IL_EXPECT_MEDIUM(static_cast<std::size_t>(d) < static_cast<std::size_t>(2));
   return (d == 0) ? n0_ : n1_;
 }
 
@@ -314,8 +314,8 @@ template <typename Index>
 inline double norm(const il::SparseMatrixCSR<Index, double> &A, Norm norm_type,
                    const il::Array<double> &beta,
                    const il::Array<double> &alpha) {
-  IL_ASSERT(alpha.size() == A.size(0));
-  IL_ASSERT(beta.size() == A.size(1));
+  IL_EXPECT_FAST(alpha.size() == A.size(0));
+  IL_EXPECT_FAST(beta.size() == A.size(1));
 
   double norm = 0.0;
   switch (norm_type) {
@@ -329,7 +329,7 @@ inline double norm(const il::SparseMatrixCSR<Index, double> &A, Norm norm_type,
       }
       break;
     default:
-      IL_ASSERT(false);
+      IL_EXPECT_FAST(false);
   }
 
   return norm;

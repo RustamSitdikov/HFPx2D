@@ -14,8 +14,6 @@
 #include <cstring>
 // <initializer_list> is needed for std::initializer_list<T>
 #include <initializer_list>
-// <type_traits> is needed for std::is_pod
-#include <type_traits>
 
 #include <il/base.h>
 
@@ -64,7 +62,7 @@ class StaticArray {
   // \details Access (read only) the i-th element of the array. Bound
   // checking is done in debug mode but not in release mode.
   //
-  // il::StaticArray<il::int_t, 4> v{0};
+  // il::StaticArray<il::int_t, 4> v = 0;
   // std::cout << v[0] << std::endl;
   */
   const T& operator[](il::int_t i) const;
@@ -83,17 +81,17 @@ class StaticArray {
   /* \brief Accessor on the last element for a const il::SaticArray<T, n>
   // \details This method does not compile for empty vectors
   */
-  const T& last() const;
+  const T& back() const;
 
   /* \brief Accessor on the last element
   // \details This method does not compile for empty vectors
   */
-  T& last();
+  T& back();
 
   /* \brief Get the size of the il::StaticArray<T, n>
   //
   // il::StaticArray<double, 4> v{};
-  // for (il::int_t i{0}; i < v.size(); ++i) {
+  // for (il::int_t i = 0; i < v.size(); ++i) {
   //     v[i] = 1 / static_cast<double>(i);
   // }
   */
@@ -130,9 +128,9 @@ class StaticArray {
 
 template <typename T, il::int_t n>
 StaticArray<T, n>::StaticArray() {
-  if (std::is_pod<T>::value) {
+  if (il::is_trivial<T>::value) {
 #ifdef IL_DEFAULT_VALUE
-    for (il::int_t i{0}; i < n; ++i) {
+    for (il::int_t i = 0; i < n; ++i) {
       data_[i] = il::default_value<T>();
     }
 #endif
@@ -141,18 +139,19 @@ StaticArray<T, n>::StaticArray() {
 
 template <typename T, il::int_t n>
 StaticArray<T, n>::StaticArray(const T& value) {
-  for (il::int_t i{0}; i < n; ++i) {
+  for (il::int_t i = 0; i < n; ++i) {
     data_[i] = value;
   }
 }
 
 template <typename T, il::int_t n>
 StaticArray<T, n>::StaticArray(il::value_t, std::initializer_list<T> list) {
-  IL_ASSERT(n == static_cast<il::int_t>(list.size()));
-  if (std::is_pod<T>::value) {
+  IL_EXPECT_FAST(static_cast<std::size_t>(n) == list.size());
+
+  if (il::is_trivial<T>::value) {
     memcpy(data_, list.begin(), n * sizeof(T));
   } else {
-    for (il::int_t i{0}; i < n; ++i) {
+    for (il::int_t i = 0; i < n; ++i) {
       data_[i] = *(list.begin() + i);
     }
   }
@@ -160,25 +159,25 @@ StaticArray<T, n>::StaticArray(il::value_t, std::initializer_list<T> list) {
 
 template <typename T, il::int_t n>
 const T& StaticArray<T, n>::operator[](il::int_t i) const {
-  IL_ASSERT_BOUNDS(static_cast<il::uint_t>(i) < static_cast<il::uint_t>(n));
+  IL_EXPECT_MEDIUM(static_cast<std::size_t>(i) < static_cast<std::size_t>(n));
   return data_[i];
 }
 
 template <typename T, il::int_t n>
 T& StaticArray<T, n>::operator[](il::int_t i) {
-  IL_ASSERT_BOUNDS(static_cast<il::uint_t>(i) < static_cast<il::uint_t>(n));
+  IL_EXPECT_MEDIUM(static_cast<std::size_t>(i) < static_cast<std::size_t>(n));
   return data_[i];
 }
 
 template <typename T, il::int_t n>
-const T& StaticArray<T, n>::last() const {
+const T& StaticArray<T, n>::back() const {
   static_assert(n > 0,
                 "il::StaticArray<T, n>: n must be positive to call last()");
   return data_[n - 1];
 }
 
 template <typename T, il::int_t n>
-T& StaticArray<T, n>::last() {
+T& StaticArray<T, n>::back() {
   static_assert(n > 0,
                 "il::StaticArray<T, n>: n must be positive to call last()");
   return data_[n - 1];

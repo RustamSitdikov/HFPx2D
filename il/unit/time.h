@@ -19,14 +19,14 @@ namespace il {
 const double nanosecond{1.0e-9};
 const double microsecond{1.0e-6};
 const double millisecond{1.0e-3};
-const double second{1.0};
-const double minute{60.0};
+const double second = 1.0;
+const double minute = 60.0;
 const double hour{60.0 * minute};
 const double day{24.0 * hour};
 const double year{365.0 * day};
 
 inline std::string time_to_string(double time) {
-  IL_ASSERT(time >= 0);
+  IL_EXPECT_FAST(time >= 0);
 
   if (time == 0.0) {
     return std::string{"0 second"};

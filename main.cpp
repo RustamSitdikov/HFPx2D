@@ -6,27 +6,7 @@
 // See the LICENSE.TXT file for more details.
 //
 
-//using namespace hfp_opening;
 
-//#include <cmath>
-//#include <complex>
-//#include <iostream>
-//#include <string>
-//
-//#include <il/Array.h>
-//#include <il/math.h>
-////#include <il/Array2C.h>
-//#include <il/StaticArray.h>
-//#include <il/linear_algebra.h>
-////#include <il/linear_algebra/dense/factorization/LU.h>
-//
-//#include "AssemblyDDM.h"
-//#include "DOF_Handles.h"
-//#include "Mesh.h"
-//#include "Stress.h"
-//#include "Coh_Propagation.h"
-//#include "Coh_Prop_new.h"
-//#include <fstream>
 
 #include <cmath>
 #include <complex>
@@ -49,7 +29,7 @@
 #include "Coh_Prop_Col.h"
 #include "src/FVM.h"
 
-//#include "Coh_Prop_new.h"
+
 ////////////////////////////////////////////////////////////////////////////////
 // analytical solution of the griffith-crack (ct pressure)
 il::Array<double> griffithcrack(const il::Array<double>& x, double a, double Ep,
@@ -67,13 +47,13 @@ il::Array<double> griffithcrack(const il::Array<double>& x, double a, double Ep,
 
 ////////////////////////////////////////////////////////////////////////////////
 int main() {
-        int nelts = 100, p = 1 ;
+        int nelts = 400, p = 1 ;
         double h = 2. / (nelts);  //  element size
 
         il::Array<double> x{nelts+1};
 
         il::Array2D<double> xy{nelts+1, 2, 0.0};
-        il::Array2D<int> myconn{nelts, 2, 0.0};
+        il::Array2D<int> myconn{nelts, 2, 0};
         il::Array2D<int> id{nelts, 4, 0};
 
         int ndof = (nelts) * (p + 1) * 2;  // number of dofs
@@ -132,21 +112,8 @@ int main() {
         }
 
         il::Status status;
-        // example if LU decomposition
-        //  il::LU<il::Array2D<double>> lu_decomposition(K, il::io, status);
-        //  if (!status.ok()) {
-        //    // The matrix is singular to the machine precision. You should deal with
-        //    the error.
-        //  }
-        // il::Array<double> dd = lu_decomposition.solve(f);
 
-        // use a direct solver
         il::Array<double> dd = il::linear_solve(K, f, il::io, status);  // lu_decomposition.solve(f);
-//
-
-
-
-
 
 
   //we add here to test the propagation code.
@@ -155,13 +122,14 @@ int main() {
     il::Array<double> l_coh;
     il::Array<double> l_c;
     il::Array2C<double> cohlist;
+    il::Array2C<double> stresslist;
   hfp2d::Material material;
   hfp2d::Initial_condition initial_condition;
 
  // material_condition(0.001, 2.,100.0,0,
  //         0.00001,0.0005,1,0,il::io,material, initial_condition);
-    hfp2d::material_condition_col (0.001, 2.,100.0,0,
-                       0.00001,0.0005,1,0,il::io,material, initial_condition);
+    hfp2d::material_condition_col (0.001, 2.,100.0,0.,
+                       0.00001,0.0005,0.2,0.,il::io,material, initial_condition);
 //  void material_condition(Material &material, Initial_condition &initial_condition,
 //                          double wc1, double sigma_t1,double Ep1,double U1,
 //                          double pini1,double Q01,double timestep1,double sigma01);
@@ -171,15 +139,28 @@ int main() {
 
     il::Array<double> widthB;
     il::Array<int> mvalue;
+
+    int nstep=168;
     int break_time=0;
 
     il::Status status2;
   //propagation_loop_new(mesh,id,p,material,initial_condition,199,201,28,status2,il::io,widthlist,plist,l_coh,l_c,cohlist);
   //il::Array<double> xlist{2*mesh.nelts(),0.};
   //get_xlist(xlist,mesh);
-    hfp2d::propagation_loop_col(mesh,id,p,material,initial_condition,49,51,68,status2,il::io,widthlist,plist,l_coh,l_c,cohlist,mvalue,break_time);
-    std::cout<<"Oups! At the "<<break_time<< "th time step, the fracture reaches the mesh end point"<<"\n";
+    hfp2d::propagation_loop_col(mesh,id,p,material,initial_condition,199,201,nstep,status2,il::io,widthlist,plist,l_coh,l_c,cohlist,mvalue,break_time,stresslist);
+    if(break_time!=nstep){
+        std::cout<<"Oups! At the "<<break_time<< "th time step, the fracture reaches the mesh end point"<<"\n";
+    }
     std::cout<<"To draw the curves,nstep="<<break_time<<"\n";
+
+    std::ofstream foutlc;
+    foutlc.open("cracklength.txt");
+    for(int lca=0;lca<break_time;++lca){
+        foutlc<<l_c[lca]<<"\n";
+    }
+    foutlc.close();
+
+
     std::ofstream foutit;
     foutit.open("iteration.txt");
     for(int itera=0;itera<break_time;++itera){
@@ -191,15 +172,8 @@ int main() {
     hfp2d::get_xlist_col(xlist,mesh);
   std::ofstream fout;
   fout.open("outputcn1.txt");
-//    fout<<initial_condition.timestep<<"\n";
-//    for(int pp=0;pp<plist.size();++pp){
-//        fout<<plist[pp]<<"\t";
-//    }
-//    fout<<"\n";
-//    for (int xx = 0; xx <xlist.size() ; ++xx) {
-//        fout<<xlist[xx]<<"\t";
-//    }
-//    fout<<"\n";
+
+
   for(int qq=0;qq<break_time;++qq){//qq<widthlist.size(0)
     for(int qqq=0;qqq<widthlist.size(1);++qqq){
       fout<<widthlist(qq,qqq)<<"\t";
@@ -210,15 +184,7 @@ int main() {
 
   std::ofstream fout1;
   fout1.open("outputpressurecn1.txt");
-//    fout<<initial_condition.timestep<<"\n";
-//    for(int pp=0;pp<plist.size();++pp){
-//        fout<<plist[pp]<<"\t";
-//    }
-//    fout<<"\n";
-//    for (int xx = 0; xx <xlist.size() ; ++xx) {
-//        fout<<xlist[xx]<<"\t";
-//    }
-//    fout<<"\n";
+
   for(int mm=0;mm<break_time+1;++mm){//mm<plist.size()
       fout1<<plist[mm]<<"\n";
     }
@@ -242,7 +208,15 @@ int main() {
     }
     foutf.close();
 
-
+    std::ofstream foutstress;
+    foutstress.open("outputstresscn1.txt");
+    for(int cstr=0;cstr<break_time;++cstr){//cf<cohlist.size(0)
+        for(int cstre=0;cstre<cohlist.size(1);++cstre){
+            foutstress<<stresslist(cstr,cstre)<<"\t";
+        }
+        foutstress<<"\n";
+    }
+    foutstress.close();
 
 
 
