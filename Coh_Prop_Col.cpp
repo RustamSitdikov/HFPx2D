@@ -253,10 +253,11 @@ namespace hfp2d {
                        const il::Array2D<int> &id,
                        const il::Array2D<int> &col_matrix,
                        const il::int_t &dof_dim,il::io_t,
-                       double &length_coh, double &crack_length) {
+                       double &length_coh, double &crack_length ,double &energy_j) {
 
         crack_length = 0.;
         length_coh = 0.;
+        energy_j=0.;
         //il::Array<double> width_etoc=width_edge_col(width,p);
 
         for (il::int_t s = 0; s < c_j - c_i + 1; ++s) {
@@ -283,6 +284,8 @@ namespace hfp2d {
                 if (width_large[id(s1,1)] < material.wc
                     and width_large[id(s1,dof_dim+1)] < material.wc) {
                     length_coh += segi1.size;
+                    energy_j+=(width_large[id(s1,dof_dim+1)]+
+                            width_large[id(s1,1)])*material.sigma_t*0.5*segi1.size;//
                 }
                 else {
                     double small;
@@ -294,6 +297,9 @@ namespace hfp2d {
                     };
                     length_coh += segi1.size * (material.wc - small) /
                                   fabs(width_large[id(s1,dof_dim+1)] - width_large[id(s1,1)]);
+                    energy_j+=(small+material.wc)*(material.wc-small)/
+                            fabs(width_large[id(s1,dof_dim+1)] - width_large[id(s1,1)])
+                              *material.sigma_t*0.5*segi1.size;//
                 }
             };
         };
@@ -474,7 +480,7 @@ namespace hfp2d {
                          il::Array<double> &plist, il::Array<double> &l_coh,
                          il::Array<double> &l, il::Array2C<double> &coh_list,
                          il::Array<int> &mvalue,int &break_time,
-                         il::Array2C<double> &stress_list) {
+                         il::Array2C<double> &stress_list, il::Array<double> &energy_g) {
 
         int n = mesh_total.nelts();
         IL_EXPECT_FAST(n == id.size(0));
@@ -514,17 +520,25 @@ namespace hfp2d {
         double time = 0;
         bool break_value=false;
         bool break_value_2=false;
-        il::Array<double> crack_length{nstep, 0.};
+        il::Array<double> crack_length{nstep+1, 0.};
         il::Array<double> length_coh{nstep, 0.};
+        il::Array<double> energy_j{nstep, 0.};
 
         il::Array2C<double> coh_tt{nstep, ttn, 0.};
         il::Array<double> coht{ttn, 0.};
 
         il::int_t c_i =col_matrix(i0,0);
         il::int_t c_j =col_matrix(j0,1);
+        double l0=0.;
+        for(il::int_t ei=i0;ei<j0+1;ei++){
+            SegmentCharacteristic segi = get_segment_DD_characteristic(
+                    mesh_total, int(ei), p);
+            l0+=segi.size;
+        }
+        crack_length[0]=l0;
+
 
         break_time=nstep;
-
 
 
         while (s < nstep) {
@@ -602,7 +616,7 @@ namespace hfp2d {
 
             cc_length_col(mesh_total, material, width_large, i, j, c_i,c_j,
                           width_history, p,id,col_matrix,dof_dim, il::io,
-                          length_coh[s], crack_length[s]);
+                          length_coh[s], crack_length[s+1],energy_j[s]);
 
             width_history = write_history_col(width, width_history, c_i,c_j,
                                               col_matrix, material,p,dof_dim,id);
@@ -630,11 +644,135 @@ namespace hfp2d {
         l = crack_length;
         l_coh = length_coh;
         coh_list = coh_tt;
+        energy_g=energy_j;
         mvalue=m_value;
         stress_list=stress_profile;
         //to output the iteration times in plasticity_loop to get the solution
         status.abort_on_error();
     }
+
+    void energy_output(il::Array2C<double> widthlist,il::Array<double> plist,
+                       il::Array<double> l_c,il::Array<double> l_coh,
+                       Material material,Mesh mesh_total,il::Array2D<int> &id,
+                       const int &p,const int &dof_dim, Initial_condition initial_condition,
+                       il::io_t,
+                       il::Array<double> &energy_ff,
+                       il::Array<double> &energy_coh,
+                       il::Array<double> &energy_j_int){
+        il::int_t n=widthlist.size(0);
+        il::int_t nc=widthlist.size(1);
+        //il::Array<double> energy_p {n,0.};
+        il::Array<double> energy_f {n,0.};
+        il::Array<double> energy_coh_k{n,0.};
+        //il::Array<double> energy_g{n,0.};
+        il::Array<double> energy_j_integral{n+1,0.};
+
+
+
+        for(int s=0;s<n;s++){
+            energy_f[s]=3.1415926*l_c[s+1]*plist[s+1]*plist[s+1]/material.Ep;
+            energy_coh_k[s]=material.sigma_t*material.sigma_t*8/3.1415926/material.Ep*l_coh[s];
+
+            energy_j_integral[s+1]=initial_condition.Q0*plist[s+1]*initial_condition.timestep;
+
+
+
+//            if(l_c[s+1]-l_c[s]>l_coh[s]){
+//                if(s==0){
+//                    energy_g[s]=energy[s]+material.sigma_t*material.wc*(l_c[s+1]-l_c[s]-l_coh[s]);
+//                }
+//                else{
+//                    energy_g[s]=energy[s]+material.sigma_t*material.wc*(l_c[s+1]-l_c[s]+l_coh[s-1]-l_coh[s])-energy[s-1];
+//                }
+//            }
+//            else{
+//                if(s==0){
+//                    energy_g[s]=energy[s];
+//                }
+//                else{
+//                    energy_g[s]=energy[s]-energy[s-1]+material.sigma_t*material.wc*(l_c[s+1]-l_c[s]+l_coh[s-1]-l_coh[s]);
+//                }
+//
+//            }
+            for(int sc=1;sc<nc;sc+=dof_dim){
+                il::Array2D<int> ne=search(id,sc,il::io);
+                SegmentCharacteristic segi = get_segment_DD_characteristic(
+                        mesh_total, ne(0,0), p);
+
+                if(s==0){
+                    //energy_p[s]+=1./2.*widthlist(s,sc)*plist[s+1]*0.5*segi.size;
+                    energy_j_integral[s+1]-=0.5*(plist[s+1]*widthlist(s,sc))*0.5*segi.size;
+
+                }
+                else{
+                    //energy_p[s]+=1./2.*(2*plist[s+1]*widthlist(s,sc)-plist[s+1]*widthlist(s-1,sc)-plist[s]*widthlist(s,sc))*0.5*segi.size;
+                    energy_j_integral[s+1]-=0.5*(plist[s+1]*widthlist(s,sc)-plist[s]*widthlist(s-1,sc))*0.5*segi.size;
+//                    if(widthlist(s-1,sc)>0.){
+//                        if(l_c[s+1]-l_c[s]<=l_coh[s] && widthlist(s-1,sc)<material.wc){
+//                            if(widthlist(s,sc)<material.wc){
+//                                energy_g[s]-=material.sigma_t*widthlist(s-1,sc)*0.5*segi.size;
+//                            }
+//                            else{
+//                                energy_g[s]+=material.sigma_t*(material.wc-widthlist(s-1,sc))*0.5*segi.size;
+//                            }
+//                        }
+//                    }
+                }
+            }
+            double energy_middle=energy_j_integral[s+1];
+            //this is the energy ratio //energy_j_integral[s+1]=energy_middle/(l_c[s+1]-l_c[s])/material.sigma_t/material.wc;
+            energy_j_integral[s+1]=energy_middle-(l_c[s+1]-l_c[s])*material.sigma_t*material.wc;
+
+            //to calculate the slope, corresponding to the energy release rate
+//            if(s==0){
+//                energy_f[s]=energy_p[s];
+//            }
+//            else{
+//                energy_f[s]=energy_p[s]-energy_p[s-1];
+//            }
+
+        }
+        energy_ff=energy_f;
+        //energy_pp=energy_p;
+        energy_coh=energy_coh_k;
+        //energy_gg=energy_g;
+        energy_j_int=energy_j_integral;
+    }
+    il::Array<double> volume_output(il::Array2C<double> &widthlist, const int &dof_dim){
+        il::int_t n=widthlist.size(0);
+        il::int_t nc=widthlist.size(1);
+        il::Array<double> volume_change{n,0.};
+        for(int s=0;s<n;s++){
+            for(int sc=1;sc<nc;sc+=dof_dim){
+                if(s==0){
+                    volume_change[s]+=widthlist(s,sc);
+                }
+                else{
+                    volume_change[s]+=widthlist(s,sc)-widthlist(s-1,sc);
+                }
+            }
+        }
+        return volume_change;
+    }
+
+    il::Array2C<double> deal_with_stress(il::Array2C<double> stresslist,
+                                         il::Array2C<double> cohlist,
+                                         il::Array<double> plist,
+                                         Initial_condition initial_condition){
+        il::Array2C<double> stresslist_new=stresslist;
+        il::int_t n=stresslist.size(0);
+        il::int_t nc=stresslist.size(1);
+        for(il::int_t s=0;s<n;s++){
+            for(il::int_t sc=0;sc<nc;sc++){
+                if(cohlist(s,sc)!=0){
+                    stresslist_new(s,sc)=stresslist(s,sc)+plist[s+1]-initial_condition.sigma0;
+                    //because the stress=K*w+pf-confining pressure, and this is only true for the stress inside te crack
+                }
+            }
+        }
+        return stresslist_new;
+    }
+
 
 
     void get_xlist_col(il::Array<double> &xlist, Mesh mesh_total) {

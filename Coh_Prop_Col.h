@@ -81,7 +81,7 @@ namespace hfp2d {
                        const il::Array2D<int> &id,
                        const il::Array2D<int> &col_matrix, const il::int_t &dof_dim,
                        il::io_t,
-                       double &length_coh, double &crack_length);
+                       double &length_coh, double &crack_length,double &energy_j);
 
 
     il::Array<double> initialwidth_col(const il::Array2D<double> &kmat,
@@ -129,10 +129,26 @@ namespace hfp2d {
                          il::Array<double> &plist,
                          il::Array<double> &l_coh, il::Array<double> &l,
                          il::Array2C<double> &coh_list, il::Array<int> &mvalue,
-                         int &break_time,il::Array2C<double> &stress_list);
+                         int &break_time,il::Array2C<double> &stress_list,il::Array<double> &energy_g);
 
 
     void get_xlist_col(il::Array<double> &xlist, Mesh mesh_total);
+
+    void energy_output(il::Array2C<double> widthlist,il::Array<double> plist,
+                       il::Array<double> l_c,il::Array<double> l_coh,
+                       Material material,Mesh mesh_total,il::Array2D<int> &id,
+                       const int &p,const int &dof_dim, Initial_condition initial_condition,
+                       il::io_t,
+                       il::Array<double> &energy_ff,
+                       il::Array<double> &energy_coh,
+                       il::Array<double> &energy_j_int);
+
+    il::Array<double> volume_output(il::Array2C<double> &widthlist, const int &dof_dim);
+
+    il::Array2C<double> deal_with_stress(il::Array2C<double> stresslist,
+                                         il::Array2C<double> cohlist,
+                                         il::Array<double> plist,
+                                         Initial_condition initial_condition);
 
 }
 
