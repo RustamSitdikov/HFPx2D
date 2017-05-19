@@ -26,10 +26,11 @@ set(SOURCE_FILES  main.cpp
         ${SOURCE_FILES_DIR}/TimeIncr.h
         Stress.cpp Stress.h
         Coh_Prop_Col.cpp Coh_Prop_Col.h
+        Coh_Col_Partial.cpp Coh_Col_Partial.h
         
 
         )#Coh_Prop_new.cpp Coh_Prop_new.h Elasticity2D.cpp Elasticity2D.h Mesh.cpp Mesh.h DOF_Handles.h DOF_Handles.cpp AssemblyDDM.cpp AssemblyDDM.h)# main.cpp Stress.cpp Stress.h Coh_Propagation.cpp Coh_Propagation.h Viscosity.cpp Viscosity.h Coh_Prop_new.cpp Coh_Prop_new.h)
-add_executable(HFPx2D ${SOURCE_FILES})# Stress.cpp Stress.h Coh_Propagation.cpp Coh_Propagation.h Viscosity.cpp Viscosity.h Coh_Prop_new.cpp Coh_Prop_new.h)
+add_executable(HFPx2D ${SOURCE_FILES} )# Stress.cpp Stress.h Coh_Propagation.cpp Coh_Propagation.h Viscosity.cpp Viscosity.h Coh_Prop_new.cpp Coh_Prop_new.h)
 target_compile_definitions(HFPx2D PRIVATE IL_MKL=1 IL_BLAS=1)
 target_include_directories(HFPx2D PRIVATE ${CMAKE_SOURCE_DIR} $ENV{MKLROOT}/include)
 target_link_libraries(HFPx2D mkl_intel_lp64 mkl_core mkl_intel_thread dl iomp5 pthread m)

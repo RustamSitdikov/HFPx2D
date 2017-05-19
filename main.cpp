@@ -28,6 +28,7 @@
 #include "src/Mesh.h"
 #include "Coh_Prop_Col.h"
 #include "src/FVM.h"
+#include "Coh_Col_Partial.h"
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -121,15 +122,22 @@ int main() {
   il::Array<double> plist;
     il::Array<double> l_coh;
     il::Array<double> l_c;
+    il::Array<double> energy;
+    il::Array<double> energy_g;
+    il::Array<double> energy_f;
+    il::Array<double> energy_p;
+    il::Array<double> energy_coh;
+    il::Array<double> energy_j_integral;
     il::Array2C<double> cohlist;
     il::Array2C<double> stresslist;
+    il::Array<double> volume_change;
   hfp2d::Material material;
   hfp2d::Initial_condition initial_condition;
 
  // material_condition(0.001, 2.,100.0,0,
  //         0.00001,0.0005,1,0,il::io,material, initial_condition);
     hfp2d::material_condition_col (0.001, 2.,100.0,0.,
-                       0.00001,0.0005,0.2,0.,il::io,material, initial_condition);
+                       0.00001,0.0005,0.1,0.,il::io,material, initial_condition);
 //  void material_condition(Material &material, Initial_condition &initial_condition,
 //                          double wc1, double sigma_t1,double Ep1,double U1,
 //                          double pini1,double Q01,double timestep1,double sigma01);
@@ -140,18 +148,42 @@ int main() {
     il::Array<double> widthB;
     il::Array<int> mvalue;
 
-    int nstep=168;
+    int nstep=5000;
     int break_time=0;
 
     il::Status status2;
-  //propagation_loop_new(mesh,id,p,material,initial_condition,199,201,28,status2,il::io,widthlist,plist,l_coh,l_c,cohlist);
-  //il::Array<double> xlist{2*mesh.nelts(),0.};
-  //get_xlist(xlist,mesh);
-    hfp2d::propagation_loop_col(mesh,id,p,material,initial_condition,199,201,nstep,status2,il::io,widthlist,plist,l_coh,l_c,cohlist,mvalue,break_time,stresslist);
+
+    //fully filled calculation
+
+//    hfp2d::propagation_loop_col(mesh,id,p,material,initial_condition,399,401,nstep,status2,il::io,widthlist,plist,l_coh,l_c,cohlist,mvalue,break_time,stresslist,energy);
+//
+//    hfp2d::energy_output(widthlist,plist,l_c,l_coh,material,mesh,id,p,2,initial_condition,il::io,energy_f,energy_coh,energy_j_integral);
+//
+//    volume_change=hfp2d::volume_output(widthlist,2);
+//
+//    stresslist=hfp2d::deal_with_stress(stresslist,cohlist,plist,initial_condition);
+
+
+    //partially filled calculation
+
+    hfp2d::propagation_loop_col_partial(mesh,id,p,material,initial_condition,199,201,nstep,status2,il::io,widthlist,plist,l_coh,l_c,cohlist,mvalue,break_time,stresslist,energy);
+
+    volume_change=hfp2d::volume_output(widthlist,2);
+
+    hfp2d::energy_output(widthlist,plist,l_c,l_coh,material,mesh,id,p,2,initial_condition,il::io,energy_f,energy_coh,energy_j_integral);
+
+
+
+
+
     if(break_time!=nstep){
         std::cout<<"Oups! At the "<<break_time<< "th time step, the fracture reaches the mesh end point"<<"\n";
     }
     std::cout<<"To draw the curves,nstep="<<break_time<<"\n";
+
+
+
+
 
     std::ofstream foutlc;
     foutlc.open("cracklength.txt");
@@ -198,6 +230,46 @@ int main() {
     }
     fout2.close();
 
+//energy output
+
+//    std::ofstream fenergy;
+//    fenergy.open("outputenergyg.txt");
+//    for(int ee=0;ee<break_time;++ee){
+//        fenergy<<energy_g[ee]<<"\n";
+//    }
+//    fenergy.close();
+//
+//    std::ofstream fenergy_p;
+//    fenergy_p.open("outputenergyp.txt");
+//    for(int ep=0;ep<break_time;++ep){
+//        fenergy_p<<energy_p[ep]<<"\n";
+//    }
+//    fenergy_p.close();
+
+
+//energy output maybe more important
+
+    std::ofstream fenergy_f;
+    fenergy_f.open("outputenergyf.txt");
+    for(int ef=0;ef<break_time;++ef){
+        fenergy_f<<energy_f[ef]<<"\n";
+    }
+    fenergy_f.close();
+
+    std::ofstream fenergy_coh;
+    fenergy_coh.open("outputenergycoh.txt");
+    for(int ecoh=0;ecoh<break_time;++ecoh){
+        fenergy_coh<<energy_coh[ecoh]<<"\n";
+    }
+    fenergy_coh.close();
+
+    std::ofstream fenergy_j;
+    fenergy_j.open("outputenergyj.txt");
+    for(int ej=0;ej<break_time+1;++ej){
+        fenergy_j<<energy_j_integral[ej]<<"\n";
+    }
+    fenergy_j.close();
+
     std::ofstream foutf;
     foutf.open("outputcohfcn1.txt");
     for(int cf=0;cf<break_time;++cf){//cf<cohlist.size(0)
@@ -217,6 +289,17 @@ int main() {
         foutstress<<"\n";
     }
     foutstress.close();
+
+    std::ofstream fvol;
+    fvol.open("outputvol.txt");
+
+    for(int v=0;v<break_time;++v){//mm<plist.size()
+        fvol<<volume_change[v]<<"\n";
+    }
+
+    fvol.close();
+
+
 
 
 
