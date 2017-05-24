@@ -29,6 +29,7 @@
 #include "Coh_Prop_Col.h"
 #include "src/FVM.h"
 #include "Coh_Col_Partial.h"
+#include "Coh_Linear_softening.h"
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -134,16 +135,35 @@ int main() {
   hfp2d::Material material;
   hfp2d::Initial_condition initial_condition;
 
- // material_condition(0.001, 2.,100.0,0,
- //         0.00001,0.0005,1,0,il::io,material, initial_condition);
+    //For Dugdale cohesive law
+
     hfp2d::material_condition_col (0.001, 2.,100.0,0.,
                        0.00001,0.0005,0.1,0.,il::io,material, initial_condition);
+
 //  void material_condition(Material &material, Initial_condition &initial_condition,
 //                          double wc1, double sigma_t1,double Ep1,double U1,
 //                          double pini1,double Q01,double timestep1,double sigma01);
-
     //wc before=0.0001 changes on the 7th April
 //tstepbefore=0.01 changes on the 7th April
+
+
+    //For linear softening cohesive law
+    // sigma_T should be doubled in order to have the same Gc
+    // or wc should be doubled
+
+    //hfp2d::material_condition_col (0.001*2, 2.,100.0,0.,
+     //                              0.00001,0.0080,0.1,0.,il::io,material, initial_condition);
+
+    //For exponential cohesive law
+    //sigma T or wc should be times a constant 6/exp(1.0)/0.95
+    //hfp2d::material_condition_col (0.001, 2.*6/exp(1.0)/0.95,100.0,0.,
+     //                              0.00001,0.0040,0.1,0.,il::io,material, initial_condition);
+
+
+
+
+
+
 
     il::Array<double> widthB;
     il::Array<int> mvalue;
@@ -155,22 +175,33 @@ int main() {
 
     //fully filled calculation
 
-//    hfp2d::propagation_loop_col(mesh,id,p,material,initial_condition,399,401,nstep,status2,il::io,widthlist,plist,l_coh,l_c,cohlist,mvalue,break_time,stresslist,energy);
+    hfp2d::propagation_loop_col(mesh,id,p,material,initial_condition,199,201,nstep,status2,il::io,widthlist,plist,l_coh,l_c,cohlist,mvalue,break_time,stresslist,energy);
+
+    hfp2d::energy_output(widthlist,plist,l_c,l_coh,material,mesh,id,p,2,initial_condition,il::io,energy_f,energy_coh,energy_j_integral);
+
+    volume_change=hfp2d::volume_output(widthlist,2);
+
+    stresslist=hfp2d::deal_with_stress(stresslist,cohlist,plist,initial_condition);
+
+
+    //partially filled calculation
+
+//    hfp2d::propagation_loop_col_partial(mesh,id,p,material,initial_condition,399,401,nstep,status2,il::io,widthlist,plist,l_coh,l_c,cohlist,mvalue,break_time,stresslist,energy);
+//
+//    volume_change=hfp2d::volume_output(widthlist,2);
+//
+//    hfp2d::energy_output_partial(widthlist,plist,l_c,l_coh,cohlist,material,mesh,id,p,2,initial_condition,il::io,energy_f,energy_coh,energy_j_integral);
+
+
+    //linear softening cohesive law, based on the fully-filled case
+
+//    hfp2d::propagation_loop_linear(mesh,id,p,material,initial_condition,199,201,nstep,status2,il::io,widthlist,plist,l_coh,l_c,cohlist,mvalue,break_time,stresslist,energy);
 //
 //    hfp2d::energy_output(widthlist,plist,l_c,l_coh,material,mesh,id,p,2,initial_condition,il::io,energy_f,energy_coh,energy_j_integral);
 //
 //    volume_change=hfp2d::volume_output(widthlist,2);
 //
 //    stresslist=hfp2d::deal_with_stress(stresslist,cohlist,plist,initial_condition);
-
-
-    //partially filled calculation
-
-    hfp2d::propagation_loop_col_partial(mesh,id,p,material,initial_condition,199,201,nstep,status2,il::io,widthlist,plist,l_coh,l_c,cohlist,mvalue,break_time,stresslist,energy);
-
-    volume_change=hfp2d::volume_output(widthlist,2);
-
-    hfp2d::energy_output(widthlist,plist,l_c,l_coh,material,mesh,id,p,2,initial_condition,il::io,energy_f,energy_coh,energy_j_integral);
 
 
 
