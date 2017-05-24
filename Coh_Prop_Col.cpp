@@ -673,7 +673,7 @@ namespace hfp2d {
             energy_f[s]=3.1415926*l_c[s+1]*plist[s+1]*plist[s+1]/material.Ep;
             energy_coh_k[s]=material.sigma_t*material.sigma_t*8/3.1415926/material.Ep*l_coh[s];
 
-            energy_j_integral[s+1]=initial_condition.Q0*plist[s+1]*initial_condition.timestep;
+            energy_j_integral[s+1]=0.5*initial_condition.Q0*plist[s+1]*initial_condition.timestep;
 
 
 
@@ -702,11 +702,17 @@ namespace hfp2d {
                 if(s==0){
                     //energy_p[s]+=1./2.*widthlist(s,sc)*plist[s+1]*0.5*segi.size;
                     energy_j_integral[s+1]-=0.5*(plist[s+1]*widthlist(s,sc))*0.5*segi.size;
+                    if(widthlist(s,sc)<material.wc && widthlist(s,sc)>0.){
+                        energy_j_integral[s+1]-=0.5*material.sigma_t*widthlist(s,sc)*0.5*segi.size;
+                    }
 
                 }
                 else{
                     //energy_p[s]+=1./2.*(2*plist[s+1]*widthlist(s,sc)-plist[s+1]*widthlist(s-1,sc)-plist[s]*widthlist(s,sc))*0.5*segi.size;
-                    energy_j_integral[s+1]-=0.5*(plist[s+1]*widthlist(s,sc)-plist[s]*widthlist(s-1,sc))*0.5*segi.size;
+                    energy_j_integral[s+1]-=0.5*(plist[s+1]-plist[s])*widthlist(s,sc)*0.5*segi.size;
+                    if(widthlist(s,sc)<material.wc && widthlist(s,sc)>0.){
+                        energy_j_integral[s+1]-=0.5*material.sigma_t*(widthlist(s,sc)-widthlist(s-1,sc))*0.5*segi.size;
+                    }
 //                    if(widthlist(s-1,sc)>0.){
 //                        if(l_c[s+1]-l_c[s]<=l_coh[s] && widthlist(s-1,sc)<material.wc){
 //                            if(widthlist(s,sc)<material.wc){
@@ -722,6 +728,7 @@ namespace hfp2d {
             double energy_middle=energy_j_integral[s+1];
             //this is the energy ratio //energy_j_integral[s+1]=energy_middle/(l_c[s+1]-l_c[s])/material.sigma_t/material.wc;
             energy_j_integral[s+1]=energy_middle-(l_c[s+1]-l_c[s])*material.sigma_t*material.wc;
+            energy_j_integral[s+1]=energy_j_integral[s+1]/initial_condition.Q0/initial_condition.timestep/material.sigma_t;
 
             //to calculate the slope, corresponding to the energy release rate
 //            if(s==0){
