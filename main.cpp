@@ -50,7 +50,7 @@ il::Array<double> griffithcrack(const il::Array<double>& x, double a, double Ep,
 
 ////////////////////////////////////////////////////////////////////////////////
 int main() {
-        int nelts = 400, p = 1 ;
+        int nelts = 100, p = 1 ;
         double h = 2. / (nelts);  //  element size
 
         il::Array<double> x{nelts+1};
@@ -178,7 +178,7 @@ int main() {
     il::Array<double> widthB;
     il::Array<int> mvalue;
 
-    int nstep=10;
+    int nstep=20;
     int break_time=0;
 
     il::Status status2;
@@ -221,7 +221,7 @@ int main() {
     // Remember: continuous linear variation -> rho_2right = rho_1left and so on..
 
     double CompressFluid=0;
-    double Visc=0.1;//0.001;
+    double Visc=0.001;
     double Density=1.;
 
     il::Array2D<double> rho{nelts, 2, Density};
@@ -232,7 +232,7 @@ int main() {
     fluid_parameters.compressibility = CompressFluid;
     fluid_parameters.density = rho;
     fluid_parameters.viscosity = Visc;
-    hfp2d::propagation_loop_visco(mesh,id,p,material,initial_condition,199,200,nstep,status2,fluid_parameters,il::io,widthlist,plist_2d,l_coh,l_c,cohlist,mvalue,break_time,stresslist,energy,volume_vary_list,elastic_vary_list);
+    hfp2d::propagation_loop_visco(mesh,id,p,material,initial_condition,49,50,nstep,status2,fluid_parameters,il::io,widthlist,plist_2d,l_coh,l_c,cohlist,mvalue,break_time,stresslist,energy,volume_vary_list,elastic_vary_list);
 
     timerwhole.stop();
     std::cout << "------ " << timerwhole.elapsed() << "  \n";
