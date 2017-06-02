@@ -30,6 +30,7 @@
 #include "src/FVM.h"
 #include "Coh_Col_Partial.h"
 #include "Coh_Linear_softening.h"
+#include "Viscosity.h"
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -117,10 +118,17 @@ int main() {
 
         il::Array<double> dd = il::linear_solve(K, f, il::io, status);  // lu_decomposition.solve(f);
 
+    std::cout << "------\n";
+    std::time_t resultwhole = std::time(nullptr);
+    std::cout << std::asctime(std::localtime(&resultwhole));
+    il::Timer timerwhole{};
+    timerwhole.start();
+
 
   //we add here to test the propagation code.
   il::Array2C<double> widthlist;
   il::Array<double> plist;
+    il::Array2D<double> plist_2d;
     il::Array<double> l_coh;
     il::Array<double> l_c;
     il::Array<double> energy;
@@ -132,13 +140,15 @@ int main() {
     il::Array2C<double> cohlist;
     il::Array2C<double> stresslist;
     il::Array<double> volume_change;
+    il::Array2D<double> volume_vary_list;
+    il::Array2D<double> elastic_vary_list;
   hfp2d::Material material;
   hfp2d::Initial_condition initial_condition;
 
     //For Dugdale cohesive law
 
-    hfp2d::material_condition_col (0.001, 2.,100.0,0.,
-                       0.00001,0.0005,0.1,0.,il::io,material, initial_condition);
+//    hfp2d::material_condition_col (0.001, 2.,100.0,0.,
+//                       0.00001,0.0005,1.,0.,il::io,material, initial_condition);
 
 //  void material_condition(Material &material, Initial_condition &initial_condition,
 //                          double wc1, double sigma_t1,double Ep1,double U1,
@@ -151,8 +161,8 @@ int main() {
     // sigma_T should be doubled in order to have the same Gc
     // or wc should be doubled
 
-    //hfp2d::material_condition_col (0.001*2, 2.,100.0,0.,
-     //                              0.00001,0.0080,0.1,0.,il::io,material, initial_condition);
+    hfp2d::material_condition_col (0.001*2, 2.,100.0,0.,
+                                   0.00001,0.0005,1,0.,il::io,material, initial_condition);
 
     //For exponential cohesive law
     //sigma T or wc should be times a constant 6/exp(1.0)/0.95
@@ -168,20 +178,20 @@ int main() {
     il::Array<double> widthB;
     il::Array<int> mvalue;
 
-    int nstep=5000;
+    int nstep=10;
     int break_time=0;
 
     il::Status status2;
 
     //fully filled calculation
 
-    hfp2d::propagation_loop_col(mesh,id,p,material,initial_condition,199,201,nstep,status2,il::io,widthlist,plist,l_coh,l_c,cohlist,mvalue,break_time,stresslist,energy);
-
-    hfp2d::energy_output(widthlist,plist,l_c,l_coh,material,mesh,id,p,2,initial_condition,il::io,energy_f,energy_coh,energy_j_integral);
-
-    volume_change=hfp2d::volume_output(widthlist,2);
-
-    stresslist=hfp2d::deal_with_stress(stresslist,cohlist,plist,initial_condition);
+//    hfp2d::propagation_loop_col(mesh,id,p,material,initial_condition,199,201,nstep,status2,il::io,widthlist,plist,l_coh,l_c,cohlist,mvalue,break_time,stresslist,energy);
+//
+//    hfp2d::energy_output(widthlist,plist,l_c,l_coh,material,mesh,id,p,2,initial_condition,il::io,energy_f,energy_coh,energy_j_integral);
+//
+//    volume_change=hfp2d::volume_output(widthlist,2);
+//
+//    stresslist=hfp2d::deal_with_stress(stresslist,cohlist,plist,initial_condition);
 
 
     //partially filled calculation
@@ -204,6 +214,34 @@ int main() {
 //    stresslist=hfp2d::deal_with_stress(stresslist,cohlist,plist,initial_condition);
 
 
+    // Considering the viscosity
+
+    // Create the fluid density matrix (rho)
+    // Fluid density matrix {{rho_1left, rho_1right},{rho_2left,rho_2right} ..}
+    // Remember: continuous linear variation -> rho_2right = rho_1left and so on..
+
+    double CompressFluid=0;
+    double Visc=0.1;//0.001;
+    double Density=1.;
+
+    il::Array2D<double> rho{nelts, 2, Density};
+
+//
+//    // Set the structure members of fluid
+    hfp2d::Parameters_fluid fluid_parameters;
+    fluid_parameters.compressibility = CompressFluid;
+    fluid_parameters.density = rho;
+    fluid_parameters.viscosity = Visc;
+    hfp2d::propagation_loop_visco(mesh,id,p,material,initial_condition,199,200,nstep,status2,fluid_parameters,il::io,widthlist,plist_2d,l_coh,l_c,cohlist,mvalue,break_time,stresslist,energy,volume_vary_list,elastic_vary_list);
+
+    timerwhole.stop();
+    std::cout << "------ " << timerwhole.elapsed() << "  \n";
+    std::cout << "---#---\n";
+    resultwhole = std::time(nullptr);
+    std::cout << std::asctime(std::localtime(&resultwhole));
+
+
+
 
 
 
@@ -211,7 +249,6 @@ int main() {
         std::cout<<"Oups! At the "<<break_time<< "th time step, the fracture reaches the mesh end point"<<"\n";
     }
     std::cout<<"To draw the curves,nstep="<<break_time<<"\n";
-
 
 
 
@@ -245,14 +282,28 @@ int main() {
   }
   fout.close();
 
-  std::ofstream fout1;
-  fout1.open("outputpressurecn1.txt");
+//  std::ofstream fout1;
+//  fout1.open("outputpressurecn1.txt");
+//
+//  for(int mm=0;mm<break_time+1;++mm){//mm<plist.size()
+//      fout1<<plist[mm]<<"\n";
+//    }
+//
+//  fout1.close();
 
-  for(int mm=0;mm<break_time+1;++mm){//mm<plist.size()
-      fout1<<plist[mm]<<"\n";
+
+
+    std::ofstream fplist;
+    fplist.open("outputplist.txt");
+
+    for(int qp=0;qp<break_time+1;++qp){//qq<widthlist.size(0)
+        for(int qqp=0;qqp<plist_2d.size(1);++qqp){
+            fplist<<plist_2d(qp,qqp)<<"\t";
+        }
+        fplist<<"\n";
     }
+    fplist.close();
 
-  fout1.close();
 
     std::ofstream fout2;
     fout2.open("outputlcohcn1.txt");
@@ -260,6 +311,33 @@ int main() {
         fout2<<l_coh[cc]<<"\n";
     }
     fout2.close();
+
+
+
+
+    std::ofstream foutvolume_list;
+    foutvolume_list.open("outputvlist.txt");
+
+    for(int vq=0;vq<break_time;++vq){//qq<widthlist.size(0)
+        for(int vqq=0;vqq<volume_vary_list.size(1);++vqq){
+            foutvolume_list<<volume_vary_list(vq,vqq)<<"\t";
+        }
+        foutvolume_list<<"\n";
+    }
+    foutvolume_list.close();
+
+
+    std::ofstream felas;
+    felas.open("outputelas.txt");
+
+
+    for(int eq=0;eq<break_time;++eq){//qq<widthlist.size(0)
+        for(int eqq=0;eqq<elastic_vary_list.size(1);++eqq){
+            felas<<elastic_vary_list(eq,eqq)<<"\t";
+        }
+        felas<<"\n";
+    }
+    felas.close();
 
 //energy output
 
@@ -280,37 +358,37 @@ int main() {
 
 //energy output maybe more important
 
-    std::ofstream fenergy_f;
-    fenergy_f.open("outputenergyf.txt");
-    for(int ef=0;ef<break_time;++ef){
-        fenergy_f<<energy_f[ef]<<"\n";
-    }
-    fenergy_f.close();
-
-    std::ofstream fenergy_coh;
-    fenergy_coh.open("outputenergycoh.txt");
-    for(int ecoh=0;ecoh<break_time;++ecoh){
-        fenergy_coh<<energy_coh[ecoh]<<"\n";
-    }
-    fenergy_coh.close();
-
-    std::ofstream fenergy_j;
-    fenergy_j.open("outputenergyj.txt");
-    for(int ej=0;ej<break_time+1;++ej){
-        fenergy_j<<energy_j_integral[ej]<<"\n";
-    }
-    fenergy_j.close();
-
-    std::ofstream foutf;
-    foutf.open("outputcohfcn1.txt");
-    for(int cf=0;cf<break_time;++cf){//cf<cohlist.size(0)
-        for(int cff=0;cff<cohlist.size(1);++cff){
-            foutf<<cohlist(cf,cff)<<"\t";
-        }
-        foutf<<"\n";
-    }
-    foutf.close();
-
+//    std::ofstream fenergy_f;
+//    fenergy_f.open("outputenergyf.txt");
+//    for(int ef=0;ef<break_time;++ef){
+//        fenergy_f<<energy_f[ef]<<"\n";
+//    }
+//    fenergy_f.close();
+//
+//    std::ofstream fenergy_coh;
+//    fenergy_coh.open("outputenergycoh.txt");
+//    for(int ecoh=0;ecoh<break_time;++ecoh){
+//        fenergy_coh<<energy_coh[ecoh]<<"\n";
+//    }
+//    fenergy_coh.close();
+//
+//    std::ofstream fenergy_j;
+//    fenergy_j.open("outputenergyj.txt");
+//    for(int ej=0;ej<break_time+1;++ej){
+//        fenergy_j<<energy_j_integral[ej]<<"\n";
+//    }
+//    fenergy_j.close();
+//
+//    std::ofstream foutf;
+//    foutf.open("outputcohfcn1.txt");
+//    for(int cf=0;cf<break_time;++cf){//cf<cohlist.size(0)
+//        for(int cff=0;cff<cohlist.size(1);++cff){
+//            foutf<<cohlist(cf,cff)<<"\t";
+//        }
+//        foutf<<"\n";
+//    }
+//    foutf.close();
+//
     std::ofstream foutstress;
     foutstress.open("outputstresscn1.txt");
     for(int cstr=0;cstr<break_time;++cstr){//cf<cohlist.size(0)
@@ -320,15 +398,15 @@ int main() {
         foutstress<<"\n";
     }
     foutstress.close();
-
-    std::ofstream fvol;
-    fvol.open("outputvol.txt");
-
-    for(int v=0;v<break_time;++v){//mm<plist.size()
-        fvol<<volume_change[v]<<"\n";
-    }
-
-    fvol.close();
+//
+//    std::ofstream fvol;
+//    fvol.open("outputvol.txt");
+//
+//    for(int v=0;v<break_time;++v){//mm<plist.size()
+//        fvol<<volume_change[v]<<"\n";
+//    }
+//
+//    fvol.close();
 
 
 
