@@ -39,19 +39,19 @@ cmake_force:
 SHELL = /bin/sh
 
 # The CMake executable.
-CMAKE_COMMAND = /usr/local/Cellar/cmake/3.7.1/bin/cmake
+CMAKE_COMMAND = /usr/local/Cellar/cmake/3.7.2/bin/cmake
 
 # The command to remove a file.
-RM = /usr/local/Cellar/cmake/3.7.1/bin/cmake -E remove -f
+RM = /usr/local/Cellar/cmake/3.7.2/bin/cmake -E remove -f
 
 # Escaping for special characters.
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /Users/bricelecampion/ClionProjects/HFPx2D
+CMAKE_SOURCE_DIR = /Users/dongliu/ClionProjects/HFPx2D
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /Users/bricelecampion/ClionProjects/HFPx2D/cmake-build-debug
+CMAKE_BINARY_DIR = /Users/dongliu/ClionProjects/HFPx2D/cmake-build-debug
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -59,7 +59,7 @@ CMAKE_BINARY_DIR = /Users/bricelecampion/ClionProjects/HFPx2D/cmake-build-debug
 # Special rule for the target rebuild_cache
 rebuild_cache:
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running CMake to regenerate build system..."
-	/usr/local/Cellar/cmake/3.7.1/bin/cmake -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
+	/usr/local/Cellar/cmake/3.7.2/bin/cmake -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
 .PHONY : rebuild_cache
 
 # Special rule for the target rebuild_cache
@@ -70,7 +70,7 @@ rebuild_cache/fast: rebuild_cache
 # Special rule for the target edit_cache
 edit_cache:
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "No interactive CMake dialog available..."
-	/usr/local/Cellar/cmake/3.7.1/bin/cmake -E echo No\ interactive\ CMake\ dialog\ available.
+	/usr/local/Cellar/cmake/3.7.2/bin/cmake -E echo No\ interactive\ CMake\ dialog\ available.
 .PHONY : edit_cache
 
 # Special rule for the target edit_cache
@@ -80,9 +80,9 @@ edit_cache/fast: edit_cache
 
 # The main all target
 all: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/bricelecampion/ClionProjects/HFPx2D/cmake-build-debug/CMakeFiles /Users/bricelecampion/ClionProjects/HFPx2D/cmake-build-debug/CMakeFiles/progress.marks
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/dongliu/ClionProjects/HFPx2D/cmake-build-debug/CMakeFiles /Users/dongliu/ClionProjects/HFPx2D/cmake-build-debug/CMakeFiles/progress.marks
 	$(MAKE) -f CMakeFiles/Makefile2 all
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/bricelecampion/ClionProjects/HFPx2D/cmake-build-debug/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /Users/dongliu/ClionProjects/HFPx2D/cmake-build-debug/CMakeFiles 0
 .PHONY : all
 
 # The main clean target
@@ -123,113 +123,140 @@ HFPx2D/fast:
 	$(MAKE) -f CMakeFiles/HFPx2D.dir/build.make CMakeFiles/HFPx2D.dir/build
 .PHONY : HFPx2D/fast
 
-AssemblyDDM.o: AssemblyDDM.cpp.o
+Coh_Col_Partial.o: Coh_Col_Partial.cpp.o
 
-.PHONY : AssemblyDDM.o
-
-# target to build an object file
-AssemblyDDM.cpp.o:
-	$(MAKE) -f CMakeFiles/HFPx2D.dir/build.make CMakeFiles/HFPx2D.dir/AssemblyDDM.cpp.o
-.PHONY : AssemblyDDM.cpp.o
-
-AssemblyDDM.i: AssemblyDDM.cpp.i
-
-.PHONY : AssemblyDDM.i
-
-# target to preprocess a source file
-AssemblyDDM.cpp.i:
-	$(MAKE) -f CMakeFiles/HFPx2D.dir/build.make CMakeFiles/HFPx2D.dir/AssemblyDDM.cpp.i
-.PHONY : AssemblyDDM.cpp.i
-
-AssemblyDDM.s: AssemblyDDM.cpp.s
-
-.PHONY : AssemblyDDM.s
-
-# target to generate assembly for a file
-AssemblyDDM.cpp.s:
-	$(MAKE) -f CMakeFiles/HFPx2D.dir/build.make CMakeFiles/HFPx2D.dir/AssemblyDDM.cpp.s
-.PHONY : AssemblyDDM.cpp.s
-
-DOF_Handles.o: DOF_Handles.cpp.o
-
-.PHONY : DOF_Handles.o
+.PHONY : Coh_Col_Partial.o
 
 # target to build an object file
-DOF_Handles.cpp.o:
-	$(MAKE) -f CMakeFiles/HFPx2D.dir/build.make CMakeFiles/HFPx2D.dir/DOF_Handles.cpp.o
-.PHONY : DOF_Handles.cpp.o
+Coh_Col_Partial.cpp.o:
+	$(MAKE) -f CMakeFiles/HFPx2D.dir/build.make CMakeFiles/HFPx2D.dir/Coh_Col_Partial.cpp.o
+.PHONY : Coh_Col_Partial.cpp.o
 
-DOF_Handles.i: DOF_Handles.cpp.i
+Coh_Col_Partial.i: Coh_Col_Partial.cpp.i
 
-.PHONY : DOF_Handles.i
+.PHONY : Coh_Col_Partial.i
 
 # target to preprocess a source file
-DOF_Handles.cpp.i:
-	$(MAKE) -f CMakeFiles/HFPx2D.dir/build.make CMakeFiles/HFPx2D.dir/DOF_Handles.cpp.i
-.PHONY : DOF_Handles.cpp.i
+Coh_Col_Partial.cpp.i:
+	$(MAKE) -f CMakeFiles/HFPx2D.dir/build.make CMakeFiles/HFPx2D.dir/Coh_Col_Partial.cpp.i
+.PHONY : Coh_Col_Partial.cpp.i
 
-DOF_Handles.s: DOF_Handles.cpp.s
+Coh_Col_Partial.s: Coh_Col_Partial.cpp.s
 
-.PHONY : DOF_Handles.s
+.PHONY : Coh_Col_Partial.s
 
 # target to generate assembly for a file
-DOF_Handles.cpp.s:
-	$(MAKE) -f CMakeFiles/HFPx2D.dir/build.make CMakeFiles/HFPx2D.dir/DOF_Handles.cpp.s
-.PHONY : DOF_Handles.cpp.s
+Coh_Col_Partial.cpp.s:
+	$(MAKE) -f CMakeFiles/HFPx2D.dir/build.make CMakeFiles/HFPx2D.dir/Coh_Col_Partial.cpp.s
+.PHONY : Coh_Col_Partial.cpp.s
 
-Elasticity2D.o: Elasticity2D.cpp.o
+Coh_Linear_softening.o: Coh_Linear_softening.cpp.o
 
-.PHONY : Elasticity2D.o
+.PHONY : Coh_Linear_softening.o
 
 # target to build an object file
-Elasticity2D.cpp.o:
-	$(MAKE) -f CMakeFiles/HFPx2D.dir/build.make CMakeFiles/HFPx2D.dir/Elasticity2D.cpp.o
-.PHONY : Elasticity2D.cpp.o
+Coh_Linear_softening.cpp.o:
+	$(MAKE) -f CMakeFiles/HFPx2D.dir/build.make CMakeFiles/HFPx2D.dir/Coh_Linear_softening.cpp.o
+.PHONY : Coh_Linear_softening.cpp.o
 
-Elasticity2D.i: Elasticity2D.cpp.i
+Coh_Linear_softening.i: Coh_Linear_softening.cpp.i
 
-.PHONY : Elasticity2D.i
+.PHONY : Coh_Linear_softening.i
 
 # target to preprocess a source file
-Elasticity2D.cpp.i:
-	$(MAKE) -f CMakeFiles/HFPx2D.dir/build.make CMakeFiles/HFPx2D.dir/Elasticity2D.cpp.i
-.PHONY : Elasticity2D.cpp.i
+Coh_Linear_softening.cpp.i:
+	$(MAKE) -f CMakeFiles/HFPx2D.dir/build.make CMakeFiles/HFPx2D.dir/Coh_Linear_softening.cpp.i
+.PHONY : Coh_Linear_softening.cpp.i
 
-Elasticity2D.s: Elasticity2D.cpp.s
+Coh_Linear_softening.s: Coh_Linear_softening.cpp.s
 
-.PHONY : Elasticity2D.s
+.PHONY : Coh_Linear_softening.s
 
 # target to generate assembly for a file
-Elasticity2D.cpp.s:
-	$(MAKE) -f CMakeFiles/HFPx2D.dir/build.make CMakeFiles/HFPx2D.dir/Elasticity2D.cpp.s
-.PHONY : Elasticity2D.cpp.s
+Coh_Linear_softening.cpp.s:
+	$(MAKE) -f CMakeFiles/HFPx2D.dir/build.make CMakeFiles/HFPx2D.dir/Coh_Linear_softening.cpp.s
+.PHONY : Coh_Linear_softening.cpp.s
 
-Mesh.o: Mesh.cpp.o
+Coh_Prop_Col.o: Coh_Prop_Col.cpp.o
 
-.PHONY : Mesh.o
+.PHONY : Coh_Prop_Col.o
 
 # target to build an object file
-Mesh.cpp.o:
-	$(MAKE) -f CMakeFiles/HFPx2D.dir/build.make CMakeFiles/HFPx2D.dir/Mesh.cpp.o
-.PHONY : Mesh.cpp.o
+Coh_Prop_Col.cpp.o:
+	$(MAKE) -f CMakeFiles/HFPx2D.dir/build.make CMakeFiles/HFPx2D.dir/Coh_Prop_Col.cpp.o
+.PHONY : Coh_Prop_Col.cpp.o
 
-Mesh.i: Mesh.cpp.i
+Coh_Prop_Col.i: Coh_Prop_Col.cpp.i
 
-.PHONY : Mesh.i
+.PHONY : Coh_Prop_Col.i
 
 # target to preprocess a source file
-Mesh.cpp.i:
-	$(MAKE) -f CMakeFiles/HFPx2D.dir/build.make CMakeFiles/HFPx2D.dir/Mesh.cpp.i
-.PHONY : Mesh.cpp.i
+Coh_Prop_Col.cpp.i:
+	$(MAKE) -f CMakeFiles/HFPx2D.dir/build.make CMakeFiles/HFPx2D.dir/Coh_Prop_Col.cpp.i
+.PHONY : Coh_Prop_Col.cpp.i
 
-Mesh.s: Mesh.cpp.s
+Coh_Prop_Col.s: Coh_Prop_Col.cpp.s
 
-.PHONY : Mesh.s
+.PHONY : Coh_Prop_Col.s
 
 # target to generate assembly for a file
-Mesh.cpp.s:
-	$(MAKE) -f CMakeFiles/HFPx2D.dir/build.make CMakeFiles/HFPx2D.dir/Mesh.cpp.s
-.PHONY : Mesh.cpp.s
+Coh_Prop_Col.cpp.s:
+	$(MAKE) -f CMakeFiles/HFPx2D.dir/build.make CMakeFiles/HFPx2D.dir/Coh_Prop_Col.cpp.s
+.PHONY : Coh_Prop_Col.cpp.s
+
+Stress.o: Stress.cpp.o
+
+.PHONY : Stress.o
+
+# target to build an object file
+Stress.cpp.o:
+	$(MAKE) -f CMakeFiles/HFPx2D.dir/build.make CMakeFiles/HFPx2D.dir/Stress.cpp.o
+.PHONY : Stress.cpp.o
+
+Stress.i: Stress.cpp.i
+
+.PHONY : Stress.i
+
+# target to preprocess a source file
+Stress.cpp.i:
+	$(MAKE) -f CMakeFiles/HFPx2D.dir/build.make CMakeFiles/HFPx2D.dir/Stress.cpp.i
+.PHONY : Stress.cpp.i
+
+Stress.s: Stress.cpp.s
+
+.PHONY : Stress.s
+
+# target to generate assembly for a file
+Stress.cpp.s:
+	$(MAKE) -f CMakeFiles/HFPx2D.dir/build.make CMakeFiles/HFPx2D.dir/Stress.cpp.s
+.PHONY : Stress.cpp.s
+
+Viscosity.o: Viscosity.cpp.o
+
+.PHONY : Viscosity.o
+
+# target to build an object file
+Viscosity.cpp.o:
+	$(MAKE) -f CMakeFiles/HFPx2D.dir/build.make CMakeFiles/HFPx2D.dir/Viscosity.cpp.o
+.PHONY : Viscosity.cpp.o
+
+Viscosity.i: Viscosity.cpp.i
+
+.PHONY : Viscosity.i
+
+# target to preprocess a source file
+Viscosity.cpp.i:
+	$(MAKE) -f CMakeFiles/HFPx2D.dir/build.make CMakeFiles/HFPx2D.dir/Viscosity.cpp.i
+.PHONY : Viscosity.cpp.i
+
+Viscosity.s: Viscosity.cpp.s
+
+.PHONY : Viscosity.s
+
+# target to generate assembly for a file
+Viscosity.cpp.s:
+	$(MAKE) -f CMakeFiles/HFPx2D.dir/build.make CMakeFiles/HFPx2D.dir/Viscosity.cpp.s
+.PHONY : Viscosity.cpp.s
 
 main.o: main.cpp.o
 
@@ -258,6 +285,222 @@ main.cpp.s:
 	$(MAKE) -f CMakeFiles/HFPx2D.dir/build.make CMakeFiles/HFPx2D.dir/main.cpp.s
 .PHONY : main.cpp.s
 
+src/AssemblyDDM.o: src/AssemblyDDM.cpp.o
+
+.PHONY : src/AssemblyDDM.o
+
+# target to build an object file
+src/AssemblyDDM.cpp.o:
+	$(MAKE) -f CMakeFiles/HFPx2D.dir/build.make CMakeFiles/HFPx2D.dir/src/AssemblyDDM.cpp.o
+.PHONY : src/AssemblyDDM.cpp.o
+
+src/AssemblyDDM.i: src/AssemblyDDM.cpp.i
+
+.PHONY : src/AssemblyDDM.i
+
+# target to preprocess a source file
+src/AssemblyDDM.cpp.i:
+	$(MAKE) -f CMakeFiles/HFPx2D.dir/build.make CMakeFiles/HFPx2D.dir/src/AssemblyDDM.cpp.i
+.PHONY : src/AssemblyDDM.cpp.i
+
+src/AssemblyDDM.s: src/AssemblyDDM.cpp.s
+
+.PHONY : src/AssemblyDDM.s
+
+# target to generate assembly for a file
+src/AssemblyDDM.cpp.s:
+	$(MAKE) -f CMakeFiles/HFPx2D.dir/build.make CMakeFiles/HFPx2D.dir/src/AssemblyDDM.cpp.s
+.PHONY : src/AssemblyDDM.cpp.s
+
+src/ConductivitiesNewtonian.o: src/ConductivitiesNewtonian.cpp.o
+
+.PHONY : src/ConductivitiesNewtonian.o
+
+# target to build an object file
+src/ConductivitiesNewtonian.cpp.o:
+	$(MAKE) -f CMakeFiles/HFPx2D.dir/build.make CMakeFiles/HFPx2D.dir/src/ConductivitiesNewtonian.cpp.o
+.PHONY : src/ConductivitiesNewtonian.cpp.o
+
+src/ConductivitiesNewtonian.i: src/ConductivitiesNewtonian.cpp.i
+
+.PHONY : src/ConductivitiesNewtonian.i
+
+# target to preprocess a source file
+src/ConductivitiesNewtonian.cpp.i:
+	$(MAKE) -f CMakeFiles/HFPx2D.dir/build.make CMakeFiles/HFPx2D.dir/src/ConductivitiesNewtonian.cpp.i
+.PHONY : src/ConductivitiesNewtonian.cpp.i
+
+src/ConductivitiesNewtonian.s: src/ConductivitiesNewtonian.cpp.s
+
+.PHONY : src/ConductivitiesNewtonian.s
+
+# target to generate assembly for a file
+src/ConductivitiesNewtonian.cpp.s:
+	$(MAKE) -f CMakeFiles/HFPx2D.dir/build.make CMakeFiles/HFPx2D.dir/src/ConductivitiesNewtonian.cpp.s
+.PHONY : src/ConductivitiesNewtonian.cpp.s
+
+src/DOF_Handles.o: src/DOF_Handles.cpp.o
+
+.PHONY : src/DOF_Handles.o
+
+# target to build an object file
+src/DOF_Handles.cpp.o:
+	$(MAKE) -f CMakeFiles/HFPx2D.dir/build.make CMakeFiles/HFPx2D.dir/src/DOF_Handles.cpp.o
+.PHONY : src/DOF_Handles.cpp.o
+
+src/DOF_Handles.i: src/DOF_Handles.cpp.i
+
+.PHONY : src/DOF_Handles.i
+
+# target to preprocess a source file
+src/DOF_Handles.cpp.i:
+	$(MAKE) -f CMakeFiles/HFPx2D.dir/build.make CMakeFiles/HFPx2D.dir/src/DOF_Handles.cpp.i
+.PHONY : src/DOF_Handles.cpp.i
+
+src/DOF_Handles.s: src/DOF_Handles.cpp.s
+
+.PHONY : src/DOF_Handles.s
+
+# target to generate assembly for a file
+src/DOF_Handles.cpp.s:
+	$(MAKE) -f CMakeFiles/HFPx2D.dir/build.make CMakeFiles/HFPx2D.dir/src/DOF_Handles.cpp.s
+.PHONY : src/DOF_Handles.cpp.s
+
+src/Dilatancy.o: src/Dilatancy.cpp.o
+
+.PHONY : src/Dilatancy.o
+
+# target to build an object file
+src/Dilatancy.cpp.o:
+	$(MAKE) -f CMakeFiles/HFPx2D.dir/build.make CMakeFiles/HFPx2D.dir/src/Dilatancy.cpp.o
+.PHONY : src/Dilatancy.cpp.o
+
+src/Dilatancy.i: src/Dilatancy.cpp.i
+
+.PHONY : src/Dilatancy.i
+
+# target to preprocess a source file
+src/Dilatancy.cpp.i:
+	$(MAKE) -f CMakeFiles/HFPx2D.dir/build.make CMakeFiles/HFPx2D.dir/src/Dilatancy.cpp.i
+.PHONY : src/Dilatancy.cpp.i
+
+src/Dilatancy.s: src/Dilatancy.cpp.s
+
+.PHONY : src/Dilatancy.s
+
+# target to generate assembly for a file
+src/Dilatancy.cpp.s:
+	$(MAKE) -f CMakeFiles/HFPx2D.dir/build.make CMakeFiles/HFPx2D.dir/src/Dilatancy.cpp.s
+.PHONY : src/Dilatancy.cpp.s
+
+src/Elasticity2D.o: src/Elasticity2D.cpp.o
+
+.PHONY : src/Elasticity2D.o
+
+# target to build an object file
+src/Elasticity2D.cpp.o:
+	$(MAKE) -f CMakeFiles/HFPx2D.dir/build.make CMakeFiles/HFPx2D.dir/src/Elasticity2D.cpp.o
+.PHONY : src/Elasticity2D.cpp.o
+
+src/Elasticity2D.i: src/Elasticity2D.cpp.i
+
+.PHONY : src/Elasticity2D.i
+
+# target to preprocess a source file
+src/Elasticity2D.cpp.i:
+	$(MAKE) -f CMakeFiles/HFPx2D.dir/build.make CMakeFiles/HFPx2D.dir/src/Elasticity2D.cpp.i
+.PHONY : src/Elasticity2D.cpp.i
+
+src/Elasticity2D.s: src/Elasticity2D.cpp.s
+
+.PHONY : src/Elasticity2D.s
+
+# target to generate assembly for a file
+src/Elasticity2D.cpp.s:
+	$(MAKE) -f CMakeFiles/HFPx2D.dir/build.make CMakeFiles/HFPx2D.dir/src/Elasticity2D.cpp.s
+.PHONY : src/Elasticity2D.cpp.s
+
+src/FVM.o: src/FVM.cpp.o
+
+.PHONY : src/FVM.o
+
+# target to build an object file
+src/FVM.cpp.o:
+	$(MAKE) -f CMakeFiles/HFPx2D.dir/build.make CMakeFiles/HFPx2D.dir/src/FVM.cpp.o
+.PHONY : src/FVM.cpp.o
+
+src/FVM.i: src/FVM.cpp.i
+
+.PHONY : src/FVM.i
+
+# target to preprocess a source file
+src/FVM.cpp.i:
+	$(MAKE) -f CMakeFiles/HFPx2D.dir/build.make CMakeFiles/HFPx2D.dir/src/FVM.cpp.i
+.PHONY : src/FVM.cpp.i
+
+src/FVM.s: src/FVM.cpp.s
+
+.PHONY : src/FVM.s
+
+# target to generate assembly for a file
+src/FVM.cpp.s:
+	$(MAKE) -f CMakeFiles/HFPx2D.dir/build.make CMakeFiles/HFPx2D.dir/src/FVM.cpp.s
+.PHONY : src/FVM.cpp.s
+
+src/FromEdgeToCol.o: src/FromEdgeToCol.cpp.o
+
+.PHONY : src/FromEdgeToCol.o
+
+# target to build an object file
+src/FromEdgeToCol.cpp.o:
+	$(MAKE) -f CMakeFiles/HFPx2D.dir/build.make CMakeFiles/HFPx2D.dir/src/FromEdgeToCol.cpp.o
+.PHONY : src/FromEdgeToCol.cpp.o
+
+src/FromEdgeToCol.i: src/FromEdgeToCol.cpp.i
+
+.PHONY : src/FromEdgeToCol.i
+
+# target to preprocess a source file
+src/FromEdgeToCol.cpp.i:
+	$(MAKE) -f CMakeFiles/HFPx2D.dir/build.make CMakeFiles/HFPx2D.dir/src/FromEdgeToCol.cpp.i
+.PHONY : src/FromEdgeToCol.cpp.i
+
+src/FromEdgeToCol.s: src/FromEdgeToCol.cpp.s
+
+.PHONY : src/FromEdgeToCol.s
+
+# target to generate assembly for a file
+src/FromEdgeToCol.cpp.s:
+	$(MAKE) -f CMakeFiles/HFPx2D.dir/build.make CMakeFiles/HFPx2D.dir/src/FromEdgeToCol.cpp.s
+.PHONY : src/FromEdgeToCol.cpp.s
+
+src/Mesh.o: src/Mesh.cpp.o
+
+.PHONY : src/Mesh.o
+
+# target to build an object file
+src/Mesh.cpp.o:
+	$(MAKE) -f CMakeFiles/HFPx2D.dir/build.make CMakeFiles/HFPx2D.dir/src/Mesh.cpp.o
+.PHONY : src/Mesh.cpp.o
+
+src/Mesh.i: src/Mesh.cpp.i
+
+.PHONY : src/Mesh.i
+
+# target to preprocess a source file
+src/Mesh.cpp.i:
+	$(MAKE) -f CMakeFiles/HFPx2D.dir/build.make CMakeFiles/HFPx2D.dir/src/Mesh.cpp.i
+.PHONY : src/Mesh.cpp.i
+
+src/Mesh.s: src/Mesh.cpp.s
+
+.PHONY : src/Mesh.s
+
+# target to generate assembly for a file
+src/Mesh.cpp.s:
+	$(MAKE) -f CMakeFiles/HFPx2D.dir/build.make CMakeFiles/HFPx2D.dir/src/Mesh.cpp.s
+.PHONY : src/Mesh.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -267,21 +510,48 @@ help:
 	@echo "... rebuild_cache"
 	@echo "... edit_cache"
 	@echo "... HFPx2D"
-	@echo "... AssemblyDDM.o"
-	@echo "... AssemblyDDM.i"
-	@echo "... AssemblyDDM.s"
-	@echo "... DOF_Handles.o"
-	@echo "... DOF_Handles.i"
-	@echo "... DOF_Handles.s"
-	@echo "... Elasticity2D.o"
-	@echo "... Elasticity2D.i"
-	@echo "... Elasticity2D.s"
-	@echo "... Mesh.o"
-	@echo "... Mesh.i"
-	@echo "... Mesh.s"
+	@echo "... Coh_Col_Partial.o"
+	@echo "... Coh_Col_Partial.i"
+	@echo "... Coh_Col_Partial.s"
+	@echo "... Coh_Linear_softening.o"
+	@echo "... Coh_Linear_softening.i"
+	@echo "... Coh_Linear_softening.s"
+	@echo "... Coh_Prop_Col.o"
+	@echo "... Coh_Prop_Col.i"
+	@echo "... Coh_Prop_Col.s"
+	@echo "... Stress.o"
+	@echo "... Stress.i"
+	@echo "... Stress.s"
+	@echo "... Viscosity.o"
+	@echo "... Viscosity.i"
+	@echo "... Viscosity.s"
 	@echo "... main.o"
 	@echo "... main.i"
 	@echo "... main.s"
+	@echo "... src/AssemblyDDM.o"
+	@echo "... src/AssemblyDDM.i"
+	@echo "... src/AssemblyDDM.s"
+	@echo "... src/ConductivitiesNewtonian.o"
+	@echo "... src/ConductivitiesNewtonian.i"
+	@echo "... src/ConductivitiesNewtonian.s"
+	@echo "... src/DOF_Handles.o"
+	@echo "... src/DOF_Handles.i"
+	@echo "... src/DOF_Handles.s"
+	@echo "... src/Dilatancy.o"
+	@echo "... src/Dilatancy.i"
+	@echo "... src/Dilatancy.s"
+	@echo "... src/Elasticity2D.o"
+	@echo "... src/Elasticity2D.i"
+	@echo "... src/Elasticity2D.s"
+	@echo "... src/FVM.o"
+	@echo "... src/FVM.i"
+	@echo "... src/FVM.s"
+	@echo "... src/FromEdgeToCol.o"
+	@echo "... src/FromEdgeToCol.i"
+	@echo "... src/FromEdgeToCol.s"
+	@echo "... src/Mesh.o"
+	@echo "... src/Mesh.i"
+	@echo "... src/Mesh.s"
 .PHONY : help
 
 
