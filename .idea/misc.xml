@@ -3,7 +3,39 @@
   <component name="CMakeWorkspace" PROJECT_DIR="$PROJECT_DIR$" />
   <component name="CidrRootsConfiguration">
     <excludeRoots>
+      <file path="$PROJECT_DIR$/Results" />
+      <file path="$PROJECT_DIR$/Results/Results_Mesh1su50_Dil02_Tau08_ModerateOverpressure" />
+      <file path="$PROJECT_DIR$/Results/Results_Mesh1su50_Dil03_Tau055_ModerateOverpressure" />
+      <file path="$PROJECT_DIR$/Results/Results_Mesh1su50_Dil03_Tau075_ModerateOverpressure" />
+      <file path="$PROJECT_DIR$/Results/Results_Mesh1su50_Dil04_Tau08_ModerateOverpressure" />
+      <file path="$PROJECT_DIR$/Results/Results_Mesh1su50_Dil06_Tau08_LargeLargeOverpressure" />
+      <file path="$PROJECT_DIR$/Results/Results_Mesh1su50_Dil06_Tau08_LargeOverpressure" />
+      <file path="$PROJECT_DIR$/Results/Results_Mesh1su50_Dil06_Tau08_ModerateLargeOverpressure" />
+      <file path="$PROJECT_DIR$/Results/Results_Mesh1su50_Dil06_Tau08_SmallModerateOverpressure" />
+      <file path="$PROJECT_DIR$/Results/Results_Mesh1su50_Dil06_Tau08_SmallOverpressure" />
+      <file path="$PROJECT_DIR$/Results/Results_Mesh1su50_Dil06_Tau08_SmallSmallModerateOverpressure" />
+      <file path="$PROJECT_DIR$/Results/Results_Mesh1su50_Dil07_Tau08_LargeLargeOverpressure" />
+      <file path="$PROJECT_DIR$/Results/Results_Mesh1su50_Dil07_Tau08_LargeOverpressure" />
+      <file path="$PROJECT_DIR$/Results/Results_Mesh1su50_Dil07_Tau08_ModerateLargeOverpressure" />
+      <file path="$PROJECT_DIR$/Results/Results_Mesh1su50_Dil07_Tau08_ModerateOverpressure" />
+      <file path="$PROJECT_DIR$/Results/Results_Mesh1su50_Dil07_Tau08_SmallModerateOverpressure" />
+      <file path="$PROJECT_DIR$/Results/Results_Mesh1su50_Dil07_Tau08_SmallOverpressure" />
+      <file path="$PROJECT_DIR$/Results/Results_Mesh1su50_Dil07_Tau08_SmallSmallModerateOverpressure" />
+      <file path="$PROJECT_DIR$/Results/Results_Mesh1su50_Dil08_Tau08_LargeLargeOverpressure" />
+      <file path="$PROJECT_DIR$/Results/Results_Mesh1su50_Dil08_Tau08_LargeOverpressure" />
+      <file path="$PROJECT_DIR$/Results/Results_Mesh1su50_Dil08_Tau08_ModerateLargeOverpressure" />
+      <file path="$PROJECT_DIR$/Results/Results_Mesh1su50_Dil08_Tau08_SmallOverpressure" />
+      <file path="$PROJECT_DIR$/Results/Results_Mesh1su50_Dil08_Tau08_SmallSmallModerateOverpressure" />
+      <file path="$PROJECT_DIR$/Results/Results_Mesh1su50_Dil09_Tau08_SmallSmallModerateOverpressure" />
+      <file path="$PROJECT_DIR$/Results/Results_Mesh1su50_Dil12_Tau08_SmallOverpressure" />
+      <file path="$PROJECT_DIR$/Results/Results_Mesh1su50_Dil1_Tau08_SmallOverpressure" />
+      <file path="$PROJECT_DIR$/Results/Results_Mesh1su50_NoDil_Tau08_LargeLargeOverpressure" />
+      <file path="$PROJECT_DIR$/Results/Results_Mesh1su50_NoDil_Tau08_ModerateLargeOverpressure" />
+      <file path="$PROJECT_DIR$/Results/Results_Mesh1su50_NoDil_Tau08_SmallModerateOverpressure" />
+      <file path="$PROJECT_DIR$/Results/Results_Mesh1su50_NoDil_Tau08_SmallOverpressure" />
+      <file path="$PROJECT_DIR$/Results/Results_Mesh1su50_NoDil_Tau08_SmallSmallModerateOverpressure" />
       <file path="$PROJECT_DIR$/cmake-build-debug/CMakeFiles" />
+      <file path="$PROJECT_DIR$/il" />
     </excludeRoots>
   </component>
 </project>
