@@ -24,13 +24,13 @@
 #include <il/linear_algebra/dense/factorization/LU.h>
 
 // Inclusion from the project
-#include "AssemblyDDM.h"
-#include "DOF_Handles.h"
-#include "Dilatancy.h"
-#include "FVM.h"
-#include "Friction.h"
-#include "FromEdgeToCol.h"
-#include "MC_criterion.h"
+#include "src/AssemblyDDM.h"
+#include "src/DOF_Handles.h"
+#include "src/Dilatancy.h"
+#include "src/FVM.h"
+#include "src/Friction.h"
+#include "src/FromEdgeToCol.h"
+#include "src/MC_criterion.h"
 
 // FUNCTION PROTOTYPE
 il::Array<double>
@@ -509,8 +509,8 @@ int main() {
   // REMEMBER ALWAYS TO DELETE THE EXISTING DIRECTORY (IF ALREADY CREATED)!
   std::string Directory_results{"/Users/federicociardo/ClionProjects/"
                                 "HFPx2D-Collscheme/Results/"
-                                "Results1su50_Dil05_075_CHECKNEWCODE/"};
-
+                                "Results_Mesh1su50_Dil09_Tau08_SmallSmallModerateOverpressure/"};
+  
   if (mkdir(Directory_results.c_str(), 0777) == -1) {
     std::cerr << "Error in creating the output directory:  " << strerror(errno)
               << std::endl;

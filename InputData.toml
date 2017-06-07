@@ -20,7 +20,7 @@ Slip_dw_for_permeability = 1.0
 
 # Dilatancy parameters
 Initial_hydraulic_width = 0.6
-Dilatant_hardening = 0.3
+Dilatant_hardening = 0.54
 Slip_dw_for_dilatancy = 1.0
 
 # Layers parameters
@@ -51,18 +51,18 @@ Slip_dw_for_friction_layer3 = 1.0
 
 # Stress state parameters + inital pore pressure
 Background_normal_stress = 1.0
-Background_shear_stress = 0.75
+Background_shear_stress = 0.8
 Ambient_pore_pressure = 0.0
 
 # Fluid injection parameters
 Source = 0.0
-Constant_overpressure = 0.5
+Constant_overpressure = 0.3
 
 # Simulation parameters
-t_max = 0.625
+t_max = 0.625  # t_max = 2.5
 t_0plus = 0.00001
-TimeStep_max = 0.0001
-TimeStep_min = 0.00001
+TimeStep_max = 0.00001
+TimeStep_min = 0.0000001
 itermax_MCcriterion = 100
 itermax_nonlinsystem = 100
 tolerance = 10e-6
