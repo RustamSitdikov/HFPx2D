@@ -47,7 +47,7 @@ int main() {
   il::String filename =
       "/Users/federicociardo/ClionProjects/HFPx2D-Collscheme/InputData.toml";
   il::Status status{};
-
+    
   auto config =
       il::load<il::HashMap<il::String, il::Dynamic>>(filename, il::io, status);
   status.abort_on_error();
