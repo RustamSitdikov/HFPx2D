@@ -15,22 +15,11 @@
 
 namespace hfp2d {
 
-struct Parameters_dilatancy {
+il::Array<double> dilatancy(const double Init_dil, const double Incr_dil,
+                            const double d_wd, il::Array<double> &d);
 
-  // Initial value of hydraulic width
-  double Init_hydr_width;
-  // Increment of dilatancy (difference between residual/peak
-  // dilatancy and initial dilatancy value)
-  double Incr_dil;
-  // slip dw for scaling (see dilatancy law in the report)
-  double d_wd;
-};
-
-il::Array<double> dilatancy(Parameters_dilatancy &param,
-                            const il::Array<double> &d, il::io_t);
-
-il::Array<double> d_dilatancy(Parameters_dilatancy &param,
-                              const il::Array<double> &d, il::io_t);
+il::Array<double> d_dilatancy(const double Incr_dil, const double d_wd,
+                             il::Array<double> &d);
 }
 
 #endif // HFPX2D_DILATANCY_H

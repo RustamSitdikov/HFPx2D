@@ -39,7 +39,7 @@ class Info {
   Info& operator=(const Info& other);
   Info& operator=(Info&& other);
 
-  bool empty() const;
+  bool is_empty() const;
   void clear();
 
   void set(const char* key, bool value);
@@ -457,7 +457,7 @@ inline const unsigned char* Info::data() const {
 
 inline unsigned char* Info::data() { return is_small() ? small_ : large_.data; }
 
-inline bool Info::empty() const { return size() == 0; }
+inline bool Info::is_empty() const { return size() == 0; }
 
 inline void Info::resize(il::int_t n) {
   IL_EXPECT_FAST(n >= 0);
@@ -494,6 +494,6 @@ inline void Info::clear() {
   set_small_size(0);
 }
 
-}
+}  // namespace il
 
 #endif  // IL_INFO_H

@@ -8,7 +8,6 @@
 //
 
 // Inclusion from standard library
-#include <il/math.h>
 #include <iostream>
 
 // Inclusion from the project
@@ -17,33 +16,26 @@
 namespace hfp2d {
 
 // Output: array (vector) that contains volume of fluid for each element
-il::Array<double> conductivities_newtonian(const il::Array<double> &rho,
-                                           const il::Array<double> &vector,
-                                           il::Array<double> EltSizes,
-                                           Parameters_fluid &fluid_parameters,
-                                           const il::Array<double> &permeab,
-                                           il::io_t) {
+    il::Array<double> conductivities_newtonian(const il::Array<double> &rho,
+                                              const il::Array<double> &vector,
+                                              const il::Array<double> EltSizes,
+                                              const double Visc) {
 
-  // Inputs:
-  //  - rho -> vector of fluid density values at the middle of each element
-  //  (size -> Nelts)
-  //  - vector -> vector of dilatancy value for slip at the middle of the
-  //  elements (size -> Nelts)
-  //  - EltSizes -> vector that contains the element sizes
-  //  - fluid_parameters -> structure that contains all the fluid parameters
-  //  - permeab -> vector that contains the permeability for each element (size
-  //  -> Nelts)
-  //  - io_t -> everything on the left of il::io_t is read-only and is not
-  //    going to be mutated
+      // Inputs:
+      //  - rho -> vector of fluid density values (size -> Nelts)
+      //  - vector -> vector of shear DD or opening DD at the middle of the elements
+      //  (size -> Nelts)
+      //  - EltSizes -> vector that contains the element sizes
+      //  - Visc -> fluid viscosity (floating point value)
 
-  il::Array<double> Res{EltSizes.size(), 0};
+      il::Array<double> Res{EltSizes.size(), 0.};
 
-  for (il::int_t i = 0; i < Res.size(); ++i) {
+      for (il::int_t i = 0; i < Res.size(); ++i) {
 
-    Res[i] = ((rho[i] * (vector[i] * permeab[i])) / EltSizes[i]) *
-             (1 / (12 * fluid_parameters.viscosity));
-  }
+        Res[i] = ((rho[i] * (pow(vector[i], 3))) / EltSizes[i]) *
+                 (1 / (12. * Visc));
+      }
 
-  return Res;
-}
+      return Res;
+    }
 }

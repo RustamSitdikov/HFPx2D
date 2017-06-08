@@ -11,11 +11,10 @@
 #define IL_TIMER_H
 
 #include <chrono>
-#include <cstdint>
 #include <cstddef>
+#include <cstdint>
 #include <cstdlib>
 #include <limits>
-
 
 #include <il/core/base.h>
 
@@ -97,6 +96,6 @@ inline void TimerCycles::stop() {
 inline long int TimerCycles::cycles() const {
   return static_cast<long int>(nb_cycles_);
 }
-}
+}  // namespace il
 
 #endif  // IL_TIMER_H

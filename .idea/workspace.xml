@@ -25,16 +25,146 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="9d76bad6-ffcc-4308-ba9d-84b129c680fa" name="Default" comment="moved source files to src/">
-      <change type="DELETED" beforePath="$PROJECT_DIR$/.idea/.name" afterPath="" />
+    <list default="true" id="9d76bad6-ffcc-4308-ba9d-84b129c680fa" name="Default" comment="">
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/GPL.txt" />
       <change type="DELETED" beforePath="$PROJECT_DIR$/.idea/HFPx2D.iml" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/.idea/dictionaries/federicociardo.xml" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/.idea/misc.xml" afterPath="" />
       <change type="DELETED" beforePath="$PROJECT_DIR$/.idea/modules.xml" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/.idea/vcs.xml" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/il/Dynamic.h" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/il/Toml.h" afterPath="" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/misc.xml" afterPath="$PROJECT_DIR$/.idea/misc.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/vcs.xml" afterPath="$PROJECT_DIR$/.idea/vcs.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/Array3C.h" afterPath="$PROJECT_DIR$/il/Array3C.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/Array4C.h" afterPath="$PROJECT_DIR$/il/Array4C.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/Array4D.h" afterPath="$PROJECT_DIR$/il/Array4D.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/CudaArray2D.h" afterPath="$PROJECT_DIR$/il/CudaArray2D.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/HashMap.h" afterPath="$PROJECT_DIR$/il/HashMap.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/Info.h" afterPath="$PROJECT_DIR$/il/Info.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/SparseMatrixCSR.h" afterPath="$PROJECT_DIR$/il/SparseMatrixCSR.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/StaticArray2C.h" afterPath="$PROJECT_DIR$/il/StaticArray2C.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/StaticArray4D.h" afterPath="$PROJECT_DIR$/il/StaticArray4D.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/Status.h" afterPath="$PROJECT_DIR$/il/Status.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/String.h" afterPath="$PROJECT_DIR$/il/String.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/StringView.h" afterPath="$PROJECT_DIR$/il/StringView.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/base.h" afterPath="$PROJECT_DIR$/il/base.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/benchmark/alignment/alignment.h" afterPath="$PROJECT_DIR$/il/benchmark/alignment/alignment.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/benchmark/memory/matrix_multiplication.cpp" afterPath="$PROJECT_DIR$/il/benchmark/memory/matrix_multiplication.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/benchmark/memory/matrix_multiplication.h" afterPath="$PROJECT_DIR$/il/benchmark/memory/matrix_multiplication.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/benchmark/parallel/map/vector_addition.h" afterPath="$PROJECT_DIR$/il/benchmark/parallel/map/vector_addition.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/benchmark/parallel/reduce/kmeans_clustering.cpp" afterPath="$PROJECT_DIR$/il/benchmark/parallel/reduce/kmeans_clustering.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/benchmark/parallel/reduce/kmeans_clustering.h" afterPath="$PROJECT_DIR$/il/benchmark/parallel/reduce/kmeans_clustering.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/benchmark/parallel/reduce/kmeans_clustering_0.cpp" afterPath="$PROJECT_DIR$/il/benchmark/parallel/reduce/kmeans_clustering_0.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/benchmark/parallel/reduce/kmeans_clustering_0.h" afterPath="$PROJECT_DIR$/il/benchmark/parallel/reduce/kmeans_clustering_0.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/benchmark/parallel/reduce/scalar_product.h" afterPath="$PROJECT_DIR$/il/benchmark/parallel/reduce/scalar_product.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/benchmark/parallel/scan/integrate.h" afterPath="$PROJECT_DIR$/il/benchmark/parallel/scan/integrate.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/benchmark/parallel/scan/partial_sum.h" afterPath="$PROJECT_DIR$/il/benchmark/parallel/scan/partial_sum.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/benchmark/tools/memory/memory.h" afterPath="$PROJECT_DIR$/il/benchmark/tools/memory/memory.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/benchmark/tools/timer/Benchmark.h" afterPath="$PROJECT_DIR$/il/benchmark/tools/timer/Benchmark.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/benchmark/tools/timer/Timer.h" afterPath="$PROJECT_DIR$/il/benchmark/tools/timer/Timer.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/benchmark/types/32-vs-64-bit-integers.cpp" afterPath="$PROJECT_DIR$/il/benchmark/types/32-vs-64-bit-integers.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/container/1d/Array.h" afterPath="$PROJECT_DIR$/il/container/1d/Array.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/container/1d/ArrayView.h" afterPath="$PROJECT_DIR$/il/container/1d/ArrayView.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/container/1d/SmallArray.h" afterPath="$PROJECT_DIR$/il/container/1d/SmallArray.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/container/1d/StaticArray.h" afterPath="$PROJECT_DIR$/il/container/1d/StaticArray.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/container/1d/_benchmark/Array_benchmark.cpp" afterPath="$PROJECT_DIR$/il/container/1d/_benchmark/Array_benchmark.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/container/2d/Array2C.h" afterPath="$PROJECT_DIR$/il/container/2d/Array2C.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/container/2d/Array2D.h" afterPath="$PROJECT_DIR$/il/container/2d/Array2D.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/container/2d/Array2DView.h" afterPath="$PROJECT_DIR$/il/container/2d/Array2DView.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/container/2d/BandArray2C.h" afterPath="$PROJECT_DIR$/il/container/2d/BandArray2C.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/container/2d/LowerArray2D.h" afterPath="$PROJECT_DIR$/il/container/2d/LowerArray2D.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/container/2d/SparseMatrixCSR.h" afterPath="$PROJECT_DIR$/il/container/2d/SparseMatrixCSR.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/container/2d/StaticArray2C.h" afterPath="$PROJECT_DIR$/il/container/2d/StaticArray2C.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/container/2d/StaticArray2D.h" afterPath="$PROJECT_DIR$/il/container/2d/StaticArray2D.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/container/2d/TriDiagonal.h" afterPath="$PROJECT_DIR$/il/container/2d/TriDiagonal.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/container/2d/UpperArray2D.h" afterPath="$PROJECT_DIR$/il/container/2d/UpperArray2D.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/container/3d/Array3C.h" afterPath="$PROJECT_DIR$/il/container/3d/Array3C.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/container/3d/Array3D.h" afterPath="$PROJECT_DIR$/il/container/3d/Array3D.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/container/3d/Array3DView.h" afterPath="$PROJECT_DIR$/il/container/3d/Array3DView.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/container/3d/StaticArray3D.h" afterPath="$PROJECT_DIR$/il/container/3d/StaticArray3D.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/container/3d/_test/Array3D_test.cpp" afterPath="$PROJECT_DIR$/il/container/3d/_test/Array3D_test.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/container/4d/Array4C.h" afterPath="$PROJECT_DIR$/il/container/4d/Array4C.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/container/4d/Array4D.h" afterPath="$PROJECT_DIR$/il/container/4d/Array4D.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/container/4d/StaticArray4D.h" afterPath="$PROJECT_DIR$/il/container/4d/StaticArray4D.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/container/cuda/1d/CudaArray.h" afterPath="$PROJECT_DIR$/il/container/cuda/1d/CudaArray.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/container/cuda/2d/CudaArray2D.h" afterPath="$PROJECT_DIR$/il/container/cuda/2d/CudaArray2D.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/container/cuda/2d/CudaSparseMatrixCSR.h" afterPath="$PROJECT_DIR$/il/container/cuda/2d/CudaSparseMatrixCSR.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/container/cuda/cuda_copy.h" afterPath="$PROJECT_DIR$/il/container/cuda/cuda_copy.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/container/dynamic/Dynamic.h" afterPath="$PROJECT_DIR$/il/container/dynamic/Dynamic.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/container/dynamic/_test/Dynamic_test.cpp" afterPath="$PROJECT_DIR$/il/container/dynamic/_test/Dynamic_test.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/container/hash/HashFunction.h" afterPath="$PROJECT_DIR$/il/container/hash/HashFunction.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/container/hash/HashMap.h" afterPath="$PROJECT_DIR$/il/container/hash/HashMap.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/container/info/Info.h" afterPath="$PROJECT_DIR$/il/container/info/Info.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/container/info/Status.h" afterPath="$PROJECT_DIR$/il/container/info/Status.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/container/string/String.h" afterPath="$PROJECT_DIR$/il/container/string/String.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/container/string/StringView.h" afterPath="$PROJECT_DIR$/il/container/string/StringView.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/container/string/_test/String_test.cpp" afterPath="$PROJECT_DIR$/il/container/string/_test/String_test.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/container/string/algorithm_string.h" afterPath="$PROJECT_DIR$/il/container/string/algorithm_string.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/container/string/view_string.h" afterPath="$PROJECT_DIR$/il/container/string/view_string.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/core/Status.h" afterPath="$PROJECT_DIR$/il/core/Status.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/core/_test/Status_test.cpp" afterPath="$PROJECT_DIR$/il/core/_test/Status_test.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/core/base.h" afterPath="$PROJECT_DIR$/il/core/base.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/core/math/_test/safe_arithmetic_test.cpp" afterPath="$PROJECT_DIR$/il/core/math/_test/safe_arithmetic_test.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/core/math/safe_arithmetic.h" afterPath="$PROJECT_DIR$/il/core/math/safe_arithmetic.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/core/memory/allocate.h" afterPath="$PROJECT_DIR$/il/core/memory/allocate.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/format.h" afterPath="$PROJECT_DIR$/il/format.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/io/_test/numpy_test.cpp" afterPath="$PROJECT_DIR$/il/io/_test/numpy_test.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/io/format/format.cc" afterPath="$PROJECT_DIR$/il/io/format/format.cc" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/io/format/format.h" afterPath="$PROJECT_DIR$/il/io/format/format.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/io/format/old/format.h" afterPath="$PROJECT_DIR$/il/io/format/old/format.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/io/io_base.h" afterPath="$PROJECT_DIR$/il/io/io_base.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/io/numpy.cpp" afterPath="$PROJECT_DIR$/il/io/numpy.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/io/numpy.h" afterPath="$PROJECT_DIR$/il/io/numpy.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/io/parse.h" afterPath="$PROJECT_DIR$/il/io/parse.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/io/png.cpp" afterPath="$PROJECT_DIR$/il/io/png.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/io/png.h" afterPath="$PROJECT_DIR$/il/io/png.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/io/ppm.h" afterPath="$PROJECT_DIR$/il/io/ppm.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/io/toml.cpp" afterPath="$PROJECT_DIR$/il/io/toml.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/io/toml.h" afterPath="$PROJECT_DIR$/il/io/toml.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/io/toml/_test/toml_valid_test.cpp" afterPath="$PROJECT_DIR$/il/io/toml/_test/toml_valid_test.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/linear_algebra.h" afterPath="$PROJECT_DIR$/il/linear_algebra.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/linear_algebra/blas_info.h" afterPath="$PROJECT_DIR$/il/linear_algebra/blas_info.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/linear_algebra/cuda/dense/blas/CublasHandle.h" afterPath="$PROJECT_DIR$/il/linear_algebra/cuda/dense/blas/CublasHandle.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/linear_algebra/cuda/dense/blas/cuda_blas.h" afterPath="$PROJECT_DIR$/il/linear_algebra/cuda/dense/blas/cuda_blas.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/linear_algebra/cuda/dense/blas/cuda_dot.h" afterPath="$PROJECT_DIR$/il/linear_algebra/cuda/dense/blas/cuda_dot.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/linear_algebra/cuda/sparse/blas/CusparseHandle.h" afterPath="$PROJECT_DIR$/il/linear_algebra/cuda/sparse/blas/CusparseHandle.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/linear_algebra/cuda/sparse/blas/cuda_sparse_blas.h" afterPath="$PROJECT_DIR$/il/linear_algebra/cuda/sparse/blas/cuda_sparse_blas.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/linear_algebra/dense/_test/norm_test.cpp" afterPath="$PROJECT_DIR$/il/linear_algebra/dense/_test/norm_test.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/linear_algebra/dense/blas/_benchmark/blas_benchmark.cpp" afterPath="$PROJECT_DIR$/il/linear_algebra/dense/blas/_benchmark/blas_benchmark.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/linear_algebra/dense/blas/_benchmark/linear_solve_benchmark.cpp" afterPath="$PROJECT_DIR$/il/linear_algebra/dense/blas/_benchmark/linear_solve_benchmark.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/linear_algebra/dense/blas/_test/cross_test.cpp" afterPath="$PROJECT_DIR$/il/linear_algebra/dense/blas/_test/cross_test.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/linear_algebra/dense/blas/_test/dot_test.cpp" afterPath="$PROJECT_DIR$/il/linear_algebra/dense/blas/_test/dot_test.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/linear_algebra/dense/blas/_test/linear_solve_test.cpp" afterPath="$PROJECT_DIR$/il/linear_algebra/dense/blas/_test/linear_solve_test.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/linear_algebra/dense/blas/blas.h" afterPath="$PROJECT_DIR$/il/linear_algebra/dense/blas/blas.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/linear_algebra/dense/blas/blas_tests/blaze-MKL.cpp" afterPath="$PROJECT_DIR$/il/linear_algebra/dense/blas/blas_tests/blaze-MKL.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/linear_algebra/dense/blas/cross.h" afterPath="$PROJECT_DIR$/il/linear_algebra/dense/blas/cross.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/linear_algebra/dense/blas/dot.h" afterPath="$PROJECT_DIR$/il/linear_algebra/dense/blas/dot.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/linear_algebra/dense/factorization/Cholesky.h" afterPath="$PROJECT_DIR$/il/linear_algebra/dense/factorization/Cholesky.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/linear_algebra/dense/factorization/Eigen.h" afterPath="$PROJECT_DIR$/il/linear_algebra/dense/factorization/Eigen.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/linear_algebra/dense/factorization/Householder.h" afterPath="$PROJECT_DIR$/il/linear_algebra/dense/factorization/Householder.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/linear_algebra/dense/factorization/LU.h" afterPath="$PROJECT_DIR$/il/linear_algebra/dense/factorization/LU.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/linear_algebra/dense/factorization/Singular.h" afterPath="$PROJECT_DIR$/il/linear_algebra/dense/factorization/Singular.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/linear_algebra/dense/factorization/_benchmark/cholesky_benchmark.cpp" afterPath="$PROJECT_DIR$/il/linear_algebra/dense/factorization/_benchmark/cholesky_benchmark.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/linear_algebra/dense/factorization/_test/Eigen_test.cpp" afterPath="$PROJECT_DIR$/il/linear_algebra/dense/factorization/_test/Eigen_test.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/linear_algebra/dense/factorization/linear_solve.h" afterPath="$PROJECT_DIR$/il/linear_algebra/dense/factorization/linear_solve.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/linear_algebra/dense/norm.h" afterPath="$PROJECT_DIR$/il/linear_algebra/dense/norm.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/linear_algebra/sparse/blas/SparseMatrixBlas.h" afterPath="$PROJECT_DIR$/il/linear_algebra/sparse/blas/SparseMatrixBlas.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/linear_algebra/sparse/blas/_code/conjugate_gradient_blaze.h" afterPath="$PROJECT_DIR$/il/linear_algebra/sparse/blas/_code/conjugate_gradient_blaze.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/linear_algebra/sparse/blas/sparse_blas.h" afterPath="$PROJECT_DIR$/il/linear_algebra/sparse/blas/sparse_blas.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/linear_algebra/sparse/blas/sparse_dot.h" afterPath="$PROJECT_DIR$/il/linear_algebra/sparse/blas/sparse_dot.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/linear_algebra/sparse/factorization/GmresIlu0.h" afterPath="$PROJECT_DIR$/il/linear_algebra/sparse/factorization/GmresIlu0.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/linear_algebra/sparse/factorization/Pardiso.h" afterPath="$PROJECT_DIR$/il/linear_algebra/sparse/factorization/Pardiso.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/linear_algebra/sparse/factorization/_test/GmresIlu0_test.cpp" afterPath="$PROJECT_DIR$/il/linear_algebra/sparse/factorization/_test/GmresIlu0_test.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/linear_algebra/sparse/factorization/_test/Pardiso_test.cpp" afterPath="$PROJECT_DIR$/il/linear_algebra/sparse/factorization/_test/Pardiso_test.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/linear_algebra/sparse/factorization/_test/matrix/heat.h" afterPath="$PROJECT_DIR$/il/linear_algebra/sparse/factorization/_test/matrix/heat.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/math.h" afterPath="$PROJECT_DIR$/il/math.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/norm.h" afterPath="$PROJECT_DIR$/il/norm.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/pretty_print/gdb/printers.py" afterPath="$PROJECT_DIR$/il/pretty_print/gdb/printers.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/random/sobol.h" afterPath="$PROJECT_DIR$/il/random/sobol.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/il/unit/time.h" afterPath="$PROJECT_DIR$/il/unit/time.h" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/main.cpp" afterPath="$PROJECT_DIR$/main.cpp" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/FVM.cpp" afterPath="$PROJECT_DIR$/src/FVM.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/AssemblyDDM.h" afterPath="$PROJECT_DIR$/src/AssemblyDDM.h" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/ConductivitiesNewtonian.cpp" afterPath="$PROJECT_DIR$/src/ConductivitiesNewtonian.cpp" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/Dilatancy.h" afterPath="$PROJECT_DIR$/src/Dilatancy.h" />
     </list>
     <ignored path="$PROJECT_DIR$/cmake-build-debug/" />
     <ignored path="$PROJECT_DIR$/cmake-build-release/" />
@@ -57,8 +187,8 @@
       <file leaf-file-name="CMakeLists.txt" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/CMakeLists.txt">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="510">
-              <caret line="34" column="9" lean-forward="false" selection-start-line="34" selection-start-column="9" selection-end-line="34" selection-end-column="9" />
+            <state relative-caret-position="0">
+              <caret line="21" column="28" lean-forward="false" selection-start-line="21" selection-start-column="28" selection-end-line="21" selection-end-column="28" />
               <folding />
             </state>
           </provider>
@@ -77,23 +207,23 @@
       <file leaf-file-name="main.cpp" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/main.cpp">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="421">
-              <caret line="65" column="0" lean-forward="false" selection-start-line="65" selection-start-column="0" selection-end-line="65" selection-end-column="0" />
+            <state relative-caret-position="165">
+              <caret line="11" column="5" lean-forward="false" selection-start-line="11" selection-start-column="4" selection-end-line="11" selection-end-column="5" />
               <folding>
-                <element signature="e#284#302#0" expanded="true" />
-                <element signature="e#439#460#0" expanded="true" />
-                <element signature="e#648#676#0" expanded="true" />
+                <element signature="e#579#607#0" expanded="true" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="FVM.cpp" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/src/FVM.cpp">
+      <file leaf-file-name="AssemblyDDM.cpp" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/src/AssemblyDDM.cpp">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="240">
-              <caret line="18" column="0" lean-forward="true" selection-start-line="18" selection-start-column="0" selection-end-line="18" selection-end-column="0" />
-              <folding />
+            <state relative-caret-position="210">
+              <caret line="14" column="9" lean-forward="true" selection-start-line="14" selection-start-column="9" selection-end-line="14" selection-end-column="9" />
+              <folding>
+                <element signature="e#352#376#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -153,7 +283,6 @@
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/LICENSE.TXT" />
         <option value="$PROJECT_DIR$/InputData.txt" />
         <option value="$PROJECT_DIR$/mesh_file_io.h" />
         <option value="$PROJECT_DIR$/Results_to_csv.h" />
@@ -202,8 +331,9 @@
         <option value="$PROJECT_DIR$/EHLDs.cpp" />
         <option value="$PROJECT_DIR$/CMakeLists.txt" />
         <option value="$PROJECT_DIR$/.gitignore" />
-        <option value="$PROJECT_DIR$/main.cpp" />
         <option value="$PROJECT_DIR$/src/FVM.cpp" />
+        <option value="$PROJECT_DIR$/main.cpp" />
+        <option value="$PROJECT_DIR$/src/FromEdgeToCol.cpp" />
       </list>
     </option>
   </component>
@@ -727,14 +857,9 @@
       <workItem from="1496846014122" duration="834000" />
       <workItem from="1496846853868" duration="131000" />
       <workItem from="1496847802424" duration="35000" />
-      <workItem from="1496910631876" duration="894000" />
-    </task>
-    <task id="LOCAL-00019" summary="Dilatancy + Friction">
-      <created>1485162371634</created>
-      <option name="number" value="00019" />
-      <option name="presentableId" value="LOCAL-00019" />
-      <option name="project" value="LOCAL" />
-      <updated>1485162371634</updated>
+      <workItem from="1496910631876" duration="1220000" />
+      <workItem from="1496913737004" duration="1047000" />
+      <workItem from="1496914910063" duration="216000" />
     </task>
     <task id="LOCAL-00020" summary="Dilatancy + Friction">
       <created>1485162892835</created>
@@ -1072,17 +1197,23 @@
       <option name="project" value="LOCAL" />
       <updated>1496911349822</updated>
     </task>
-    <option name="localTasksCounter" value="68" />
+    <task id="LOCAL-00068" summary="try to merge">
+      <created>1496911546867</created>
+      <option name="number" value="00068" />
+      <option name="presentableId" value="LOCAL-00068" />
+      <option name="project" value="LOCAL" />
+      <updated>1496911546867</updated>
+    </task>
+    <option name="localTasksCounter" value="69" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="928389000" />
+    <option name="totallyTimeSpent" value="929978000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="28" y="22" width="996" height="746" extended-state="6" />
-    <editor active="true" />
     <layout>
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.23584905" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.24528302" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="CMake" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.272293" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.16415094" sideWeight="0.5059013" order="7" side_tool="true" content_ui="tabs" />
@@ -1095,7 +1226,7 @@
       <window_info id="Data View" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3298969" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="SVN Repositories" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32963988" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
-      <window_info id="Messages" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.21818182" sideWeight="0.49624464" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.29140127" sideWeight="0.49624464" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
@@ -1151,8 +1282,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
-    <MESSAGE value="FVM matrices for piecewise CONSTANT DDs" />
-    <MESSAGE value="Few changes" />
     <MESSAGE value="Small change" />
     <MESSAGE value="Change: output -&gt; matrix to switch from edge to coll" />
     <MESSAGE value="Update il" />
@@ -1176,7 +1305,9 @@
     <MESSAGE value="Trial" />
     <MESSAGE value="moved source files to src/" />
     <MESSAGE value="try to merge" />
-    <option name="LAST_COMMIT_MESSAGE" value="try to merge" />
+    <MESSAGE value="Try to merge" />
+    <MESSAGE value="Yes we can commit" />
+    <option name="LAST_COMMIT_MESSAGE" value="Yes we can commit" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1203,11 +1334,6 @@
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/Results/Test0.151200.txt" />
-    <entry file="file://$PROJECT_DIR$/Results/Test0.150200.txt" />
-    <entry file="file://$PROJECT_DIR$/Results/Test0.149100.txt" />
-    <entry file="file://$PROJECT_DIR$/Results/Second test implicit/Test0.036400.txt" />
-    <entry file="file://$PROJECT_DIR$/ELHDs_explicit_coupling.cpp" />
     <entry file="file://$PROJECT_DIR$/Dilatancy.h" />
     <entry file="file://$PROJECT_DIR$/ELHDs_implicit_coupling.h" />
     <entry file="file://$PROJECT_DIR$/Friction.h" />
@@ -1321,6 +1447,21 @@
     <entry file="file://$PROJECT_DIR$/Output_results.h" />
     <entry file="file://$PROJECT_DIR$/MC_criterion.cpp" />
     <entry file="file://$PROJECT_DIR$/EHLDs.h" />
+    <entry file="file://$PROJECT_DIR$/.gitignore">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="60">
+          <caret line="4" column="7" lean-forward="true" selection-start-line="4" selection-start-column="7" selection-end-line="4" selection-end-column="7" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/CMakeLists.txt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="21" column="28" lean-forward="false" selection-start-line="21" selection-start-column="28" selection-end-line="21" selection-end-column="28" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/InputData.toml">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="135">
@@ -1329,39 +1470,63 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/CMakeLists.txt">
+    <entry file="file://$PROJECT_DIR$/src/FVM.cpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="510">
-          <caret line="34" column="9" lean-forward="false" selection-start-line="34" selection-start-column="9" selection-end-line="34" selection-end-column="9" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/.gitignore">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="60">
-          <caret line="4" column="7" lean-forward="true" selection-start-line="4" selection-start-column="7" selection-end-line="4" selection-end-column="7" />
+        <state relative-caret-position="240">
+          <caret line="18" column="0" lean-forward="false" selection-start-line="18" selection-start-column="0" selection-end-line="18" selection-end-column="0" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/main.cpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="421">
-          <caret line="65" column="0" lean-forward="false" selection-start-line="65" selection-start-column="0" selection-end-line="65" selection-end-column="0" />
+        <state relative-caret-position="165">
+          <caret line="11" column="5" lean-forward="false" selection-start-line="11" selection-start-column="4" selection-end-line="11" selection-end-column="5" />
           <folding>
-            <element signature="e#284#302#0" expanded="true" />
-            <element signature="e#439#460#0" expanded="true" />
-            <element signature="e#648#676#0" expanded="true" />
+            <element signature="e#579#607#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/FVM.cpp">
+    <entry file="file://$PROJECT_DIR$/src/FromEdgeToCol.cpp">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="240">
-          <caret line="18" column="0" lean-forward="true" selection-start-line="18" selection-start-column="0" selection-end-line="18" selection-end-column="0" />
+        <state relative-caret-position="-179">
+          <caret line="35" column="25" lean-forward="false" selection-start-line="35" selection-start-column="25" selection-end-line="35" selection-end-column="25" />
           <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/Mesh.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-1621">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/Dilatancy.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/AssemblyDDM.h">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/AssemblyDDM.cpp">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="210">
+          <caret line="14" column="9" lean-forward="true" selection-start-line="14" selection-start-column="9" selection-end-line="14" selection-end-column="9" />
+          <folding>
+            <element signature="e#352#376#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
