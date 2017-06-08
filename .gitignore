@@ -1,4 +1,7 @@
 .idea
+#il
+.gitignore
+Local_Git_repository
 cmake-build-debug
 cmake-build-release
 Results
