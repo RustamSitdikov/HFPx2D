@@ -657,11 +657,11 @@ namespace hfp2d {
         il::Array2D<int> col_row_i=search(col_matrix,int(c_i),il::io);
         il::Array2D<int> col_row_j=search(col_matrix,int(c_j),il::io);
 
-        il::Array2D<double> kmatnew{dof_dim * (c_j - c_i + 1), dof_dim * (c_j - c_i + 1), 0.};
-        take_submatrix(kmatnew, id(col_row_i(0,0),dof_dim*col_row_i(0,1)),
-                       id(col_row_j(0,0),dof_dim*col_row_j(0,1)+dof_dim-1),
-                       id(col_row_i(0,0),dof_dim*col_row_i(0,1)),
-                       id(col_row_j(0,0),dof_dim*col_row_j(0,1)+dof_dim-1),
+        il::Array2D<double> kmatnew{dof_dim * p*(col_row_j(0,0)-col_row_i(0,0) + 1), dof_dim * p*(col_row_j(0,0)-col_row_i(0,0) + 1), 0.};
+        take_submatrix(kmatnew, id(col_row_i(0,0),1),
+                       id(col_row_j(0,0),1+dof_dim),
+                       id(col_row_i(0,0),1),
+                       id(col_row_j(0,0),1+dof_dim),
                        kmat);
 
         il::int_t n = col_row_j(0, 0) - col_row_i(0, 0) + 1;

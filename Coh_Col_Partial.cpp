@@ -350,5 +350,49 @@ namespace hfp2d {
     }
 
 
+    void energy_output_partial(il::Array2C<double> widthlist,il::Array<double> plist,
+                       il::Array<double> l_c,il::Array<double> l_coh, il::Array2C<double> cohlist,
+                       Material material,Mesh mesh_total,il::Array2D<int> &id,
+                       const int &p,const int &dof_dim, Initial_condition initial_condition,
+                       il::io_t,
+                       il::Array<double> &energy_ff,
+                       il::Array<double> &energy_coh,
+                       il::Array<double> &energy_j_int){
+        il::int_t n=widthlist.size(0);
+        il::int_t nc=widthlist.size(1);
+        il::Array<double> energy_f {n,0.};
+        il::Array<double> energy_coh_k{n,0.};
+        il::Array<double> energy_j_integral{n+1,0.};
+
+        for(int s=0;s<n;s++){
+            energy_f[s]=3.1415926*l_c[s+1]*plist[s+1]*plist[s+1]/material.Ep;
+            energy_coh_k[s]=material.sigma_t*material.sigma_t*8/3.1415926/material.Ep*l_coh[s];
+            energy_j_integral[s+1]=initial_condition.Q0*plist[s+1]*initial_condition.timestep;
+
+            for(int sc=1;sc<nc;sc+=dof_dim){
+                il::Array2D<int> ne=search(id,sc,il::io);
+                SegmentCharacteristic segi = get_segment_DD_characteristic(
+                        mesh_total, ne(0,0), p);
+                if(cohlist(s,sc)==0){
+                    if(s==0){
+                        energy_j_integral[s+1]-=0.5*(plist[s+1]*widthlist(s,sc))*0.5*segi.size;
+                    }
+                    else{
+                        energy_j_integral[s+1]-=0.5*(plist[s+1]*widthlist(s,sc)-plist[s]*widthlist(s-1,sc))*0.5*segi.size;
+                    }
+                }
+            }
+
+            double energy_middle=energy_j_integral[s+1];
+
+            energy_j_integral[s+1]=energy_middle-(l_c[s+1]-l_c[s])*material.sigma_t*material.wc;
+
+        }
+        energy_ff=energy_f;
+        energy_coh=energy_coh_k;
+        energy_j_int=energy_j_integral;
+    }
+
+
 }
 //}

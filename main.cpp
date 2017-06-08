@@ -30,7 +30,8 @@
 #include "src/FVM.h"
 #include "Coh_Col_Partial.h"
 #include "Coh_Linear_softening.h"
-#include "Viscosity.h"
+//#include "Viscosity.h"
+#include "Viscosity_all_nodeselemt.h"
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -50,8 +51,8 @@ il::Array<double> griffithcrack(const il::Array<double>& x, double a, double Ep,
 
 ////////////////////////////////////////////////////////////////////////////////
 int main() {
-        int nelts = 100, p = 1 ;
-        double h = 2. / (nelts);  //  element size
+        int nelts = 800, p = 1 ;
+        double h = 2. / (nelts);  //  element size before h=2./(nelts);
 
         il::Array<double> x{nelts+1};
 
@@ -162,7 +163,7 @@ int main() {
     // or wc should be doubled
 
     hfp2d::material_condition_col (0.001*2, 2.,100.0,0.,
-                                   0.00001,0.0005,1,0.,il::io,material, initial_condition);
+                                   0.00001,0.0005,1.,0.,il::io,material, initial_condition);
 
     //For exponential cohesive law
     //sigma T or wc should be times a constant 6/exp(1.0)/0.95
@@ -178,14 +179,14 @@ int main() {
     il::Array<double> widthB;
     il::Array<int> mvalue;
 
-    int nstep=20;
+    int nstep=1000;
     int break_time=0;
 
     il::Status status2;
 
     //fully filled calculation
 
-//    hfp2d::propagation_loop_col(mesh,id,p,material,initial_condition,199,201,nstep,status2,il::io,widthlist,plist,l_coh,l_c,cohlist,mvalue,break_time,stresslist,energy);
+//    hfp2d::propagation_loop_col(mesh,id,p,material,initial_condition,799,801,nstep,status2,il::io,widthlist,plist,l_coh,l_c,cohlist,mvalue,break_time,stresslist,energy);
 //
 //    hfp2d::energy_output(widthlist,plist,l_c,l_coh,material,mesh,id,p,2,initial_condition,il::io,energy_f,energy_coh,energy_j_integral);
 //
@@ -205,7 +206,7 @@ int main() {
 
     //linear softening cohesive law, based on the fully-filled case
 
-//    hfp2d::propagation_loop_linear(mesh,id,p,material,initial_condition,199,201,nstep,status2,il::io,widthlist,plist,l_coh,l_c,cohlist,mvalue,break_time,stresslist,energy);
+//    hfp2d::propagation_loop_linear(mesh,id,p,material,initial_condition,799,801,nstep,status2,il::io,widthlist,plist,l_coh,l_c,cohlist,mvalue,break_time,stresslist,energy);
 //
 //    hfp2d::energy_output(widthlist,plist,l_c,l_coh,material,mesh,id,p,2,initial_condition,il::io,energy_f,energy_coh,energy_j_integral);
 //
@@ -226,13 +227,13 @@ int main() {
 
     il::Array2D<double> rho{nelts, 2, Density};
 
-//
-//    // Set the structure members of fluid
+
+    // Set the structure members of fluid
     hfp2d::Parameters_fluid fluid_parameters;
     fluid_parameters.compressibility = CompressFluid;
     fluid_parameters.density = rho;
     fluid_parameters.viscosity = Visc;
-    hfp2d::propagation_loop_visco(mesh,id,p,material,initial_condition,49,50,nstep,status2,fluid_parameters,il::io,widthlist,plist_2d,l_coh,l_c,cohlist,mvalue,break_time,stresslist,energy,volume_vary_list,elastic_vary_list);
+    hfp2d::propagation_loop_visco(mesh,id,p,material,initial_condition,399,400,nstep,status2,fluid_parameters,il::io,widthlist,plist_2d,l_coh,l_c,cohlist,mvalue,break_time,stresslist,energy,volume_vary_list,elastic_vary_list);
 
     timerwhole.stop();
     std::cout << "------ " << timerwhole.elapsed() << "  \n";
@@ -292,6 +293,7 @@ int main() {
 //  fout1.close();
 
 
+//plot only for viscosity case
 
     std::ofstream fplist;
     fplist.open("outputplist.txt");
@@ -314,7 +316,7 @@ int main() {
 
 
 
-
+//out put for viscosity case
     std::ofstream foutvolume_list;
     foutvolume_list.open("outputvlist.txt");
 

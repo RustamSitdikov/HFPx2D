@@ -415,6 +415,7 @@ namespace hfp2d {
         IL_EXPECT_FAST(pressure_f.size() == matrix_edge_to_col.size(1));
         il::Array2D<double> newmatrix{n + n2, n + n2, 0.};
         il::Array<double> newvector{n + n2, 0.};
+        double coefficient_of_matrix=1.;//precondition the matrix but seems not working
 
 
         il::Array<double> fK = il::dot(kmatC, widthB);
@@ -432,16 +433,16 @@ namespace hfp2d {
                 newmatrix(s, m) = kmatC(s, m);
             }
             for (int s1=0; s1<n2;++s1){
-                newmatrix(s1+n,m)=vwc(s1,m);
+                newmatrix(s1+n,m)=vwc(s1,m)*coefficient_of_matrix;
             }
         };
         for (int m1=0;m1<n2;m1++){
-            newvector[n+m1]=lp_b[m1]*initial_condition.timestep+m_source[m1]*initial_condition.timestep;
+            newvector[n+m1]=(lp_b[m1]*initial_condition.timestep+m_source[m1]*initial_condition.timestep)*coefficient_of_matrix;
             for (int s2=0;s2<n;++s2){
                 newmatrix(s2,m1+n)=matrix_edge_to_col(s2,m1);
             }
             for (int s3=0;s3<n2;s3++){
-                newmatrix(s3+n,m1+n)=vp(s3,m1)-ll(s3,m1)*initial_condition.timestep;
+                newmatrix(s3+n,m1+n)=(vp(s3,m1)-ll(s3,m1)*initial_condition.timestep)*coefficient_of_matrix;
             }
         }
 
@@ -855,7 +856,7 @@ namespace hfp2d {
             il::Array<double> pressure_current=il::dot(matrix_edge_to_col_all,pressure_large);
             il::Array<double> stress_current=il::dot(kmat,width_large);
             for (int stre=0;stre<dof*n;stre++){
-                stress_profile(s,stre)=stress_current[stre]+pressure_current[stre];
+                stress_profile(s,stre)=stress_current[stre]+pressure_current[stre]-initial_condition.sigma0;
             }
 
             widthB = width;

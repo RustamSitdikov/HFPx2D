@@ -39,10 +39,10 @@ namespace hfp2d{
                 if (width_etoc[s] < width_history[id(col_row_i(0,0),dof_dim*col_row_i(0,1))+s]) {
                     //expression for linear softening model
                     f[s] = width_etoc[s] / width_history[id(col_row_i(0,0),dof_dim*col_row_i(0,1))+s] *
-                    //        material.sigma_t*(material.wc-width_history[id(col_row_i(0,0),dof_dim*col_row_i(0,1))+s])/material.wc;
+                            material.sigma_t*(material.wc-width_history[id(col_row_i(0,0),dof_dim*col_row_i(0,1))+s])/material.wc;
                     //expression for exponential model
                     //f[s]=width_etoc[s] / width_history[id(col_row_i(0,0),dof_dim*col_row_i(0,1))+s] *
-                            material.sigma_t*6*width_history[id(col_row_i(0,0),dof_dim*col_row_i(0,1))+s]/material.wc*exp(1-6*width_history[id(col_row_i(0,0),dof_dim*col_row_i(0,1))+s]/material.wc);
+                     //       material.sigma_t*6*width_history[id(col_row_i(0,0),dof_dim*col_row_i(0,1))+s]/material.wc*exp(1-6*width_history[id(col_row_i(0,0),dof_dim*col_row_i(0,1))+s]/material.wc);
                 }
                 else {
                     //expression for linear softening model

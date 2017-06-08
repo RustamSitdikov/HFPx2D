@@ -57,6 +57,15 @@ namespace hfp2d {
                                  il::Array2C<double> &stress_list,
                                  il::Array<double> &energy_g);
 
+    void energy_output_partial(il::Array2C<double> widthlist,il::Array<double> plist,
+                               il::Array<double> l_c,il::Array<double> l_coh, il::Array2C<double> cohlist,
+                               Material material,Mesh mesh_total,il::Array2D<int> &id,
+                               const int &p,const int &dof_dim, Initial_condition initial_condition,
+                               il::io_t,
+                               il::Array<double> &energy_ff,
+                               il::Array<double> &energy_coh,
+                               il::Array<double> &energy_j_int);
+
 
 
 }
