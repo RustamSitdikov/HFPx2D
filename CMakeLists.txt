@@ -46,3 +46,5 @@ add_custom_command(TARGET HFPx2D
         $<TARGET_FILE:HFPx2D>)
 #set(CMAKE_CXX_FLAGS “${CMAKE_CXX_FLAGS} -Werror -Wall -Wextra -pedantic”)
 #the part of the stress is added later
+
+# this is a comment
