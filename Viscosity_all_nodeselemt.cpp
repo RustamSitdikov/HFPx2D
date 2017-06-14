@@ -363,7 +363,7 @@ namespace hfp2d {
                     dofj = Dofp(ej, 1);
 //                    if(m==0 && col_row_i(0,1)==1){
                         Vp(m, m) =Vp(m, m)
-                                  +(element_size[ej] / 12) *((0. * Cf[m])
+                                  +(element_size[ej] / 12) *((widthB[id(ej,1)] * Cf[m])//I changed here 13/06 before it was 0.*Cf[m]
                                                              + (0.5 * w_mid[ej] * Cfmid[ej])
                                                              + (3 * wquart[col_matrix(ej,0)] * Cfquart[col_matrix(ej,0)]));
 //                    }
@@ -614,7 +614,11 @@ namespace hfp2d {
                                il::int_t input,il::io_t,
                                il::Array<double> &delta_width,
                                il::Array <double> &pressure_change,
-                               il::Array<double> &coht,int &mm,il::Array<double> &volume_vary,il::Array<double> &elastic_vary) {
+                               il::Array<double> &coht,int &mm,
+                               il::Array<double> &volume_vary,
+                               il::Array<double> &elastic_vary,
+                               il::Array<double> &error_w_list
+    ) {
         il::Array2D<int> col_row_i=search(col_matrix,int(c_i),il::io);
         il::Array2D<int> col_row_j=search(col_matrix,int(c_j),il::io);
 
@@ -649,6 +653,9 @@ namespace hfp2d {
         double error_w = 1.;
         il::Array<il::Status> statusk{400,};
         double error_p=1.;
+        //check this iteration scheme is suitable or not
+        il::Array<double> error_list{400,0.};
+
 
         il::Array<double> delta_w_bitera=delta_w_ini;
         il::Array<double> delta_p_ini{n+1,0.};
@@ -683,8 +690,29 @@ namespace hfp2d {
             il::blas(-1.0, delta_w_bitera, 1.0, il::io, intermediate);
             double error_inter = il::norm(intermediate, il::Norm::L2);
             error_w = error_inter / il::norm(delta_width, il::Norm::L2);
+
+            //to force the increment of w who contributes a negative opening equal to zero
+            il::Array<double> width_check=widthB;
+            il::blas(1.0, delta_width, 1.0, il::io, width_check);//delta_w_ini could also be replaced by delta_width
+            for(int w_check=0;w_check<widthB.size();w_check++){
+                if(width_check[w_check]<0.){
+                    delta_width[w_check]=-1.*widthB[w_check];// or -0.5*delta_w_bitera;-widthB[w_check];0;-0.99*widthB[];
+                }
+            }
+
             il::blas(0.85, delta_width, 0.15, il::io, delta_w_ini);//iteration condition
+            //delta_w_ini=delta_width;//try without relaxation
             delta_w_bitera=delta_width;
+
+
+
+
+            //il::blas(0.85,pressure_change,0.15,il::io,delta_p_ini);
+
+
+
+
+
 
 //            il::Array<double> inter_pressure=pressure_change;
 //            il::blas(-1.0,delta_p_ini,1.0,il::io,inter_pressure);
@@ -692,6 +720,9 @@ namespace hfp2d {
 //            error_p=error_inter_p/il::norm(pressure_change,il::Norm::L2);
             error_p=0.0;//this line tries to make the pressure iteration criteria unavalible
             delta_p_ini=pressure_change;
+
+            //check the iteration scheme is suitable or not
+            error_list[k]=error_w;//error_w;error_p;
 
             ++k;
 
@@ -705,6 +736,7 @@ namespace hfp2d {
 
         volume_vary =volume_vary_inter;
         elastic_vary=elastic_vary_inter;
+        error_w_list=error_list;
 
     }
 
@@ -720,7 +752,8 @@ namespace hfp2d {
                            il::Array<double> &l, il::Array2C<double> &coh_list,
                            il::Array<int> &mvalue,int &break_time,
                            il::Array2C<double> &stress_list, il::Array<double> &energy_g,
-                           il::Array2D<double> &volume_vary_list,il::Array2D<double> &elastic_vary_list) {
+                           il::Array2D<double> &volume_vary_list,il::Array2D<double> &elastic_vary_list,
+                           il::Array2D<double> &error_matrix) {
 
         int n = mesh_total.nelts();
         IL_EXPECT_FAST(n == id.size(0));
@@ -794,8 +827,13 @@ namespace hfp2d {
 
         break_time=nstep;
 
+        il::Array2D<double> error_lists{nstep,400,0.};
+
 
         while (s < nstep) {
+
+            //to check the iteration scheme is suitable or not
+            il::Array<double> error_w_list;
 
             while (m < 10000) {//the stop limit value for m should be big enough
                 if (break_value) {
@@ -806,12 +844,14 @@ namespace hfp2d {
                 il::Array<double> volume_vary;
                 il::Array<double> elastic_vary;
 
+
                 plasticity_loop_visco(material, initial_condition,c_i, c_j,
                                       kmat, id, p, widthB, pressure_b,
                                       width_history,dof_dim,col_matrix,
                                       fluid_parameters, element_size_all,
                                       matrix_edge_to_col_all,input,il::io,
-                                      delta_width, pressure_change, coht,mk,volume_vary,elastic_vary);
+                                      delta_width, pressure_change, coht,mk,
+                                      volume_vary,elastic_vary,error_w_list);
 
                 m_value[s]=mk;
 
@@ -947,6 +987,12 @@ namespace hfp2d {
                 stress_profile(s,stre)=stress_current[stre]+pressure_current[stre];
             }
 
+
+            for(int iter=0;iter<400;iter++){
+                error_lists(s,iter)=error_w_list[iter];
+            }
+
+
             widthB = width;
             pressure_b=pressure;
             time += initial_condition.timestep;
@@ -963,6 +1009,7 @@ namespace hfp2d {
         stress_list=stress_profile;
         volume_vary_list=volume_vary_matrix;
         elastic_vary_list=elastic_vary_matrix;
+        error_matrix=error_lists;
         status.abort_on_error();
     }
 

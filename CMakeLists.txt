@@ -32,6 +32,9 @@ set(SOURCE_FILES  main.cpp
         #Viscosity.cpp Viscosity.h
         Viscosity_all_nodeselemt.cpp Viscosity_all_nodeselemt.h
 
+        #Viscosity_right_side.cpp Viscosity_right_side.h
+
+
         )#Coh_Prop_new.cpp Coh_Prop_new.h Elasticity2D.cpp Elasticity2D.h Mesh.cpp Mesh.h DOF_Handles.h DOF_Handles.cpp AssemblyDDM.cpp AssemblyDDM.h)# main.cpp Stress.cpp Stress.h Coh_Propagation.cpp Coh_Propagation.h Viscosity.cpp Viscosity.h Coh_Prop_new.cpp Coh_Prop_new.h)
 add_executable(HFPx2D ${SOURCE_FILES} )# Stress.cpp Stress.h Coh_Propagation.cpp Coh_Propagation.h Viscosity.cpp Viscosity.h Coh_Prop_new.cpp Coh_Prop_new.h)
 target_compile_definitions(HFPx2D PRIVATE IL_MKL=1 IL_BLAS=1)

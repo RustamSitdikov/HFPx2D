@@ -8,6 +8,7 @@
 
 
 
+
 #include <cmath>
 #include <complex>
 #include <iostream>
@@ -32,6 +33,7 @@
 #include "Coh_Linear_softening.h"
 //#include "Viscosity.h"
 #include "Viscosity_all_nodeselemt.h"
+//#include "Viscosity_right_side.h"
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -49,9 +51,10 @@ il::Array<double> griffithcrack(const il::Array<double>& x, double a, double Ep,
   return wsol;
 }
 
+
 ////////////////////////////////////////////////////////////////////////////////
 int main() {
-        int nelts = 800, p = 1 ;
+        int nelts = 100, p = 1 ;
         double h = 2. / (nelts);  //  element size before h=2./(nelts);
 
         il::Array<double> x{nelts+1};
@@ -126,6 +129,8 @@ int main() {
     timerwhole.start();
 
 
+
+
   //we add here to test the propagation code.
   il::Array2C<double> widthlist;
   il::Array<double> plist;
@@ -163,7 +168,7 @@ int main() {
     // or wc should be doubled
 
     hfp2d::material_condition_col (0.001*2, 2.,100.0,0.,
-                                   0.00001,0.0005,1.,0.,il::io,material, initial_condition);
+                                   0.00001,0.0005,2.,0.,il::io,material, initial_condition);
 
     //For exponential cohesive law
     //sigma T or wc should be times a constant 6/exp(1.0)/0.95
@@ -226,6 +231,7 @@ int main() {
     double Density=1.;
 
     il::Array2D<double> rho{nelts, 2, Density};
+    il::Array2D<double> error_matrix;
 
 
     // Set the structure members of fluid
@@ -233,7 +239,7 @@ int main() {
     fluid_parameters.compressibility = CompressFluid;
     fluid_parameters.density = rho;
     fluid_parameters.viscosity = Visc;
-    hfp2d::propagation_loop_visco(mesh,id,p,material,initial_condition,399,400,nstep,status2,fluid_parameters,il::io,widthlist,plist_2d,l_coh,l_c,cohlist,mvalue,break_time,stresslist,energy,volume_vary_list,elastic_vary_list);
+    hfp2d::propagation_loop_visco(mesh,id,p,material,initial_condition,49,50,nstep,status2,fluid_parameters,il::io,widthlist,plist_2d,l_coh,l_c,cohlist,mvalue,break_time,stresslist,energy,volume_vary_list,elastic_vary_list,error_matrix);
 
     timerwhole.stop();
     std::cout << "------ " << timerwhole.elapsed() << "  \n";
@@ -341,6 +347,21 @@ int main() {
         felas<<"\n";
     }
     felas.close();
+
+//output only for viso case, check the iteration scheme
+    std::ofstream fviscoitera;
+    fviscoitera.open("outputviscoitera.txt");
+    for(int erv=0;erv<break_time;++erv){//qq<widthlist.size(0)
+        for(int erc=0;erc<error_matrix.size(1);++erc){
+            fviscoitera<<error_matrix(erv,erc)<<"\t";
+        }
+        fviscoitera<<"\n";
+    }
+    fviscoitera.close();
+
+
+
+
 
 //energy output
 

@@ -102,7 +102,7 @@ namespace hfp2d {
                                il::Array<double> &delta_width,
                                il::Array <double> &pressure_change,
                                il::Array<double> &coht,int &mm,il::Array<double> &volume_vary,
-                               il::Array<double> &elastic_vary);
+                               il::Array<double> &elastic_vary,il::Array<double>&error_w_list);
     void
     propagation_loop_visco(Mesh mesh_total, il::Array2D<int> &id, const int &p,
                            const Material &material,
@@ -114,7 +114,8 @@ namespace hfp2d {
                            il::Array<double> &l, il::Array2C<double> &coh_list,
                            il::Array<int> &mvalue,int &break_time,
                            il::Array2C<double> &stress_list, il::Array<double> &energy_g,
-                           il::Array2D<double> &volume_vary_list,il::Array2D<double> &elastic_vary_list);
+                           il::Array2D<double> &volume_vary_list,il::Array2D<double> &elastic_vary_list,
+                           il::Array2D<double> &error_matrix);
 
 }
 
