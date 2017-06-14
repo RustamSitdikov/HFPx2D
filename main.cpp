@@ -57,9 +57,9 @@ int main() {
         int nelts = 100, p = 1 ;
         double h = 2. / (nelts);  //  element size before h=2./(nelts);
 
-        il::Array<double> x{nelts+1};
+        il::Array<double> x{nelts+1};// the nodes
 
-        il::Array2D<double> xy{nelts+1, 2, 0.0};
+        il::Array2D<double> xy{nelts+1, 2, 0.0};//coordinates of 1D mesh
         il::Array2D<int> myconn{nelts, 2, 0};
         il::Array2D<int> id{nelts, 4, 0};
 
