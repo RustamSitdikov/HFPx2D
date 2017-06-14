@@ -53,6 +53,7 @@ il::Array<double> griffithcrack(const il::Array<double>& x, double a, double Ep,
 
 
 ////////////////////////////////////////////////////////////////////////////////
+// This is the start of the main routine.
 int main() {
         int nelts = 100, p = 1 ;
         double h = 2. / (nelts);  //  element size before h=2./(nelts);
