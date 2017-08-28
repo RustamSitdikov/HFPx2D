@@ -8,28 +8,22 @@
 //
 //
 
-// Inclusion from standard library
-#include <iostream>
-
-// Inclusion from Inside Loop library
+#include "Mesh.h"
 #include <il/linear_algebra.h>
 #include <il/math.h>
-
-// Inclusion from the project
-#include "Mesh.h"
+#include <iostream>
 
 namespace hfp2d {
 
+// mesh class
 void Mesh::set_values(il::Array2D<double> xy, il::Array2D<int> ien) {
-  IL_EXPECT_FAST(xy.size(1) == 2); // check array dimensions ?
-  IL_EXPECT_FAST(
-      ien.size(1) ==
-      2); // check array dimensions ??? -> this is only for 1D mesh so far
+  // check array dimensions ??? -> this is only for 1D mesh so far
+  IL_EXPECT_FAST(xy.size(1) == 2);  // check array dimensions ?
+  IL_EXPECT_FAST(ien.size(1) == 2);
 
-  node_ = xy;          // list of coordinates of points in the mesh
-  connectivity_ = ien; // connectivity array -
+  node_ = xy;           // list of coordinates of points in the mesh
+  connectivity_ = ien;  //  connectivity array -
 }
-
 double Mesh::node(il::int_t k, il::int_t i) { return node_(k, i); }
 
 int Mesh::connectivity(il::int_t k, il::int_t i) { return connectivity_(k, i); }
@@ -40,13 +34,16 @@ int Mesh::ncoor() { return node_.size(0); };
 
 il::Array2D<double> Mesh::coor() { return node_; };
 
-il::Array2D<int> Mesh::conn() { return connectivity_; };
+
 
 // needs to add function to add one or more elements ... (needs to have active
 // and passive elements to track active/passive fractures etc.)
 //
 //
 // could provide a default constructor for a straight fracture ?
+
+
+
 
 // SOME UTILITIES HERE below -> To be moved in a separate file ??
 
@@ -67,10 +64,10 @@ il::StaticArray2D<double, 2, 2> rotation_matrix_2D(double theta) {
 //  work for segment mesh
 // Inputs
 // mesh object
-// ne elements in the mesh to get characterstic from
+// ne element number in the mesh to get characterstic from
 // p order of the interpolation for that mesh
-SegmentCharacteristic get_segment_DD_characteristic(Mesh mesh, int const ne,
-                                                    int const p) {
+SegmentCharacteristic get_segment_DD_characteristic(Mesh mesh, il::int_t const ne,
+                                                    il::int_t const p) {
   //  IL_ASSERT(Xs.size(0) == 2);
   //  IL_ASSERT(Xs.size(1) == 2);
 
@@ -97,7 +94,7 @@ SegmentCharacteristic get_segment_DD_characteristic(Mesh mesh, int const ne,
   s[0] = xdiff[0] / segment.size;
   s[1] = xdiff[1] / segment.size;
   n[0] = -1. * s[1];
-  n[1] = s[0]; // normal vector
+  n[1] = s[0];  // normal vector
 
   segment.s = s;
   segment.n = n;
@@ -112,21 +109,23 @@ SegmentCharacteristic get_segment_DD_characteristic(Mesh mesh, int const ne,
   segment.Xmid = xmean;
 
   switch (p) {
-  case 1: { // linear DD
-    Xcol(0, 0) = -1. / sqrt(2.);
-    Xcol(0, 1) = 0.;
-    Xcol(1, 0) = 1. / sqrt(2.);
-    Xcol(1, 1) = 0.;
-  }; break;
+    case 1: {  // linear DD
+      Xcol(0, 0) = -1. / sqrt(2.);
+      Xcol(0, 1) = 0.;
+      Xcol(1, 0) = 1. / sqrt(2.);
+      Xcol(1, 1) = 0.;
+    }; break;
 
-  case 0: {
-    Xcol(0, 0) = 0.;
-    Xcol(0, 1) = 0.;
-  }; break;
-  default:
-    std::cout << "error\n"; //  error
-    break;
+    case 0: {
+      Xcol(0, 0) = 0.;
+      Xcol(0, 1) = 0.;
+    }; break;
+    default:
+      std::cout << "error\n";  //  error
+      break;
   };
+
+// Returning the collocation point in the global frame
 
   R = rotation_matrix_2D(segment.theta);
 
@@ -142,33 +141,8 @@ SegmentCharacteristic get_segment_DD_characteristic(Mesh mesh, int const ne,
 
   segment.CollocationPoints = Xcol;
 
-  return segment; // return structure with all we need on the segment.
+  return segment;  // return structure with all we need on the segment.
 }
+//----------------------------------------------------
 
-il::Array<il::int_t> id_mesh_layers(Mesh mesh,
-                                    LayerParameters1 layer_parameters1,
-                                    LayerParameters2 layer_parameters2,
-                                    LayerParameters3 layer_parameters3) {
-
-  il::Array<il::int_t> id_mesh_layers{mesh.nelts(), 0};
-
-  for (il::int_t i = 0; i <= layer_parameters1.Last_elem_layer1; ++i) {
-
-    id_mesh_layers[i] = layer_parameters1.id_layer1;
-  }
-
-  for (il::int_t i = layer_parameters2.First_elem_layer2;
-       i <= layer_parameters2.Last_elem_layer2; ++i) {
-
-    id_mesh_layers[i] = layer_parameters2.id_layer2;
-  }
-
-  for (il::int_t i = layer_parameters3.First_elem_layer3;
-       i < layer_parameters3.Last_elem_layer3; ++i) {
-
-    id_mesh_layers[i] = layer_parameters3.id_layer3;
-  }
-
-  return id_mesh_layers;
-}
 }
