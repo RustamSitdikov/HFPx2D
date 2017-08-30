@@ -12,7 +12,7 @@
 
 // Inclusion from the project
 #include "ConductivitiesNewtonian.h"
-#include "DOF_Handles.h"
+#include "src/Mesh/DOF_Handles.h"
 #include "EHLDs.h"
 
 namespace hfp2d {

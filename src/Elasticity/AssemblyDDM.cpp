@@ -13,7 +13,12 @@
 
 // Inclusion from the project
 #include "AssemblyDDM.h"
-#include "Elasticity2D.h"
+#include "Simplified3D.h"
+#include "PlaneStrainInfinite.h"
+
+
+#include <src/Mesh/Mesh.h>
+
 
 namespace hfp2d {
 
@@ -43,6 +48,7 @@ void set_submatrix(il::Array2D<double> &A, int i0, int i1,
   }
 }
 
+
 void basic_assembly(il::Array2D<double> &Kmat, Mesh mesh, il::Array2D<int> id,
                     int p, double Ep) {
   // Kmat : the stiffness matrix to assemble
@@ -67,6 +73,9 @@ void basic_assembly(il::Array2D<double> &Kmat, Mesh mesh, il::Array2D<int> id,
 
   // Brute Force assembly
   // double loop on elements to create the stiffness matrix ...
+
+  #pragma omp parallel for
+
   for (int e = 0; e < mesh.nelts(); ++e) { // loop on all  elements
 
     //   get characteristic of element # e
@@ -75,17 +84,17 @@ void basic_assembly(il::Array2D<double> &Kmat, Mesh mesh, il::Array2D<int> id,
     R = hfp2d::rotation_matrix_2D(mysege.theta);
 
     for (int i = 0; i < 2 * (p + 1); ++i) {
-      // vector of dof id of the element e
+      // vector of dof id of  element e
       dofe[i] = id(e, i);
     };
 
-    // loop on all  elements
+    // loop on all  elements - to compute the effect of e on all other elements
     for (int j = 0; j < mesh.nelts(); ++j) {
       //   get characteristic of element # j
       mysegc = hfp2d::get_segment_DD_characteristic(mesh, j, p);
 
-      sec = il::dot(R, mysegc.s); // tangent of elt j
-      nec = il::dot(R, mysegc.n); // normal of elt j
+      sec = il::dot(R, mysegc.s); // tangent of elt j in the frame of elt e
+      nec = il::dot(R, mysegc.n); // normal of elt j in the frame of elt e
 
       for (int i = 0; i < 2 * (p + 1); ++i) {
         dofc[i] = id(j, i); // vector of dof id of the  element j
@@ -96,11 +105,12 @@ void basic_assembly(il::Array2D<double> &Kmat, Mesh mesh, il::Array2D<int> id,
         for (int i = 0; i < 2; ++i) {
           xcol[i] = mysegc.CollocationPoints(ic, i) - mysege.Xmid[i];
         }
-
         xcol = il::dot(R, xcol);
 
+        // call kernel fction for the effect of element e on collocation ic of element j
         stnl = hfp2d::normal_shear_stress_kernel_dp1_dd(xcol, mysege.size, sec,
                                                         nec, Ep);
+
         hfp2d::set_submatrix(Kmat, dofc[2 * ic], dofe[0], stnl);
       }
     }

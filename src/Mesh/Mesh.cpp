@@ -8,7 +8,7 @@
 //
 //
 
-#include "Mesh.h"
+#include <src/Mesh/Mesh.h>
 #include <il/linear_algebra.h>
 #include <il/math.h>
 #include <iostream>
@@ -16,24 +16,34 @@
 namespace hfp2d {
 
 // mesh class
-void Mesh::set_values(il::Array2D<double> xy, il::Array2D<int> ien) {
-  // check array dimensions ??? -> this is only for 1D mesh so far
+void Mesh::set_values(il::Array2D<double> xy, il::Array2D<int> ien, il::Array<int> mat) {
+  // check array dimensions ?? -> this is only for 1D mesh so far
   IL_EXPECT_FAST(xy.size(1) == 2);  // check array dimensions ?
   IL_EXPECT_FAST(ien.size(1) == 2);
 
+  IL_EXPECT_FAST(ien.size(0) == mat.size());
+
   node_ = xy;           // list of coordinates of points in the mesh
   connectivity_ = ien;  //  connectivity array -
+  matid_ = mat; // material ID array
+
 }
-double Mesh::node(il::int_t k, il::int_t i) { return node_(k, i); }
 
-int Mesh::connectivity(il::int_t k, il::int_t i) { return connectivity_(k, i); }
+double Mesh::node(il::int_t k, il::int_t i) const { return node_(k, i); }
 
-int Mesh::nelts() { return connectivity_.size(0); };
+int Mesh::connectivity(il::int_t k, il::int_t i) const { return connectivity_(k, i); }
 
-int Mesh::ncoor() { return node_.size(0); };
+int Mesh::matid(il::int_t k) const { return matid_[k]; }
 
-il::Array2D<double> Mesh::coor() { return node_; };
+int Mesh::nelts() const { return connectivity_.size(0); } ;
 
+int Mesh::ncoor() const { return node_.size(0); };
+
+il::Array2D<double> Mesh::coor() const { return node_; };
+
+il::Array2D<int> Mesh::conn() const { return connectivity_; };
+
+il::Array<int> Mesh::matid() const { return matid_; };
 
 
 // needs to add function to add one or more elements ... (needs to have active
@@ -41,7 +51,6 @@ il::Array2D<double> Mesh::coor() { return node_; };
 //
 //
 // could provide a default constructor for a straight fracture ?
-
 
 
 
@@ -66,8 +75,8 @@ il::StaticArray2D<double, 2, 2> rotation_matrix_2D(double theta) {
 // mesh object
 // ne element number in the mesh to get characterstic from
 // p order of the interpolation for that mesh
-SegmentCharacteristic get_segment_DD_characteristic(Mesh mesh, il::int_t const ne,
-                                                    il::int_t const p) {
+SegmentCharacteristic get_segment_DD_characteristic(const Mesh& mesh, il::int_t ne,
+                                                    il::int_t  p) {
   //  IL_ASSERT(Xs.size(0) == 2);
   //  IL_ASSERT(Xs.size(1) == 2);
 
@@ -104,6 +113,7 @@ SegmentCharacteristic get_segment_DD_characteristic(Mesh mesh, il::int_t const n
     segment.theta = -segment.theta;
   };
 
+  // mid point of the element
   xmean[0] = (Xs(1, 0) + Xs(0, 0)) / 2.;
   xmean[1] = (Xs(1, 1) + Xs(0, 1)) / 2.;
   segment.Xmid = xmean;

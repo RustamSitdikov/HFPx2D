@@ -9,8 +9,8 @@
 
 // Inclusion from the project
 #include "EHLDs.h"
-#include "AssemblyDDM.h"
-#include "DOF_Handles.h"
+#include "src/Elasticity/AssemblyDDM.h"
+#include "src/Mesh/DOF_Handles.h"
 #include "FromEdgeToCol.h"
 
 namespace hfp2d {

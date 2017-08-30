@@ -15,7 +15,7 @@
 #include <il/Array2D.h>
 
 // Inclusion from the project
-#include "Mesh.h"
+#include <src/Mesh/Mesh.h>
 
 namespace hfp2d {
 void basic_assembly(il::Array2D<double> &Kmat, Mesh mesh, il::Array2D<int> id,
@@ -28,4 +28,4 @@ void set_submatrix(il::Array2D<double> &A, int i0, int i1,
                    const il::StaticArray2D<double, 2, 4> &B);
 }
 
-#endif // HFPX2D_ASSEMBLYDDM_H
+#endif  // HFPX2D_ASSEMBLYDDM_H

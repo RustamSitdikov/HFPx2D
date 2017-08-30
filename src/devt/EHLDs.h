@@ -20,7 +20,7 @@
 #include "FVM.h"
 #include "Friction.h"
 #include "MC_criterion.h"
-#include "Mesh.h"
+#include "src/Mesh/Mesh.h"
 
 namespace hfp2d {
 

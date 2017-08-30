@@ -16,8 +16,8 @@
 #include <il/linear_algebra/dense/norm.h>
 
 // Inclusion from the project
-#include "AssemblyDDM.h"
-#include "DOF_Handles.h"
+#include "src/Elasticity/AssemblyDDM.h"
+#include "src/Mesh/DOF_Handles.h"
 #include "Dilatancy.h"
 #include "EHLDs.h"
 #include "FromEdgeToCol.h"
