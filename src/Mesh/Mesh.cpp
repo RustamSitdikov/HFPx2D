@@ -27,6 +27,7 @@ void Mesh::set_values(il::Array2D<double> xy, il::Array2D<int> ien, il::Array<in
   connectivity_ = ien;  //  connectivity array -
   matid_ = mat; // material ID array
 
+  // one could think of having a FracID ...
 }
 
 double Mesh::node(il::int_t k, il::int_t i) const { return node_(k, i); }
@@ -55,7 +56,6 @@ il::Array<int> Mesh::matid() const { return matid_; };
 
 
 // SOME UTILITIES HERE below -> To be moved in a separate file ??
-
 il::StaticArray2D<double, 2, 2> rotation_matrix_2D(double theta) {
   il::StaticArray2D<double, 2, 2> R;
 
@@ -75,12 +75,12 @@ il::StaticArray2D<double, 2, 2> rotation_matrix_2D(double theta) {
 // mesh object
 // ne element number in the mesh to get characterstic from
 // p order of the interpolation for that mesh
-SegmentCharacteristic get_segment_DD_characteristic(const Mesh& mesh, il::int_t ne,
-                                                    il::int_t  p) {
+SegmentData get_segment_DD_data(const Mesh &mesh, il::int_t ne,
+                                il::int_t p) {
   //  IL_ASSERT(Xs.size(0) == 2);
   //  IL_ASSERT(Xs.size(1) == 2);
 
-  SegmentCharacteristic segment;
+  SegmentData segment;
 
   // compute element size
   il::StaticArray<double, 2> xdiff, s, n, xmean, xaux;
