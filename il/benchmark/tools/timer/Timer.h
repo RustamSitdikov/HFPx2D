@@ -11,11 +11,10 @@
 #define IL_TIMER_H
 
 #include <chrono>
-#include <cstdint>
 #include <cstddef>
+#include <cstdint>
 #include <cstdlib>
 #include <limits>
-
 
 #include <il/core/base.h>
 
@@ -53,10 +52,9 @@ inline void Timer::stop() {
       std::chrono::high_resolution_clock::now();
   IL_EXPECT_FAST(launched_);
   launched_ = false;
-  time_ += 1.0e-9 *
-           std::chrono::duration_cast<std::chrono::nanoseconds>(point_end -
-                                                                point_begin_)
-               .count();
+  time_ += 1.0e-9 * std::chrono::duration_cast<std::chrono::nanoseconds>(
+                        point_end - point_begin_)
+                        .count();
 }
 
 inline void Timer::reset() {
@@ -78,25 +76,29 @@ class TimerCycles {
 };
 
 inline TimerCycles::TimerCycles() {
-  std::uint32_t low;
-  std::uint32_t high;
+#ifdef IL_UNIX
+  unsigned int low;
+  unsigned int high;
   asm volatile("rdtsc" : "=a"(low), "=d"(high));
   point_begin_ = static_cast<std::uint64_t>(low) |
                  (static_cast<std::uint64_t>(high) << 32);
+#endif
 }
 
 inline void TimerCycles::stop() {
-  std::uint32_t low;
-  std::uint32_t high;
+#ifdef IL_UNIX
+  unsigned int low;
+  unsigned int high;
   asm volatile("rdtsc" : "=a"(low), "=d"(high));
   std::uint64_t point_end{static_cast<std::uint64_t>(low) |
                           (static_cast<std::uint64_t>(high) << 32)};
   nb_cycles_ = point_end - point_begin_;
+#endif
 }
 
 inline long int TimerCycles::cycles() const {
   return static_cast<long int>(nb_cycles_);
 }
-}
+}  // namespace il
 
 #endif  // IL_TIMER_H

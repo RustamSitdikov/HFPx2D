@@ -7,15 +7,5 @@
 //
 //==============================================================================
 
-#ifndef IL_FORMAT_H
-#define IL_FORMAT_H
-
-#include <il/io/format/format.h>
-
-namespace il {
-
-FMT_VARIADIC(void, print, fmt::CStringRef)
-
-}
-
-#endif  // IL_ARRAY_H
+#include <il/io/format/format_il.h>
+#include <il/io/format/ostream.h>
