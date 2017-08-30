@@ -428,7 +428,7 @@ TEST(Array3D, bounds_checking) {
   try {
     local_test_passed = false;
     (void)A(-1, 0, 0);
-  } catch (il::abort_exception) {
+  } catch (il::AbortException) {
     local_test_passed = true;
   }
   if (!local_test_passed) {
@@ -438,7 +438,7 @@ TEST(Array3D, bounds_checking) {
   try {
     local_test_passed = false;
     (void)A(n0, 0, 0);
-  } catch (il::abort_exception) {
+  } catch (il::AbortException) {
     local_test_passed = true;
   }
   if (!local_test_passed) {
@@ -448,7 +448,7 @@ TEST(Array3D, bounds_checking) {
   try {
     local_test_passed = false;
     (void)A(0, -1, 0);
-  } catch (il::abort_exception) {
+  } catch (il::AbortException) {
     local_test_passed = true;
   }
   if (!local_test_passed) {
@@ -458,7 +458,7 @@ TEST(Array3D, bounds_checking) {
   try {
     local_test_passed = false;
     (void)A(0, n1, 0);
-  } catch (il::abort_exception) {
+  } catch (il::AbortException) {
     local_test_passed = true;
   }
   if (!local_test_passed) {
@@ -468,7 +468,7 @@ TEST(Array3D, bounds_checking) {
   try {
     local_test_passed = false;
     (void)A(0, 0, -1);
-  } catch (il::abort_exception) {
+  } catch (il::AbortException) {
     local_test_passed = true;
   }
   if (!local_test_passed) {
@@ -478,7 +478,7 @@ TEST(Array3D, bounds_checking) {
   try {
     local_test_passed = false;
     (void)A(0, 0, n2);
-  } catch (il::abort_exception) {
+  } catch (il::AbortException) {
     local_test_passed = true;
   }
   if (!local_test_passed) {
@@ -496,7 +496,7 @@ TEST(Array3D, bounds_checking_default) {
   try {
     local_test_passed = false;
     (void)A(-1, 0, 0);
-  } catch (il::abort_exception) {
+  } catch (il::AbortException) {
     local_test_passed = true;
   }
   if (!local_test_passed) {
@@ -506,7 +506,7 @@ TEST(Array3D, bounds_checking_default) {
   try {
     local_test_passed = false;
     (void)A(0, -1, 0);
-  } catch (il::abort_exception) {
+  } catch (il::AbortException) {
     local_test_passed = true;
   }
   if (!local_test_passed) {
@@ -516,7 +516,7 @@ TEST(Array3D, bounds_checking_default) {
   try {
     local_test_passed = false;
     (void)A(0, 0, -1);
-  } catch (il::abort_exception) {
+  } catch (il::AbortException) {
     local_test_passed = true;
   }
   if (!local_test_passed) {
@@ -526,7 +526,7 @@ TEST(Array3D, bounds_checking_default) {
   try {
     local_test_passed = false;
     (void)A(0, 0, 0);
-  } catch (il::abort_exception) {
+  } catch (il::AbortException) {
     local_test_passed = true;
   }
   if (!local_test_passed) {
@@ -547,7 +547,7 @@ TEST(Array3D, bounds_checking_const) {
   try {
     local_test_passed = false;
     (void)A(-1, 0, 0);
-  } catch (il::abort_exception) {
+  } catch (il::AbortException) {
     local_test_passed = true;
   }
   if (!local_test_passed) {
@@ -557,7 +557,7 @@ TEST(Array3D, bounds_checking_const) {
   try {
     local_test_passed = false;
     (void)A(n0, 0, 0);
-  } catch (il::abort_exception) {
+  } catch (il::AbortException) {
     local_test_passed = true;
   }
   if (!local_test_passed) {
@@ -567,7 +567,7 @@ TEST(Array3D, bounds_checking_const) {
   try {
     local_test_passed = false;
     (void)A(0, -1, 0);
-  } catch (il::abort_exception) {
+  } catch (il::AbortException) {
     local_test_passed = true;
   }
   if (!local_test_passed) {
@@ -577,7 +577,7 @@ TEST(Array3D, bounds_checking_const) {
   try {
     local_test_passed = false;
     (void)A(0, n1, 0);
-  } catch (il::abort_exception) {
+  } catch (il::AbortException) {
     local_test_passed = true;
   }
   if (!local_test_passed) {
@@ -587,7 +587,7 @@ TEST(Array3D, bounds_checking_const) {
   try {
     local_test_passed = false;
     (void)A(0, 0, -1);
-  } catch (il::abort_exception) {
+  } catch (il::AbortException) {
     local_test_passed = true;
   }
   if (!local_test_passed) {
@@ -597,7 +597,7 @@ TEST(Array3D, bounds_checking_const) {
   try {
     local_test_passed = false;
     (void)A(0, 0, n2);
-  } catch (il::abort_exception) {
+  } catch (il::AbortException) {
     local_test_passed = true;
   }
   if (!local_test_passed) {
@@ -615,7 +615,7 @@ TEST(Array3D, bounds_checking_default_const) {
   try {
     local_test_passed = false;
     (void)A(-1, 0, 0);
-  } catch (il::abort_exception) {
+  } catch (il::AbortException) {
     local_test_passed = true;
   }
   if (!local_test_passed) {
@@ -625,7 +625,7 @@ TEST(Array3D, bounds_checking_default_const) {
   try {
     local_test_passed = false;
     (void)A(0, -1, 0);
-  } catch (il::abort_exception) {
+  } catch (il::AbortException) {
     local_test_passed = true;
   }
   if (!local_test_passed) {
@@ -635,7 +635,7 @@ TEST(Array3D, bounds_checking_default_const) {
   try {
     local_test_passed = false;
     (void)A(0, 0, -1);
-  } catch (il::abort_exception) {
+  } catch (il::AbortException) {
     local_test_passed = true;
   }
   if (!local_test_passed) {
@@ -645,7 +645,7 @@ TEST(Array3D, bounds_checking_default_const) {
   try {
     local_test_passed = false;
     (void)A(0, 0, 0);
-  } catch (il::abort_exception) {
+  } catch (il::AbortException) {
     local_test_passed = true;
   }
   if (!local_test_passed) {
@@ -681,9 +681,9 @@ TEST(Array3D, resize_2) {
   A.resize(3, 1, 2);
 
   ASSERT_TRUE(A.size(0) == 3 && A.capacity(0) == 3 && A.size(1) == 1 &&
-              A.capacity(1) == 1 && A.size(2) == 2 &&
-              A.capacity(2) == 2 && A(0, 0, 0) == 1 && A(1, 0, 0) == 2 &&
-              A(0, 0, 1) == 7 && A(1, 0, 1) == 8);
+              A.capacity(1) == 1 && A.size(2) == 2 && A.capacity(2) == 2 &&
+              A(0, 0, 0) == 1 && A(1, 0, 0) == 2 && A(0, 0, 1) == 7 &&
+              A(1, 0, 1) == 8);
 }
 
 TEST(Array3D, resize_3) {
@@ -763,7 +763,7 @@ TEST(Array3D, reserve_1) {
               A(1, 1, 1) == 10 && A(0, 2, 1) == 11 && A(1, 2, 1) == 12);
 }
 
- TEST(Array3D, reserve_object) {
+TEST(Array3D, reserve_object) {
   Dummy::reset();
   il::Array3D<Dummy> A{2, 3, 1};
   A.reserve(1, 5, 1);

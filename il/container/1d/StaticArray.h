@@ -30,7 +30,7 @@ class StaticArray {
  public:
   /* \brief The default constructor
   // \details If T is a numeric value, the memory is
-  // - (Debug mode) initialized to il::default_value<T>(). It is usually NaN
+  // - (Debug mode) initialized to il::defaultValue<T>(). It is usually NaN
   //   if T is a floating point number or 666..666 if T is an integer.
   // - (Release mode) left uninitialized. This behavior is different from
   //   std::vector from the standard library which initializes all numeric
@@ -122,16 +122,16 @@ class StaticArray {
   const T* end() const;
 
   /* \brief Returns a pointer to the one after the last element of the array
-  */
+   */
   T* end();
 };
 
 template <typename T, il::int_t n>
 StaticArray<T, n>::StaticArray() {
-  if (il::is_trivial<T>::value) {
+  if (il::isTrivial<T>::value) {
 #ifdef IL_DEFAULT_VALUE
     for (il::int_t i = 0; i < n; ++i) {
-      data_[i] = il::default_value<T>();
+      data_[i] = il::defaultValue<T>();
     }
 #endif
   }
@@ -148,7 +148,7 @@ template <typename T, il::int_t n>
 StaticArray<T, n>::StaticArray(il::value_t, std::initializer_list<T> list) {
   IL_EXPECT_FAST(static_cast<std::size_t>(n) == list.size());
 
-  if (il::is_trivial<T>::value) {
+  if (il::isTrivial<T>::value) {
     memcpy(data_, list.begin(), n * sizeof(T));
   } else {
     for (il::int_t i = 0; i < n; ++i) {
@@ -172,14 +172,14 @@ T& StaticArray<T, n>::operator[](il::int_t i) {
 template <typename T, il::int_t n>
 const T& StaticArray<T, n>::back() const {
   static_assert(n > 0,
-                "il::StaticArray<T, n>: n must be positive to call last()");
+                "il::StaticArray<T, n>: n must be positive to call back()");
   return data_[n - 1];
 }
 
 template <typename T, il::int_t n>
 T& StaticArray<T, n>::back() {
   static_assert(n > 0,
-                "il::StaticArray<T, n>: n must be positive to call last()");
+                "il::StaticArray<T, n>: n must be positive to call back()");
   return data_[n - 1];
 }
 
@@ -217,6 +217,6 @@ template <typename T, il::int_t n>
 T* StaticArray<T, n>::end() {
   return data_ + n;
 }
-}
+}  // namespace il
 
 #endif  // IL_STATICARRAY_H

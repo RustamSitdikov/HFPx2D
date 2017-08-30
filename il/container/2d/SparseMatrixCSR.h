@@ -37,7 +37,8 @@ class SparseMatrixCSR {
   template <Index n>
   SparseMatrixCSR(il::int_t width, il::int_t height,
                   const il::Array<il::SmallArray<Index, n>> &column);
-  SparseMatrixCSR(il::int_t n, const il::Array<il::StaticArray<Index, 2>> &position,
+  SparseMatrixCSR(il::int_t n,
+                  const il::Array<il::StaticArray<Index, 2>> &position,
                   il::io_t, il::Array<Index> &index);
   const T &operator[](il::int_t k) const;
   T &operator[](il::int_t k);
@@ -47,13 +48,13 @@ class SparseMatrixCSR {
   Index row(il::int_t i) const;
   Index column(il::int_t k) const;
   il::int_t size(il::int_t d) const;
-  il::int_t nb_nonzeros() const;
-  const T *element_data() const;
-  T *element_data();
-  const Index *row_data() const;
-  Index *row_data();
-  const Index *column_data() const;
-  Index *column_data();
+  il::int_t nbNonZeros() const;
+  const T *elementData() const;
+  T *elementData();
+  const Index *rowData() const;
+  Index *rowData();
+  const Index *columnData() const;
+  Index *columnData();
 };
 
 template <typename Index, typename T>
@@ -122,7 +123,7 @@ SparseMatrixCSR<Index, T>::SparseMatrixCSR(
   n0_ = n;
   n1_ = n;
 
-  const Index nb_entries = position.size();
+  const Index nb_entries = static_cast<Index>(position.size());
   index.resize(nb_entries);
 
   // Compute the numbers of entries per Row. After this section, the
@@ -170,7 +171,7 @@ SparseMatrixCSR<Index, T>::SparseMatrixCSR(
   // For each row, we sort them according to their column.
   for (Index i = 0; i < n; ++i) {
     for (Index p = 0; p < nb_entries_per_row[i] - 1; ++p) {
-      Index min_col = n;
+      Index min_col = static_cast<Index>(n);
       Index min_p = -1;
       for (Index q = p; q < nb_entries_per_row[i]; ++q) {
         if (col_of_rowIndex(i, q) < min_col) {
@@ -242,7 +243,7 @@ template <typename Index, typename T>
 T const &SparseMatrixCSR<Index, T>::operator()(il::int_t i, il::int_t k) const {
   IL_EXPECT_FAST(static_cast<std::size_t>(i) < static_cast<std::size_t>(n0_));
   IL_EXPECT_FAST(static_cast<std::size_t>(row_[i] + k) <
-            static_cast<std::size_t>(row_[i + 1]));
+                 static_cast<std::size_t>(row_[i + 1]));
   return element_[row_[i] + k];
 }
 
@@ -250,7 +251,7 @@ template <typename Index, typename T>
 T &SparseMatrixCSR<Index, T>::operator()(il::int_t i, il::int_t k) {
   IL_EXPECT_FAST(static_cast<std::size_t>(i) < static_cast<std::size_t>(n0_));
   IL_EXPECT_FAST(static_cast<std::size_t>(row_[i] + k) <
-            static_cast<std::size_t>(row_[i + 1]));
+                 static_cast<std::size_t>(row_[i + 1]));
   return element_[row_[i] + k];
 }
 
@@ -261,37 +262,37 @@ il::int_t SparseMatrixCSR<Index, T>::size(il::int_t d) const {
 }
 
 template <typename Index, typename T>
-il::int_t SparseMatrixCSR<Index, T>::nb_nonzeros() const {
+il::int_t SparseMatrixCSR<Index, T>::nbNonZeros() const {
   return element_.size();
 }
 
 template <typename Index, typename T>
-const T *SparseMatrixCSR<Index, T>::element_data() const {
+const T *SparseMatrixCSR<Index, T>::elementData() const {
   return element_.data();
 }
 
 template <typename Index, typename T>
-T *SparseMatrixCSR<Index, T>::element_data() {
+T *SparseMatrixCSR<Index, T>::elementData() {
   return element_.data();
 }
 
 template <typename Index, typename T>
-const Index *SparseMatrixCSR<Index, T>::row_data() const {
+const Index *SparseMatrixCSR<Index, T>::rowData() const {
   return row_.data();
 }
 
 template <typename Index, typename T>
-Index *SparseMatrixCSR<Index, T>::row_data() {
+Index *SparseMatrixCSR<Index, T>::rowData() {
   return row_.data();
 }
 
 template <typename Index, typename T>
-const Index *SparseMatrixCSR<Index, T>::column_data() const {
+const Index *SparseMatrixCSR<Index, T>::columnData() const {
   return column_.data();
 }
 
 template <typename Index, typename T>
-Index *SparseMatrixCSR<Index, T>::column_data() {
+Index *SparseMatrixCSR<Index, T>::columnData() {
   return column_.data();
 }
 
@@ -334,6 +335,6 @@ inline double norm(const il::SparseMatrixCSR<Index, double> &A, Norm norm_type,
 
   return norm;
 }
-}
+}  // namespace il
 
 #endif  // IL_SPARSEMATRIXCSR_H

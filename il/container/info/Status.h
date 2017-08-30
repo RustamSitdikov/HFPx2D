@@ -15,68 +15,69 @@
 namespace il {
 
 enum class ErrorDomain : unsigned short {
-  filesystem = 0,
-  binary = 4,
-  parse = 1,
-  overflow = 2,
-  floating_point = 3,
-  matrix = 5,
-  unimplemented = 126,
-  undefined = 127
+  Filesystem = 0,
+  Binary = 4,
+  Parse = 1,
+  Overflow = 2,
+  FloatingPoint = 3,
+  Matrix = 5,
+  Unimplemented = 126,
+  Undefined = 127
 };
 
 enum class Error : unsigned short {
-  filesystem_file_not_found = 0 * 256 + 0,
-  filesystem_directory_not_found = 0 * 256 + 1,
-  filesystem_no_read_access = 0 * 256 + 2,
-  filesystem_no_write_access = 0 * 256 + 3,
-  filesystem_cannot_close_file = 0 * 256 + 4,
+  FilesystemFileNotFound = 0 * 256 + 0,
+  FilesystemDirectoryNotFound = 0 * 256 + 1,
+  FilesystemNoReadAccess = 0 * 256 + 2,
+  FilesystemNoWriteAccess = 0 * 256 + 3,
+  FilesystemCanNotCloseFile = 0 * 256 + 4,
+  FilesystemCanNotWriteToFile = 0 * 256 + 5,
   //
-  binary_file_wrong_format = 4 * 256 + 0,
-  binary_file_wrong_type = 4 * 256 + 1,
-  binary_file_wrong_rank = 4 * 256 + 2,
-  binary_file_wrong_endianness = 4 * 256 + 3,
+  BinaryFileWrongFormat = 4 * 256 + 0,
+  BinaryFileWrongType = 4 * 256 + 1,
+  BinaryFileWrongRank = 4 * 256 + 2,
+  BinaryFileWrongEndianness = 4 * 256 + 3,
   //
-  parse_bool = 1 * 256 + 0,
-  parse_number = 1 * 256 + 11,
-  parse_int = 1 * 256 + 1,
-  parse_int_overflow = 1 * 256 + 2,
-  parse_integer = 1 * 256 + 3,
-  parse_integer_overflow = 1 * 256 + 4,
-  parse_float = 1 * 256 + 5,
-  parse_double = 1 * 256 + 6,
-  parse_string = 1 * 256 + 7,
-  parse_unclosed_array = 1 * 256 + 8,
-  parse_unidentified_trailing_character = 1 * 256 + 9,
-  parse_cannot_determine_type = 1 * 256 + 10,
-  parse_heterogeneous_array = 1 * 256 + 12,
-  parse_array = 1 * 256 + 13,
-  parse_table = 1 * 256 + 14,
-  parse_duplicate_key = 1 * 256 + 14,
-  parse_key = 1 * 256 + 15,
-  parse_value = 1 * 256 + 16,
+  ParseBool = 1 * 256 + 0,
+  ParseNumber = 1 * 256 + 11,
+  ParseInt = 1 * 256 + 1,
+  ParseIntOverflow = 1 * 256 + 2,
+  ParseInteger = 1 * 256 + 3,
+  ParseIntegerOverflow = 1 * 256 + 4,
+  ParseFloat = 1 * 256 + 5,
+  ParseDouble = 1 * 256 + 6,
+  ParseString = 1 * 256 + 7,
+  ParseUnclosedArray = 1 * 256 + 8,
+  ParseUnidentifiedTrailingCharacter = 1 * 256 + 9,
+  ParseCanNotDetermineType = 1 * 256 + 10,
+  ParseHeterogeneousArray = 1 * 256 + 12,
+  ParseArray = 1 * 256 + 13,
+  ParseTable = 1 * 256 + 14,
+  ParseDuplicateKey = 1 * 256 + 14,
+  ParseKey = 1 * 256 + 15,
+  ParseValue = 1 * 256 + 16,
   //
-  overflow_int = 2 * 256 + 0,
-  overflow_integer = 2 * 256 + 1,
+  OverflowInt = 2 * 256 + 0,
+  OverflowInteger = 2 * 256 + 1,
   //
-  floating_point_nonnegative = 3 * 256 + 0,
-  floating_point_positive = 3 * 256 + 1,
-  floating_point_nonpositive = 3 * 256 + 2,
-  floating_point_negative = 3 * 256 + 3,
+  FloatingPointNonNegative = 3 * 256 + 0,
+  FloatingPointPositive = 3 * 256 + 1,
+  FloatingPointNonPositive = 3 * 256 + 2,
+  FloatingPointNegative = 3 * 256 + 3,
   //
-  matrix_singular = 5 * 256 + 0,
-  matrix_eigenvalue_no_convergence = 5 * 256 + 1,
+  MatrixSingular = 5 * 256 + 0,
+  MatrixEigenValueNoConvergence = 5 * 256 + 1,
   //
-  unimplemented = 126 * 256 + 0,
+  Unimplemented = 126 * 256 + 0,
   //
-  undefined = 127 * 256 + 0
+  Undefined = 127 * 256 + 0
 };
 
 inline il::ErrorDomain domain(il::Error error) {
   return static_cast<il::ErrorDomain>(static_cast<short>(error) >> 8);
 }
 
-#define IL_SET_SOURCE(status) status.set_source(__FILE__, __LINE__)
+#define IL_SET_SOURCE(status) status.setSource(__FILE__, __LINE__)
 
 class Status {
  private:
@@ -92,21 +93,22 @@ class Status {
   Status& operator=(const Status& other) = delete;
   Status& operator=(Status&& other);
   ~Status();
-  void set_ok();
-  void set_error(il::Error error);
-  void set_info(const char* key, int value);
-  void set_info(const char* key, il::int_t value);
-  void set_info(const char* key, double value);
-  void set_info(const char* key, const char* value);
-  void set_source(const char* file, il::int_t line);
-  int to_int(const char* key) const;
-  il::int_t to_integer(const char* key) const;
-  double to_double(const char* key) const;
-  const char* as_c_string(const char* key) const;
+  void setOk();
+  void setError(il::Error error);
+  void setInfo(const char* key, int value);
+#ifdef IL_64_BIT
+  void setInfo(const char* key, il::int_t value);
+#endif
+  void setInfo(const char* key, double value);
+  void setInfo(const char* key, const char* value);
+  void setSource(const char* file, il::int_t line);
+  il::int_t toInteger(const char* key) const;
+  double toDouble(const char* key) const;
+  const char* asCString(const char* key) const;
   void rearm();
   bool ok();
-  void abort_on_error();
-  void ignore_error();
+  void abortOnError();
+  void ignoreError();
   il::Error error() const;
   il::ErrorDomain domain() const;
 };
@@ -114,7 +116,7 @@ class Status {
 inline Status::Status() : info_{} {
   ok_ = true;
   to_check_ = false;
-  error_ = il::Error::undefined;
+  error_ = il::Error::Undefined;
 }
 
 inline Status::Status(Status&& other) {
@@ -141,7 +143,7 @@ inline Status& Status::operator=(Status&& other) {
 
 inline Status::~Status() { IL_EXPECT_MEDIUM(!to_check_); }
 
-inline void Status::set_error(il::Error error) {
+inline void Status::setError(il::Error error) {
   IL_EXPECT_MEDIUM(!to_check_);
 
   ok_ = false;
@@ -150,64 +152,60 @@ inline void Status::set_error(il::Error error) {
   info_.clear();
 }
 
-inline void Status::set_info(const char* key, int value) {
+inline void Status::setInfo(const char* key, int value) {
   IL_EXPECT_MEDIUM(to_check_);
   IL_EXPECT_MEDIUM(!ok_);
 
   info_.set(key, value);
 }
 
-inline void Status::set_info(const char* key, il::int_t value) {
+#ifdef IL_64_BIT
+inline void Status::setInfo(const char* key, il::int_t value) {
+  IL_EXPECT_MEDIUM(to_check_);
+  IL_EXPECT_MEDIUM(!ok_);
+
+  info_.set(key, value);
+}
+#endif
+
+inline void Status::setInfo(const char* key, double value) {
   IL_EXPECT_MEDIUM(to_check_);
   IL_EXPECT_MEDIUM(!ok_);
 
   info_.set(key, value);
 }
 
-inline void Status::set_info(const char* key, double value) {
+inline void Status::setInfo(const char* key, const char* value) {
   IL_EXPECT_MEDIUM(to_check_);
   IL_EXPECT_MEDIUM(!ok_);
 
   info_.set(key, value);
 }
 
-inline void Status::set_info(const char* key, const char* value) {
-  IL_EXPECT_MEDIUM(to_check_);
+inline void Status::setSource(const char* file, il::int_t line) {
+  setInfo("source_file", file);
+  setInfo("source_line", line);
+}
+
+inline il::int_t Status::toInteger(const char* key) const {
   IL_EXPECT_MEDIUM(!ok_);
 
-  info_.set(key, value);
+  return info_.toInteger(key);
 }
 
-inline void Status::set_source(const char* file, il::int_t line) {
-  set_info("source_file", file);
-  set_info("source_line", line);
-}
-
-inline int Status::to_int(const char* key) const {
+inline double Status::toDouble(const char* key) const {
   IL_EXPECT_MEDIUM(!ok_);
 
-  return info_.to_int(key);
+  return info_.toDouble(key);
 }
 
-inline il::int_t Status::to_integer(const char* key) const {
+inline const char* Status::asCString(const char* key) const {
   IL_EXPECT_MEDIUM(!ok_);
 
-  return info_.to_integer(key);
+  return info_.asCString(key);
 }
 
-inline double Status::to_double(const char* key) const {
-  IL_EXPECT_MEDIUM(!ok_);
-
-  return info_.to_double(key);
-}
-
-inline const char* Status::as_c_string(const char* key) const {
-  IL_EXPECT_MEDIUM(!ok_);
-
-  return info_.as_c_string(key);
-}
-
-inline void Status::set_ok() {
+inline void Status::setOk() {
   IL_EXPECT_MEDIUM(!to_check_);
 
   ok_ = true;
@@ -227,7 +225,7 @@ inline bool Status::ok() {
   return ok_;
 }
 
-inline void Status::abort_on_error() {
+inline void Status::abortOnError() {
   IL_EXPECT_MEDIUM(to_check_);
 
   to_check_ = false;
@@ -236,7 +234,7 @@ inline void Status::abort_on_error() {
   }
 }
 
-inline void Status::ignore_error() {
+inline void Status::ignoreError() {
   IL_EXPECT_MEDIUM(to_check_);
 
   to_check_ = false;
@@ -247,6 +245,6 @@ inline il::Error Status::error() const {
 
   return error_;
 }
-}
+}  // namespace il
 
 #endif  // IL_STATUS_H

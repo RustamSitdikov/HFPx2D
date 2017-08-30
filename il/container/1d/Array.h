@@ -45,7 +45,7 @@ class Array {
   /* \brief Construct an array of n elements
   // \details The size and the capacity of the array are set to n.
   // - If T is a numeric value, the memory is
-  //   - (Debug mode) initialized to il::default_value<T>(). It is usually
+  //   - (Debug mode) initialized to il::defaultValue<T>(). It is usually
   NaN
   //     if T is a floating point number or 666..666 if T is an integer.
   //   - (Release mode) left uninitialized. This behavior is different from
@@ -109,7 +109,7 @@ class Array {
   Array(const Array<T>& v);
 
   /* \brief The move constructor
-  */
+   */
   Array(Array<T>&& v);
 
   /* \brief The copy assignment
@@ -120,11 +120,11 @@ class Array {
   Array& operator=(const Array<T>& v);
 
   /* \brief The move assignment
-  */
+   */
   Array& operator=(Array<T>&& v);
 
   /* \brief The destructor
-  */
+   */
   ~Array();
 
   /* \brief Accessor for a const il::Array<T>
@@ -182,7 +182,7 @@ class Array {
   void resize(il::int_t n);
 
   /* \brief Get the capacity of the il::Array<T>
-  */
+   */
   il::int_t capacity() const;
 
   /* \brief Change the capacity of the array to at least p
@@ -211,7 +211,7 @@ class Array {
   void append(il::emplace_t, Args&&... args);
 
   /* \brief Get the alignment of the pointer returned by data()
-  */
+   */
   il::int_t alignment() const;
 
   /* \brief Get a pointer to const to the first element of the array
@@ -225,11 +225,11 @@ class Array {
   T* data();
 
   /* \brief Returns a pointer to const to the first element of the array
-  */
+   */
   const T* begin() const;
 
   /* \brief Returns a pointer to const to the first element of the array
-  */
+   */
   T* begin();
 
   /* \brief Returns a pointer to const to the one after the last element of
@@ -244,11 +244,11 @@ class Array {
 
  private:
   /* \brief Used internally to increase the capacity of the array
-  */
-  void increase_capacity(il::int_t r);
+   */
+  void increaseCapacity(il::int_t r);
 
   /* \brief Used internally in debug mode to check the invariance of the object
-  */
+   */
   bool invariance() const;
 };
 
@@ -268,11 +268,11 @@ Array<T>::Array(il::int_t n) {
   IL_EXPECT_FAST(n >= 0);
 
   if (n > 0) {
-    data_ = il::allocate_array<T>(n);
-    if (il::is_trivial<T>::value) {
+    data_ = il::allocateArray<T>(n);
+    if (il::isTrivial<T>::value) {
 #ifdef IL_DEFAULT_VALUE
       for (il::int_t i = 0; i < n; ++i) {
-        data_[i] = il::default_value<T>();
+        data_[i] = il::defaultValue<T>();
       }
 #endif
     } else {
@@ -294,7 +294,7 @@ Array<T>::Array(il::int_t n) {
 template <typename T>
 Array<T>::Array(il::int_t n, il::align_t, il::int_t alignment,
                 il::int_t align_r, il::int_t align_mod) {
-  IL_EXPECT_FAST(il::is_trivial<T>::value);
+  IL_EXPECT_FAST(il::isTrivial<T>::value);
   IL_EXPECT_FAST(sizeof(T) == alignof(T));
   IL_EXPECT_FAST(n >= 0);
   IL_EXPECT_FAST(alignment > 0);
@@ -312,14 +312,14 @@ Array<T>::Array(il::int_t n, il::align_t, il::int_t alignment,
 
   if (n > 0) {
     il::int_t shift;
-    data_ = il::allocate_array<T>(n, align_r, align_mod, il::io, shift);
+    data_ = il::allocateArray<T>(n, align_r, align_mod, il::io, shift);
     alignment_ = static_cast<short>(alignment);
     align_r_ = static_cast<short>(align_r);
     align_mod_ = static_cast<short>(align_mod);
     shift_ = static_cast<short>(shift);
 #ifdef IL_DEFAULT_VALUE
     for (il::int_t i = 0; i < n; ++i) {
-      data_[i] = il::default_value<T>();
+      data_[i] = il::defaultValue<T>();
     }
 #endif
   } else {
@@ -342,7 +342,7 @@ Array<T>::Array(il::int_t n, const T& x) {
   IL_EXPECT_FAST(n >= 0);
 
   if (n > 0) {
-    data_ = il::allocate_array<T>(n);
+    data_ = il::allocateArray<T>(n);
     for (il::int_t i = 0; i < n; ++i) {
       new (data_ + i) T(x);
     }
@@ -360,7 +360,7 @@ Array<T>::Array(il::int_t n, const T& x) {
 template <typename T>
 Array<T>::Array(il::int_t n, const T& x, il::align_t, il::int_t alignment,
                 il::int_t align_r, il::int_t align_mod) {
-  IL_EXPECT_FAST(il::is_trivial<T>::value);
+  IL_EXPECT_FAST(il::isTrivial<T>::value);
   IL_EXPECT_FAST(sizeof(T) == alignof(T));
   IL_EXPECT_FAST(n >= 0);
   IL_EXPECT_FAST(alignment > 0);
@@ -378,7 +378,7 @@ Array<T>::Array(il::int_t n, const T& x, il::align_t, il::int_t alignment,
 
   if (n > 0) {
     il::int_t shift;
-    data_ = il::allocate_array<T>(n, align_r, align_mod, il::io, shift);
+    data_ = il::allocateArray<T>(n, align_r, align_mod, il::io, shift);
     alignment_ = static_cast<short>(alignment);
     align_r_ = static_cast<short>(align_r);
     align_mod_ = static_cast<short>(align_mod);
@@ -404,14 +404,14 @@ Array<T>::Array(il::int_t n, const T& x, il::align_t, il::int_t alignment)
 template <typename T>
 Array<T>::Array(il::value_t, std::initializer_list<T> list) {
   bool error = false;
-  const il::int_t n = il::safe_convert<il::int_t>(list.size(), il::io, error);
+  const il::int_t n = il::safeConvert<il::int_t>(list.size(), il::io, error);
   if (error) {
     il::abort();
   }
 
   if (n > 0) {
-    data_ = il::allocate_array<T>(n);
-    if (il::is_trivial<T>::value) {
+    data_ = il::allocateArray<T>(n);
+    if (il::isTrivial<T>::value) {
       memcpy(data_, list.begin(), n * sizeof(T));
     } else {
       for (il::int_t i = 0; i < n; ++i) {
@@ -436,20 +436,20 @@ Array<T>::Array(const Array<T>& v) {
   const il::int_t align_r = v.align_r_;
   const il::int_t align_mod = v.align_mod_;
   if (alignment == 0) {
-    data_ = il::allocate_array<T>(n);
+    data_ = il::allocateArray<T>(n);
     alignment_ = 0;
     align_r_ = 0;
     align_mod_ = 0;
     shift_ = 0;
   } else {
     il::int_t shift;
-    data_ = il::allocate_array<T>(n, align_r, align_mod, il::io, shift);
+    data_ = il::allocateArray<T>(n, align_r, align_mod, il::io, shift);
     alignment_ = static_cast<short>(alignment);
     align_r_ = static_cast<short>(align_r);
     align_mod_ = static_cast<short>(align_mod);
     shift_ = static_cast<short>(shift);
   }
-  if (il::is_trivial<T>::value) {
+  if (il::isTrivial<T>::value) {
     memcpy(data_, v.data_, n * sizeof(T));
   } else {
     for (il::int_t i = 0; i < n; ++i) {
@@ -492,7 +492,7 @@ Array<T>& Array<T>::operator=(const Array<T>& v) {
                             align_r_ != align_r || align_mod_ != align_mod;
   if (needs_memory) {
     if (data_) {
-      if (!il::is_trivial<T>::value) {
+      if (!il::isTrivial<T>::value) {
         for (il::int_t i = size() - 1; i >= 0; --i) {
           (data_ + i)->~T();
         }
@@ -500,20 +500,20 @@ Array<T>& Array<T>::operator=(const Array<T>& v) {
       il::deallocate(data_ - shift_);
     }
     if (alignment == 0) {
-      data_ = il::allocate_array<T>(n);
+      data_ = il::allocateArray<T>(n);
       alignment_ = 0;
       align_r_ = 0;
       align_mod_ = 0;
       shift_ = 0;
     } else {
       il::int_t shift;
-      data_ = il::allocate_array<T>(n, align_r, align_mod, il::io, shift);
+      data_ = il::allocateArray<T>(n, align_r, align_mod, il::io, shift);
       alignment_ = static_cast<short>(alignment);
       align_r_ = static_cast<short>(align_r);
       align_mod_ = static_cast<short>(align_mod);
       shift_ = static_cast<short>(shift);
     }
-    if (il::is_trivial<T>::value) {
+    if (il::isTrivial<T>::value) {
       memcpy(data_, v.data_, n * sizeof(T));
     } else {
       for (il::int_t i = 0; i < n; ++i) {
@@ -523,7 +523,7 @@ Array<T>& Array<T>::operator=(const Array<T>& v) {
     size_ = data_ + n;
     capacity_ = data_ + n;
   } else {
-    if (il::is_trivial<T>::value) {
+    if (il::isTrivial<T>::value) {
       memcpy(data_, v.data_, n * sizeof(T));
     } else {
       for (il::int_t i = 0; i < n; ++i) {
@@ -545,7 +545,7 @@ Array<T>& Array<T>::operator=(Array<T>&& v) {
   }
 
   if (data_) {
-    if (!il::is_trivial<T>::value) {
+    if (!il::isTrivial<T>::value) {
       for (il::int_t i = size() - 1; i >= 0; --i) {
         (data_ + i)->~T();
       }
@@ -574,7 +574,7 @@ Array<T>::~Array() {
   IL_EXPECT_FAST_NOTHROW(invariance());
 
   if (data_) {
-    if (!il::is_trivial<T>::value) {
+    if (!il::isTrivial<T>::value) {
       for (il::int_t i = size() - 1; i >= 0; --i) {
         (data_ + i)->~T();
       }
@@ -623,10 +623,10 @@ void Array<T>::resize(il::int_t n) {
   IL_EXPECT_FAST(n >= 0);
 
   if (n <= capacity()) {
-    if (il::is_trivial<T>::value) {
+    if (il::isTrivial<T>::value) {
 #ifdef IL_DEFAULT_VALUE
       for (il::int_t i = size(); i < n; ++i) {
-        data_[i] = il::default_value<T>();
+        data_[i] = il::defaultValue<T>();
       }
 #endif
     } else {
@@ -639,11 +639,11 @@ void Array<T>::resize(il::int_t n) {
     }
   } else {
     const il::int_t n_old = size();
-    increase_capacity(n);
-    if (il::is_trivial<T>::value) {
+    increaseCapacity(n);
+    if (il::isTrivial<T>::value) {
 #ifdef IL_DEFAULT_VALUE
       for (il::int_t i = n_old; i < n; ++i) {
-        data_[i] = il::default_value<T>();
+        data_[i] = il::defaultValue<T>();
       }
 #endif
     } else {
@@ -665,7 +665,7 @@ void Array<T>::reserve(il::int_t r) {
   IL_EXPECT_FAST(r >= 0);
 
   if (r > capacity()) {
-    increase_capacity(r);
+    increaseCapacity(r);
   }
 }
 
@@ -675,13 +675,13 @@ void Array<T>::append(const T& x) {
     const il::int_t n = size();
     bool error = false;
     il::int_t new_capacity =
-        n > 1 ? il::safe_product(static_cast<il::int_t>(2), n, il::io, error)
-              : il::safe_sum(n, static_cast<il::int_t>(1), il::io, error);
+        n > 1 ? il::safeProduct(static_cast<il::int_t>(2), n, il::io, error)
+              : il::safeSum(n, static_cast<il::int_t>(1), il::io, error);
     if (error) {
       il::abort();
     }
     T x_copy = x;
-    increase_capacity(new_capacity);
+    increaseCapacity(new_capacity);
     new (size_) T(std::move(x_copy));
   } else {
     new (size_) T(x);
@@ -695,18 +695,18 @@ void Array<T>::append(T&& x) {
     const il::int_t n = size();
     bool error = false;
     il::int_t new_capacity =
-        n > 1 ? il::safe_product(static_cast<il::int_t>(2), n, il::io, error)
-              : il::safe_sum(n, static_cast<il::int_t>(1), il::io, error);
+        n > 1 ? il::safeProduct(static_cast<il::int_t>(2), n, il::io, error)
+              : il::safeSum(n, static_cast<il::int_t>(1), il::io, error);
     if (error) {
       il::abort();
     }
-    increase_capacity(new_capacity);
+    increaseCapacity(new_capacity);
   }
-  if (il::is_trivial<T>::value) {
-    *size_ = std::move(x);
-  } else {
-    new (size_) T(std::move(x));
-  }
+  //  if (il::isTrivial<T>::value) {
+  //    *size_ = std::move(x);
+  //  } else {
+  new (size_) T(std::move(x));
+  //  }
   ++size_;
 }
 
@@ -717,14 +717,14 @@ void Array<T>::append(il::emplace_t, Args&&... args) {
     const il::int_t n = size();
     bool error = false;
     il::int_t new_capacity =
-        n > 1 ? il::safe_product(static_cast<il::int_t>(2), n, il::io, error)
-              : il::safe_sum(n, static_cast<il::int_t>(1), il::io, error);
+        n > 1 ? il::safeProduct(static_cast<il::int_t>(2), n, il::io, error)
+              : il::safeSum(n, static_cast<il::int_t>(1), il::io, error);
     if (error) {
       il::abort();
     }
-    increase_capacity(new_capacity);
+    increaseCapacity(new_capacity);
   };
-  new (size_) T(args...);
+  new (size_) T(std::forward<Args>(args)...);
   ++size_;
 }
 
@@ -764,21 +764,20 @@ T* Array<T>::end() {
 }
 
 template <typename T>
-void Array<T>::increase_capacity(il::int_t r) {
+void Array<T>::increaseCapacity(il::int_t r) {
   IL_EXPECT_FAST(capacity() < r);
 
   const il::int_t n = size();
   T* new_data;
   il::int_t new_shift;
   if (alignment_ == 0) {
-    new_data = il::allocate_array<T>(r);
+    new_data = il::allocateArray<T>(r);
     new_shift = 0;
   } else {
-    new_data =
-        il::allocate_array<T>(n, align_r_, align_mod_, il::io, new_shift);
+    new_data = il::allocateArray<T>(n, align_r_, align_mod_, il::io, new_shift);
   }
   if (data_) {
-    if (il::is_trivial<T>::value) {
+    if (il::isTrivial<T>::value) {
       memcpy(new_data, data_, n * sizeof(T));
     } else {
       for (il::int_t i = n - 1; i >= 0; --i) {
@@ -806,7 +805,7 @@ bool Array<T>::invariance() const {
     ans = ans && (capacity_ != nullptr);
     ans = ans && ((size_ - data_) <= (capacity_ - data_));
   }
-  if (!il::is_trivial<T>::value) {
+  if (!il::isTrivial<T>::value) {
     ans = ans && (align_mod_ == 0);
   }
   if (align_mod_ == 0) {
@@ -820,6 +819,75 @@ bool Array<T>::invariance() const {
   }
   return ans;
 }
+
+template <typename T>
+T min(const il::Array<T>& A) {
+  IL_EXPECT_FAST(A.size() > 0);
+  T ans{A[0]};
+  for (il::int_t k = 0; k < A.size(); ++k) {
+    if (A[k] < ans) {
+      ans = A[k];
+    }
+  }
+  return ans;
 }
+
+template <typename T>
+T max(const il::Array<T>& v) {
+  IL_EXPECT_FAST(v.size() > 0);
+  T max{v[0]};
+  for (il::int_t k = 0; k < v.size(); ++k) {
+    if (v[k] > max) {
+      max = v[k];
+    }
+  }
+  return max;
+}
+
+template <typename T>
+T mean(const il::Array<T>& v) {
+  IL_EXPECT_FAST(v.size() > 0);
+  T ans = 0;
+  for (il::int_t i = 0; i < v.size(); ++i) {
+    ans += v[i];
+  }
+  ans /= v.size();
+  return ans;
+}
+
+template <typename T>
+T sigma(const il::Array<T>& v) {
+  IL_EXPECT_FAST(v.size() > 1);
+  T mean = 0;
+  for (il::int_t i = 0; i < v.size(); ++i) {
+    mean += v[i];
+  }
+  mean /= v.size();
+  T sigma = 0;
+  for (il::int_t i = 0; i < v.size(); ++i) {
+    sigma += (v[i] - mean) * (v[i] - mean);
+  }
+  sigma /= v.size() - 1;
+  sigma = std::sqrt(sigma);
+  return sigma;
+}
+
+template <typename T>
+void transvection(il::Array<T>& x, il::int_t k1, T lambda, il::int_t k2) {
+  x[k1] += lambda * x[k2];
+}
+
+template <typename T>
+void dilation(il::Array<T>& x, il::int_t k, T lambda) {
+  x[k] *= lambda;
+}
+
+template <typename T>
+void swap(il::Array<T>& x, il::int_t k1, il::int_t k2) {
+  T temp{x[k1]};
+  x[k1] = x[k2];
+  x[k2] = temp;
+}
+}  // namespace il
 
 #endif  // IL_ARRAY_H
