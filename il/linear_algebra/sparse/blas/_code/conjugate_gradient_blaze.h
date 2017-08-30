@@ -12,7 +12,7 @@ void code() {
   const double tolerance = 0.0;
 
   const il::int_t side = 70;
-  il::SparseMatrixCSR<int, double> A = il::heat_3d<int>(side);
+  il::SparseMatrixCSR<int, double> A = il::heat3d<int>(side);
   const il::int_t n = A.size(0);
   il::Array<double> y{n, 1.0};
   il::Array<double> x{n, 0.0};
@@ -53,5 +53,6 @@ void code() {
     delta_cl = beta_cl;
   }
   timer.stop();
-  std::printf("    Time for Conjugate Gradient Blaze: %7.3f s\n", timer.elapsed());
+  std::printf("    Time for Conjugate Gradient Blaze: %7.3f s\n",
+              timer.elapsed());
 };

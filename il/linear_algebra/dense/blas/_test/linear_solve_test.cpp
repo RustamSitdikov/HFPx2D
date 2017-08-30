@@ -9,8 +9,9 @@
 
 #include <gtest/gtest.h>
 
-#include <il/linear_algebra/dense/factorization/linear_solve.h>
+#include <il/linear_algebra/dense/factorization/linearSolve.h>
 
+#ifdef IL_BLAS
 TEST(linear_solve, square_matrix_0) {
   il::int_t test_passed{false};
 
@@ -22,9 +23,9 @@ TEST(linear_solve, square_matrix_0) {
 
   try {
     il::Status status{};
-    il::Array<double> x{il::linear_solve(std::move(A), y, il::io, status)};
-    status.ignore_error();
-  } catch (il::abort_exception) {
+    il::Array<double> x{il::linearSolve(std::move(A), y, il::io, status)};
+    status.ignoreError();
+  } catch (il::AbortException) {
     test_passed = true;
   }
 
@@ -42,9 +43,9 @@ TEST(linear_solve, square_matrix_1) {
 
   try {
     il::Status status{};
-    il::Array<double> x{il::linear_solve(std::move(A), y, il::io, status)};
-    status.ignore_error();
-  } catch (il::abort_exception) {
+    il::Array<double> x{il::linearSolve(std::move(A), y, il::io, status)};
+    status.ignoreError();
+  } catch (il::AbortException) {
     test_passed = true;
   }
 
@@ -62,9 +63,9 @@ TEST(linear_solve, size_y) {
 
   try {
     il::Status status{};
-    il::Array<double> x{il::linear_solve(std::move(A), y, il::io, status)};
-    status.ignore_error();
-  } catch (il::abort_exception) {
+    il::Array<double> x{il::linearSolve(std::move(A), y, il::io, status)};
+    status.ignoreError();
+  } catch (il::AbortException) {
     test_passed = true;
   }
 
@@ -76,8 +77,8 @@ TEST(linear_solve, c_order) {
   il::Array<double> y{il::value, {5.0, 9.0}};
 
   il::Status status{};
-  il::Array<double> x{il::linear_solve(A, y, il::io, status)};
-  status.ignore_error();
+  il::Array<double> x{il::linearSolve(A, y, il::io, status)};
+  status.ignoreError();
 
   ASSERT_TRUE(x.size() == 2 && x[0] == 1.0 && x[1] == 2.0);
 }
@@ -87,8 +88,8 @@ TEST(linear_solve, f_order) {
   il::Array<double> y{il::value, {5.0, 9.0}};
 
   il::Status status{};
-  il::Array<double> x{il::linear_solve(A, y, il::io, status)};
-  status.ignore_error();
+  il::Array<double> x{il::linearSolve(A, y, il::io, status)};
+  status.ignoreError();
 
   ASSERT_TRUE(x.size() == 2 && x[0] == 1.0 && x[1] == 2.0);
 }
@@ -99,9 +100,8 @@ TEST(linear_solve, singular_matrix_0) {
   bool test_passed{false};
 
   il::Status status{};
-  il::Array<double> x{il::linear_solve(A, y, il::io, status)};
-  if (!status.ok() &&
-      status.error() == il::Error::matrix_singular) {
+  il::Array<double> x{il::linearSolve(A, y, il::io, status)};
+  if (!status.ok() && status.error() == il::Error::MatrixSingular) {
     test_passed = true;
   }
 
@@ -114,11 +114,11 @@ TEST(linear_solve, singular_matrix_1) {
   bool test_passed{false};
 
   il::Status status{};
-  il::Array<double> x{il::linear_solve(A, y, il::io, status)};
-  if (!status.ok() &&
-      status.error() == il::Error::matrix_singular) {
+  il::Array<double> x{il::linearSolve(A, y, il::io, status)};
+  if (!status.ok() && status.error() == il::Error::MatrixSingular) {
     test_passed = true;
   }
 
   ASSERT_TRUE(test_passed);
 }
+#endif

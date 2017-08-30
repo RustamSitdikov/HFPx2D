@@ -13,15 +13,14 @@
 namespace il {
 
 enum class Blas {
-  regular,
-  transpose,
-  conjugate_transpose,
-  symmetric_upper,
-  symmetric_lower,
-  hermitian_upper,
-  hermitian_lower
+  Regular,
+  Transpose,
+  ConjugateTranspose,
+  SymmetricUpper,
+  SymmetricLower,
+  HermitianUpper,
+  HermitianLower
 };
-
 }
 
 #endif  // IL_BLAS_INFO_H

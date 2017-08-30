@@ -12,6 +12,8 @@
 #include <gtest/gtest.h>
 
 #include <il/Array2D.h>
+
+#ifdef IL_BLAS
 #include <il/linear_algebra/dense/factorization/Eigen.h>
 
 bool complex_sort(std::complex<double> z0, std::complex<double> z1) {
@@ -28,9 +30,9 @@ TEST(Eigen, test0) {
 
   il::Status status{};
   il::Eigen<il::Array2D<double>> eigen_decomposition{A, il::io, status};
-  status.abort_on_error();
+  status.abortOnError();
 
-  il::Array<std::complex<double>> ev = eigen_decomposition.eigen_value();
+  il::Array<std::complex<double>> ev = eigen_decomposition.eigenValue();
   std::sort(ev.begin(), ev.end(), complex_sort);
   il::Array<std::complex<double>> result{il::value,
                                          {{-4, 0.0}, {1.0, 0.0}, {2.0, 0.0}}};
@@ -47,17 +49,17 @@ TEST(Eigen, test1) {
 
   il::Status status{};
   il::Eigen<il::Array2D<double>> eigen_decomposition{A, il::io, status};
-  status.abort_on_error();
+  status.abortOnError();
 
-  il::Array<std::complex<double>> ev = eigen_decomposition.eigen_value();
+  il::Array<std::complex<double>> ev = eigen_decomposition.eigenValue();
   std::sort(ev.begin(), ev.end(), complex_sort);
   il::Array<std::complex<double>> result{il::value,
                                          {{2.0, 0.0}, {2.0, 0.0}, {3.0, 0.0}}};
   const double epsilon = 1.0e-5;
 
   ASSERT_TRUE(ev.size() == 3 && std::abs(ev[0] - result[0]) <= epsilon &&
-      std::abs(ev[1] - result[1]) <= epsilon &&
-      std::abs(ev[2] - result[2]) <= epsilon);
+              std::abs(ev[1] - result[1]) <= epsilon &&
+              std::abs(ev[2] - result[2]) <= epsilon);
 }
 
 TEST(Eigen, test2) {
@@ -66,16 +68,16 @@ TEST(Eigen, test2) {
 
   il::Status status{};
   il::Eigen<il::Array2D<double>> eigen_decomposition{A, il::io, status};
-  status.abort_on_error();
+  status.abortOnError();
 
-  il::Array<std::complex<double>> ev = eigen_decomposition.eigen_value();
+  il::Array<std::complex<double>> ev = eigen_decomposition.eigenValue();
   std::sort(ev.begin(), ev.end(), complex_sort);
   il::Array<std::complex<double>> result{il::value,
                                          {{1.0, 0.0}, {1.0, 0.0}, {1.0, 0.0}}};
   const double epsilon = 1.0e-4;
   ASSERT_TRUE(ev.size() == 3 && std::abs(ev[0] - result[0]) <= epsilon &&
-      std::abs(ev[1] - result[1]) <= epsilon &&
-      std::abs(ev[2] - result[2]) <= epsilon);
+              std::abs(ev[1] - result[1]) <= epsilon &&
+              std::abs(ev[2] - result[2]) <= epsilon);
 }
 
 TEST(Eigen, test3) {
@@ -87,9 +89,9 @@ TEST(Eigen, test3) {
 
   il::Status status{};
   il::Eigen<il::Array2D<double>> eigen_decomposition{A, il::io, status};
-  status.abort_on_error();
+  status.abortOnError();
 
-  il::Array<std::complex<double>> ev = eigen_decomposition.eigen_value();
+  il::Array<std::complex<double>> ev = eigen_decomposition.eigenValue();
   std::sort(ev.begin(), ev.end(), complex_sort);
   il::Array<std::complex<double>> result{
       il::value, {{0.0, -1.0}, {0.0, -1.0}, {0.0, 1.0}, {0.0, 1.0}}};
@@ -100,3 +102,4 @@ TEST(Eigen, test3) {
               std::abs(ev[2] - result[2]) <= epsilon &&
               std::abs(ev[3] - result[3]) <= epsilon);
 }
+#endif

@@ -25,8 +25,8 @@ struct Pixel {
   unsigned char blue;
 };
 
-il::Array2D<il::Pixel> read_ppm(const std::string& filename, il::io_t,
-                                il::Status &status) {
+il::Array2D<il::Pixel> readPpm(const std::string& filename, il::io_t,
+                               il::Status& status) {
   il::Array2D<il::Pixel> image{};
 
   FILE* fp{std::fopen(filename.c_str(), "rb")};
@@ -37,11 +37,11 @@ il::Array2D<il::Pixel> read_ppm(const std::string& filename, il::io_t,
 
   char buffer[16];
   if (!std::fgets(buffer, sizeof(buffer), fp)) {
-    status.set(ErrorCode::binary_file_wrong_format);
+    status.set(ErrorCode::BinaryFileWrongFormat);
     return image;
   }
   if (buffer[0] != 'P' || buffer[1] != '6') {
-    status.set(ErrorCode::binary_file_wrong_format);
+    status.set(ErrorCode::BinaryFileWrongFormat);
     return image;
   }
 
@@ -58,18 +58,18 @@ il::Array2D<il::Pixel> read_ppm(const std::string& filename, il::io_t,
   int width;
   int height;
   if (std::fscanf(fp, "%d %d", &width, &height) != 2) {
-    status.set(ErrorCode::binary_file_wrong_format);
+    status.set(ErrorCode::BinaryFileWrongFormat);
     return image;
   }
   // read rgb component
   int rgb_comp_color;
   if (std::fscanf(fp, "%d", &rgb_comp_color) != 1) {
-    status.set(ErrorCode::binary_file_wrong_format);
+    status.set(ErrorCode::BinaryFileWrongFormat);
     return image;
   }
   // check rgb component depth
   if (rgb_comp_color != 255) {
-    status.set(ErrorCode::binary_file_wrong_format);
+    status.set(ErrorCode::BinaryFileWrongFormat);
     return image;
   }
   while (std::fgetc(fp) != '\n') {
@@ -78,7 +78,7 @@ il::Array2D<il::Pixel> read_ppm(const std::string& filename, il::io_t,
   // read pixel data from file
   image.resize(width, height);
   if (std::fread(image.data(), 3 * width, height, fp) != height) {
-    status.set(ErrorCode::binary_file_wrong_format);
+    status.set(ErrorCode::BinaryFileWrongFormat);
     image.resize(0, 0);
     return image;
   }
@@ -88,10 +88,9 @@ il::Array2D<il::Pixel> read_ppm(const std::string& filename, il::io_t,
 
   return image;
 }
-}
+}  // namespace il
 
 #endif  // IL_PPM_H
-
 
 // From Stackoverflow
 // read PPM file and store it in an array; coded with C
@@ -100,11 +99,11 @@ il::Array2D<il::Pixel> read_ppm(const std::string& filename, il::io_t,
 //#include<stdio.h>
 //#include<stdlib.h>
 //
-//typedef struct {
+// typedef struct {
 //  unsigned char red,green,blue;
 //} PPMPixel;
 //
-//typedef struct {
+// typedef struct {
 //  int x, y;
 //  PPMPixel *data;
 //} PPMImage;
@@ -112,7 +111,7 @@ il::Array2D<il::Pixel> read_ppm(const std::string& filename, il::io_t,
 //#define CREATOR "RPFELGUEIRAS"
 //#define RGB_COMPONENT_COLOR 255
 //
-//static PPMImage *readPPM(const char *filename)
+// static PPMImage *readPPM(const char *filename)
 //{
 //  char buff[16];
 //  PPMImage *img;
@@ -188,7 +187,7 @@ il::Array2D<il::Pixel> read_ppm(const std::string& filename, il::io_t,
 //  fclose(fp);
 //  return img;
 //}
-//void writePPM(const char *filename, PPMImage *img)
+// void writePPM(const char *filename, PPMImage *img)
 //{
 //  FILE *fp;
 //  //open file for output
@@ -216,7 +215,7 @@ il::Array2D<il::Pixel> read_ppm(const std::string& filename, il::io_t,
 //  fclose(fp);
 //}
 //
-//void changeColorPPM(PPMImage *img)
+// void changeColorPPM(PPMImage *img)
 //{
 //  int i;
 //  if(img){
@@ -229,7 +228,7 @@ il::Array2D<il::Pixel> read_ppm(const std::string& filename, il::io_t,
 //  }
 //}
 //
-//int main(){
+// int main(){
 //  PPMImage *image;
 //  image = readPPM("can_bottom.ppm");
 //  changeColorPPM(image);

@@ -14,20 +14,22 @@
 #include <cstdlib>
 
 #include <il/core/math/safe_arithmetic.h>
+#include <il/math.h>
 
 namespace il {
 
 template <typename T>
-T* allocate_array(il::int_t n) {
+T* allocateArray(il::int_t n) {
   IL_EXPECT_FAST(n >= 0);
 
-  bool error = false;
-  const std::size_t n_unsigned = static_cast<std::size_t>(n);
-  const std::size_t n_bytes =
-      il::safe_product(n_unsigned, sizeof(T), il::io, error);
-  if (error) {
+  const std::size_t u_n = static_cast<std::size_t>(n);
+  const std::size_t u_max_integer =
+      static_cast<std::size_t>(1)
+      << (sizeof(std::size_t) * 8 - (1 + il::nextLog2(sizeof(T))));
+  if (u_n >= u_max_integer) {
     il::abort();
   }
+  const std::size_t n_bytes = sizeof(T) * u_n;
 
   T* p = static_cast<T*>(std::malloc(n_bytes));
   if (!p && n_bytes > 0) {
@@ -38,8 +40,8 @@ T* allocate_array(il::int_t n) {
 }
 
 template <typename T>
-T* allocate_array(il::int_t n, il::int_t align_r, il::int_t align_mod, il::io_t,
-                  il::int_t& shift) {
+T* allocateArray(il::int_t n, il::int_t align_r, il::int_t align_mod, il::io_t,
+                 il::int_t& shift) {
   IL_EXPECT_FAST(sizeof(T) == alignof(T));
   IL_EXPECT_FAST(n >= 0);
   IL_EXPECT_FAST(align_mod > 0);
@@ -53,9 +55,9 @@ T* allocate_array(il::int_t n, il::int_t align_r, il::int_t align_mod, il::io_t,
 
   bool product_error = false;
   bool sum_error = false;
-  const std::size_t n_bytes = il::safe_sum(
-      il::safe_product(n_unsigned, sizeof(T), il::io, product_error),
-      align_mod_unsigned - 1, il::io, sum_error);
+  const std::size_t n_bytes =
+      il::safeSum(il::safeProduct(n_unsigned, sizeof(T), il::io, product_error),
+                  align_mod_unsigned - 1, il::io, sum_error);
   if (product_error || sum_error) {
     il::abort();
   }
@@ -80,6 +82,6 @@ T* allocate_array(il::int_t n, il::int_t align_r, il::int_t align_mod, il::io_t,
 }
 
 inline void deallocate(void* p) { std::free(p); }
-}
+}  // namespace il
 
 #endif  // IL_ALLOCATE_H

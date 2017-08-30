@@ -7,11 +7,11 @@
 //
 //==============================================================================
 
-#include <il/math.h>
 #include <il/Array2D.h>
 #include <il/LowerArray2D.h>
 #include <il/linear_algebra/factorization/Cholesky.h>
 #include <il/linear_algebra/factorization/LowerCholesky.h>
+#include <il/math.h>
 
 #include <benchmark/benchmark.h>
 
@@ -41,7 +41,7 @@ static void BM_CHOLESKY_FULL(benchmark::State& state) {
     state.ResumeTiming();
     il::Status status{};
     il::Cholesky C{std::move(B), il::io, status};
-    status.abort_on_error();
+    status.abortOnError();
   }
 }
 
@@ -58,7 +58,7 @@ static void BM_CHOLESKY_PACKED(benchmark::State& state) {
     state.ResumeTiming();
     il::Status status{};
     il::LowerCholesky C{std::move(B), il::io, status};
-    status.abort_on_error();
+    status.abortOnError();
   }
 }
 

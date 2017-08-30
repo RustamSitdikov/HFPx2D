@@ -36,7 +36,7 @@
 namespace il {
 
 class GmresIlu0 {
-private:
+ private:
   il::int_t max_nb_iteration_;
   il::int_t restart_iteration_;
   double relative_precision_;
@@ -50,23 +50,21 @@ private:
   il::Array<double> bilu0_;
   const double *matrix_element_;
 
-public:
+ public:
   GmresIlu0();
   GmresIlu0(double relative_precision, int max_nb_iteration,
             int restart_iteration);
-  void set_relative_precision(double relative_precision);
-  void set_max_nb_iteration(il::int_t max_nb_iteration);
-  void set_restart_iteration(il::int_t restart_iteration);
-  void compute_preconditionner(il::io_t, il::SparseMatrixCSR<int, double> &A);
+  void setRelativePrecision(double relative_precision);
+  void setMaxNbIteration(il::int_t max_nb_iteration);
+  void setRestartIteration(il::int_t restart_iteration);
+  void computePreconditionner(il::io_t, il::SparseMatrixCSR<int, double> &A);
   il::Array<double> solve(const il::Array<double> &y, il::io_t,
                           il::SparseMatrixCSR<int, double> &A);
-  il::int_t nb_iteration() const;
+  il::int_t nbIterations() const;
 
-private:
-  static void convert_c_to_fortran(il::io_t,
-                                   il::SparseMatrixCSR<int, double> &A);
-  static void convert_fortran_to_c(il::io_t,
-                                   il::SparseMatrixCSR<int, double> &A);
+ private:
+  static void convertCToFortran(il::io_t, il::SparseMatrixCSR<int, double> &A);
+  static void convertFortranToC(il::io_t, il::SparseMatrixCSR<int, double> &A);
 };
 
 inline GmresIlu0::GmresIlu0() : GmresIlu0{1.0e-3, 100, 20} {}
@@ -84,26 +82,25 @@ inline GmresIlu0::GmresIlu0(double relative_precision, int max_nb_iteration,
   matrix_element_ = nullptr;
 }
 
-inline void GmresIlu0::set_relative_precision(double relative_precision) {
+inline void GmresIlu0::setRelativePrecision(double relative_precision) {
   relative_precision_ = relative_precision;
 }
 
-inline void GmresIlu0::set_max_nb_iteration(il::int_t max_nb_iteration) {
+inline void GmresIlu0::setMaxNbIteration(il::int_t max_nb_iteration) {
   max_nb_iteration_ = max_nb_iteration;
 }
 
-inline void GmresIlu0::set_restart_iteration(il::int_t restart_iteration) {
+inline void GmresIlu0::setRestartIteration(il::int_t restart_iteration) {
   restart_iteration_ = restart_iteration;
 }
 
-inline void
-GmresIlu0::compute_preconditionner(il::io_t,
-                                   il::SparseMatrixCSR<int, double> &A) {
+inline void GmresIlu0::computePreconditionner(
+    il::io_t, il::SparseMatrixCSR<int, double> &A) {
   IL_EXPECT_FAST(A.size(0) == A.size(1));
 
-  const int n = A.size(0);
-  bilu0_.resize(A.nb_nonzeros());
-  convert_c_to_fortran(il::io, A);
+  const int n = static_cast<int>(A.size(0));
+  bilu0_.resize(A.nbNonZeros());
+  convertCToFortran(il::io, A);
   // In this example, specific for DCSRILU0 entries are set in turn:
   // ipar_[30]: Specifies how the routine operates when a zero diagonal
   //            element occurs during calculation. It his parameter is set to
@@ -118,25 +115,24 @@ GmresIlu0::compute_preconditionner(il::io_t,
   // dpar_[31]: See dpar_[30]
   dpar_[31] = zero_diagonal_replacement_;
   int ierr = 0;
-  dcsrilu0(&n, A.element_data(), A.row_data(), A.column_data(), bilu0_.data(),
+  dcsrilu0(&n, A.elementData(), A.rowData(), A.columnData(), bilu0_.data(),
            ipar_.data(), dpar_.data(), &ierr);
   IL_EXPECT_FAST(ierr == 0);
   preconditionner_computed_ = true;
 
-  convert_fortran_to_c(il::io, A);
-  matrix_element_ = A.element_data();
+  convertFortranToC(il::io, A);
+  matrix_element_ = A.elementData();
 }
 
-inline il::Array<double>
-il::GmresIlu0::solve(const il::Array<double> &y, il::io_t,
-                     il::SparseMatrixCSR<int, double> &A) {
-  IL_EXPECT_FAST(matrix_element_ == A.element_data());
+inline il::Array<double> il::GmresIlu0::solve(
+    const il::Array<double> &y, il::io_t, il::SparseMatrixCSR<int, double> &A) {
+  IL_EXPECT_FAST(matrix_element_ == A.elementData());
   IL_EXPECT_FAST(preconditionner_computed_);
   IL_EXPECT_FAST(A.size(0) == y.size());
 
-  const int n = A.size(0);
+  const int n = static_cast<int>(A.size(0));
 
-  convert_c_to_fortran(il::io, A);
+  convertCToFortran(il::io, A);
   il::Array<double> yloc = y;
   il::Array<double> ycopy = y;
   il::Array<double> x{n, 0.0};
@@ -169,7 +165,7 @@ il::GmresIlu0::solve(const il::Array<double> &y, il::io_t,
   // ipar_[3]: Contains the current iteration number. The initial value is 0
   // ipar_[4]: Specifies the maximum number of iterations. The default value is
   //           min(150, n)
-  ipar_[4] = max_nb_iteration_;
+  ipar_[4] = static_cast<int>(max_nb_iteration_);
   // ipar_[5]: If the value is not 0, is report error messages according to
   //           ipar_[1]. The default value is 1.
   // ipar_[6]: For Warnings.
@@ -190,7 +186,7 @@ il::GmresIlu0::solve(const il::Array<double> &y, il::io_t,
   //            number of iterations to ipar_[14] before the restart.
   //            The default value is min(150, n) which means that by default,
   //            the non-restarted version of FGMRES method is used.
-  ipar_[14] = restart_iteration_;
+  ipar_[14] = static_cast<int>(restart_iteration_);
   ipar_[30] = behaviour_zero_diagonal_;
 
   // dpar_[0]: Specifies the relative tolerance. The default value is 1.0e-6
@@ -218,59 +214,59 @@ il::GmresIlu0::solve(const il::Array<double> &y, il::io_t,
     dfgmres(&n, x.data(), yloc.data(), &RCI_request, ipar_.data(), dpar_.data(),
             tmp.data());
     switch (RCI_request) {
-    case 0:
-      // In that case, the solution has been found with the right precision.
-      // This occurs only if the stopping test is fully automatic.
-      stop_iteration = true;
-      break;
-    case 1:
-      // This is a Sparse matrix/Vector multiplication
-      mkl_dcsrgemv(&n_char, &n, A.element_data(), A.row_data(), A.column_data(),
-                   &tmp[ipar_[21] - 1], &tmp[ipar_[22] - 1]);
-      break;
-    case 2:
-      ipar_[12] = 1;
-      // Retrieve iteration number AND update sol
-      dfgmres_get(&n, x.data(), ycopy.data(), &RCI_request, ipar_.data(),
-                  dpar_.data(), tmp.data(), &itercount);
-      // Compute the current true residual via MKL (Sparse) BLAS
-      // routines. It multiplies the matrix A with yCopy and
-      // store the result in residual.
-      mkl_dcsrgemv(&n_char, &n, A.element_data(), A.row_data(), A.column_data(),
-                   ycopy.data(), residual.data());
-      // Compute: residual = A.(current x) - y
-      // Note that A.(current x) is stored in residual before this operation
-      daxpy(&n, &minus_one_double, yloc.data(), &one_int, residual.data(),
-            &one_int);
-      // This number plays a critical role in the precision of the method
-      if (dnrm2(&n, residual.data(), &one_int) <=
-          relative_precision_ * y_norm) {
+      case 0:
+        // In that case, the solution has been found with the right precision.
+        // This occurs only if the stopping test is fully automatic.
         stop_iteration = true;
-      }
-      break;
-    case 3:
-      // If RCI_REQUEST=3, then apply the preconditioner on the
-      // vector TMP(IPAR(22)) and put the result in vector
-      // TMP(IPAR(23)). Here is the recommended usage of the
-      // result produced by ILUT routine via standard MKL Sparse
-      // Blas solver rout'ine mkl_dcsrtrsv
-      mkl_dcsrtrsv(&l_char, &n_char, &u_char, &n, bilu0_.data(), A.row_data(),
-                   A.column_data(), &tmp[ipar_[21] - 1], trvec.data());
-      mkl_dcsrtrsv(&u_char, &n_char, &n_char, &n, bilu0_.data(), A.row_data(),
-                   A.column_data(), trvec.data(), &tmp[ipar_[22] - 1]);
-      break;
-    case 4:
-      // If RCI_REQUEST=4, then check if the norm of the next
-      // generated vector is not zero up to rounding and
-      // computational errors. The norm is contained in DPAR(7)
-      // parameter
-      if (dpar_[6] == 0.0) {
-        stop_iteration = true;
-      }
-      break;
-    default:
-      IL_EXPECT_FAST(false);
-      break;
+        break;
+      case 1:
+        // This is a Sparse matrix/Vector multiplication
+        mkl_dcsrgemv(&n_char, &n, A.elementData(), A.rowData(), A.columnData(),
+                     &tmp[ipar_[21] - 1], &tmp[ipar_[22] - 1]);
+        break;
+      case 2:
+        ipar_[12] = 1;
+        // Retrieve iteration number AND update sol
+        dfgmres_get(&n, x.data(), ycopy.data(), &RCI_request, ipar_.data(),
+                    dpar_.data(), tmp.data(), &itercount);
+        // Compute the current true residual via MKL (Sparse) BLAS
+        // routines. It multiplies the matrix A with yCopy and
+        // store the result in residual.
+        mkl_dcsrgemv(&n_char, &n, A.elementData(), A.rowData(), A.columnData(),
+                     ycopy.data(), residual.data());
+        // Compute: residual = A.(current x) - y
+        // Note that A.(current x) is stored in residual before this operation
+        daxpy(&n, &minus_one_double, yloc.data(), &one_int, residual.data(),
+              &one_int);
+        // This number plays a critical role in the precision of the method
+        if (dnrm2(&n, residual.data(), &one_int) <=
+            relative_precision_ * y_norm) {
+          stop_iteration = true;
+        }
+        break;
+      case 3:
+        // If RCI_REQUEST=3, then apply the preconditioner on the
+        // vector TMP(IPAR(22)) and put the result in vector
+        // TMP(IPAR(23)). Here is the recommended usage of the
+        // result produced by ILUT routine via standard MKL Sparse
+        // Blas solver rout'ine mkl_dcsrtrsv
+        mkl_dcsrtrsv(&l_char, &n_char, &u_char, &n, bilu0_.data(), A.rowData(),
+                     A.columnData(), &tmp[ipar_[21] - 1], trvec.data());
+        mkl_dcsrtrsv(&u_char, &n_char, &n_char, &n, bilu0_.data(), A.rowData(),
+                     A.columnData(), trvec.data(), &tmp[ipar_[22] - 1]);
+        break;
+      case 4:
+        // If RCI_REQUEST=4, then check if the norm of the next
+        // generated vector is not zero up to rounding and
+        // computational errors. The norm is contained in DPAR(7)
+        // parameter
+        if (dpar_[6] == 0.0) {
+          stop_iteration = true;
+        }
+        break;
+      default:
+        IL_EXPECT_FAST(false);
+        break;
     }
   }
   ipar_[12] = 0;
@@ -279,38 +275,38 @@ il::GmresIlu0::solve(const il::Array<double> &y, il::io_t,
 
   nb_iteration_ = itercount;
 
-  convert_fortran_to_c(il::io, A);
+  convertFortranToC(il::io, A);
 
   return x;
 }
 
-inline il::int_t il::GmresIlu0::nb_iteration() const { return nb_iteration_; }
+inline il::int_t il::GmresIlu0::nbIterations() const { return nb_iteration_; }
 
-inline void
-GmresIlu0::convert_c_to_fortran(il::io_t, il::SparseMatrixCSR<int, double> &A) {
-  int n = A.size(0);
-  int *row = A.row_data();
+inline void GmresIlu0::convertCToFortran(il::io_t,
+                                         il::SparseMatrixCSR<int, double> &A) {
+  int n = static_cast<int>(A.size(0));
+  int *row = A.rowData();
   for (int i = 0; i < n + 1; ++i) {
     row[i] += 1;
   }
-  int *column = A.column_data();
-  for (int k = 0; k < A.nb_nonzeros(); ++k) {
+  int *column = A.columnData();
+  for (int k = 0; k < A.nbNonZeros(); ++k) {
     column[k] += 1;
   }
 }
 
-inline void
-GmresIlu0::convert_fortran_to_c(il::io_t, il::SparseMatrixCSR<int, double> &A) {
-  int n = A.size(0);
-  int *row = A.row_data();
+inline void GmresIlu0::convertFortranToC(il::io_t,
+                                         il::SparseMatrixCSR<int, double> &A) {
+  int n = static_cast<int>(A.size(0));
+  int *row = A.rowData();
   for (int i = 0; i < n + 1; ++i) {
     row[i] -= 1;
   }
-  int *column = A.column_data();
-  for (int k = 0; k < A.nb_nonzeros(); ++k) {
+  int *column = A.columnData();
+  for (int k = 0; k < A.nbNonZeros(); ++k) {
     column[k] -= 1;
   }
 }
-}
+}  // namespace il
 
-#endif // IL_MKL
+#endif  // IL_MKL

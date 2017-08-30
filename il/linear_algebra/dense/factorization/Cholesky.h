@@ -51,7 +51,7 @@ class Cholesky<il::Array2D<double>> {
   il::Array2D<double> inverse() const;
 
   // Compute an approximation of the condition number
-  double condition_number(il::Norm norm_type, double norm_a) const;
+  double conditionNumber(il::Norm norm_type, double norm_a) const;
 };
 
 Cholesky<il::Array2D<double>>::Cholesky(il::Array2D<double> A, il::io_t,
@@ -110,8 +110,8 @@ il::Array2D<double> Cholesky<il::Array2D<double>>::inverse() const {
   return inverse;
 }
 
-double Cholesky<il::Array2D<double>>::condition_number(il::Norm norm_type,
-                                                       double norm_a) const {
+double Cholesky<il::Array2D<double>>::conditionNumber(il::Norm norm_type,
+                                                      double norm_a) const {
   IL_EXPECT_FAST(norm_type == il::Norm::L1 || norm_type == il::Norm::Linf);
 
   const int layout = LAPACK_COL_MAJOR;
@@ -133,11 +133,11 @@ class Cholesky<LowerArray2D<double>> {
   il::LowerArray2D<double> l_;
 
  public:
-  Cholesky(il::LowerArray2D<double> A, il::io_t, il::Status &status);
+  Cholesky(il::LowerArray2D<double> A, il::io_t, il::Status& status);
 };
 
 Cholesky<LowerArray2D<double>>::Cholesky(il::LowerArray2D<double> A, il::io_t,
-                             il::Status &status)
+                                         il::Status& status)
     : l_{} {
   const int layout = LAPACK_COL_MAJOR;
   const char uplo = 'L';
@@ -152,6 +152,6 @@ Cholesky<LowerArray2D<double>>::Cholesky(il::LowerArray2D<double> A, il::io_t,
   }
 }
 
-}
+}  // namespace il
 
 #endif  // IL_CHOLESKY_H
