@@ -7,4 +7,4 @@
 //
 //==============================================================================
 
-#include <il/container/3d/StaticArray3D.h>
+#include <il/container/string/algorithm_string.h>
