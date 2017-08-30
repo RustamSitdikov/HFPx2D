@@ -16,10 +16,10 @@ set(SOURCE_FILES_DIR ${PROJECT_SOURCE_DIR}/src)
 set(SOURCE_FILES
         src/Elasticity/AssemblyDDM.cpp
         src/Elasticity/AssemblyDDM.h
-        src/Mesh/Mesh.cpp
-        src/Mesh/Mesh.h
-        src/Mesh/DOF_Handles.h
-        src/Mesh/DOF_Handles.cpp
+        src/core/Mesh.cpp
+        src/core/Mesh.h
+        src/core/DOF_Handles.h
+        src/core/DOF_Handles.cpp
         src/Elasticity/Simplified3D.cpp
         src/Elasticity/Simplified3D.h
         il/math.h

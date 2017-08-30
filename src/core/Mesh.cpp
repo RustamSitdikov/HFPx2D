@@ -8,7 +8,7 @@
 //
 //
 
-#include <src/Mesh/Mesh.h>
+#include <src/core/Mesh.h>
 #include <il/linear_algebra.h>
 #include <il/math.h>
 #include <iostream>

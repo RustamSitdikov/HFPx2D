@@ -23,8 +23,8 @@
 
 
 #include "src/Elasticity/AssemblyDDM.h"
-#include "src/Mesh/DOF_Handles.h"
-#include "src/Mesh/Mesh.h"
+#include "src/core/DOF_Handles.h"
+#include "src/core/Mesh.h"
 
 #include "src/Elasticity/ElasticProperties.h"
 #include "SimpleElastic.h"

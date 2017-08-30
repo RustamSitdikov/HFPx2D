@@ -18,7 +18,7 @@
 
 // Inclusion from the project
 #include "Dilatancy.h"
-#include "src/Mesh/Mesh.h"
+#include "src/core/Mesh.h"
 #include "Permeability.h"
 
 namespace hfp2d {

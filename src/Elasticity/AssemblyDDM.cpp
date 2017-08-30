@@ -17,7 +17,7 @@
 #include "PlaneStrainInfinite.h"
 #include <src/Elasticity/ElasticProperties.h>
 
-#include <src/Mesh/Mesh.h>
+#include <src/core/Mesh.h>
 
 
 namespace hfp2d {

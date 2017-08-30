@@ -17,7 +17,7 @@
 
 // Inclusion from the project
 #include "src/Elasticity/AssemblyDDM.h"
-#include "src/Mesh/DOF_Handles.h"
+#include "src/core/DOF_Handles.h"
 #include "Dilatancy.h"
 #include "FVM.h"
 #include "Friction.h"

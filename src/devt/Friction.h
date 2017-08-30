@@ -14,7 +14,7 @@
 #include <il/linear_algebra.h>
 
 // Inclusion from the project
-#include "src/Mesh/Mesh.h"
+#include "src/core/Mesh.h"
 
 namespace hfp2d {
 

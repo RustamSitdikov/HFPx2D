@@ -15,7 +15,7 @@
 #include <il/Array2D.h>
 
 // Inclusion from the project
-#include "src/Mesh/Mesh.h"
+#include "src/core/Mesh.h"
 #include "TimeIncr.h"
 
 namespace hfp2d {
