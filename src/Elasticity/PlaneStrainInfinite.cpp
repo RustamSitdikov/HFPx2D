@@ -159,7 +159,7 @@ il::StaticArray2D<double, 2, 4> normal_shear_stress_kernel_dp1_dd(
   // xe (x,y):: collocation point to compute the stress in the reference frame
   // of the unit element
   //
-  //  h :: elt size
+  // h :: elt size
   // s :: tangent vector at xe on which to project to obtain the shear stress
   // n:: nornal vector at xe on which to project to obtain the normal stress
 

@@ -29,7 +29,7 @@ set(SOURCE_FILES
 
 link_directories($ENV{MKLROOT}/lib $ENV{MKLROOT}/../compiler/lib)
 
-add_executable(HFPx2D ${SOURCE_FILES}  main.cpp)
+add_executable(HFPx2D ${SOURCE_FILES}  main.cpp src/Elasticity/ElasticProperties.h)
 
 target_compile_definitions(HFPx2D PRIVATE IL_MKL=1 IL_BLAS=1 IL_OPENMP=1)
 
@@ -41,6 +41,7 @@ add_custom_command(TARGET HFPx2D
         POST_BUILD COMMAND
         /usr/bin/install_name_tool -add_rpath /opt/intel/compilers_and_libraries_2017.0.102/mac/mkl/lib
         $<TARGET_FILE:HFPx2D>)
+
 
 
 ################################################################################

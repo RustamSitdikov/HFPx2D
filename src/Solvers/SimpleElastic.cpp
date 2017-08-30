@@ -26,6 +26,7 @@
 #include "src/Mesh/DOF_Handles.h"
 #include "src/Mesh/Mesh.h"
 
+#include "src/Elasticity/ElasticProperties.h"
 #include "SimpleElastic.h"
 
 
@@ -83,12 +84,16 @@ double SimpleGriffithExample(int nelts) {
 
   mesh.set_values(xy, myconn, matid);
 
+  hfp2d::ElasticProperties myelas(1,0.) ;
+//  myelas.ElasticProperties(1.,0.);
+  std::cout << "EP :" << myelas.Ep() << "\n";
+
   id = hfp2d::dofhandle_dp(2, nelts, p, il::io);  // dof handle for DDs
 
   // some definitions needed for matrix assembly
   il::Array2D<double> xe{2, 2, 0}, xec{2, 2, 0};
 
-  //  SegmentCharacteristic mysege,mysegc;
+  //  SegmentData mysege,mysegc;
 
   il::Array2D<double> K{ndof, ndof};
 
@@ -104,8 +109,7 @@ double SimpleGriffithExample(int nelts) {
   il::Timer timer{};
   timer.start();
 
-  hfp2d::basic_assembly(K, mesh, id, p,
-                        Ep);  // passing p could be avoided here.
+  K=hfp2d::basic_assembly( mesh, id, p, myelas);  // passing p could be avoided here
 
   timer.stop();
 
@@ -152,7 +156,6 @@ double SimpleGriffithExample(int nelts) {
               << " w num: " << dd[j * 2 + 1] << " rel error: " << rel_err[j-1]
               << "\n";
   }
-
 
   std::cout << " end of Simple Griffith crack example \n";
   status.ok();

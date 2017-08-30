@@ -16,10 +16,11 @@
 
 // Inclusion from the project
 #include <src/Mesh/Mesh.h>
+#include <src/Elasticity/ElasticProperties.h>
 
 namespace hfp2d {
-void basic_assembly(il::Array2D<double> &Kmat, Mesh mesh, il::Array2D<int> id,
-                    int p, double Ep);
+il::Array2D<double> basic_assembly( Mesh& mesh, il::Array2D<int>& id,
+                                    int p, ElasticProperties& elas);
 
 void take_submatrix(il::Array2D<double> &sub, int i0, int i1, int j0, int j1,
                     const il::Array2D<double> &A);

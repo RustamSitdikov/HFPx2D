@@ -15,7 +15,7 @@
 #include "AssemblyDDM.h"
 #include "Simplified3D.h"
 #include "PlaneStrainInfinite.h"
-
+#include <src/Elasticity/ElasticProperties.h>
 
 #include <src/Mesh/Mesh.h>
 
@@ -48,9 +48,9 @@ void set_submatrix(il::Array2D<double> &A, int i0, int i1,
   }
 }
 
-
-void basic_assembly(il::Array2D<double> &Kmat, Mesh mesh, il::Array2D<int> id,
-                    int p, double Ep) {
+///////////////////////////////////////////////////////////////////////////////
+il::Array2D<double> basic_assembly(Mesh &mesh, il::Array2D<int> &id, int p,
+                                   ElasticProperties& elas){
   // Kmat : the stiffness matrix to assemble
   // mesh:: the Mesh object
   // id :: the DOF handle
@@ -58,18 +58,19 @@ void basic_assembly(il::Array2D<double> &Kmat, Mesh mesh, il::Array2D<int> id,
   // Ep :: the Plane Strain Young's modulus
   IL_EXPECT_FAST(id.size(0) == mesh.nelts());
   IL_EXPECT_FAST(id.size(1) == 2 * (p + 1));
-  IL_EXPECT_FAST(Kmat.size(0) == Kmat.size(1));
-  IL_EXPECT_FAST(Kmat.size(0) == id.size(0) * id.size(1));
+
 
   il::Array2D<double> xe{2, 2, 0}, xec{2, 2, 0};
 
-  hfp2d::SegmentCharacteristic mysege, mysegc;
+  hfp2d::SegmentData mysege, mysegc;
 
   il::StaticArray2D<double, 2, 2> R;
   il::Array<int> dofe{2 * (p + 1), 0}, dofc{2 * (p + 1), 0};
 
   il::StaticArray2D<double, 2, 4> stnl;
   il::StaticArray<double, 2> sec, nec, xcol;
+
+  il::Array2D<double> Kmat{id.size(0) * id.size(1), id.size(0) * id.size(1)};
 
   // Brute Force assembly
   // double loop on elements to create the stiffness matrix ...
@@ -79,19 +80,19 @@ void basic_assembly(il::Array2D<double> &Kmat, Mesh mesh, il::Array2D<int> id,
   for (int e = 0; e < mesh.nelts(); ++e) { // loop on all  elements
 
     //   get characteristic of element # e
-    mysege = hfp2d::get_segment_DD_characteristic(mesh, e, p);
+    mysege = hfp2d::get_segment_DD_data(mesh, e, p);
     // Rotation matrix of the element w.r. to x-axis.
     R = hfp2d::rotation_matrix_2D(mysege.theta);
 
+    // vector of dof id of  element e
     for (int i = 0; i < 2 * (p + 1); ++i) {
-      // vector of dof id of  element e
       dofe[i] = id(e, i);
     };
 
     // loop on all  elements - to compute the effect of e on all other elements
     for (int j = 0; j < mesh.nelts(); ++j) {
       //   get characteristic of element # j
-      mysegc = hfp2d::get_segment_DD_characteristic(mesh, j, p);
+      mysegc = hfp2d::get_segment_DD_data(mesh, j, p);
 
       sec = il::dot(R, mysegc.s); // tangent of elt j in the frame of elt e
       nec = il::dot(R, mysegc.n); // normal of elt j in the frame of elt e
@@ -99,6 +100,7 @@ void basic_assembly(il::Array2D<double> &Kmat, Mesh mesh, il::Array2D<int> id,
       for (int i = 0; i < 2 * (p + 1); ++i) {
         dofc[i] = id(j, i); // vector of dof id of the  element j
       };
+
       // loop on collocation points of the target element
       for (int ic = 0; ic < p + 1; ++ic) {
         // we switch to the frame of element e
@@ -107,13 +109,15 @@ void basic_assembly(il::Array2D<double> &Kmat, Mesh mesh, il::Array2D<int> id,
         }
         xcol = il::dot(R, xcol);
 
+        // TODO: Make the call Kernel agnostic..... and add a virtual fction call
         // call kernel fction for the effect of element e on collocation ic of element j
         stnl = hfp2d::normal_shear_stress_kernel_dp1_dd(xcol, mysege.size, sec,
-                                                        nec, Ep);
+                                                        nec, elas.Ep());
 
         hfp2d::set_submatrix(Kmat, dofc[2 * ic], dofe[0], stnl);
       }
     }
   }
+  return Kmat;
 };
 }

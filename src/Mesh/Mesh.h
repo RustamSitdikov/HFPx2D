@@ -49,7 +49,9 @@ class Mesh {  // class for 1D mesh of 1D segment elements ?
 
 };
 
-struct SegmentCharacteristic {
+
+////////////////////////////////////////////////////////////////////////////////
+struct SegmentData {
   double size;
   double theta;  // angle w.r. to e_1
   // unit normal to segment in global system of coordinates
@@ -64,8 +66,10 @@ struct SegmentCharacteristic {
 
 il::StaticArray2D<double, 2, 2> rotation_matrix_2D(double theta);
 
-SegmentCharacteristic get_segment_DD_characteristic(const Mesh& mesh,
-                                                    il::int_t ne, il::int_t p);
+SegmentData get_segment_DD_data(const Mesh &mesh,
+                                il::int_t ne, il::int_t p);
+
 }
+////////////////////////////////////////////////////////////////////////////////
 
 #endif  // HFPX2D_MESH_H
