@@ -25,11 +25,11 @@ set(SOURCE_FILES
         il/math.h
         src/Elasticity/PlaneStrainInfinite.cpp
         src/Elasticity/PlaneStrainInfinite.h
-        src/Solvers/SimpleElastic.cpp src/Solvers/SimpleElastic.h)
+        src/Solvers/SimpleElastic.cpp src/Solvers/SimpleElastic.h src/core/SolutionClass.h src/core/SimulationParameters.h)
 
-link_directories($ENV{MKLROOT}/lib $ENV{MKLROOT}/../compiler/lib)
+link_directories($ENV{MKLROOT}/lib/intel64 /opt/intel/compilers_and_libraries/linux/lib/intel64)
 
-add_executable(HFPx2D ${SOURCE_FILES}  main.cpp src/Elasticity/ElasticProperties.h)
+add_executable(HFPx2D ${SOURCE_FILES}  main.cpp src/core/ElasticProperties.h)
 
 target_compile_definitions(HFPx2D PRIVATE IL_MKL=1 IL_BLAS=1 IL_OPENMP=1)
 
@@ -37,10 +37,10 @@ target_include_directories(HFPx2D PRIVATE ${CMAKE_SOURCE_DIR} $ENV{MKLROOT}/incl
 
 target_link_libraries(HFPx2D mkl_intel_lp64 mkl_core mkl_intel_thread dl iomp5 pthread m)
 
-add_custom_command(TARGET HFPx2D
-        POST_BUILD COMMAND
-        /usr/bin/install_name_tool -add_rpath /opt/intel/compilers_and_libraries_2017.0.102/mac/mkl/lib
-        $<TARGET_FILE:HFPx2D>)
+#add_custom_command(TARGET HFPx2D
+#        POST_BUILD COMMAND
+#        /usr/bin/install_name_tool -add_rpath /opt/intel/compilers_and_libraries_2017.0.102/mac/mkl/lib
+#        $<TARGET_FILE:HFPx2D>)
 
 
 
@@ -72,8 +72,8 @@ target_link_libraries(HFPx2DUnitTest mkl_intel_lp64 mkl_core mkl_intel_thread dl
 # be caught and checked.
 target_compile_options(HFPx2DUnitTest PRIVATE "-DIL_UNIT_TEST")
 
-add_custom_command(TARGET HFPx2DUnitTest
-        POST_BUILD COMMAND
-        /usr/bin/install_name_tool -add_rpath /opt/intel/compilers_and_libraries_2017.0.102/mac/mkl/lib
-        $<TARGET_FILE:HFPx2DUnitTest>)
+#add_custom_command(TARGET HFPx2DUnitTest
+#        POST_BUILD COMMAND
+#        /usr/bin/install_name_tool -add_rpath /opt/intel/compilers_and_libraries_2017.0.102/mac/mkl/lib
+#        $<TARGET_FILE:HFPx2DUnitTest>)
 

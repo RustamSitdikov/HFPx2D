@@ -26,7 +26,7 @@
 #include "src/core/DOF_Handles.h"
 #include "src/core/Mesh.h"
 
-#include "src/Elasticity/ElasticProperties.h"
+#include "src/core/ElasticProperties.h"
 #include "SimpleElastic.h"
 
 
@@ -58,7 +58,7 @@ double SimpleGriffithExample(int nelts) {
   il::Array<double> x{nelts + 1};
 
   il::Array2D<double> xy{nelts + 1, 2, 0.0};
-  il::Array2D<int> myconn{nelts, 2, 0.0};
+  il::Array2D<int> myconn{nelts, 2, 0};
   il::Array2D<int> id{nelts, 4, 0};
 
   int ndof = (nelts) * (p + 1) * 2;  // number of dofs

@@ -16,7 +16,7 @@
 
 // Inclusion from the project
 #include <src/core/Mesh.h>
-#include <src/Elasticity/ElasticProperties.h>
+#include <src/core/ElasticProperties.h>
 
 namespace hfp2d {
 il::Array2D<double> basic_assembly( Mesh& mesh, il::Array2D<int>& id,

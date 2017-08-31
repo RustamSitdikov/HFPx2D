@@ -15,7 +15,7 @@
 #include "AssemblyDDM.h"
 #include "Simplified3D.h"
 #include "PlaneStrainInfinite.h"
-#include <src/Elasticity/ElasticProperties.h>
+#include <src/core/ElasticProperties.h>
 
 #include <src/core/Mesh.h>
 
