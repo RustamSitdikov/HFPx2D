@@ -18,10 +18,14 @@ namespace hfp2d {
 class Solution {
 
 private:
-  // Private vector of displacements
-  il::Array<double> displacement_;
+
+  // Private, number of displacement variables
+  il::int_t sizeDisplacement_;
   // Private vector of pressure
-  il::Array<double> pressure_;
+  il::int_t sizePressure_;
+
+  // Private global vector of solution
+  il::Array<double> globalVector_;
 
   // Private errors on convergence
   double errConvergence_;
@@ -38,8 +42,9 @@ public:
   explicit Solution(const il::int_t numberElements, const il::int_t interpolationOrder) :
 
       // Solution vectors
-      displacement_{2*(1+interpolationOrder)*numberElements}, // 2 is the number of degrees of freedom at the node
-      pressure_{interpolationOrder*numberElements+1},
+      sizeDisplacement_ {2*(1+interpolationOrder)*numberElements}, // 2 is the number of degrees of freedom at the node
+      sizePressure_ {interpolationOrder*numberElements+1},
+      globalVector_ {sizeDisplacement_+sizePressure_},
 
       // Error on convergence
       errConvergence_{},
@@ -54,8 +59,9 @@ public:
   explicit Solution(const il::int_t numberElements, const il::int_t interpolationOrder, const double value) :
 
       // Solution vectors
-      displacement_{2*(1+interpolationOrder)*numberElements, value}, // 2 is the number of degrees of freedom at the node
-      pressure_{interpolationOrder*numberElements+1, value},
+      sizeDisplacement_ {2*(1+interpolationOrder)*numberElements}, // 2 is the number of degrees of freedom at the node
+      sizePressure_ {interpolationOrder*numberElements+1},
+      globalVector_ {sizeDisplacement_+sizePressure_, value},
 
       // Error on convergence
       errConvergence_{value},
@@ -70,8 +76,9 @@ public:
   Solution(const Solution &s) :
 
   // Solution vectors
-      displacement_{s.displacement_},
-      pressure_{s.pressure_},
+      sizeDisplacement_ {s.sizeDisplacement_}, // 2 is the number of degrees of freedom at the node
+      sizePressure_ {s.sizePressure_},
+      globalVector_ {s.globalVector_},
 
       // Error on convergence
       errConvergence_{s.errConvergence_},
@@ -83,33 +90,100 @@ public:
   {};
 
   //// getter - READ ONLY
+  // This gets the global vector values
+  il::Array<double> globalVector() const {return globalVector_;};
+  // This gets a particular item of the solution vector
+  double globalVector(il::int_t i) const {return globalVector_[i];};
+
   /// Displacement
   // This recall all displacement solution vector
-  il::Array<double> displacement() const {return displacement_;};
-  // This recall a particular item in the displacement vector
-  double displacement(il::int_t i) const {return displacement_[i];};
-  /// Pressure
-  // This recall all displacement solution vector
-  il::Array<double> pressure() const {return pressure_;};
-  // This recall a particular item in the displacement vector
-  double pressure(il::int_t i) const {return pressure_[i];};
-  /// Global solution vector
-  il::Array<double> global() const{
-    il::int_t dsize = displacement_.size();
-    il::int_t psize = pressure_.size();
+  il::Array<double> displacement() const {
+    il::Array<double> displacement_temp{sizeDisplacement_};
 
-    il::Array<double> globalVector {dsize+psize,0.0};
-    for(il::int_t i=0; i<dsize; i++){
-      globalVector[i]=displacement_[i];
+    for(il::int_t i=0; i < sizeDisplacement_; i++)
+    {
+      displacement_temp[i]=globalVector(i);
     }
-    for(il::int_t i=dsize; i<dsize+psize; i++){
-      globalVector[i]=pressure_[i];
+
+    return displacement_temp;
+  };
+
+  // This recall an element in the displacement vector
+  double displacement(il::int_t i) const {
+    return (i<sizeDisplacement_ ? globalVector(i) : throw std::out_of_range ("Index out of range"));
+  };
+
+
+  /// Pressure
+  // This recall all pressure solution vector
+  il::Array<double> pressure() const {
+    il::Array<double> pressure_temp{sizeDisplacement_};
+
+    for(il::int_t i=sizeDisplacement_; i < sizeDisplacement_+sizePressure_; i++)
+    {
+      pressure_temp[i]=globalVector(i);
     }
-  }
+
+    return pressure_temp;
+  };
+
+  // This recall an element in the pressure vector
+  double pressure(il::int_t i) const {
+    return (i>sizeDisplacement_ ? globalVector(i) : throw std::out_of_range ("Index out of range"));
+  };
+
+  /// Reading of errors and iteration numbers
+  double errConvergence() { return errConvergence_; };
+  double errConvergenceDispl() { return errConvergenceDispl_; };
+  double errConvergencePress() { return errConvergencePress_; };
+
+  il::int_t numIterations() {return numIterations_; };
+
 
   /// setter - WRITE but only if the velocity and pressure are written together
+  // write the new solution all together
+  void updateSolution(il::Array<double> &newVector){
+
+    // TODO: Add a check for sizeDisplacement_+sizePressure_ == newVector.size() ?? Also, other checks in the methods
+
+    for(il::int_t i=0; i<sizeDisplacement_+sizePressure_; i++)
+    {
+      globalVector_[i]=newVector[i];
+    }
+
+  };
 
 
+  void updateSolution(il::Array<double> &newDisplacement, il::Array<double> &newPressure){
+
+    for(il::int_t i=0; i<sizeDisplacement_; i++)
+    {
+      globalVector_[i]=newDisplacement[i];
+    }
+
+    for(il::int_t i=sizeDisplacement_; i<sizeDisplacement_+sizePressure_; i++)
+    {
+      globalVector_[i]=newPressure[i];
+    }
+
+  };
+
+  // update the error values
+  void updateError(double error){
+    errConvergence_ = error;
+  };
+
+  void updateErrorDispl(double error){
+    errConvergenceDispl_ = error;
+  };
+  void updateErrorPress(double error){
+    errConvergencePress_ = error;
+  };
+
+  // increase iteration number by one
+  void increaseIteration(){
+    numIterations_++;
+  };
 
 ////////////////////////////////////////////////////////////////////////////////////////
 /// RESET--REFACTOR
@@ -153,6 +227,10 @@ public:
 // the addresses of solutions at n and n+1 will be changed, not their values
 
 
+// TODO: create a suite of tests to run on class Solution
+// TODO: construct the derived class
+// TODO: add checks for sizes of members
+// TODO: add sapxy to the class (to sum and multiply multiple solutions)
 
 };
 
@@ -162,13 +240,6 @@ class SolutionCohesive: Solution{
 public:
   il::Array<double> cohesion_values;
   il::Array<double> friction_values;
-
-  void saveSolution(il::Array<double> displacement_)
-  {
-    for(il::int_t i=0; i<10; i++) {
-      displacement_[i]=0.0;
-    }
-  }
 
 private:
   il::Array<double> cohesion_values_;
