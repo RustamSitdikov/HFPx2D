@@ -16,6 +16,7 @@
 #include <il/Array2D.h>
 #include <il/StaticArray.h>
 #include <il/StaticArray2D.h>
+#include <il/container/1d/SmallArray.h>
 
 namespace hfp2d {
 
@@ -24,28 +25,99 @@ class Mesh {  // class for 1D mesh of 1D segment elements ?
 
  private:
 
-  il::Array2D<double> node_;
+  il::Array2D<double> nodes_;
   il::Array2D<int> connectivity_;
-  il::Array<int> matid_ ;
+  il::Array<int> matId_;
+  il::Array<int> fracId_;
 
  public:
-  void set_values(il::Array2D<double>, il::Array2D<int>,il::Array<int>);
 
-  double node(il::int_t k, il::int_t i) const;
+  //////////////////////////////// Constructors ////////////////////////////////
+  // Constructor from data with nodes, connectivity and materials, BUT NOT fracture identifier
+  void load1DMesh(il::Array2D<double> nodesCoordinates,
+                  il::Array2D<int> elementsConnectivity,
+                  il::Array<int> materialIdentifier)
+  {
+    // Initial assertions to check data consistency
+    IL_EXPECT_FAST(nodesCoordinates.size(0) > 0 && nodesCoordinates.size(1) == 2);
+    IL_EXPECT_FAST(elementsConnectivity.size(0) > 0 && elementsConnectivity.size(1) == 2);
+    IL_EXPECT_FAST(materialIdentifier.size() == elementsConnectivity.size(0));
 
-  int connectivity(il::int_t k, il::int_t i) const;
+    // Assignment to the class members
+    nodes_ = nodesCoordinates;           // list of coordinates of points in the mesh
+    connectivity_ = elementsConnectivity;  //  connectivity array -
+    matId_ = materialIdentifier; // material ID array
+  };
 
-  int matid(il::int_t k) const;
+  // Constructor from data with nodes, connectivity and materials, AND USING fracture identifier
+  void load1DMesh(il::Array2D<double> nodesCoordinates,
+                  il::Array2D<int> elementsConnectivity,
+                  il::Array<int> materialIdentifier,
+                  il::Array<int> fractureIdentifier)
+  {
+    // Initial assertions to check data consistency
+    IL_EXPECT_FAST(nodesCoordinates.size(0) > 0 && nodesCoordinates.size(1) == 2);
+    IL_EXPECT_FAST(elementsConnectivity.size(0) > 0 && elementsConnectivity.size(1) == 2);
+    IL_EXPECT_FAST(materialIdentifier.size() == elementsConnectivity.size(1));
+    IL_EXPECT_FAST(fractureIdentifier.size() == elementsConnectivity.size(1));
 
-  int nelts() const;
+    // Assignment to the class members
+    nodes_ = nodesCoordinates;           // list of coordinates of points in the mesh
+    connectivity_ = elementsConnectivity;  //  connectivity array -
+    matId_ = materialIdentifier; // material ID array
+    fracId_ = fractureIdentifier;
+  };
 
-  int ncoor() const;
 
-  il::Array2D<double> coor() const;
+  /// GETTER
+  // Read the X coordinate of a node
+  double X(il::int_t k) const { return nodes_(k,0); }
+  // Read the Y coordinate of a node
+  double Y(il::int_t k) const { return nodes_(k,1); }
 
-  il::Array2D<int> conn() const;
+  // Read a particular element of the node coordinates
+  double node(il::int_t k, il::int_t i) const { return nodes_(k, i); }
 
-  il::Array<int> matid() const;
+  il::Array<il::int_t> elemConnectivity(il::int_t k)
+  {
+    il::Array<il::int_t> temp(connectivity_.size(1));
+
+    for(il::int_t i=0; i<connectivity_.size(1); i++)
+    {
+      temp[i]=connectivity_(k,i);
+    }
+  };
+
+  int connectivity(il::int_t k, il::int_t i) const { return connectivity_(k, i); }
+
+  int matid(il::int_t k) const { return matId_[k]; }
+
+  int nelts() const { return connectivity_.size(0); } ;
+
+  int ncoor() const { return nodes_.size(0); };
+
+  il::Array2D<double> coor() const { return nodes_; };
+
+  il::Array2D<int> conn() const { return connectivity_; };
+
+  il::Array<int> matid() const { return matId_; };
+
+
+//  double node(il::int_t k, il::int_t i) const;
+//
+//  int connectivity(il::int_t k, il::int_t i) const;
+//
+//  int matid(il::int_t k) const;
+//
+//  int nelts() const;
+//
+//  int ncoor() const;
+//
+//  il::Array2D<double> coor() const;
+//
+//  il::Array2D<int> conn() const;
+//
+//  il::Array<int> matid() const;
 
 };
 

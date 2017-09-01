@@ -16,35 +16,35 @@
 namespace hfp2d {
 
 // mesh class
-void Mesh::set_values(il::Array2D<double> xy, il::Array2D<int> ien, il::Array<int> mat) {
-  // check array dimensions ?? -> this is only for 1D mesh so far
-  IL_EXPECT_FAST(xy.size(1) == 2);  // check array dimensions ?
-  IL_EXPECT_FAST(ien.size(1) == 2);
+//void Mesh::loadMesh(il::Array2D<double> xy, il::Array2D<int> ien, il::Array<int> mat) {
+//  // check array dimensions ?? -> this is only for 1D mesh so far
+//  IL_EXPECT_FAST(xy.size(1) == 2);  // check array dimensions ?
+//  IL_EXPECT_FAST(ien.size(1) == 2);
+//
+//  IL_EXPECT_FAST(ien.size(0) == mat.size());
+//
+//  nodes_ = xy;           // list of coordinates of points in the mesh
+//  connectivity_ = ien;  //  connectivity array -
+//  matId_ = mat; // material ID array
+//
+//  // one could think of having a FracID ...
+//}
 
-  IL_EXPECT_FAST(ien.size(0) == mat.size());
-
-  node_ = xy;           // list of coordinates of points in the mesh
-  connectivity_ = ien;  //  connectivity array -
-  matid_ = mat; // material ID array
-
-  // one could think of having a FracID ...
-}
-
-double Mesh::node(il::int_t k, il::int_t i) const { return node_(k, i); }
-
-int Mesh::connectivity(il::int_t k, il::int_t i) const { return connectivity_(k, i); }
-
-int Mesh::matid(il::int_t k) const { return matid_[k]; }
-
-int Mesh::nelts() const { return connectivity_.size(0); } ;
-
-int Mesh::ncoor() const { return node_.size(0); };
-
-il::Array2D<double> Mesh::coor() const { return node_; };
-
-il::Array2D<int> Mesh::conn() const { return connectivity_; };
-
-il::Array<int> Mesh::matid() const { return matid_; };
+//double Mesh::node(il::int_t k, il::int_t i) const { return nodes_(k, i); }
+//
+//int Mesh::connectivity(il::int_t k, il::int_t i) const { return connectivity_(k, i); }
+//
+//int Mesh::matid(il::int_t k) const { return matId_[k]; }
+//
+//int Mesh::nelts() const { return connectivity_.size(0); } ;
+//
+//int Mesh::ncoor() const { return nodes_.size(0); };
+//
+//il::Array2D<double> Mesh::coor() const { return nodes_; };
+//
+//il::Array2D<int> Mesh::conn() const { return connectivity_; };
+//
+//il::Array<int> Mesh::matid() const { return matId_; };
 
 
 // needs to add function to add one or more elements ... (needs to have active

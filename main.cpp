@@ -25,37 +25,7 @@ int main() {
 
   std::cout << " end of code \n\n\n";
 
-
-
-
-  hfp2d::Solution a(5,1);
-  hfp2d::Solution a1(7,1,3.0);
-  hfp2d::Solution a2(a);
-
-  il::int_t numElem=10;
-
-  il::Array<double> newVect=a1.globalVector();
-
-  hfp2d::Solution a3(7,1);
-
-  a3.updateSolution(newVect);
-
-  il::Array<double> b(numElem,0.0);
-
-
-
-
-  //std::cout << a.displacement().size() << std::endl;
-  for(il::int_t i=0; i<a1.displacement().size(); i++)
-  {
-    std::cout << a1.displacement(i) << std::endl;
-  }
-
-//  for (int i=0; i<5; i++) {
-//    a.displacement(i,2.0*i);
-//  }
-
-  return ret;
+  return 0;
 }
 ////////////////////////////////////////////////////////////////////////////////
 

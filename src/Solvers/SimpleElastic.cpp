@@ -82,7 +82,7 @@ double SimpleGriffithExample(int nelts) {
   // create mesh object
   hfp2d::Mesh mesh;
 
-  mesh.set_values(xy, myconn, matid);
+  mesh.load1DMesh(xy, myconn, matid);
 
   hfp2d::ElasticProperties myelas(1,0.) ;
 //  myelas.ElasticProperties(1.,0.);

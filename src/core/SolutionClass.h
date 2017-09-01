@@ -17,6 +17,12 @@ namespace hfp2d {
 ///// BASE solution class
 class Solution {
 
+  // TODO: create a suite of tests to run on class Solution
+  // TODO: construct the derived classes
+  // TODO: add sapxy to the class (to sum and multiply multiple solutions)
+  // TODO: use (for many of the operations) the pointers rather than the copy itself
+  // TODO: swap of solutions to be done only with pointers to two solution classes
+
 private:
 
   // Private, number of displacement variables
@@ -38,7 +44,9 @@ private:
 
 public:
 
-  // Constructor with size: it reserve the space for the problem solution (with number of elements, interpolation order and value)
+  /// CONSTRUCTORS
+  // Constructor with size: it reserve the space for the problem solution
+  // (with number of elements, interpolation order BUT NO value)
   explicit Solution(const il::int_t numberElements, const il::int_t interpolationOrder) :
 
       // Solution vectors
@@ -55,7 +63,7 @@ public:
       numIterations_{}
   {};
 
-  // Constructor with number of elements, interpolation order and value
+  // Constructor with number of elements, interpolation order AND value
   explicit Solution(const il::int_t numberElements, const il::int_t interpolationOrder, const double value) :
 
       // Solution vectors
@@ -72,7 +80,7 @@ public:
       numIterations_{0}
   {};
 
-  // Constructor with other Solution class
+  // Constructor copying from other Solution object
   Solution(const Solution &s) :
 
   // Solution vectors
@@ -89,13 +97,15 @@ public:
       numIterations_{s.numIterations_}
   {};
 
+
+  //////////////////////////////// Interfaces ////////////////////////////////
   //// getter - READ ONLY
   // This gets the global vector values
   il::Array<double> globalVector() const {return globalVector_;};
   // This gets a particular item of the solution vector
   double globalVector(il::int_t i) const {return globalVector_[i];};
 
-  /// Displacement
+  // Displacement
   // This recall all displacement solution vector
   il::Array<double> displacement() const {
     il::Array<double> displacement_temp{sizeDisplacement_};
@@ -110,11 +120,13 @@ public:
 
   // This recall an element in the displacement vector
   double displacement(il::int_t i) const {
-    return (i<sizeDisplacement_ ? globalVector(i) : throw std::out_of_range ("Index out of range"));
+
+    IL_EXPECT_FAST(i<sizeDisplacement_);
+
+    return (globalVector(i));
   };
 
-
-  /// Pressure
+  // Pressure
   // This recall all pressure solution vector
   il::Array<double> pressure() const {
     il::Array<double> pressure_temp{sizeDisplacement_};
@@ -129,33 +141,38 @@ public:
 
   // This recall an element in the pressure vector
   double pressure(il::int_t i) const {
-    return (i>sizeDisplacement_ ? globalVector(i) : throw std::out_of_range ("Index out of range"));
+
+    IL_EXPECT_FAST(i<sizePressure_);
+
+    return globalVector(i+sizeDisplacement_);
   };
 
-  /// Reading of errors and iteration numbers
-  double errConvergence() { return errConvergence_; };
-  double errConvergenceDispl() { return errConvergenceDispl_; };
-  double errConvergencePress() { return errConvergencePress_; };
+  // Reading of errors and iteration numbers
+  double errConvergence() const { return errConvergence_; };
+  double errConvergenceDispl() const { return errConvergenceDispl_; };
+  double errConvergencePress() const { return errConvergencePress_; };
 
-  il::int_t numIterations() {return numIterations_; };
+  il::int_t numIterations() const {return numIterations_; };
 
 
-  /// setter - WRITE but only if the velocity and pressure are written together
+  //// setter - WRITE but only if the velocity and pressure are written together
   // write the new solution all together
-  void updateSolution(il::Array<double> &newVector){
+  void updateSolution(il::Array<double> const &newVector){
 
-    // TODO: Add a check for sizeDisplacement_+sizePressure_ == newVector.size() ?? Also, other checks in the methods
+    // Check correct size of update
+    IL_EXPECT_FAST(globalVector_.size()==newVector.size());
 
-    for(il::int_t i=0; i<sizeDisplacement_+sizePressure_; i++)
+    for(il::int_t i=0; i<globalVector_.size(); i++)
     {
       globalVector_[i]=newVector[i];
     }
 
   };
 
+  // update complete solution vector with displacement and pressures
+  void updateSolution(il::Array<double> const &newDisplacement, il::Array<double> const &newPressure){
 
-  void updateSolution(il::Array<double> &newDisplacement, il::Array<double> &newPressure){
-
+    IL_EXPECT_FAST(newDisplacement.size()==sizeDisplacement_ && newPressure.size()==sizePressure_)
     for(il::int_t i=0; i<sizeDisplacement_; i++)
     {
       globalVector_[i]=newDisplacement[i];
@@ -168,15 +185,18 @@ public:
 
   };
 
+  /// Placeholder for blas saxpy and other operations on the solution class
+
+
   // update the error values
-  void updateError(double error){
+  void updateError(double const error){
     errConvergence_ = error;
   };
 
-  void updateErrorDispl(double error){
+  void updateErrorDispl(double const error){
     errConvergenceDispl_ = error;
   };
-  void updateErrorPress(double error){
+  void updateErrorPress(double const error){
     errConvergencePress_ = error;
   };
 
@@ -184,35 +204,6 @@ public:
   void increaseIteration(){
     numIterations_++;
   };
-
-////////////////////////////////////////////////////////////////////////////////////////
-/// RESET--REFACTOR
-// First of all, we need only a global vector
-// Initialization is done by creating a vector with the sum of all required variables
-// we save only how many displacement variables and how many pressure variables are there
-// then copy constructor is as easy as the other
-// setter is super easy
-// getter is more difficult because has to divide the vector in 2, but we do not need it many times
-// Moreover, the address of each single vector is the address of the first value, so we can
-// provide both copy of displ/pressure or their address.
-
-
-  // Useful functions for the class
-
-//  il::Array<double>* displacement() { return &displacement_;}
-
-//  void displacement(int i, double val) {
-//    displacement_[i]=val;
-//    return;
-//  }
-//
-//  il::Array<double> pressure() const { return pressure_;}
-//  double errConvergence() const { return errConvergence_;}
-//  double errConvergenceDispl() const { return errConvergenceDispl_;}
-//  double errConvergencePress() const { return errConvergencePress_;}
-
-
-
 
   // Reference (Address) of Solution
 //  Solution *getAddress(){
@@ -226,13 +217,10 @@ public:
 // This functions will be helpful later when, in the solution procedure,
 // the addresses of solutions at n and n+1 will be changed, not their values
 
-
-// TODO: create a suite of tests to run on class Solution
-// TODO: construct the derived class
-// TODO: add checks for sizes of members
-// TODO: add sapxy to the class (to sum and multiply multiple solutions)
-
 };
+
+
+//////////////////////////////// Derived classes ////////////////////////////////
 
 //// DERIVED solution class with cohesive zone model
 class SolutionCohesive: Solution{
@@ -248,8 +236,6 @@ private:
 };
 
 }
-
-// swap of solution can be done only with pointers to a solution class
 
 
 #endif //HFPX2D_SOLUTIONCLASS_H
