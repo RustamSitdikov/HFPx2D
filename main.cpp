@@ -9,13 +9,76 @@
 
 
 #include <iostream>
+#include <fstream>
 
 #include "src/Solvers/SimpleElastic.h"
 #include "src/core/SolutionClass.h"
+#include "src/core/loadArguments.h"
 
 
 ////////////////////////////////////////////////////////////////////////////////
-int main() {
+
+/// Proposed Structure of the code
+//  Introduce input data in the code
+//  .. Load arguments passed to the main and deal with the different options
+//  .... -i --> input file
+//  .... -o --> output directory
+//  .... -r --> restart file
+//  .. Load variables in the input file (mesh, connectivity, material) or
+//     provide default values/errors if something is missing
+//  .. Create DOF handles
+//  Setup problem (if needed prepare all constant matrices)
+//  Start timestep loop
+//  .. Compute system matrix
+//  .. Compute force vector
+//  .. Solve for the new displacements and pressures
+//  .. Update variables (dependent variable, historical variables, etc)
+//  Reject/Accept solution
+//  .. Compute the required criteria
+//  .. Adjust time step
+//  Output and save the results (on not!)
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+int main(int argc, char *argv[]) {
+
+  // Creating variables to deal with input arguments
+  std::string inputFileName, outputDirectory, restartFileName;
+  bool checkInput = false;
+  bool checkOutput = false;
+  bool checkRestart = false;
+
+  hfp2d::loadArguments(argc, argv,
+                       checkInput, inputFileName,
+                       checkRestart, restartFileName,
+                       checkOutput, outputDirectory);
+
+  /// TAKING CARE OF THE INPUT IN CASE OF NEW ANALYSIS OR RESTART
+  if (checkInput) {
+    // hfp2d::loadInput(inputFileName,il::io_t,Mesh,Properties,SimulationParam);
+  } else if (checkOutput) {
+    // hfp2d::loadRestart(resetFileName,il::io_t,Mesh,Properties,SimulationParam,Solution);
+  }
+
+  if (checkOutput) { // Eliminate this once a script for the output is done
+
+    // Example output to DUMMY file
+    std::string outputFile = outputDirectory + "/" + "cracklength.txt";
+    std::cout << outputDirectory << std::endl;
+    std::cout << outputFile << std::endl;
+
+    std::ofstream foutlc;
+    foutlc.open(outputFile);
+    for (int i = 0; i < 10; i++) {
+      foutlc << i << " again good" << "\n";
+    }
+    foutlc << "Good bye, once again" << "\n";
+    foutlc.close();
+
+  }
+
+//////////////////////// Previous code snippet /////////////////////////////////
 
   int nelts = 10;
 
