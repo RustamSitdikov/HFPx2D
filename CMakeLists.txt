@@ -25,7 +25,7 @@ set(SOURCE_FILES
         il/math.h
         src/Elasticity/PlaneStrainInfinite.cpp
         src/Elasticity/PlaneStrainInfinite.h
-        src/Solvers/SimpleElastic.cpp src/Solvers/SimpleElastic.h src/core/SolutionClass.h src/core/SimulationParameters.h src/core/loadArguments.cpp src/core/loadArguments.h)
+        src/Solvers/SimpleElastic.cpp src/Solvers/SimpleElastic.h src/core/SolutionClass.h src/core/SimulationParameters.h src/core/loadArguments.cpp src/core/loadArguments.h src/core/loadInput.cpp src/core/loadInput.h)
 
 link_directories($ENV{MKLROOT}/lib/intel64 /opt/intel/compilers_and_libraries/linux/lib/intel64)
 

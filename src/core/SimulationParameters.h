@@ -5,4 +5,11 @@
 #ifndef HFPX2D_SIMULATIONPARAMETERS_H
 #define HFPX2D_SIMULATIONPARAMETERS_H
 
+namespace hfp2d {
+
+
+class Simulation {
+
+}
+}
 #endif //HFPX2_SIMULATIONPARAMETERS_H
