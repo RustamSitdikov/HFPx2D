@@ -2,10 +2,10 @@
 // This file is part of HFPx2D.
 //
 // Created by Brice Lecampion on 30.08.17.
-// Copyright (c) ECOLE POLYTECHNIQUE FEDERALE DE LAUSANNE, Switzerland, Geo-Energy Laboratory, 2016-2017.  All rights reserved.
+// Copyright (c) ECOLE POLYTECHNIQUE FEDERALE DE LAUSANNE, Switzerland,
+// Geo-Energy Laboratory, 2016-2017.  All rights reserved.
 // See the LICENSE.TXT file for more details. 
 //
-
 
 
 #include <cmath>
@@ -58,7 +58,7 @@ double SimpleGriffithExample(int nelts) {
   il::Array<double> x{nelts + 1};
 
   il::Array2D<double> xy{nelts + 1, 2, 0.0};
-  il::Array2D<int> myconn{nelts, 2, 0};
+  il::Array2D<il::int_t> myconn{nelts, 2, 0};
   il::Array2D<int> id{nelts, 4, 0};
 
   int ndof = (nelts) * (p + 1) * 2;  // number of dofs
@@ -78,11 +78,11 @@ double SimpleGriffithExample(int nelts) {
     myconn(i, 1) = i + 1;
   };
 
-  il::Array<int> matid{nelts, 1};
+  il::Array<il::int_t> matid{nelts, 1};
   // create mesh object
   hfp2d::Mesh mesh;
 
-  mesh.load1DMesh(xy, myconn, matid);
+  mesh.init1DMesh(xy, myconn, matid);
 
   hfp2d::ElasticProperties myelas(1,0.) ;
 //  myelas.ElasticProperties(1.,0.);

@@ -12,16 +12,21 @@
 #define HFPX2DUNITTEST_LOADARGUMENTS_H
 
 #include <iostream>
+#include <cstring>
 #include <fstream>
 #include <sys/stat.h>
+#include <dirent.h>
+#include <unistd.h>
+#include <il/String.h>
 
 namespace hfp2d {
 
-void loadArguments(int argc, char *argv[],
-                   bool &checkInput, std::string &inputFileName,
-                   bool &checkRestart, std::string &restartFileName,
-                   bool &checkOutput, std::string &outputDirectory);
+void loadArguments(const int argc, const char* const* argv, il::io_t,
+                   bool &checkInput, il::String &inputFileName,
+                   bool &checkRestart, il::String &restartFileName,
+                   bool &checkOutput, il::String &outputDirectory);
 
 void cleanOutputDir(const char *path);
+
 }
 #endif //HFPX2DUNITTEST_LOADARGUMENTS_H

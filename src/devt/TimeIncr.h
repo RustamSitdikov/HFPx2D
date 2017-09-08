@@ -54,7 +54,7 @@ void time_incr(int inj_point, il::int_t NCollPoints, Mesh mesh, int p,
                Parameters_fluid &fluid_parameters, il::Array<double> S,
                int dof_dim, il::Array2D<double> Sigma0,
                il::Array<double> Amb_press, il::Array<double> Pinit,
-               const std::string &Directory_results, il::Array<double> XColl,
+               const il::String &Directory_results, il::Array<double> XColl,
                il::Array2D<double> &Fetc, double h,
                simulation_parameters simulation_parameters,
                Parameters_permeability &permeab_parameters, il::io_t);

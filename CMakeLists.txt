@@ -22,14 +22,35 @@ set(SOURCE_FILES
         src/core/DOF_Handles.cpp
         src/Elasticity/Simplified3D.cpp
         src/Elasticity/Simplified3D.h
-        il/math.h
         src/Elasticity/PlaneStrainInfinite.cpp
         src/Elasticity/PlaneStrainInfinite.h
-        src/Solvers/SimpleElastic.cpp src/Solvers/SimpleElastic.h src/core/SolutionClass.h src/core/SimulationParameters.h src/core/loadArguments.cpp src/core/loadArguments.h src/core/loadInput.cpp src/core/loadInput.h)
+        src/Solvers/SimpleElastic.cpp
+        src/Solvers/SimpleElastic.h
+        src/core/SolutionClass.h
+        src/core/Simulation.h
+        src/core/loadArguments.cpp
+        src/core/loadArguments.h
+        src/input/loadInput.cpp
+        src/input/loadInput.h
+        src/input/mesh/createMesh.cpp
+        src/input/mesh/createMesh.h
+        src/core/Properties.cpp
+        src/core/Properties.h
+        src/input/mesh/verticalOrientation.cpp
+        src/input/mesh/verticalOrientation.h
+        src/input/mesh/horizontalOrientation.cpp
+        src/input/mesh/horizontalOrientation.h
+        src/input/mesh/diagonalOrientation.cpp
+        src/input/mesh/diagonalOrientation.h
+        src/input/mesh/customOrientation.cpp
+        src/input/mesh/customOrientation.h
+        src/input/mesh/loadGeometry.cpp
+        src/input/mesh/loadGeometry.h src/input/mesh/loadMeshFile.cpp src/input/mesh/loadMeshFile.h)
 
-link_directories($ENV{MKLROOT}/lib/intel64 /opt/intel/compilers_and_libraries/linux/lib/intel64)
+link_directories($ENV{MKLROOT}/lib/intel64
+                 /opt/intel/compilers_and_libraries/linux/lib/intel64)
 
-add_executable(HFPx2D ${SOURCE_FILES}  main.cpp src/core/ElasticProperties.h)
+add_executable(HFPx2D ${SOURCE_FILES}  main.cpp)
 
 target_compile_definitions(HFPx2D PRIVATE IL_MKL=1 IL_BLAS=1 IL_OPENMP=1)
 

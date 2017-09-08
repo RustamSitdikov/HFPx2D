@@ -1,3 +1,12 @@
+#
+# HFPx2D project.
+#
+# Created by Lorenzo Benedetti on 06.09.17.
+# Copyright (c) ECOLE POLYTECHNIQUE FEDERALE DE LAUSANNE, Switzerland,
+# Geo-Energy Laboratory, 2016-2017.  All rights reserved.
+# See the LICENSE.TXT file for more details.
+#
+#
 
 
 [[geometry]]
@@ -12,7 +21,7 @@
         name = "Strong layer"
 
         # orientation
-        orientation = vertical
+        orientation = "vertical"
 
         # center of gravity of mesh
         x_c = 0.0
@@ -43,7 +52,7 @@
     [layer2]
         name = "Weak layer"
 
-        orientation = horizontal
+        orientation = "horizontal"
 
         x_c= 5.0
         y_c=-2.5
@@ -60,7 +69,7 @@
 
         name = "A third layer, not joined but diagonal"
 
-        orientation = diagonal
+        orientation = "diagonal"
 
         x_c= 5.0
         y_c= 5.0
@@ -79,7 +88,7 @@
 
         name = "A fourth layer, with beginning and end"
 
-        orientation = custom
+        orientation = "custom"
 
         # first point coordinate
         x_1= 7.0
@@ -100,7 +109,7 @@
 ##### CASE 2: manual
     mesh_generation = "manual"
 
-    mesh_input_file = myMesh.hfpm # this file will provide also the connectivity and material ID of each element.
+    mesh_input_file = "myMesh.hfpm" # this file will provide also the connectivity and material ID of each element.
 
 
 ## Properites of the material PER LAYER
@@ -194,6 +203,7 @@
         type = "FixedPoint"
              # "NewtonRaphson"
              # "ConicalStuff"
+        fail_over_strategy = skip # or exit
 
 
     [tolerance]
@@ -207,3 +217,10 @@
         max_global_iterations = 100
         max_failure_criteria_iterations = 100
         under_relaxation_parameter = 0.6
+
+[[postprocess]]
+    [variable]
+        # save variables every X steps
+        # output some plots
+        # other stuff to output
+        # (time per iteration, console verbose output...)

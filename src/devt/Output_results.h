@@ -17,8 +17,8 @@
 namespace hfp2d {
 
 void save_data_to_csv(const il::Array<double> &vector,
-                      const std::string &trg_dir, const std::string &of_name) {
-  std::string f_path = trg_dir + of_name;
+                      const il::String &trg_dir, const il::String &of_name) {
+  il::String f_path = trg_dir + of_name;
   const char *format = "%.16g\n";
   FILE *of = std::fopen(f_path.c_str(), "w");
   for (int j = 0; j < vector.size(); ++j) {
@@ -28,8 +28,8 @@ void save_data_to_csv(const il::Array<double> &vector,
 }
 
 void save_data_to_csv(const il::Array2D<double> &matrix,
-                      const std::string &trg_dir, const std::string &of_name) {
-  std::string f_path = trg_dir + of_name;
+                      const il::String &trg_dir, const il::String &of_name) {
+  il::String f_path = trg_dir + of_name;
   const char *format = "%.16g";
   FILE *of = std::fopen(f_path.c_str(), "w");
   for (int j = 0; j < matrix.size(0); ++j) {
@@ -45,9 +45,9 @@ void save_data_to_csv(const il::Array2D<double> &matrix,
 }
 
 void export_results(Results_one_timeincrement &SolutionAtTj, double t,
-                    const std::string &trg_dir, const std::string &of_name) {
+                    const il::String &trg_dir, const il::String &of_name) {
 
-  std::string f_path = trg_dir + of_name;
+  il::String f_path = trg_dir + of_name;
   const char *format1 = "%.16g %10";
   const char *format6 = "%6.0d";
   const char *format2 = "N. iteration: %i\n\n";

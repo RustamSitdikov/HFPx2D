@@ -8,22 +8,14 @@
 //
 //
 
-#include <iostream>
-#include <cstring>
-#include <fstream>
-//#include <cstdio>
-#include <sys/stat.h>
-//#include <sys/types.h>
-#include <dirent.h>
-#include <unistd.h>
 #include "loadArguments.h"
 
 namespace hfp2d {
 
-void loadArguments(int argc, char *argv[],
-                   bool &checkInput, std::string &inputFileName,
-                   bool &checkRestart, std::string &restartFileName,
-                   bool &checkOutput, std::string &outputDirectory) {
+void loadArguments(const int argc, const char* const* argv, il::io_t,
+                   bool &checkInput,   il::String &inputFileName,
+                   bool &checkRestart, il::String &restartFileName,
+                   bool &checkOutput,  il::String &outputDirectory) {
 
 // loadArguments will receive the arguments that were passed to the program from the command line as input.
 // they are organized as following:
@@ -41,7 +33,7 @@ void loadArguments(int argc, char *argv[],
 // Check if directory exists.
 // If not, create directory and check status of creation. On failure, stop the program.
 // If it exists, clean just the output files from directory. Check status of cleaning.
-// TODO: decide which extension can be given to the output files (.hf2o ??)
+// TODO: decide which extension can be given to the input, mesh and output files (.hfpi, .hfpm, .hf2o ??)
 // Check possibility of writing in folder.
 ///////////////////////////////////////////////////////////////////////
 
@@ -75,16 +67,16 @@ void loadArguments(int argc, char *argv[],
                                       * Note that we're starting on 1 because we don't need to know the
                                       * path of the program, which is stored in argv[0] */
 
-      if (std::string(argv[i]) == "-i") {
+      if (il::String(il::StringType::Bytes, argv[i], il::size(argv[i])) == "-i") {
 
         // We know the next argument *should* be the input filename:
-        inputFileName = argv[i + 1];
+        inputFileName = il::String(il::StringType::Bytes, argv[i + 1], il::size(argv[i+1]));
 
         // We add (to be sure) the initial "./" to the address
-        inputFileName = "./" + inputFileName;
+        inputFileName = il::join("./" , inputFileName);
 
         // Check for existence and readability of the file
-        statusOfAccess = access(inputFileName.c_str(), F_OK | R_OK);
+        statusOfAccess = access(inputFileName.asCString(), F_OK | R_OK);
 
         if (statusOfAccess != 0) {
           std::cerr << "Error: impossible to access the input file " << inputFileName << std::endl;
@@ -95,26 +87,26 @@ void loadArguments(int argc, char *argv[],
           i++;
         }
 
-      } else if (std::string(argv[i]) == "-o") {
+      } else if (il::String(il::StringType::Bytes, argv[i], il::size(argv[i])) == "-o") {
 
         // We know the next argument *should* be the output directory:
-        outputDirectory = argv[i + 1];
+        outputDirectory = il::String(il::StringType::Bytes, argv[i + 1], il::size(argv[i+1]));
 
         // We will check for the properties of the output folder later
         checkOutput = true;
         i++;
 
-      } else if (std::string(argv[i]) == "-r") {
+      } else if (il::String(il::StringType::Bytes, argv[i], il::size(argv[i])) == "-r") {
 
         // We know the next argument *should* be the restart filename:
-        restartFileName = argv[i + 1];
+        restartFileName = il::String(il::StringType::Bytes, argv[i + 1], il::size(argv[i+1]));
 
         // We add (to be sure) the initial "./" to the address
         // inputFileName = "./" + inputFileName;
-        inputFileName.insert(0,"./");
+        restartFileName=il::join("./",restartFileName);
 
         // Check for existence and readability of the file
-        statusOfAccess = access(restartFileName.c_str(), F_OK | R_OK);
+        statusOfAccess = access(restartFileName.asCString(), F_OK | R_OK);
 
         if (statusOfAccess != 0) {
 
@@ -133,7 +125,7 @@ void loadArguments(int argc, char *argv[],
       } else {
 
         // There is an invalid argument, so send an error.
-        std::cerr << "Invalid argument " << std::string(argv[i]) << std::endl;
+        std::cerr << "Invalid argument " << il::String(il::StringType::Bytes, argv[i], il::size(argv[i])) << std::endl;
         std::cerr << "-- Press ENTER to exit...";
         std::cin.get();
         exit(1);
@@ -173,20 +165,20 @@ void loadArguments(int argc, char *argv[],
 
     /// Creating the OUTPUT directory
     // Construct the directory path
-    outputDirectory = "./" + outputDirectory;
+    outputDirectory = il::join("./", outputDirectory);
 
     if (checkOutput) { // if the output directory parameter has been passed
 
       // CASE 1: Directory is not there and we need to create one as required.
       // Try to create a directory
-      int outputDirStatus = mkdir(outputDirectory.c_str(), 0777);
+      int outputDirStatus = mkdir(outputDirectory.asCString(), 0777);
 
       // Check if it was possible to create the directory
       if (outputDirStatus != 0) {
         // If there is an error in creating the directory, then:
         // CASE 2: the directory is already there and we would like to clean it.
         // Check for existence, readability and possibility to write in the folder
-        statusOfAccess = access(outputDirectory.c_str(), F_OK | W_OK | R_OK);
+        statusOfAccess = access(outputDirectory.asCString(), F_OK | W_OK | R_OK);
 
         if (statusOfAccess != 0) { // if there is an error on access as well, no option left:
                                    // we have to stop because there is no way to work on the folder
@@ -198,7 +190,7 @@ void loadArguments(int argc, char *argv[],
           if (!checkRestart) {
             // The directory is accessible and we can work in it.
             // Let us clean the directory ONLY IF THE ANALYSIS IS NEW !!!
-            cleanOutputDir(outputDirectory.c_str());
+            cleanOutputDir(outputDirectory.asCString());
           }
         }
       }  // End "IF" for check directory status
@@ -210,6 +202,7 @@ void loadArguments(int argc, char *argv[],
 
 
 ///// This script removes the files in *path that have only some particular extensions
+// TODO: clean up, change to the il::String form and check that is still working properly
 void cleanOutputDir(const char *path) {
 
   // open the stream of files in the directory *path

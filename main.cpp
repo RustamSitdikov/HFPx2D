@@ -41,15 +41,15 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 
-int main(int argc, char *argv[]) {
+int main(int const argc, char const* const* argv) {
 
   // Creating variables to deal with input arguments
-  std::string inputFileName, outputDirectory, restartFileName;
+  il::String inputFileName, outputDirectory, restartFileName;
   bool checkInput = false;
   bool checkOutput = false;
   bool checkRestart = false;
 
-  hfp2d::loadArguments(argc, argv,
+  hfp2d::loadArguments(argc, argv, il::io,
                        checkInput, inputFileName,
                        checkRestart, restartFileName,
                        checkOutput, outputDirectory);
@@ -64,12 +64,12 @@ int main(int argc, char *argv[]) {
   if (checkOutput) { // Eliminate this once a script for the output is done
 
     // Example output to DUMMY file
-    std::string outputFile = outputDirectory + "/" + "cracklength.txt";
+    il::String outputFile = il::join(outputDirectory, "/", "cracklength.txt");
     std::cout << outputDirectory << std::endl;
     std::cout << outputFile << std::endl;
 
     std::ofstream foutlc;
-    foutlc.open(outputFile);
+    foutlc.open(outputFile.asCString());
     for (int i = 0; i < 10; i++) {
       foutlc << i << " again good" << "\n";
     }
