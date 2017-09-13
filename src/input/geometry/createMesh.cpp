@@ -120,9 +120,13 @@ void createCustomMesh(double& x_1,             // First point of the line, x coo
   else
   {
     // TODO: check intersections here?! before appending rather than later
-    theMesh.appendMesh(coordinates, connectivity, matID);
+    // theMesh.appendMesh(coordinates, connectivity, matID);
   }
 
+  // TODO: ADD THE DOF_HANDLES IN THE MESH
+  // TODO: TWO DIFFERENT FRACS SHOULD HAVE TWO DIFFERENT FRAC_ID, always
+  // so when we add a new one we do not have troubles with the tips
+  // TODO: ADD THE IS_TIP BOOLEAN VECTOR
 
 
 }

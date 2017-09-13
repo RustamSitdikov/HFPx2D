@@ -25,7 +25,7 @@ namespace hfp2d {
 //
 //  nodes_ = xy;           // list of coordinates of points in the mesh
 //  connectivity_ = ien;  //  connectivity array -
-//  matId_ = mat; // material ID array
+//  material_id_ = mat; // material ID array
 //
 //  // one could think of having a FracID ...
 //}
@@ -34,7 +34,7 @@ namespace hfp2d {
 //
 //int Mesh::connectivity(il::int_t k, il::int_t i) const { return connectivity_(k, i); }
 //
-//int Mesh::matid(il::int_t k) const { return matId_[k]; }
+//int Mesh::matid(il::int_t k) const { return material_id_[k]; }
 //
 //int Mesh::nelts() const { return connectivity_.size(0); } ;
 //
@@ -44,7 +44,7 @@ namespace hfp2d {
 //
 //il::Array2D<int> Mesh::conn() const { return connectivity_; };
 //
-//il::Array<int> Mesh::matid() const { return matId_; };
+//il::Array<int> Mesh::matid() const { return material_id_; };
 
 
 // needs to add function to add one or more elements ... (needs to have active

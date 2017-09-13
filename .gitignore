@@ -1,8 +1,10 @@
 .idea
 .gitignore*
-Local_Git_repository
-cmake-build-debug
-cmake-build-release
-Results
+Local_Git_repository/
+cmake-build-debug/
+cmake-build-release/
+Results/
 ScratchAndNotes.txt
-exampleInputFile.toml
+exampleInputFile.hfpi
+exampleCustomMesh.hfpm
+il_old/

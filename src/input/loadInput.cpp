@@ -16,8 +16,7 @@ void loadInput(const il::String &inputFileName,
                il::io_t,
                Mesh &theMesh,
                Properties &matProperties,
-               Simulation &simParameters)
-{
+               Simulation &simParameters) {
 
   ///  **** Read the input data from TOML input file **** ///
 
@@ -25,8 +24,6 @@ void loadInput(const il::String &inputFileName,
   il::Status status{};
 
   // load the file with a map array
-//  auto config =
-//      il::load<il::MapArray<il::String, il::Dynamic>>(inputFileName, il::io, status);
   auto config = il::load<il::MapArray<il::String, il::Dynamic>>(inputFileName, il::io, status);
   status.abortOnError();
 
@@ -45,10 +42,10 @@ void loadInput(const il::String &inputFileName,
     const il::MapArray<il::String, il::Dynamic> &meshCreationMap = config.value(keyFound).asMapArray();
 
     // Send the data in meshCreationMap to loadGeometry script
-    loadGeometry(inputFileName,
-            meshCreationMap,
-            il::io,
-            theMesh);
+    hfp2d::loadGeometry(inputFileName,
+                        meshCreationMap,
+                        il::io,
+                        theMesh);
 
   } else {
     std::cerr << "ERROR: Geometry not found in input file " << inputFileName << std::endl;
@@ -56,7 +53,24 @@ void loadInput(const il::String &inputFileName,
   }
 
   ////////// Materials: SOLID KEYWORD //////////
-  // placeholder
+  keyFound = config.search("solid");
+
+  // If "solid" is found and it is a map
+  if (config.found(keyFound) && config.value(keyFound).isMapArray()) {
+
+    // Save the geometry map, i.e. the data to create the mesh
+    const il::MapArray<il::String, il::Dynamic> &solidMaterialMap = config.value(keyFound).asMapArray();
+
+    // Send the data in meshCreationMap to loadGeometry script
+    hfp2d::loadSolid(inputFileName,
+                     solidMaterialMap,
+                     il::io,
+                     solidProperties);
+
+  } else {
+    std::cerr << "ERROR: Solid properties not found in input file " << inputFileName << std::endl;
+    exit(2);
+  }
 
   ////////// Materials: FLUID KEYWORD //////////
   // placeholder
@@ -76,4 +90,5 @@ void loadInput(const il::String &inputFileName,
 
   // next cards
 }
+
 }

@@ -15,7 +15,7 @@ namespace hfp2d {
 ////////////// VERTICAL MESH //////////////
 
 void verticalOrientationMesh(const il::String &inputFileName,
-                             const il::int_t &idLayer,
+                             const il::int_t &fractureID,
                              const il::MapArray<il::String, il::Dynamic> &autoCreationMap,
                              il::io_t,
                              Mesh &theMesh) {
@@ -28,7 +28,7 @@ void verticalOrientationMesh(const il::String &inputFileName,
     x_c = autoCreationMap.value(keyFound).toDouble();
   } else {
     std::cerr << "ERROR: missing x_c in vertical automatic mesh." << std::endl;
-    std::cerr << "layer:" << idLayer << ", file: " << inputFileName << std::endl;
+    std::cerr << "layer:" << fractureID << ", file: " << inputFileName << std::endl;
     exit(2);
   }
 
@@ -38,7 +38,7 @@ void verticalOrientationMesh(const il::String &inputFileName,
     y_c = autoCreationMap.value(keyFound).toDouble();
   } else {
     std::cerr << "ERROR: missing y_c in vertical automatic mesh." << std::endl;
-    std::cerr << "layer:" << idLayer << ", file: " << inputFileName << std::endl;
+    std::cerr << "layer:" << fractureID << ", file: " << inputFileName << std::endl;
     exit(2);
   }
 
@@ -48,7 +48,7 @@ void verticalOrientationMesh(const il::String &inputFileName,
     length = autoCreationMap.value(keyFound).toDouble();
   } else {
     std::cerr << "ERROR: missing length in vertical automatic mesh." << std::endl;
-    std::cerr << "layer:" << idLayer << ", file: " << inputFileName << std::endl;
+    std::cerr << "layer:" << fractureID << ", file: " << inputFileName << std::endl;
     exit(2);
   }
 
@@ -58,9 +58,15 @@ void verticalOrientationMesh(const il::String &inputFileName,
     numElements = autoCreationMap.value(keyFound).toInteger();
   } else {
     std::cerr << "ERROR: missing the number of elements in vertical automatic mesh." << std::endl;
-    std::cerr << "layer:" << idLayer << ", file: " << inputFileName << std::endl;
+    std::cerr << "layer:" << fractureID << ", file: " << inputFileName << std::endl;
     exit(2);
   }
+
+  //// Here we check for optional arguments to the automatic generation of mesh
+  // in particular we are dealing with:
+  // - materialID
+  // - farFieldStressID
+  // - porePressCondID
 
   il::int_t materialID;
   keyFound = autoCreationMap.search(il::toString("material_ID"));
@@ -68,7 +74,7 @@ void verticalOrientationMesh(const il::String &inputFileName,
     materialID = autoCreationMap.value(keyFound).toInteger();
   } else {
     std::cerr << "ERROR: missing the material ID in vertical automatic mesh." << std::endl;
-    std::cerr << "layer:" << idLayer << ", file: " << inputFileName << std::endl;
+    std::cerr << "layer:" << fractureID << ", file: " << inputFileName << std::endl;
     exit(2);
   }
 
