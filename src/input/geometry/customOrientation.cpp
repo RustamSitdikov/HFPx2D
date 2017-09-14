@@ -14,86 +14,51 @@ namespace hfp2d {
 
 ////////////// CUSTOM MESH //////////////
 
-void customOrientationMesh(const il::String &inputFileName,
-                           const il::int_t &idLayer,
-                           const il::MapArray<il::String, il::Dynamic> &autoCreationMap,
-                           il::io_t,
-                           Mesh &theMesh) {
+Mesh customOrientationMesh(const il::String &inputFileName,
+                             const il::int_t fractureID,
+                             const il::MapArray<il::String, il::Dynamic> &autoCreationMap) {
 
-  il::int_t keyFound;
+  double x_1 = findX1(inputFileName, fractureID, autoCreationMap);
+  double y_1 = findY1(inputFileName, fractureID, autoCreationMap);
+  double x_2 = findX2(inputFileName, fractureID, autoCreationMap);
+  double y_2 = findY2(inputFileName, fractureID, autoCreationMap);
 
-  double x_1;
-  keyFound = autoCreationMap.search(il::toString("x_c"));
-  if (autoCreationMap.found(keyFound)) {
-    x_1 = autoCreationMap.value(keyFound).toDouble();
-  } else {
-    std::cerr << "ERROR: missing x_1 in custom automatic mesh." << std::endl;
-    std::cerr << "layer:" << idLayer << ", file: " << inputFileName << std::endl;
-    exit(2);
-  }
+  il::int_t numElements = findNumElem(inputFileName, fractureID, autoCreationMap);
+  il::int_t interpOrder = findInterpOrder(inputFileName, fractureID, autoCreationMap);
+  il::String sourceLocation = findSource(inputFileName, fractureID, autoCreationMap);
 
-  double y_1;
-  keyFound = autoCreationMap.search(il::toString("y_c"));
-  if (autoCreationMap.found(keyFound)) {
-    y_1 = autoCreationMap.value(keyFound).toDouble();
-  } else {
-    std::cerr << "ERROR: missing y_2 in custom automatic mesh." << std::endl;
-    std::cerr << "layer:" << idLayer << ", file: " << inputFileName << std::endl;
-    exit(2);
-  }
 
-  double x_2;
-  keyFound = autoCreationMap.search(il::toString("x_c"));
-  if (autoCreationMap.found(keyFound)) {
-    x_2 = autoCreationMap.value(keyFound).toDouble();
-  } else {
-    std::cerr << "ERROR: missing x_1 in custom automatic mesh." << std::endl;
-    std::cerr << "layer:" << idLayer << ", file: " << inputFileName << std::endl;
-    exit(2);
-  }
+  //// Here we check for optional arguments to the automatic generation of mesh
+  // in particular we are dealing with:
+  // - materialID
+  // - farFieldStressID
+  // - porePressCondID
 
-  double y_2;
-  keyFound = autoCreationMap.search(il::toString("y_c"));
-  if (autoCreationMap.found(keyFound)) {
-    y_2 = autoCreationMap.value(keyFound).toDouble();
-  } else {
-    std::cerr << "ERROR: missing y_2 in custom automatic mesh." << std::endl;
-    std::cerr << "layer:" << idLayer << ", file: " << inputFileName << std::endl;
-    exit(2);
-  }
+  il::int_t materialID = findMaterialID(inputFileName, fractureID, autoCreationMap);
+  il::int_t farFieldID = findFarFieldID(inputFileName, fractureID, autoCreationMap);
+  il::int_t porePresID = findPorePresID(inputFileName, fractureID, autoCreationMap);
 
-  il::int_t numElements;
-  keyFound = autoCreationMap.search(il::toString("number_of_elements"));
-  if (autoCreationMap.found(keyFound)) {
-    numElements = autoCreationMap.value(keyFound).toInteger();
-  } else {
-    std::cerr << "ERROR: missing the number of elements in custom automatic mesh." << std::endl;
-    std::cerr << "layer:" << idLayer << ", file: " << inputFileName << std::endl;
-    exit(2);
-  }
+  // create coordinates and connectivity matrices for the mesh
+  il::Array2D<double> nodesCoordinates = createCustomMesh(x_1, y_1, x_2, y_2, numElements, interpOrder);
+  il::Array2D<il::int_t> elementsConnectivity = createAutoConnectivity(interpOrder, numElements);
+  il::Array2D<il::int_t> displ_dof_handle = createAutoDisplacementDofHandle(interpOrder, numElements);
+  il::Array2D<il::int_t> press_dof_handle = createAutoPressureDofHandle(interpOrder, numElements);
 
-  il::int_t materialID;
-  keyFound = autoCreationMap.search(il::toString("material_ID"));
-  if (autoCreationMap.found(keyFound)) {
-    materialID = autoCreationMap.value(keyFound).toInteger();
-  } else {
-    std::cerr << "ERROR: missing the material ID in custom automatic mesh." << std::endl;
-    std::cerr << "layer:" << idLayer << ", file: " << inputFileName << std::endl;
-    exit(2);
-  }
-
-// TODO: connect with the intersection check or remove
-//  il::int_t joinedWith;
-//  keyFound = autoCreationMap.search(il::toString("joined_with_layer"));
-//  if (autoCreationMap.found(keyFound)) {
-//    joinedWith = autoCreationMap.value(keyFound).toInteger();
-//  } // optional argument
 
 ///// Create Mesh
-  createCustomMesh(x_1, y_1, x_2, y_2, numElements, materialID, il::io, theMesh);
 
-//  check intersections if needed, TBD
-//  groupLayers.append({layerID,joinedWith});
+  Mesh theMesh(interpOrder,
+               nodesCoordinates,
+               elementsConnectivity,
+               displ_dof_handle,
+               press_dof_handle,
+               fractureID,
+               materialID,
+               farFieldID,
+               porePresID,
+               sourceLocation);
 
+  return theMesh;
 }
+
 }

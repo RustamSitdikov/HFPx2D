@@ -13,13 +13,14 @@
 namespace hfp2d {
 
 ////////////// VERTICAL MESH //////////////
-void createVerticalMesh(double& x_c,            // Center of line, x coordinate
-                        double& y_c,            // Center of line, y coordinate
-                        double& length,         // Length of line
-                        il::int_t& numElements, // Number of elements to be generated
-                        il::int_t& materialID,  // material ID of elements
-                        il::io_t,
-                        Mesh &theMesh) {        // Final mesh to be returned
+il::Array2D<double> createVerticalMesh(const double x_c,            // Center of line, x coordinate
+                                       const double y_c,            // Center of line, y coordinate
+                                       const double length,         // Length of line
+                                       const il::int_t numElements, // Number of elements to be generated
+                                       const il::int_t interpOrder) // Element interpolation order
+{
+
+  il::Array2D<double> nodesCoordinates;
 
   // first compute beginning and end of the mesh
   double x_1 = x_c;
@@ -27,18 +28,20 @@ void createVerticalMesh(double& x_c,            // Center of line, x coordinate
   double x_2 = x_c;
   double y_2 = y_c + length / 2.0;
 
-  createCustomMesh(x_1, y_1, x_2, y_2, numElements, materialID, il::io, theMesh);
+  nodesCoordinates = createCustomMesh(x_1, y_1, x_2, y_2, numElements, interpOrder);
 
-}
+  return nodesCoordinates;
+};
 
 ////////////// HORIZONTAL MESH //////////////
-void createHorizontalMesh(double& x_c,            // Center of line, x coordinate
-                          double& y_c,            // Center of line, y coordinate
-                          double& length,         // Length of line
-                          il::int_t& numElements, // Number of elements to be generated
-                          il::int_t& materialID,  // material ID of elements
-                          il::io_t,
-                          Mesh &theMesh) {        // Final mesh to be returned
+il::Array2D<double> createHorizontalMesh(const double x_c,            // Center of line, x coordinate
+                                         const double y_c,            // Center of line, y coordinate
+                                         const double length,         // Length of line
+                                         const il::int_t numElements, // Number of elements to be generated
+                                         const il::int_t interpOrder) // Element interpolation order
+{
+
+  il::Array2D<double> nodesCoordinates;
 
   // first compute beginning and end of the mesh
   double x_1 = x_c - length / 2.0;
@@ -46,89 +49,114 @@ void createHorizontalMesh(double& x_c,            // Center of line, x coordinat
   double x_2 = x_c + length / 2.0;
   double y_2 = y_c;
 
-  createCustomMesh(x_1, y_1, x_2, y_2, numElements, materialID, il::io, theMesh);
+  nodesCoordinates = createCustomMesh(x_1, y_1, x_2, y_2, numElements, interpOrder);
 
-}
+  return nodesCoordinates;
+
+};
 
 ////////////// DIAGONAL MESH //////////////
-//theMesh = hfp2d::createDiagonalMesh(x_c,y_c,angle,length,numElements,materialID);
+il::Array2D<double> createDiagonalMesh(const double x_c,            // Center of line, x coordinate
+                                       const double y_c,            // Center of line, y coordinate
+                                       const double angle,          // Angle of line
+                                       const double length,         // Length of line
+                                       const il::int_t numElements, // Number of elements to be generated
+                                       const il::int_t interpOrder) // Element interpolation order
+{
 
-
-void createDiagonalMesh(double& x_c,            // Center of line, x coordinate
-                        double& y_c,            // Center of line, y coordinate
-                        double& angle,          // Angle of line
-                        double& length,         // Length of line
-                        il::int_t& numElements, // Number of elements to be generated
-                        il::int_t& materialID,  // material ID of elements
-                        il::io_t,
-                        Mesh &theMesh) {        // Final mesh to be returned
+  il::Array2D<double> nodesCoordinates;
 
   // first compute beginning and end of the mesh
-  double delta_x= length * cos(angle);
-  double delta_y= length * sin(angle);
+  double delta_x = length * cos(angle);
+  double delta_y = length * sin(angle);
 
   double x_1 = x_c - delta_x;
   double y_1 = y_c - delta_y;
   double x_2 = x_c + delta_x;
   double y_2 = y_c + delta_y;
 
-  createCustomMesh(x_1, y_1, x_2, y_2, numElements, materialID, il::io, theMesh);
+  nodesCoordinates = createCustomMesh(x_1, y_1, x_2, y_2, numElements, interpOrder);
 
-}
+  return nodesCoordinates;
 
+};
 
 ////////////// CUSTOM MESH //////////////
-//theMesh = hfp2d::createCustomMesh(x_1,y_1,x_2,y_2,numElements,materialID);
+il::Array2D<double> createCustomMesh(const double x_1,             // First point of the line, x coordinate
+                                     const double y_1,             // First point of the line, y coordinate
+                                     const double x_2,             // Second point of the line, x coordinate
+                                     const double y_2,             // Second point of the line, y coordinate
+                                     const il::int_t numElements,  // Number of elements to be generated
+                                     const il::int_t interpOrder)  // Element interpolation order
+{
+  il::int_t number_of_nodes = numElements * interpOrder + 1;
+  il::Array2D<double> nodesCoordinates(number_of_nodes, 2);
 
-void createCustomMesh(double& x_1,             // First point of the line, x coordinate
-                      double& y_1,             // First point of the line, y coordinate
-                      double& x_2,             // Second point of the line, x coordinate
-                      double& y_2,             // Second point of the line, y coordinate
-                      il::int_t& numElements,  // Number of elements to be generated
-                      il::int_t& materialID,   // material ID of elements
-                      il::io_t,
-                      Mesh& theMesh) {         // Final mesh to be returned
+  double delta_x = (x_2 - x_1) / numElements / interpOrder;
+  double delta_y = (y_2 - y_1) / numElements / interpOrder;
 
-  il::Array2D<double> coordinates(numElements + 1,2);
-  il::Array2D<il::int_t> connectivity(numElements, 2);
-  il::Array<il::int_t> matID(numElements);
+  for (il::int_t i = 0; i < number_of_nodes; i++) {
 
-  double delta_x = (x_2 - x_1) / numElements;
-  double delta_y = (y_2 - y_1) / numElements;
-
-  for (il::int_t i = 0; i < numElements; i++) {
-
-    coordinates(i,0) = x_1 + delta_x * i;
-    coordinates(i,1) = y_1 + delta_y * i;
-
-    connectivity(i, 0) = i;
-    connectivity(i, 0) = i + 1;
-
-    matID[i] = materialID;
+    nodesCoordinates(i, 0) = x_1 + delta_x * i;
+    nodesCoordinates(i, 1) = y_1 + delta_y * i;
 
   }
 
-  ////// HERE WE SAVE EVERYTHING TO THE MESH CLASS VARIABLE
-  // NOTE:  we should take into account previous generated meshes, in order to avoid
-  //        overwriting them. Additionally, we will have to check that we do not have
-  //        repeated nodes, in particular when the joined_with flag is ON!!
+  return nodesCoordinates;
 
-  if(theMesh.numberOfElements()>0)
-  {
-    theMesh.init1DMesh(coordinates, connectivity, matID);
+};
+
+
+////////////// CREATE MESH CONNECTIVITY //////////////
+
+il::Array2D<il::int_t> createAutoConnectivity(const il::int_t interpolationOrder,
+                                              const il::int_t numberOfElements) {
+  il::Array2D<il::int_t> connectivityMatrix(numberOfElements, interpolationOrder + 1);
+
+  for (il::int_t i = 0; i < numberOfElements; i++) {
+    for (il::int_t j = 0; j < interpolationOrder + 1; j++) {
+      connectivityMatrix(i, j) = i * interpolationOrder + j;
+    }
   }
-  else
-  {
-    // TODO: check intersections here?! before appending rather than later
-    // theMesh.appendMesh(coordinates, connectivity, matID);
+
+  return connectivityMatrix;
+}
+
+////////////// CREATE DISPLACEMENTS DOF HANDLES //////////////
+
+il::Array2D<il::int_t> createAutoDisplacementDofHandle(const il::int_t interpolationOrder,
+                                                       const il::int_t numberOfElements) {
+
+  il::Array2D<il::int_t> dof_handle_displacement(numberOfElements, 2 * (interpolationOrder + 1))
+
+// filling the dof_handle_displacements (2D discontinuous galerkin)
+  for (il::int_t i = 0, j; i < numberOfElements; i++) {
+
+    j = i * 2 * (interpolationOrder + 1);
+
+    for (int k = 0; k < 2 * (interpolationOrder + 1); k++) {
+      dof_handle_displacement(i, k) = j + k;
+    }
+
+  }
+  return dof_handle_displacement;
+}
+
+////////////// CREATE PRESSURE DOF HANDLES //////////////
+
+il::Array2D<il::int_t> createAutoPressureDofHandle(const il::int_t interpolationOrder,
+                                                   const il::int_t numberOfElements) {
+
+  il::Array2D<il::int_t> dof_handle_pressure(numberOfElements, interpolationOrder + 1);
+
+// fillind the dof_handle_pressure (continuous galerkin)
+  for (il::int_t i = 0; i < numberOfElements; i++) {
+    for (il::int_t j = 0; j < numberOfElements; j++) {
+      dof_handle_pressure(i, j) = i * interpolationOrder + j;
+    }
   }
 
-  // TODO: ADD THE DOF_HANDLES IN THE MESH
-  // TODO: TWO DIFFERENT FRACS SHOULD HAVE TWO DIFFERENT FRAC_ID, always
-  // so when we add a new one we do not have troubles with the tips
-  // TODO: ADD THE IS_TIP BOOLEAN VECTOR
-
-
+  return dof_handle_pressure;
 }
 
 }

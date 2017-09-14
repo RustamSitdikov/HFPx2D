@@ -18,6 +18,7 @@
 #include <il/StaticArray.h>
 #include <il/StaticArray2D.h>
 #include <il/container/1d/SmallArray.h>
+#include <il/String.h>
 #include <iostream>
 
 namespace hfp2d {
@@ -62,12 +63,14 @@ public:
 
   //////////////////////////////// CONSTRUCTORS (a.k.a. initializers) ////////////////////////////////
 
+  // Initialization without material properties and boundary conditions,
+  // as they are considered default (equal to zero) in the fracture mesh
   Mesh(      il::int_t              interpolationOrder,
        const il::Array2D<double>    &nodesCoordinates,
        const il::Array2D<il::int_t> &elementsConnectivity,
        const il::Array<il::int_t>   &sourceIdentifier) ;
 
-
+  // Initialization as before but with dof_handles passed explicitly
   Mesh(      il::int_t              interpolationOrder,
        const il::Array2D<double>    &nodesCoordinates,
        const il::Array2D<il::int_t> &elementsConnectivity,
@@ -75,7 +78,9 @@ public:
        const il::Array2D<il::int_t> &dofHandlePressure,
        const il::Array<il::int_t>   &sourceIdentifier);
 
-  // Initialization without tip identifier, for static mesh case
+  // Initialization with everything but tip identifier, for constant meshes
+  // which have the tip at the beginning and the end (default construction
+  // of the tip)
   Mesh(      il::int_t              interpolationOrder,
        const il::Array2D<double>    &nodesCoordinates,
        const il::Array2D<il::int_t> &elementsConnectivity,
@@ -87,7 +92,7 @@ public:
        const il::Array<il::int_t>   &porePressCondId,
        const il::Array<il::int_t>   &sourceIdentifier);
 
-  // First constructor: it initializes a mesh by using all available information on the mesh
+  // Full mesh initialization
   Mesh(      il::int_t              interpolationOrder,
        const il::Array2D<double>    &nodesCoordinates,
        const il::Array2D<il::int_t> &elementsConnectivity,
@@ -100,6 +105,16 @@ public:
        const il::Array<il::int_t>   &sourceIdentifier,
        const il::Array<bool>        &tipIdentifier);
 
+  Mesh(      il::int_t              interpolationOrder,
+       const il::Array2D<double>    &nodesCoordinates,
+       const il::Array2D<il::int_t> &elementsConnectivity,
+       const il::Array2D<il::int_t> &dofHandleDisplacement,
+       const il::Array2D<il::int_t> &dofHandlePressure,
+             il::int_t              fractureIdentifier,
+             il::int_t              materialIdentifier,
+             il::int_t              farStressCondId,
+             il::int_t              porePressCondId,
+       const il::String&            sourceIdentifier);
 
   ////////////////////////////////////////////////////////////////////////////////////////////
 

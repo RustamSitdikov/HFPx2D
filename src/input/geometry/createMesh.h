@@ -15,44 +15,46 @@
 #include <il/base.h>
 #include <il/Array.h>
 #include <il/Array2D.h>
+#include <il/String.h>
 #include <cmath>
 #include "src/core/Mesh.h"
 
 namespace hfp2d {
 
-void createVerticalMesh(double& x_c,
-                        double& y_c,
-                        double& length,
-                        il::int_t& numElements,
-                        il::int_t& materialID,
-                        il::io_t,
-                        Mesh& theMesh);
+il::Array2D<double> createVerticalMesh(double x_c,            // Center of line, x coordinate
+                                       double y_c,            // Center of line, y coordinate
+                                       double length,         // Length of line
+                                       il::int_t numElements, // Number of elements to be generated
+                                       il::int_t interpOrder);// Element interpolation order
 
-void createHorizontalMesh(double& x_c,
-                          double& y_c,
-                          double& length,
-                          il::int_t& numElements,
-                          il::int_t& materialID,
-                          il::io_t,
-                          Mesh& theMesh);
+il::Array2D<double> createHorizontalMesh(double x_c,            // Center of line, x coordinate
+                                         double y_c,            // Center of line, y coordinate
+                                         double length,         // Length of line
+                                         il::int_t numElements, // Number of elements to be generated
+                                         il::int_t interpOrder);// Element interpolation order
 
-void createDiagonalMesh(double& x_c,
-                        double& y_c,
-                        double& angle,
-                        double& length,
-                        il::int_t& numElements,
-                        il::int_t& materialID,
-                        il::io_t,
-                        Mesh& theMesh);
+il::Array2D<double> createDiagonalMesh(double x_c,            // Center of line, x coordinate
+                                       double y_c,            // Center of line, y coordinate
+                                       double angle,          // Angle of line
+                                       double length,         // Length of line
+                                       il::int_t numElements, // Number of elements to be generated
+                                       il::int_t interpOrder);// Element interpolation order
 
-void createCustomMesh(double& x_1,
-                      double& y_1,
-                      double& x_2,
-                      double& y_2,
-                      il::int_t& numElements,
-                      il::int_t& materialID,
-                      il::io_t,
-                      Mesh& theMesh);
+il::Array2D<double> createCustomMesh(double x_1,             // First point of the line, x coordinate
+                                     double y_1,             // First point of the line, y coordinate
+                                     double x_2,             // Second point of the line, x coordinate
+                                     double y_2,             // Second point of the line, y coordinate
+                                     il::int_t numElements,  // Number of elements to be generated
+                                     il::int_t interpOrder); // Element interpolation order
+
+il::Array2D<il::int_t> createAutoConnectivity(il::int_t interpolationOrder,
+                                              il::int_t numberOfElements);
+
+il::Array2D<il::int_t> createAutoDisplacementDofHandle(il::int_t interpolationOrder,
+                                                       il::int_t numberOfElements);
+
+il::Array2D<il::int_t> createAutoPressureDofHandle(il::int_t interpolationOrder,
+                                                   il::int_t numberOfElements);
 
 }
 #endif //HFPX2DUNITTEST_CREATEMESH_H

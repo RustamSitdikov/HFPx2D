@@ -14,86 +14,51 @@ namespace hfp2d {
 
 ////////////// DIAGONAL MESH //////////////
 
-void diagonalOrientationMesh(const il::String &inputFileName,
-                             const il::int_t &idLayer,
-                             const il::MapArray<il::String, il::Dynamic> &autoCreationMap,
-                             il::io_t,
-                             Mesh &theMesh) {
+Mesh diagonalOrientationMesh(const il::String &inputFileName,
+                             const il::int_t fractureID,
+                             const il::MapArray<il::String, il::Dynamic> &autoCreationMap) {
 
-  il::int_t keyFound;
 
-  double x_c;
-  keyFound = autoCreationMap.search(il::toString("x_c"));
-  if (autoCreationMap.found(keyFound)) {
-    x_c = autoCreationMap.value(keyFound).toDouble();
-  } else {
-    std::cerr << "ERROR: missing x_c in diagonal automatic mesh." << std::endl;
-    std::cerr << "layer:" << idLayer << ", file: " << inputFileName << std::endl;
-    exit(2);
-  }
+  double x_c = findXC(inputFileName, fractureID, autoCreationMap);
+  double y_c = findYC(inputFileName, fractureID, autoCreationMap);
+  double angle = findAngle(inputFileName, fractureID, autoCreationMap);
+  double length = findLength(inputFileName, fractureID, autoCreationMap);
+  il::int_t numElements = findNumElem(inputFileName, fractureID, autoCreationMap);
+  il::int_t interpOrder = findInterpOrder(inputFileName, fractureID, autoCreationMap);
+  il::String sourceLocation = findSource(inputFileName, fractureID, autoCreationMap);
 
-  double y_c;
-  keyFound = autoCreationMap.search(il::toString("y_c"));
-  if (autoCreationMap.found(keyFound)) {
-    y_c = autoCreationMap.value(keyFound).toDouble();
-  } else {
-    std::cerr << "ERROR: missing y_c in diagonal automatic mesh." << std::endl;
-    std::cerr << "layer:" << idLayer << ", file: " << inputFileName << std::endl;
-    exit(2);
-  }
 
-  double angle;
-  keyFound = autoCreationMap.search(il::toString("angle"));
-  if (autoCreationMap.found(keyFound)) {
-    angle = autoCreationMap.value(keyFound).toDouble();
-  } else {
-    std::cerr << "ERROR: missing angle in diagonal automatic mesh." << std::endl;
-    std::cerr << "layer:" << idLayer << ", file: " << inputFileName << std::endl;
-    exit(2);
-  }
+  //// Here we check for optional arguments to the automatic generation of mesh
+  // in particular we are dealing with:
+  // - materialID
+  // - farFieldStressID
+  // - porePressCondID
 
-  double length;
-  keyFound = autoCreationMap.search(il::toString("length"));
-  if (autoCreationMap.found(keyFound)) {
-    length = autoCreationMap.value(keyFound).toDouble();
-  } else {
-    std::cerr << "ERROR: missing length in diagonal automatic mesh." << std::endl;
-    std::cerr << "layer:" << idLayer << ", file: " << inputFileName << std::endl;
-    exit(2);
-  }
+  il::int_t materialID = findMaterialID(inputFileName, fractureID, autoCreationMap);
+  il::int_t farFieldID = findFarFieldID(inputFileName, fractureID, autoCreationMap);
+  il::int_t porePresID = findPorePresID(inputFileName, fractureID, autoCreationMap);
 
-  il::int_t numElements;
-  keyFound = autoCreationMap.search(il::toString("number_of_elements"));
-  if (autoCreationMap.found(keyFound)) {
-    numElements = autoCreationMap.value(keyFound).toInteger();
-  } else {
-    std::cerr << "ERROR: missing the number of elements in diagonal automatic mesh." << std::endl;
-    std::cerr << "layer:" << idLayer << ", file: " << inputFileName << std::endl;
-    exit(2);
-  }
+  // create coordinates and connectivity matrices for the mesh
+  il::Array2D<double> nodesCoordinates = createDiagonalMesh(x_c, y_c, angle, length, numElements, interpOrder);
+  il::Array2D<il::int_t> elementsConnectivity = createAutoConnectivity(interpOrder, numElements);
+  il::Array2D<il::int_t> displ_dof_handle = createAutoDisplacementDofHandle(interpOrder, numElements);
+  il::Array2D<il::int_t> press_dof_handle = createAutoPressureDofHandle(interpOrder, numElements);
 
-  il::int_t materialID;
-  keyFound = autoCreationMap.search(il::toString("material_ID"));
-  if (autoCreationMap.found(keyFound)) {
-    materialID = autoCreationMap.value(keyFound).toInteger();
-  } else {
-    std::cerr << "ERROR: missing the material ID in diagonal automatic mesh." << std::endl;
-    std::cerr << "layer:" << idLayer << ", file: " << inputFileName << std::endl;
-    exit(2);
-  }
-
-// TODO: connect with the intersection check or remove
-//  il::int_t joinedWith;
-//  keyFound = autoCreationMap.search(il::toString("joined_with_layer"));
-//  if (autoCreationMap.found(keyFound)) {
-//    joinedWith = autoCreationMap.value(keyFound).toInteger();
-//  } // optional argument
 
 ///// Create Mesh
-  createDiagonalMesh(x_c, y_c, angle, length, numElements, materialID, il::io, theMesh);
 
-//  check intersections if needed, TBD
-//  groupLayers.append({layerID,joinedWith});
+  Mesh theMesh(interpOrder,
+               nodesCoordinates,
+               elementsConnectivity,
+               displ_dof_handle,
+               press_dof_handle,
+               fractureID,
+               materialID,
+               farFieldID,
+               porePresID,
+               sourceLocation);
+
+  return theMesh;
 
 }
 }

@@ -14,53 +14,17 @@ namespace hfp2d {
 
 ////////////// VERTICAL MESH //////////////
 
-void verticalOrientationMesh(const il::String &inputFileName,
-                             const il::int_t &fractureID,
-                             const il::MapArray<il::String, il::Dynamic> &autoCreationMap,
-                             il::io_t,
-                             Mesh &theMesh) {
+Mesh verticalOrientationMesh(const il::String &inputFileName,
+                             const il::int_t fractureID,
+                             const il::MapArray<il::String, il::Dynamic> &autoCreationMap) {
 
-  il::int_t keyFound;
+  double x_c = findXC(inputFileName, fractureID, autoCreationMap);
+  double y_c = findYC(inputFileName, fractureID, autoCreationMap);
+  double length = findLength(inputFileName, fractureID, autoCreationMap);
+  il::int_t numElements = findNumElem(inputFileName, fractureID, autoCreationMap);
+  il::int_t interpOrder = findInterpOrder(inputFileName, fractureID, autoCreationMap);
+  il::String sourceLocation = findSource(inputFileName, fractureID, autoCreationMap);
 
-  double x_c;
-  keyFound = autoCreationMap.search(il::toString("x_c"));
-  if (autoCreationMap.found(keyFound)) {
-    x_c = autoCreationMap.value(keyFound).toDouble();
-  } else {
-    std::cerr << "ERROR: missing x_c in vertical automatic mesh." << std::endl;
-    std::cerr << "layer:" << fractureID << ", file: " << inputFileName << std::endl;
-    exit(2);
-  }
-
-  double y_c;
-  keyFound = autoCreationMap.search(il::toString("y_c"));
-  if (autoCreationMap.found(keyFound)) {
-    y_c = autoCreationMap.value(keyFound).toDouble();
-  } else {
-    std::cerr << "ERROR: missing y_c in vertical automatic mesh." << std::endl;
-    std::cerr << "layer:" << fractureID << ", file: " << inputFileName << std::endl;
-    exit(2);
-  }
-
-  double length;
-  keyFound = autoCreationMap.search(il::toString("length"));
-  if (autoCreationMap.found(keyFound)) {
-    length = autoCreationMap.value(keyFound).toDouble();
-  } else {
-    std::cerr << "ERROR: missing length in vertical automatic mesh." << std::endl;
-    std::cerr << "layer:" << fractureID << ", file: " << inputFileName << std::endl;
-    exit(2);
-  }
-
-  il::int_t numElements;
-  keyFound = autoCreationMap.search(il::toString("number_of_elements"));
-  if (autoCreationMap.found(keyFound)) {
-    numElements = autoCreationMap.value(keyFound).toInteger();
-  } else {
-    std::cerr << "ERROR: missing the number of elements in vertical automatic mesh." << std::endl;
-    std::cerr << "layer:" << fractureID << ", file: " << inputFileName << std::endl;
-    exit(2);
-  }
 
   //// Here we check for optional arguments to the automatic generation of mesh
   // in particular we are dealing with:
@@ -68,28 +32,53 @@ void verticalOrientationMesh(const il::String &inputFileName,
   // - farFieldStressID
   // - porePressCondID
 
-  il::int_t materialID;
-  keyFound = autoCreationMap.search(il::toString("material_ID"));
-  if (autoCreationMap.found(keyFound)) {
-    materialID = autoCreationMap.value(keyFound).toInteger();
-  } else {
-    std::cerr << "ERROR: missing the material ID in vertical automatic mesh." << std::endl;
-    std::cerr << "layer:" << fractureID << ", file: " << inputFileName << std::endl;
-    exit(2);
-  }
+  il::int_t materialID = findMaterialID(inputFileName, fractureID, autoCreationMap);
+  il::int_t farFieldID = findFarFieldID(inputFileName, fractureID, autoCreationMap);
+  il::int_t porePresID = findPorePresID(inputFileName, fractureID, autoCreationMap);
 
-// TODO: connect with the intersection check or remove
-//  il::int_t joinedWith;
-//  keyFound = autoCreationMap.search(il::toString("joined_with_layer"));
-//  if (autoCreationMap.found(keyFound)) {
-//    joinedWith = autoCreationMap.value(keyFound).toInteger();
-//  } // optional argument
+  // create coordinates and connectivity matrices for the mesh
+  il::Array2D<double> nodesCoordinates = createVerticalMesh(x_c, y_c, length, numElements, interpOrder);
+  il::Array2D<il::int_t> elementsConnectivity = createAutoConnectivity(interpOrder, numElements);
+  il::Array2D<il::int_t> displ_dof_handle = createAutoDisplacementDofHandle(interpOrder, numElements);
+  il::Array2D<il::int_t> press_dof_handle = createAutoPressureDofHandle(interpOrder, numElements);
+
 
 ///// Create Mesh
-  createVerticalMesh(x_c, y_c, length, numElements, materialID, il::io, theMesh);
 
-//  check intersections if needed, TBD
-//  groupLayers.append({layerID,joinedWith});
+  Mesh theMesh(interpOrder,
+                 nodesCoordinates,
+                 elementsConnectivity,
+                 displ_dof_handle,
+                 press_dof_handle,
+                 fractureID,
+                 materialID,
+                 farFieldID,
+                 porePresID,
+                 sourceLocation);
+
+  return theMesh;
+}
 
 }
-}
+
+//// TODO: connect with the intersection - check or remove
+//
+//////// HERE WE SAVE EVERYTHING TO THE MESH CLASS VARIABLE
+//// NOTE:  we should take into account previous generated meshes, in order to avoid
+////        overwriting them. Additionally, we will have to check that we do not have
+////        repeated nodes, in particular when the joined_with flag is ON!!
+//
+//if(theMesh.numberOfElements()>0)
+//{
+//theMesh=Mesh(1,coordinates, connectivity, sourceID);
+//}
+//else
+//{
+//// TODO: check intersections here?! before appending rather than later
+//// theMesh.appendMesh(coordinates, connectivity, matID);
+//}
+//
+//// TODO: ADD THE DOF_HANDLES IN THE MESH
+//// TODO: TWO DIFFERENT FRACS SHOULD HAVE TWO DIFFERENT FRAC_ID, always
+//// so when we add a new one we do not have troubles with the tips
+//// TODO: ADD THE IS_TIP BOOLEAN VECTOR

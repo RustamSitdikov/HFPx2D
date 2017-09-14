@@ -33,14 +33,14 @@
         # number of elements
         number_of_elements=100
 
-        # material ID
-        material_ID=0
-
-        # far field stress condition
-        far_field_stress_ID=0
-
-        # pore pressure condition
-        pore_pressure_ID=0
+#        # material ID
+#        material_ID=0
+#
+#        # far field stress condition
+#        far_field_stress_ID=0
+#
+#        # pore pressure condition
+#        pore_pressure_ID=0
 
         # source
         active_injection=true

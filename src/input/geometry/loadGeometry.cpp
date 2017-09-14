@@ -39,10 +39,10 @@ void loadGeometry(const il::String &inputFileName,
     for (il::int_t fractureID = 0; fractureID < numFractures; fractureID++) {
 
       // now we create a string with the layer name
-      const il::String layerName = il::join(il::toString("fracture"), il::toString(fractureID));
+      const il::String fractureName = il::join(il::toString("fracture"), il::toString(fractureID));
 
       // search for the layer name
-      keyFound = meshCreationMap.search(layerName);
+      keyFound = meshCreationMap.search(fractureName);
 
       if (meshCreationMap.found(keyFound) && meshCreationMap.value(keyFound).isMapArray()) {
 
@@ -55,35 +55,27 @@ void loadGeometry(const il::String &inputFileName,
         if (autoCreationMap.found(keyFound) && autoCreationMap.value(keyFound).isString()) {
           if ((autoCreationMap.value(keyFound).asString()) == "vertical") {
 
-            verticalOrientationMesh(inputFileName,
-                                    fractureID,
-                                    autoCreationMap,
-                                    il::io,
-                                    theMesh);
+            theMesh = verticalOrientationMesh(inputFileName,
+                                              fractureID,
+                                              autoCreationMap);
 
           } else if (autoCreationMap.value(keyFound).asString() == "horizontal") {
 
-            horizontalOrientationMesh(inputFileName,
-                                      fractureID,
-                                      autoCreationMap,
-                                      il::io,
-                                      theMesh);
+            theMesh = horizontalOrientationMesh(inputFileName,
+                                                fractureID,
+                                                autoCreationMap);
 
           } else if (autoCreationMap.value(keyFound).asString() == "diagonal") {
 
-            diagonalOrientationMesh(inputFileName,
-                                    fractureID,
-                                    autoCreationMap,
-                                    il::io,
-                                    theMesh);
+            theMesh = diagonalOrientationMesh(inputFileName,
+                                              fractureID,
+                                              autoCreationMap);
 
           } else if (autoCreationMap.value(keyFound).asString() == "custom") {
 
-            customOrientationMesh(inputFileName,
-                                  fractureID,
-                                  autoCreationMap,
-                                  il::io,
-                                  theMesh);
+            theMesh = customOrientationMesh(inputFileName,
+                                            fractureID,
+                                            autoCreationMap);
 
           } else {
             std::cerr << "ERROR: orientation type not recognized." << std::endl;
@@ -107,7 +99,7 @@ void loadGeometry(const il::String &inputFileName,
       const il::String meshFileName = meshCreationMap.value(keyFound).asString();
 
       // load the custom mesh
-      loadMeshFile(meshFileName,il::io,theMesh);
+      loadMeshFile(meshFileName, il::io, theMesh);
 
     } else {
       std::cerr << "ERROR: manual mode in mesh but not file specified." << std::endl;
