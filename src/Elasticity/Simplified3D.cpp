@@ -11,9 +11,13 @@
 
 // Inclusion from Inside Loop library
 #include <il/math.h>
+#include <il/Array2D.h>
+#include <il/linear_algebra.h>
 
 // Inclusion from the project
 #include "Simplified3D.h"
+#include <src/core/Mesh.h>
+#include <src/core/ElasticProperties.h>
 
 // contains fundamental plane-strain elasticity kernels.
 // for fracture segment with linear variation of displacement discontinuities
@@ -345,13 +349,46 @@ il::StaticArray2D<double, 2, 3> stresses_kernel_s3d_p0_dd(double a, double b,
 
 //------------------------------------------------------------------------------
 
-il::StaticArray2D<double, 2, 2> normal_shear_stress_kernel_s3d_dp0_dd(
-    const il::StaticArray<double, 2>& xe, double hx, double height,
-    const il::StaticArray<double, 2>& s, const il::StaticArray<double, 2>& n,
-    double G, double nu) {
+il::StaticArray2D<double, 2, 4> normal_shear_stress_kernel_s3d_dp0_dd(
+    SegmentData source_elt, SegmentData receiver_elt, int i_col,
+    ElasticProperties Elas, double ker_options)
+{
+//  Function to get the normal and shear stress at a point on a surface
+// (with given normal and shear vector) induced by
+// a piece-wise constant DD segment of size h  and height ker_options
+// (the   DD segment is assumed to be the unit element
+// along the x axis [-h/2,h/2])
+//
+// INPUTS:
+// St : returned stress
+// source_elt : element data structure of the source element
+// receiver_elt  : element data structure of the receiver element
+// i_col : integer for the collocation number where to compute the normal and
+// shear stress in the receiver element (0, 1)
+// Elas :: elastic properties object
+// ker_options : dummy argument here  for the height of the simplified 3D elt
+//
+// Note that we ensure .... that we return a 2*4 matrix, eventhough here because
+// it's a piece-wise DD half is filled with zero
+
+// switch to the frame of the source element....
+  il::StaticArray2D<double, 2, 2> R =
+      hfp2d::rotation_matrix_2D(source_elt.theta);
+
+  il::StaticArray<double, 2> xe;
+  for (int i = 0; i < 2; ++i) {
+    xe[i] = receiver_elt.CollocationPoints(i_col, i) - source_elt.Xmid[i];
+  }
+  xe = il::dot(R, xe);
+
+  il::StaticArray<double, 2> n = il::dot(R, receiver_elt.n);
+  il::StaticArray<double, 2> s = il::dot(R, receiver_elt.s);
+
+  double h = source_elt.size;
+
 
   il::StaticArray2D<double, 2, 3> stress_l =
-      stresses_kernel_s3d_p0_dd(hx / 2., height / 2., G, nu, xe[0], xe[1]);
+      stresses_kernel_s3d_p0_dd(h / 2., ker_options / 2., Elas.G(), Elas.nu(), xe[0], xe[1]);
 
   double n1n1 = n[0] * n[0];
   double n2n2 = n[1] * n[1];
@@ -361,7 +398,7 @@ il::StaticArray2D<double, 2, 2> normal_shear_stress_kernel_s3d_dp0_dd(
 
   double n1s2pn2s1 = n[0] * s[1] + n[1] * s[0];
 
-  il::StaticArray2D<double, 2, 2> St;
+  il::StaticArray2D<double, 2, 4> St;
 
   // shear stress
   //  effect of shear dd
@@ -378,6 +415,11 @@ il::StaticArray2D<double, 2, 2> normal_shear_stress_kernel_s3d_dp0_dd(
   //  effect of normal dd
   St(1, 1) = n1n1 * stress_l(1, 0) + 2. * n1n2 * stress_l(1, 1) +
              n2n2 * stress_l(1, 2);
+
+  St(0,2)=0;
+  St(1,2)=0;
+  St(0,3)=0;
+  St(1,3)=0;
 
   return St;
 };

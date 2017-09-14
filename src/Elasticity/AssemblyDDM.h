@@ -19,8 +19,14 @@
 #include <src/core/ElasticProperties.h>
 
 namespace hfp2d {
+
+typedef  il::StaticArray2D<double, 2, 4> (*vFunctionCall)(
+    SegmentData source_elt, SegmentData receiver_elt, int i_col,
+    ElasticProperties Elas, double ker_options);
+
 il::Array2D<double> basic_assembly( Mesh& mesh, il::Array2D<int>& id,
-                                    int p, ElasticProperties& elas);
+                                    int p, ElasticProperties& elas, vFunctionCall KernelCall);
+
 
 void take_submatrix(il::Array2D<double> &sub, int i0, int i1, int j0, int j1,
                     const il::Array2D<double> &A);

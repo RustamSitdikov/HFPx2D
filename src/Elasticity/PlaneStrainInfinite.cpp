@@ -8,10 +8,15 @@
 //
 
 // Inclusion from Inside Loop library
+#include <il/Array2D.h>
+#include <il/linear_algebra.h>
 #include <il/math.h>
 
 // Inclusion from the project
 #include "PlaneStrainInfinite.h"
+
+#include <src/core/ElasticProperties.h>
+#include <src/core/Mesh.h>
 
 // contains fundamental plane-strain elasticity kernels.
 // for fracture segment with linear variation of displacement discontinuities
@@ -144,10 +149,11 @@ il::StaticArray2D<double, 2, 4> stresses_kernel_dp1_dd(double h, double Ep,
 }
 //------------------------------------------------------------------------------
 
+//------------------------------------------------------------------------------
+// new api - for general kernel call for DDs
 il::StaticArray2D<double, 2, 4> normal_shear_stress_kernel_dp1_dd(
-    const il::StaticArray<double, 2> &xe, double h,
-    const il::StaticArray<double, 2> &s, const il::StaticArray<double, 2> &n,
-    double Ep) {
+    SegmentData source_elt, SegmentData receiver_elt, int i_col,
+    ElasticProperties Elas, double ker_options) {
   //   Function to get the normal and shear stress at a point on a surface
   // (with given normal and shear vector) induced by
   // a linear DD segment of size h
@@ -155,13 +161,28 @@ il::StaticArray2D<double, 2, 4> normal_shear_stress_kernel_dp1_dd(
   // along the x axis [-h/2,h/2]
   // Material of Plane-strain Young's modulus Ep
   // INPUTS:
-  // St:: returned stress
-  // xe (x,y):: collocation point to compute the stress in the reference frame
-  // of the unit element
-  //
-  // h :: elt size
-  // s :: tangent vector at xe on which to project to obtain the shear stress
-  // n:: nornal vector at xe on which to project to obtain the normal stress
+  // St : returned stress
+  // source_elt : element data structure of the source element
+  // receiver_elt  : element data structure of the receiver element
+  // i_col : integer for the collocation number where to compute the normal and
+  // shear stress in the receiver element (0, 1)
+  // Elas :: elastic properties object
+  // ker_options : dummy argument here (double) - needed for agnostic call ..
+
+  // switch to the frame of the source element....
+  il::StaticArray2D<double, 2, 2> R =
+      hfp2d::rotation_matrix_2D(source_elt.theta);
+
+  il::StaticArray<double, 2> xe;
+  for (int i = 0; i < 2; ++i) {
+    xe[i] = receiver_elt.CollocationPoints(i_col, i) - source_elt.Xmid[i];
+  }
+  xe = il::dot(R, xe);
+
+  il::StaticArray<double, 2> n = il::dot(R, receiver_elt.n);
+  il::StaticArray<double, 2> s = il::dot(R, receiver_elt.s);
+
+  double h = source_elt.size;
 
   double n1n1 = n[0] * n[0];
   double n2n2 = n[1] * n[1];
@@ -174,7 +195,7 @@ il::StaticArray2D<double, 2, 4> normal_shear_stress_kernel_dp1_dd(
   // columns sxxs, sxys, syys, syyn
   // (knowing that sxxn and sxyn are respectively equal to sxys and syys )
   il::StaticArray2D<double, 2, 4> stress_l =
-      stresses_kernel_dp1_dd(h, Ep, xe[0], xe[1]);
+      stresses_kernel_dp1_dd(h, Elas.Ep(), xe[0], xe[1]);
 
   // shear stress
   // node 1

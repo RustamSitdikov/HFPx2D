@@ -23,8 +23,11 @@
 
 
 #include "src/Elasticity/AssemblyDDM.h"
-#include "src/core/DOF_Handles.h"
-#include "src/core/Mesh.h"
+
+#include <src/core/DOF_Handles.h>
+#include <src/core/Mesh.h>
+#include <src/Elasticity/PlaneStrainInfinite.h>
+
 
 #include "src/core/ElasticProperties.h"
 #include "SimpleElastic.h"
@@ -109,7 +112,7 @@ double SimpleGriffithExample(int nelts) {
   il::Timer timer{};
   timer.start();
 
-  K=hfp2d::basic_assembly( mesh, id, p, myelas);  // passing p could be avoided here
+  K=hfp2d::basic_assembly( mesh, id, p, myelas,hfp2d::normal_shear_stress_kernel_dp1_dd);  // passing p could be avoided here
 
   timer.stop();
 

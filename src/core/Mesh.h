@@ -214,6 +214,7 @@ class Mesh {  // class for 1D mesh of 1D segment elements ?
 
   };
 
+
   /// GETTER
   // Read the X coordinate of a node
   double X(il::int_t k) const { return nodes_(k,0); }
@@ -230,18 +231,15 @@ class Mesh {  // class for 1D mesh of 1D segment elements ?
 
 
 
-
-
-
-  il::Array<il::int_t> elemConnectivity(il::int_t k)
-  {
-    il::Array<il::int_t> temp(connectivity_.size(1));
-
-    for(il::int_t i=0; i<connectivity_.size(1); i++)
-    {
-      temp[i]=connectivity_(k,i);
-    }
-  };
+//  il::Array<il::int_t> elemConnectivity(il::int_t k)
+//  {
+//    il::Array<il::int_t> temp(connectivity_.size(1));
+//
+//    for(il::int_t i=0; i<connectivity_.size(1); i++)
+//    {
+//      temp[i]=connectivity_(k,i);
+//    }
+//  };
 
   int connectivity(il::int_t k, il::int_t i) const { return connectivity_(k, i); }
 
@@ -287,7 +285,7 @@ struct SegmentData {
   il::StaticArray<double, 2> s;
   // segment mid points coordinates.
   il::StaticArray<double, 2> Xmid;
-  // collocation points in global system of coordinates
+  // collocation points in the global system of coordinates
   il::Array2D<double> CollocationPoints;
 };
 
