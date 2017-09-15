@@ -20,12 +20,12 @@
 
 namespace hfp2d {
 
-typedef  il::StaticArray2D<double, 2, 4> (*vFunctionCall)(
+typedef  il::StaticArray2D<double, 2, 4> (*vKernelCall)(
     SegmentData source_elt, SegmentData receiver_elt, int i_col,
     ElasticProperties Elas, double ker_options);
 
 il::Array2D<double> basic_assembly( Mesh& mesh, il::Array2D<int>& id,
-                                    int p, ElasticProperties& elas, vFunctionCall KernelCall);
+                                    int p, ElasticProperties& elas, vKernelCall KernelCall, double ker_options);
 
 
 void take_submatrix(il::Array2D<double> &sub, int i0, int i1, int j0, int j1,

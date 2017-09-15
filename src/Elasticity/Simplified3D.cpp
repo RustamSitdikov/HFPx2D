@@ -205,11 +205,14 @@ il::StaticArray2D<double, 2, 6> all_3d_stresses_kernel_s3d_p0_dd(
   //  Rectangular DDon plan z=0   x \in [-a,a], y \in [-b,b]
   //  DDx (shear), DDy (shear), DDz (normal)
 
+  //  CONVENTION: Positive in opening etc. i.e. dd=u^+   - u^-   (contrary to Crouch notation)
+  //  the negative sign is put in the multiplying constant
+
   //  double Ip11, Ip22, Ip33, Ip23, Ip12, Ip13;
 
   //  double Ip111, Ip122, Ip133, Ip112, Ip113, Ip123, Ip222, Ip223, Ip233;
 
-  double Ce = G / (4 * il::pi * (1. - nu));
+  double Ce = -1.* G / (4 * il::pi * (1. - nu));   // Minus sign here for convention !
   //  double sxx, sxy, sxz, syy, syz, szz;
   //
   il::StaticArray2D<double, 2, 6> Stress;
@@ -276,6 +279,8 @@ il::StaticArray2D<double, 2, 3> stresses_kernel_s3d_p0_dd(double a, double b,
   // Ep instead of G ?
   //  Rectangular DDon plan z=0   x \in [-a,a], y \in [-b,b]
   //  DDx (shear),  DDz (normal)
+  //  CONVENTION: Positive in opening etc. i.e. dd=u^+   - u^-   (contrary to Crouch notation)
+  //  the negative sign is put in the multiplying constant
 
   // switch to the 3D cartesian frame
   double x = xx;
@@ -286,7 +291,7 @@ il::StaticArray2D<double, 2, 3> stresses_kernel_s3d_p0_dd(double a, double b,
 
   double Ip111, Ip122, Ip133, Ip112, Ip113, Ip123, Ip222, Ip223, Ip233;
 
-  double Ce = G / (4 * il::pi * (1. - nu));
+  double Ce = -1.* G / (4 * il::pi * (1. - nu));   // Minus sign here for convention !
 
   double C11, C12, D, H;
 

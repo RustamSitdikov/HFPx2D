@@ -26,7 +26,7 @@ il::Array2D<int> dofhandle_dp(int dof_dim, il::int_t Nelts, int p, il::io_t) {
   // io_t -> everything on the left of il::io_t is read-only and is not
   //         going to be mutated
 
-  il::Array2D<int> Dof{Nelts, 2 * dof_dim, 0};
+  il::Array2D<int> Dof{Nelts, (p+1) * dof_dim, 0};
 
   for (int i = 0, j; i < Nelts; ++i) {
     j = i * dof_dim * (p + 1);
@@ -48,10 +48,13 @@ il::Array2D<int> dofhandle_cp(int dof_dim, il::int_t Nelts, il::io_t) {
   // io_t -> everything on the left of il::io_t is read-only and is not
   //         going to be mutated
 
+  // todo should be called dofhandle_cp1
+
   il::Array2D<int> Dofp{Nelts, dof_dim, 0};
 
+  // work only for linear element.......
+// work only for a conncected mesh.......
   for (int i = 0; i < Dofp.size(0); ++i) {
-
     Dofp(i, 0) = i;
     Dofp(i, 1) = i + 1;
   }

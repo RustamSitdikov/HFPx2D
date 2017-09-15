@@ -54,8 +54,8 @@ void set_submatrix(il::Array2D<double> &A, int i0, int i1,
 
 ///////////////////////////////////////////////////////////////////////////////
 il::Array2D<double> basic_assembly(Mesh &mesh, il::Array2D<int> &id, int p,
-                                   ElasticProperties& elas, vFunctionCall KernelCall){
-
+                                   ElasticProperties& elas, vKernelCall KernelCall,
+                                   double ker_options){
 
   // Kmat : the stiffness matrix to assemble
   // mesh:: the Mesh object
@@ -107,18 +107,26 @@ il::Array2D<double> basic_assembly(Mesh &mesh, il::Array2D<int> &id, int p,
       // loop on collocation points of the target element
       for (int ic = 0; ic < p + 1; ++ic) {
 
-        // TODO: Make the call Kernel agnostic..... and add a virtual fction call
         // call kernel fction for the effect of element e on collocation ic of element j
 
-        stnl = KernelCall(mysege,mysegc,ic, elas,0.);
+        stnl = KernelCall(mysege,mysegc,ic, elas,ker_options);
 
-        hfp2d::set_submatrix(Kmat, dofc[2 * ic], dofe[0], stnl);
+        for (int j1 = 0; j1 < 2*(p+1) ; ++j1) {
+          for (int j0 = 0; j0 < 2 ; ++j0) {
+            Kmat(dofc[2 * ic] + j0, dofe[0] + j1) = stnl(j0, j1);
+          }
+        }
+
+//        hfp2d::set_submatrix(Kmat, dofc[2 * ic], dofe[0], stnl);
 
       }
     }
   }
   return Kmat;
 };
+
+
+//todo need to write a function similar to Assembly for the addition of new rows and columms corresponding to the addition of new elements in the mesh !
 
 
 }

@@ -13,8 +13,14 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 
+//   TEST groffith crack with P1 elements
 TEST(griffith_crack_1, UnitP) {
-  double ret = hfp2d::SimpleGriffithExample(10);
+  double ret = hfp2d::SimpleGriffithExampleLinearElement(10);
 
   ASSERT_NEAR(0.0333916, ret, 0.001);
 }
+
+
+
+// todo : test with simplified 3D kernel.....
+

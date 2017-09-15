@@ -53,8 +53,6 @@ namespace hfp2d {
 //
 // could provide a default constructor for a straight fracture ?
 
-
-
 // SOME UTILITIES HERE below -> To be moved in a separate file ??
 il::StaticArray2D<double, 2, 2> rotation_matrix_2D(double theta) {
   il::StaticArray2D<double, 2, 2> R;
