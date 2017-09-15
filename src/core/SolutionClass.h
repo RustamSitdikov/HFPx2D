@@ -56,6 +56,8 @@ public:
   explicit Solution(const il::int_t numberElements, const il::int_t interpolationOrder) :
 
       // Solution vectors
+  // TODO: correct this because it is not true with multiple fractures
+  // if there are 3 fractures the number of pressure dofs is NumElements+3
       sizeDisplacement_ {2*(1+interpolationOrder)*numberElements}, // 2 is the number of degrees of freedom at the node
       sizePressure_ {interpolationOrder*numberElements+1},
       globalVector_ {sizeDisplacement_+sizePressure_},
@@ -73,6 +75,7 @@ public:
   explicit Solution(const il::int_t numberElements, const il::int_t interpolationOrder, const double value) :
 
       // Solution vectors
+  // TODO: correct this because it is not true with multiple fractures
       sizeDisplacement_ {2*(1+interpolationOrder)*numberElements}, // 2 is the number of degrees of freedom at the node
       sizePressure_ {interpolationOrder*numberElements+1},
       globalVector_ {sizeDisplacement_+sizePressure_, value},

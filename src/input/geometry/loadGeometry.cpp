@@ -18,13 +18,13 @@ void loadGeometry(const il::String &inputFileName,
                   Mesh &theMesh) {
 
   il::int_t keyFound;
-  il::int_t numLayers;
+  il::int_t numFractures;
 
   // load number of layers
-  keyFound = meshCreationMap.search(il::toString("number_of_layers"));
+  keyFound = meshCreationMap.search(il::toString("number_of_fractures"));
   if (meshCreationMap.found(keyFound) && meshCreationMap.value(keyFound).isInteger()) {
 
-    numLayers = meshCreationMap.value(keyFound).toInteger();
+    numFractures = meshCreationMap.value(keyFound).toInteger();
   } else {
     std::cerr << "ERROR: missing the number of layers in geometry." << std::endl;
     std::cerr << "file: " << inputFileName << std::endl;
@@ -36,13 +36,13 @@ void loadGeometry(const il::String &inputFileName,
     // if mesh generation is "automatic", start loading the layers
 
     ////////// Automatic creation of the mesh //////////
-    for (il::int_t idLayer = 0; idLayer < numLayers; idLayer++) {
+    for (il::int_t fractureID = 0; fractureID < numFractures; fractureID++) {
 
       // now we create a string with the layer name
-      const il::String layerName = il::join(il::toString("layer"), il::toString(idLayer));
+      const il::String fractureName = il::join(il::toString("fracture"), il::toString(fractureID));
 
       // search for the layer name
-      keyFound = meshCreationMap.search(layerName);
+      keyFound = meshCreationMap.search(fractureName);
 
       if (meshCreationMap.found(keyFound) && meshCreationMap.value(keyFound).isMapArray()) {
 
@@ -55,35 +55,27 @@ void loadGeometry(const il::String &inputFileName,
         if (autoCreationMap.found(keyFound) && autoCreationMap.value(keyFound).isString()) {
           if ((autoCreationMap.value(keyFound).asString()) == "vertical") {
 
-            verticalOrientationMesh(inputFileName,
-                                    idLayer,
-                                    autoCreationMap,
-                                    il::io,
-                                    theMesh);
+            theMesh = verticalOrientationMesh(inputFileName,
+                                              fractureID,
+                                              autoCreationMap);
 
           } else if (autoCreationMap.value(keyFound).asString() == "horizontal") {
 
-            horizontalOrientationMesh(inputFileName,
-                                      idLayer,
-                                      autoCreationMap,
-                                      il::io,
-                                      theMesh);
+            theMesh = horizontalOrientationMesh(inputFileName,
+                                                fractureID,
+                                                autoCreationMap);
 
           } else if (autoCreationMap.value(keyFound).asString() == "diagonal") {
 
-            diagonalOrientationMesh(inputFileName,
-                                    idLayer,
-                                    autoCreationMap,
-                                    il::io,
-                                    theMesh);
+            theMesh = diagonalOrientationMesh(inputFileName,
+                                              fractureID,
+                                              autoCreationMap);
 
           } else if (autoCreationMap.value(keyFound).asString() == "custom") {
 
-            customOrientationMesh(inputFileName,
-                                  idLayer,
-                                  autoCreationMap,
-                                  il::io,
-                                  theMesh);
+            theMesh = customOrientationMesh(inputFileName,
+                                            fractureID,
+                                            autoCreationMap);
 
           } else {
             std::cerr << "ERROR: orientation type not recognized." << std::endl;
@@ -107,7 +99,7 @@ void loadGeometry(const il::String &inputFileName,
       const il::String meshFileName = meshCreationMap.value(keyFound).asString();
 
       // load the custom mesh
-      loadMeshFile(meshFileName,il::io,theMesh);
+      loadMeshFile(meshFileName, il::io, theMesh);
 
     } else {
       std::cerr << "ERROR: manual mode in mesh but not file specified." << std::endl;

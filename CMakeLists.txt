@@ -14,6 +14,8 @@ ENDIF(CMAKE_BUILD_TYPE MATCHES DEBUG)
 set(SOURCE_FILES_DIR ${PROJECT_SOURCE_DIR}/src)
 
 set(SOURCE_FILES
+        il/io/toml/toml.h
+        il/io/toml/toml.cpp
         src/Elasticity/AssemblyDDM.cpp
         src/Elasticity/AssemblyDDM.h
         src/core/Mesh.cpp
@@ -32,20 +34,22 @@ set(SOURCE_FILES
         src/core/loadArguments.h
         src/input/loadInput.cpp
         src/input/loadInput.h
-        src/input/mesh/createMesh.cpp
-        src/input/mesh/createMesh.h
+        src/input/geometry/createMesh.cpp
+        src/input/geometry/createMesh.h
         src/core/Properties.cpp
         src/core/Properties.h
-        src/input/mesh/verticalOrientation.cpp
-        src/input/mesh/verticalOrientation.h
-        src/input/mesh/horizontalOrientation.cpp
-        src/input/mesh/horizontalOrientation.h
-        src/input/mesh/diagonalOrientation.cpp
-        src/input/mesh/diagonalOrientation.h
-        src/input/mesh/customOrientation.cpp
-        src/input/mesh/customOrientation.h
-        src/input/mesh/loadGeometry.cpp
-        src/input/mesh/loadGeometry.h src/input/mesh/loadMeshFile.cpp src/input/mesh/loadMeshFile.h)
+        src/input/geometry/verticalOrientation.cpp
+        src/input/geometry/verticalOrientation.h
+        src/input/geometry/horizontalOrientation.cpp
+        src/input/geometry/horizontalOrientation.h
+        src/input/geometry/diagonalOrientation.cpp
+        src/input/geometry/diagonalOrientation.h
+        src/input/geometry/customOrientation.cpp
+        src/input/geometry/customOrientation.h
+        src/input/geometry/loadGeometry.cpp
+        src/input/geometry/loadGeometry.h
+        src/input/geometry/loadMeshFile.cpp
+        src/input/geometry/loadMeshFile.h src/input/solid/loadSolid.cpp src/input/solid/loadSolid.h src/input/geometry/autoMeshUtilities.cpp src/input/geometry/autoMeshUtilities.h)
 
 link_directories($ENV{MKLROOT}/lib/intel64
                  /opt/intel/compilers_and_libraries/linux/lib/intel64)

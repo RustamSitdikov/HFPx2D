@@ -12,13 +12,13 @@
 [[geometry]]
 ##### CASE 1: automatic mesh generation
     mesh_generation = "automatic" #### FOR 1D MESHES ONLY ####
-    number_of_layers = 4
+    number_of_fractures = 4
 
-    # start the description of the layer creation
-    [layer1] # a vertical mesh
+    # start the description of the fracture creation
+    [fracture0] # a vertical mesh
 
-        # name of the layer
-        name = "Strong layer"
+        # name of the meshed fracture
+        name = "Strong fracture"
 
         # orientation
         orientation = "vertical"
@@ -33,24 +33,23 @@
         # number of elements
         number_of_elements=100
 
-        # material ID
-        material_ID=1
+#        # material ID
+#        material_ID=0
+#
+#        # far field stress condition
+#        far_field_stress_ID=0
+#
+#        # pore pressure condition
+#        pore_pressure_ID=0
 
-        # joined with
-        joined_with_layer = 2
-
-## In the case of joined layer, we load first the joined_with flag, where the connected layer is defined.
-## Then, once the connectivity between the layers has been loaded, a cross check of connections can be done.
-## Then, a cross check of the layers end points must be done.
-## For each group (represented by a group of layers) numbering is sequential.
-## One layer can be one group alone but one layer cannot pertain to two or more groups.
-## However material properties can be different at each layer.
-## (check that total number of layers is bigger than total number of materials)
+        # source
+        active_injection=true
+        location = "start" / "center" / "end"
 
 ## we take the beginning and the end of
 
-    [layer2]
-        name = "Weak layer"
+    [fracture1]
+        name = "Weak fracture"
 
         orientation = "horizontal"
 
@@ -63,11 +62,20 @@
 
         material_ID=2
 
-        joined_with_layer = 1
+        joined_with_fracture = 1
 
-    [layer3]
+## In the case of joined fracture, we load first the joined_with flag, where the connected fracture is defined.
+## Then, once the connectivity between the layers has been loaded, a cross check of connections can be done.
+## Then, a cross check of the layers end points must be done.
+## For each group (represented by a group of layers) numbering is sequential.
+## One fracture can be one group alone but one fracture cannot pertain to two or more groups.
+## However material properties can be different at each fracture.
+## (check that total number of layers is bigger than total number of materials)
 
-        name = "A third layer, not joined but diagonal"
+
+    [fracture2]
+
+        name = "A third fracture, not joined but diagonal"
 
         orientation = "diagonal"
 
@@ -84,9 +92,9 @@
         material_ID=3
 
 
-    [layer4]
+    [fracture3]
 
-        name = "A fourth layer, with beginning and end"
+        name = "A fourth fracture, with beginning and end"
 
         orientation = "custom"
 
@@ -111,8 +119,8 @@
 
     mesh_input_file = "myMesh.hfpm" # this file will provide also the connectivity and material ID of each element.
 
-
-## Properites of the material PER LAYER
+########################################################################################################################
+## Properites of the material PER fracture
 # associate properties to layers (i.e. materials) as loading the material
 [[solid]]
     [material1]
@@ -162,7 +170,7 @@
         compressibility = 1.0
         viscosity = 3.0e-3
 
-[[in-situ_conditions]] # per layer
+[[in-situ_conditions]] # per fracture
     number_of_states = 2
 
     [state1]

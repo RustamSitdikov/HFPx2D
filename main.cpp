@@ -11,6 +11,7 @@
 #include <iostream>
 #include <fstream>
 
+#include "src/input/loadInput.h"
 #include "src/Solvers/SimpleElastic.h"
 #include "src/core/SolutionClass.h"
 #include "src/core/loadArguments.h"
@@ -54,10 +55,16 @@ int main(int const argc, char const* const* argv) {
                        checkRestart, restartFileName,
                        checkOutput, outputDirectory);
 
+  hfp2d::Mesh theMesh;
+  hfp2d::Properties matProperties;
+  hfp2d::Simulation simParameters;
+
   /// TAKING CARE OF THE INPUT IN CASE OF NEW ANALYSIS OR RESTART
   if (checkInput) {
-    // hfp2d::loadInput(inputFileName,il::io_t,Mesh,Properties,SimulationParam);
-  } else if (checkOutput) {
+
+    hfp2d::loadInput(inputFileName, il::io, theMesh, matProperties, simParameters);
+
+  } else if (checkRestart) {
     // hfp2d::loadRestart(resetFileName,il::io_t,Mesh,Properties,SimulationParam,Solution);
   }
 
@@ -77,6 +84,10 @@ int main(int const argc, char const* const* argv) {
     foutlc.close();
 
   }
+
+//////////////////////// Prepare data for computation /////////////////////////////////
+
+//////////////////////// Initiate the computational loop /////////////////////////////////
 
 //////////////////////// Previous code snippet /////////////////////////////////
 

@@ -14,17 +14,16 @@
 #include <iostream>
 #include "il/toml.h"
 #include "src/core/Mesh.h"
-#include "createMesh.h"
+#include "src/input/geometry/createMesh.h"
+#include "src/input/geometry/autoMeshUtilities.h"
 
 namespace hfp2d {
 
 ////////////// HORIZONTAL MESH //////////////
 
-void horizontalOrientationMesh(const il::String &inputFileName,
-                               const il::int_t &idLayer,
-                               const il::MapArray<il::String, il::Dynamic> &autoCreationMap,
-                               il::io_t,
-                               Mesh &theMesh);
+Mesh horizontalOrientationMesh(const il::String &inputFileName,
+                                     il::int_t fractureID,
+                               const il::MapArray<il::String, il::Dynamic> &autoCreationMap);
 
 }
 

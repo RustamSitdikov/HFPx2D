@@ -10,10 +10,264 @@
 
 #include <src/core/Mesh.h>
 #include <il/linear_algebra.h>
-#include <il/math.h>
-#include <iostream>
 
 namespace hfp2d {
+
+//////////////////////////////// CONSTRUCTORS (a.k.a. initializers) ////////////////////////////////
+// Initialization without material properties and boundary conditions,
+// as they are considered default (equal to zero) in the fracture mesh
+Mesh::Mesh(const il::int_t interpolationOrder,
+           const il::Array2D<double> &nodesCoordinates,
+           const il::Array2D<il::int_t> &elementsConnectivity,
+           const il::Array<il::int_t> &sourceIdentifier) {
+
+  // Initial assertions to check data consistency
+  // Non-zero number of nodes and coordinates must be 2D
+  IL_EXPECT_FAST(nodesCoordinates.size(0) > 0 && nodesCoordinates.size(1) == 2);
+
+  // Non-zero number of elements and connectivity matrix shall have
+  // as many columns as the interpolation order +1
+  IL_EXPECT_FAST(elementsConnectivity.size(0) > 0 &&
+      elementsConnectivity.size(1) == interpolationOrder + 1);
+
+  // Assignment of node and element sizes
+  number_nodes_ = nodesCoordinates.size(0);
+  number_elements_ = elementsConnectivity.size(0);
+
+  // Assignment to the class members
+  nodes_ = nodesCoordinates;           // list of coordinates of points in the mesh
+  connectivity_ = elementsConnectivity;  //  connectivity array -
+
+  // Sources are located at nodes. The source identifier is equal to -1, no source is applied.
+  // Otherwise, the index of the source is saved in the vector (starting the numbering from 0)
+  IL_EXPECT_FAST(sourceIdentifier.size() == number_nodes_);
+  source_id_ = sourceIdentifier;
+
+  //// INSERTING DEFAULT VALUES
+  /// This is done for those variables that are required ANYWAY during computation.
+
+  // filling the material_id_ and the fracture_id_ with the standard value
+  for (il::int_t i = 0; i < number_elements_; i++) {
+    fracture_id_[i] = 0;
+    material_id_[i] = 0;
+  }
+
+  // filling the dof_handle_displacements (2D discontinuous galerkin)
+  for (il::int_t i = 0, j; i < number_elements_; i++) {
+    j = i * 2 * (interpolationOrder + 1);
+
+    for (int k = 0; k < 2 * (interpolationOrder + 1); k++) {
+      dof_handle_displacement_(i, k) = j + k;
+    }
+
+  }
+
+  // fillind the dof_handle_pressure (continuous galerkin)
+  for (int i = 0; i < number_elements_; ++i) {
+    dof_handle_pressure_(i, 0) = i;
+    dof_handle_pressure_(i, 1) = i + 1;
+  }
+
+  // is_tip_ default vector - beginning and end are tips
+  is_tip_[0] = true;
+  for (il::int_t i = 1; i < number_nodes_ - 1; i++) {
+    is_tip_[i] = false;
+  }
+  is_tip_[number_nodes_] = true;
+
+};
+
+// Initialization as before but with dof_handles passed explicitly
+Mesh::Mesh(const il::int_t interpolationOrder,
+           const il::Array2D<double> &nodesCoordinates,
+           const il::Array2D<il::int_t> &elementsConnectivity,
+           const il::Array2D<il::int_t> &dofHandleDisplacement,
+           const il::Array2D<il::int_t> &dofHandlePressure,
+           const il::Array<il::int_t> &sourceIdentifier)
+    : Mesh(interpolationOrder,
+           nodesCoordinates,
+           elementsConnectivity,
+           sourceIdentifier) {
+
+  // Let us deal with nodes, connectivity, source
+  // dof_handles, fracture and material IDs are set to default values
+//  this->Mesh(interpolationOrder,
+//             nodesCoordinates,
+//             elementsConnectivity,
+//             sourceIdentifier);
+
+  // dofHandle for displacement has to have as many rows as elements and
+  // as many columns as nodes per element x displacements dofs per node
+  IL_EXPECT_FAST(dofHandleDisplacement.size(0) == number_elements_ &&
+      dofHandleDisplacement.size(1) == (interpolationOrder + 1) * 2);
+
+  // dofHandle for pressure has to have as many rows as elements and
+  // as many columns as nodes per element x pressure dofs per node
+  IL_EXPECT_FAST(dofHandlePressure.size(0) == number_elements_ &&
+      dofHandlePressure.size(1) == interpolationOrder + 1);
+
+  dof_handle_displacement_ = dofHandleDisplacement;
+  dof_handle_pressure_ = dofHandlePressure;
+
+};
+
+// Initialization with everything but tip identifier, for constant meshes
+// which have the tip at the beginning and the end (default construction
+// of the tip)
+Mesh::Mesh(const il::int_t interpolationOrder,
+           const il::Array2D<double> &nodesCoordinates,
+           const il::Array2D<il::int_t> &elementsConnectivity,
+           const il::Array2D<il::int_t> &dofHandleDisplacement,
+           const il::Array2D<il::int_t> &dofHandlePressure,
+           const il::Array<il::int_t> &fractureIdentifier,
+           const il::Array<il::int_t> &materialIdentifier,
+           const il::Array<il::int_t> &farStressCondId,
+           const il::Array<il::int_t> &porePressCondId,
+           const il::Array<il::int_t> &sourceIdentifier)
+    : Mesh(interpolationOrder,
+           nodesCoordinates,
+           elementsConnectivity,
+           dofHandleDisplacement,
+           dofHandlePressure,
+           sourceIdentifier) {
+
+//  this->Mesh(interpolationOrder,
+//             nodesCoordinates,
+//             elementsConnectivity,
+//             dofHandleDisplacement,
+//             dofHandlePressure,
+//             sourceIdentifier);
+
+  // fracture identifier is an integer that determines to which "group" the element pertains
+  IL_EXPECT_FAST(fractureIdentifier.size() == number_elements_);
+  // material identifier is an integer that determines which rock failure
+  // and flow/transport properties are applied to the element
+  IL_EXPECT_FAST(materialIdentifier.size() == number_elements_);
+
+  fracture_id_ = fractureIdentifier; // fracture ID vector
+  material_id_ = materialIdentifier; // material ID vector
+
+
+  // far field stress conditions are applied to the collocation points.
+  // consequently, its identifier has the length equal to the number of collocation points,
+  // that is number of elements x (interpolation order+1)
+  IL_EXPECT_FAST(farStressCondId.size() == number_nodes_);
+  // pore pressure condition is applied to the nodes, so this vector length is the number of nodes
+  IL_EXPECT_FAST(porePressCondId.size() == number_nodes_);
+
+  far_field_stress_condition_id_ = farStressCondId;
+  pressure_condition_id_ = porePressCondId;
+
+};
+
+// Full mesh initialization
+Mesh::Mesh(const il::int_t interpolationOrder,
+           const il::Array2D<double> &nodesCoordinates,
+           const il::Array2D<il::int_t> &elementsConnectivity,
+           const il::Array2D<il::int_t> &dofHandleDisplacement,
+           const il::Array2D<il::int_t> &dofHandlePressure,
+           const il::Array<il::int_t> &fractureIdentifier,
+           const il::Array<il::int_t> &materialIdentifier,
+           const il::Array<il::int_t> &farStressCondId,
+           const il::Array<il::int_t> &porePressCondId,
+           const il::Array<il::int_t> &sourceIdentifier,
+           const il::Array<bool> &tipIdentifier)
+    : Mesh(interpolationOrder,
+           nodesCoordinates,
+           elementsConnectivity,
+           dofHandleDisplacement,
+           dofHandlePressure,
+           fractureIdentifier,
+           materialIdentifier,
+           farStressCondId,
+           porePressCondId,
+           sourceIdentifier) {
+
+//  this->Mesh(interpolationOrder,
+//             nodesCoordinates,
+//             elementsConnectivity,
+//             dofHandleDisplacement,
+//             dofHandlePressure,
+//             fractureIdentifier,
+//             materialIdentifier,
+//             farStressCondId,
+//             porePressCondId,
+//             sourceIdentifier);
+
+  // isTip vector is a boolean vector which value is true if the node is part is a tip of the fracture
+  IL_EXPECT_FAST(tipIdentifier.size() == number_nodes_);
+  is_tip_ = tipIdentifier;
+
+};
+
+Mesh::Mesh(const il::int_t interpolationOrder,
+           const il::Array2D<double> &nodesCoordinates,
+           const il::Array2D<il::int_t> &elementsConnectivity,
+           const il::Array2D<il::int_t> &dofHandleDisplacement,
+           const il::Array2D<il::int_t> &dofHandlePressure,
+           const il::int_t fractureIdentifier,
+           const il::int_t materialIdentifier,
+           const il::int_t farStressCondId,
+           const il::int_t porePressCondId,
+           const il::String &injectionLocation) {
+
+  // Initial assertions to check data consistency
+  // Non-zero number of nodes and coordinates must be 2D
+  IL_EXPECT_FAST(nodesCoordinates.size(0) > 0 && nodesCoordinates.size(1) == 2);
+
+  // Non-zero number of elements and connectivity matrix shall have
+  // as many columns as the interpolation order +1
+  IL_EXPECT_FAST(elementsConnectivity.size(0) > 0 &&
+      elementsConnectivity.size(1) == interpolationOrder + 1);
+
+  nodes_ = nodesCoordinates;
+  connectivity_ = elementsConnectivity;
+
+  number_nodes_ = nodesCoordinates.size(0);
+  number_elements_ = elementsConnectivity.size(0);
+
+  // dofHandle for displacement has to have as many rows as elements and
+  // as many columns as nodes per element x displacements dofs per node
+  IL_EXPECT_FAST(dofHandleDisplacement.size(0) == number_elements_ &&
+      dofHandleDisplacement.size(1) == (interpolationOrder + 1) * 2);
+
+  // dofHandle for pressure has to have as many rows as elements and
+  // as many columns as nodes per element x pressure dofs per node
+  IL_EXPECT_FAST(dofHandlePressure.size(0) == number_elements_ &&
+      dofHandlePressure.size(1) == interpolationOrder + 1);
+
+  dof_handle_displacement_ = dofHandleDisplacement;
+  dof_handle_pressure_ = dofHandlePressure;
+
+  for (il::int_t i = 0; i < number_nodes_; i++) {
+    fracture_id_[i] = fractureIdentifier;
+    material_id_[i] = materialIdentifier;
+    far_field_stress_condition_id_[i] = farStressCondId;
+    pressure_condition_id_[i] = porePressCondId;
+    source_id_[i] = -1;
+  }
+
+  // dealing with the injection location
+  if (injectionLocation == "start") { //place injection at the beginning
+    source_id_[0] = 0
+  } else if (injectionLocation == "end") { //place injection at the end
+    source_id_[number_nodes_] = 0
+  } else if (injectionLocation == "center") { //place injection in the center
+
+    if (number_elements_ % 2 == 1) { // odd nodes, even number of elements, 1 node will be source
+      source_id_[(number_elements_ - 1) / 2] = 0; // localize middle node and set source
+    } else { // even nodes, odd elements
+      source_id_[(number_elements_ - 1) / 2] = 0;
+      source_id_[(number_elements_) / 2] = 0;
+    }
+  }
+
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
 
 // mesh class
 //void Mesh::loadMesh(il::Array2D<double> xy, il::Array2D<int> ien, il::Array<int> mat) {
@@ -25,7 +279,7 @@ namespace hfp2d {
 //
 //  nodes_ = xy;           // list of coordinates of points in the mesh
 //  connectivity_ = ien;  //  connectivity array -
-//  matId_ = mat; // material ID array
+//  material_id_ = mat; // material ID array
 //
 //  // one could think of having a FracID ...
 //}
@@ -34,7 +288,7 @@ namespace hfp2d {
 //
 //int Mesh::connectivity(il::int_t k, il::int_t i) const { return connectivity_(k, i); }
 //
-//int Mesh::matid(il::int_t k) const { return matId_[k]; }
+//int Mesh::matid(il::int_t k) const { return material_id_[k]; }
 //
 //int Mesh::nelts() const { return connectivity_.size(0); } ;
 //
@@ -44,7 +298,7 @@ namespace hfp2d {
 //
 //il::Array2D<int> Mesh::conn() const { return connectivity_; };
 //
-//il::Array<int> Mesh::matid() const { return matId_; };
+//il::Array<int> Mesh::matid() const { return material_id_; };
 
 
 // needs to add function to add one or more elements ... (needs to have active
@@ -117,20 +371,21 @@ SegmentData get_segment_DD_data(const Mesh &mesh, il::int_t ne,
   segment.Xmid = xmean;
 
   switch (p) {
-    case 1: {  // linear DD
-      Xcol(0, 0) = -1. / sqrt(2.);
-      Xcol(0, 1) = 0.;
-      Xcol(1, 0) = 1. / sqrt(2.);
-      Xcol(1, 1) = 0.;
-    }; break;
+  case 1: {  // linear DD
+    Xcol(0, 0) = -1. / sqrt(2.);
+    Xcol(0, 1) = 0.;
+    Xcol(1, 0) = 1. / sqrt(2.);
+    Xcol(1, 1) = 0.;
+  };
+    break;
 
-    case 0: {
-      Xcol(0, 0) = 0.;
-      Xcol(0, 1) = 0.;
-    }; break;
-    default:
-      std::cout << "error\n";  //  error
-      break;
+  case 0: {
+    Xcol(0, 0) = 0.;
+    Xcol(0, 1) = 0.;
+  };
+    break;
+  default:std::cout << "error\n";  //  error
+    break;
   };
 
 // Returning the collocation point in the global frame
