@@ -13,7 +13,10 @@
 
 namespace hfp2d {
 
-double SimpleGriffithExample(int nelts);
+double SimpleGriffithExampleLinearElement(int nelts);
+
+double SimpleGriffithExampleS3D_P0(int nelts);
 
 }
+
 #endif //HFPX2D_SIMPLEELASTIC_H

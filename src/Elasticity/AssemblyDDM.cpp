@@ -20,6 +20,7 @@
 #include <src/core/Mesh.h>
 
 
+
 namespace hfp2d {
 
 // Some utilities //
@@ -49,8 +50,13 @@ void set_submatrix(il::Array2D<double> &A, int i0, int i1,
 }
 
 ///////////////////////////////////////////////////////////////////////////////
+
+
+///////////////////////////////////////////////////////////////////////////////
 il::Array2D<double> basic_assembly(Mesh &mesh, il::Array2D<int> &id, int p,
-                                   ElasticProperties& elas){
+                                   ElasticProperties& elas, vKernelCall KernelCall,
+                                   double ker_options){
+
   // Kmat : the stiffness matrix to assemble
   // mesh:: the Mesh object
   // id :: the DOF handle
@@ -75,7 +81,7 @@ il::Array2D<double> basic_assembly(Mesh &mesh, il::Array2D<int> &id, int p,
   // Brute Force assembly
   // double loop on elements to create the stiffness matrix ...
 
-  #pragma omp parallel for
+#pragma omp parallel for
 
   for (int e = 0; e < mesh.nelts(); ++e) { // loop on all  elements
 
@@ -94,30 +100,33 @@ il::Array2D<double> basic_assembly(Mesh &mesh, il::Array2D<int> &id, int p,
       //   get characteristic of element # j
       mysegc = hfp2d::get_segment_DD_data(mesh, j, p);
 
-      sec = il::dot(R, mysegc.s); // tangent of elt j in the frame of elt e
-      nec = il::dot(R, mysegc.n); // normal of elt j in the frame of elt e
-
       for (int i = 0; i < 2 * (p + 1); ++i) {
         dofc[i] = id(j, i); // vector of dof id of the  element j
       };
 
       // loop on collocation points of the target element
       for (int ic = 0; ic < p + 1; ++ic) {
-        // we switch to the frame of element e
-        for (int i = 0; i < 2; ++i) {
-          xcol[i] = mysegc.CollocationPoints(ic, i) - mysege.Xmid[i];
-        }
-        xcol = il::dot(R, xcol);
 
-        // TODO: Make the call Kernel agnostic..... and add a virtual fction call
         // call kernel fction for the effect of element e on collocation ic of element j
-        stnl = hfp2d::normal_shear_stress_kernel_dp1_dd(xcol, mysege.size, sec,
-                                                        nec, elas.Ep());
 
-        hfp2d::set_submatrix(Kmat, dofc[2 * ic], dofe[0], stnl);
+        stnl = KernelCall(mysege,mysegc,ic, elas,ker_options);
+
+        for (int j1 = 0; j1 < 2*(p+1) ; ++j1) {
+          for (int j0 = 0; j0 < 2 ; ++j0) {
+            Kmat(dofc[2 * ic] + j0, dofe[0] + j1) = stnl(j0, j1);
+          }
+        }
+
+//        hfp2d::set_submatrix(Kmat, dofc[2 * ic], dofe[0], stnl);
+
       }
     }
   }
   return Kmat;
 };
+
+
+//todo need to write a function similar to Assembly for the addition of new rows and columms corresponding to the addition of new elements in the mesh !
+
+
 }

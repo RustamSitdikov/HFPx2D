@@ -17,6 +17,9 @@
 //#include <il/Array.h>
 #include <il/StaticArray.h>
 
+#include <src/core/Mesh.h>
+#include <src/core/ElasticProperties.h>
+
 namespace hfp2d {
 
 
@@ -25,10 +28,9 @@ il::StaticArray2D<double, 2, 3> stresses_kernel_s3d_p0_dd(double a, double b,
                                                           double G, double nu,
                                                           double xx, double yy);
 
-il::StaticArray2D<double, 2, 2> normal_shear_stress_kernel_s3d_dp0_dd(
-    const il::StaticArray<double, 2>& xe, double hx, double height,
-    const il::StaticArray<double, 2>& s, const il::StaticArray<double, 2>& n,
-    double G, double nu);
+il::StaticArray2D<double, 2, 4> normal_shear_stress_kernel_s3d_dp0_dd(
+    SegmentData source_elt, SegmentData receiver_elt, int i_col,
+    ElasticProperties Elas, double ker_options);
 
 }
 
