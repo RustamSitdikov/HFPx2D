@@ -12,11 +12,9 @@
 
 namespace hfp2d {
 
-void loadGeometry(const il::String &inputFileName,
-                  const il::MapArray<il::String, il::Dynamic> &meshCreationMap,
-                  il::io_t,
-                  Mesh &theMesh) {
+Mesh loadGeometry(const il::String &inputFileName, const il::MapArray<il::String, il::Dynamic> &meshCreationMap) {
 
+  Mesh theMesh;
   il::int_t keyFound;
   il::int_t numFractures;
 
@@ -113,5 +111,6 @@ void loadGeometry(const il::String &inputFileName,
     exit(2);
   }
 
+  return theMesh;
 }
 }

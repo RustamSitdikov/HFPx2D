@@ -49,7 +49,7 @@ set(SOURCE_FILES
         src/input/geometry/loadGeometry.cpp
         src/input/geometry/loadGeometry.h
         src/input/geometry/loadMeshFile.cpp
-        src/input/geometry/loadMeshFile.h src/input/solid/loadSolid.cpp src/input/solid/loadSolid.h src/input/geometry/autoMeshUtilities.cpp src/input/geometry/autoMeshUtilities.h)
+        src/input/geometry/loadMeshFile.h src/input/material/loadSolid.cpp src/input/material/loadSolid.h src/input/geometry/autoMeshUtilities.cpp src/input/geometry/autoMeshUtilities.h src/core/segmentData.cpp src/core/segmentData.h)
 
 link_directories($ENV{MKLROOT}/lib/intel64
                  /opt/intel/compilers_and_libraries/linux/lib/intel64)

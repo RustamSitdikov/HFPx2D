@@ -24,10 +24,7 @@
 
 namespace hfp2d {
 
-void loadGeometry(const il::String &inputFileName,
-              const il::MapArray<il::String, il::Dynamic> &meshCreationMap,
-              il::io_t,
-              Mesh &theMesh);
+Mesh loadGeometry(const il::String &inputFileName, const il::MapArray<il::String, il::Dynamic> &meshCreationMap);
 
 }
 

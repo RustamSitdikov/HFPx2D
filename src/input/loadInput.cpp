@@ -42,16 +42,15 @@ void loadInput(const il::String &inputFileName,
     const il::MapArray<il::String, il::Dynamic> &meshCreationMap = config.value(keyFound).asMapArray();
 
     // Send the data in meshCreationMap to loadGeometry script
-    hfp2d::loadGeometry(inputFileName,
-                        meshCreationMap,
-                        il::io,
-                        theMesh);
+    theMesh = loadGeometry(inputFileName, meshCreationMap);
 
   } else {
     std::cerr << "ERROR: Geometry not found in input file " << inputFileName << std::endl;
     exit(2);
   }
 
+
+  theMesh.
   ////////// Materials: SOLID KEYWORD //////////
   keyFound = config.search("solid");
 
@@ -62,10 +61,10 @@ void loadInput(const il::String &inputFileName,
     const il::MapArray<il::String, il::Dynamic> &solidMaterialMap = config.value(keyFound).asMapArray();
 
     // Send the data in meshCreationMap to loadGeometry script
-    hfp2d::loadSolid(inputFileName,
-                     solidMaterialMap,
-                     il::io,
-                     solidProperties);
+    loadSolid(inputFileName,
+              solidMaterialMap,
+              il::io,
+              solidProperties);
 
   } else {
     std::cerr << "ERROR: Solid properties not found in input file " << inputFileName << std::endl;
