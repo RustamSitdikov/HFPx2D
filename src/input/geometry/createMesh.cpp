@@ -127,7 +127,7 @@ il::Array2D<il::int_t> createAutoConnectivity(const il::int_t interpolationOrder
 il::Array2D<il::int_t> createAutoDisplacementDofHandle(const il::int_t interpolationOrder,
                                                        const il::int_t numberOfElements) {
 
-  il::Array2D<il::int_t> dof_handle_displacement(numberOfElements, 2 * (interpolationOrder + 1))
+  il::Array2D<il::int_t> dof_handle_displacement(numberOfElements, 2 * (interpolationOrder + 1));
 
 // filling the dof_handle_displacements (2D discontinuous galerkin)
   for (il::int_t i = 0, j; i < numberOfElements; i++) {

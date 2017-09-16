@@ -49,16 +49,22 @@ set(SOURCE_FILES
         src/input/geometry/loadGeometry.cpp
         src/input/geometry/loadGeometry.h
         src/input/geometry/loadMeshFile.cpp
-        src/input/geometry/loadMeshFile.h src/input/material/loadSolid.cpp src/input/material/loadSolid.h src/input/geometry/autoMeshUtilities.cpp src/input/geometry/autoMeshUtilities.h src/core/segmentData.cpp src/core/segmentData.h)
+        src/input/geometry/loadMeshFile.h
+        src/input/material/loadSolid.cpp
+        src/input/material/loadSolid.h
+        src/input/geometry/autoMeshUtilities.cpp
+        src/input/geometry/autoMeshUtilities.h
+        src/core/segmentData.cpp
+        src/core/segmentData.h)
 
-link_directories($ENV{MKLROOT}/lib/intel64
+link_directories(/opt/intel/mkl/lib/intel64
                  /opt/intel/compilers_and_libraries/linux/lib/intel64)
 
 add_executable(HFPx2D ${SOURCE_FILES}  main.cpp)
 
 target_compile_definitions(HFPx2D PRIVATE IL_MKL=1 IL_BLAS=1 IL_OPENMP=1)
 
-target_include_directories(HFPx2D PRIVATE ${CMAKE_SOURCE_DIR} $ENV{MKLROOT}/include)
+target_include_directories(HFPx2D PRIVATE ${CMAKE_SOURCE_DIR} /opt/intel/mkl/include)
 
 target_link_libraries(HFPx2D mkl_intel_lp64 mkl_core mkl_intel_thread dl iomp5 pthread m)
 

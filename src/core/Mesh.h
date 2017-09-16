@@ -20,6 +20,8 @@
 #include <il/container/1d/SmallArray.h>
 #include <il/String.h>
 #include <iostream>
+#include <il/linear_algebra.h>
+#include <algorithm>
 
 namespace hfp2d {
 
@@ -34,7 +36,7 @@ private:
   il::Array2D<il::int_t> connectivity_;
 
   // Interpolation order
-  il::Array<il::int_t> interpolation_order_;
+  il::int_t interpolation_order_;
 
   // Dof handle matrices
   // for displacements - size: number of elements x 2dofs per node x (order interpolation + 1)
@@ -47,47 +49,17 @@ private:
   // Material identifier - size: number of elements
   il::Array<il::int_t> material_id_;
 
-  // Condition identifiers for displacement and pressure, since stress is per collocation point
-  // and pressure is for nodes
-  il::Array<il::int_t> far_field_stress_condition_id_; // size: number of collocation nodes -----------------
-  il::Array<il::int_t> pressure_condition_id_; // size: number of nodes ----------------
-
-  // Source identifier, per node. It substitutes is_source.
-  il::Array<il::int_t> source_id_;
-
-  // Tip identifier
-  il::Array<bool> is_tip_;
-
-  // Characteristic "dimensions" of the class members
-  // Number of nodes (default initialized at zero)
-  il::int_t number_nodes_ = 0;
-  // Number of elements (default initialized at zero)
-  il::int_t number_elements_ = 0;
-  // Number of interpolation order types
-  il::int_t number_interpolations_=0;
-
-  // Number of fractures
-  il::int_t number_fractures_=0;
-  // Number of material properties
-  il::int_t number_materials_=0;
-
-  // Number of displacement dofs per element
-  il::int_t number_displacement_dofs_=0;
-  // Number of pressure dofs per element
-  il::int_t number_pressure_dofs_=0;
-
-  // Number of far field stress conditions
-  //il::int_t number_far_field_stress_conditions_=0;
-  // Number of pore pressure conditions
-  //il::int_t number_pore_pressure_conditions_=0;
-  // Number of sources
-  //il::int_t number_sources_=0;
-
-  // Number of tips
-  //il::int_t number_tips_=0;
-
 
 public:
+
+  Mesh(){};
+
+  void init1DMesh(il::Array2D<double> xy, il::Array2D<il::int_t> myconn, il::Array<il::int_t> matid)
+  {
+    nodes_=xy;
+    connectivity_=myconn;
+    material_id_=matid;
+  }
 
   //////////////////////////////// CONSTRUCTORS (a.k.a. initializers) ////////////////////////////////
 
@@ -164,19 +136,15 @@ public:
                               double x_new,
                               double y_new);
 
-  /// GETTER
-  // Read sizes of matrices
-  il::int_t numberOfNodes() const { return number_nodes_; };
-  il::int_t numberOfElements() const { return number_elements_; };
-  il::int_t numberOfInterpolations() const { return number_interpolations_; };
-  il::int_t numberOfFractures() const { return number_fractures_; };
-  il::int_t numberOfMaterials() const { return number_materials_; };
-  il::int_t numberOfDisplacementDofsPerElement() const { return number_displacement_dofs_; };
-  il::int_t numberOfPressureDofsPerElement() const { return number_pressure_dofs_; };
-  il::int_t numberOfFarFieldStressConditions() const { return number_far_field_stress_conditions_; };
-  il::int_t numberOfPorePressureConditions() const { return number_pore_pressure_conditions_; };
-  il::int_t numberOfSources() const { return number_sources_; };
-  il::int_t numberOfTips() const { return number_tips_; };
+  /// GETTER FUNCTIONS
+
+  il::int_t numberOfNodes() const { return nodes_.size(0); }
+  il::int_t numberOfElements() const { return connectivity_.size(0); }
+  il::int_t interpolationOrder() const {return interpolation_order_;}
+  il::int_t numberOfFractures() const { return *std::max_element(fracture_id_.begin(),fracture_id_.end()); }
+  il::int_t numberOfMaterials() const { return *std::max_element(material_id_.begin(),material_id_.end()); }
+  il::int_t numberOfDisplDofs() const { return dof_handle_displacement_.size(1); }
+  il::int_t numberOfPressDofs() const { return dof_handle_pressure_.size(1); }
 
   // Read the X coordinate of a node
   double X(il::int_t k) const { return nodes_(k, 0); }
@@ -185,6 +153,7 @@ public:
 
   // Read a particular element of the node coordinates
   double node(il::int_t k, il::int_t i) const { return nodes_(k, i); }
+  // todo: restructure "node" method in order to have mesh.node(i).X for the x coordinate of node i ??
 
   il::Array<il::int_t> elemConnectivity(il::int_t k) {
     il::Array<il::int_t> temp(connectivity_.size(1));
@@ -208,6 +177,7 @@ public:
 
   il::Array<il::int_t> matid() const { return material_id_; };
 
+  // TODO: remove all methods that are not needed
 
 //  double node(il::int_t k, il::int_t i) const;
 //

@@ -15,8 +15,8 @@ namespace hfp2d {
 ////////////// CUSTOM MESH //////////////
 
 Mesh customOrientationMesh(const il::String &inputFileName,
-                             const il::int_t fractureID,
-                             const il::MapArray<il::String, il::Dynamic> &autoCreationMap) {
+                           const il::int_t fractureID,
+                           const il::MapArray<il::String, il::Dynamic> &autoCreationMap) {
 
   double x_1 = findX1(inputFileName, fractureID, autoCreationMap);
   double y_1 = findY1(inputFileName, fractureID, autoCreationMap);

@@ -22,7 +22,7 @@ namespace hfp2d {
 ////////////// CUSTOM MESH //////////////
 
 Mesh customOrientationMesh(const il::String &inputFileName,
-                           const il::int_t &idLayer,
+                           const il::int_t idLayer,
                            const il::MapArray<il::String, il::Dynamic> &autoCreationMap);
 
 }

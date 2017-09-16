@@ -41,9 +41,9 @@
 
 
 ////////////////////////////////////////////////////////////////////////////////
-
-int main(int const argc, char const* const* argv) {
-
+//int const argc, char const* const* argv
+int main() {
+/*
   // Creating variables to deal with input arguments
   il::String inputFileName, outputDirectory, restartFileName;
   bool checkInput = false;
@@ -83,7 +83,7 @@ int main(int const argc, char const* const* argv) {
     foutlc << "Good bye, once again" << "\n";
     foutlc.close();
 
-  }
+  }*/
 
 //////////////////////// Prepare data for computation /////////////////////////////////
 
@@ -93,7 +93,7 @@ int main(int const argc, char const* const* argv) {
 
   int nelts = 10;
 
-  double ret = hfp2d::SimpleGriffithExample(nelts);
+  double ret = hfp2d::SimpleGriffithExampleLinearElement(nelts);
 
   std::cout << "\n rel error L2 norm: " << ret << "\n";
 

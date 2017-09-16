@@ -9,7 +9,6 @@
 //
 
 #include <src/core/Mesh.h>
-#include <il/linear_algebra.h>
 
 namespace hfp2d {
 
@@ -31,8 +30,8 @@ Mesh::Mesh(const il::int_t interpolationOrder,
       elementsConnectivity.size(1) == interpolationOrder + 1);
 
   // Assignment of node and element sizes
-  number_nodes_ = nodesCoordinates.size(0);
-  number_elements_ = elementsConnectivity.size(0);
+  //number_nodes_ = nodesCoordinates.size(0);
+  //number_elements_ = elementsConnectivity.size(0);
 
   // Assignment to the class members
   nodes_ = nodesCoordinates;           // list of coordinates of points in the mesh
@@ -40,13 +39,13 @@ Mesh::Mesh(const il::int_t interpolationOrder,
 
   // Sources are located at nodes. The source identifier is equal to -1, no source is applied.
   // Otherwise, the index of the source is saved in the vector (starting the numbering from 0)
-  IL_EXPECT_FAST(sourceIdentifier.size() == number_nodes_);
-  source_id_ = sourceIdentifier;
+  //IL_EXPECT_FAST(sourceIdentifier.size() == number_nodes_);
+  //source_id_ = sourceIdentifier;
 
   //// INSERTING DEFAULT VALUES
   /// This is done for those variables that are required ANYWAY during computation.
 
-  // filling the material_id_ and the fracture_id_ with the standard value
+/*  // filling the material_id_ and the fracture_id_ with the standard value
   for (il::int_t i = 0; i < number_elements_; i++) {
     fracture_id_[i] = 0;
     material_id_[i] = 0;
@@ -73,7 +72,7 @@ Mesh::Mesh(const il::int_t interpolationOrder,
   for (il::int_t i = 1; i < number_nodes_ - 1; i++) {
     is_tip_[i] = false;
   }
-  is_tip_[number_nodes_] = true;
+  is_tip_[number_nodes_] = true;*/
 
 };
 
@@ -96,7 +95,7 @@ Mesh::Mesh(const il::int_t interpolationOrder,
 //             elementsConnectivity,
 //             sourceIdentifier);
 
-  // dofHandle for displacement has to have as many rows as elements and
+/*  // dofHandle for displacement has to have as many rows as elements and
   // as many columns as nodes per element x displacements dofs per node
   IL_EXPECT_FAST(dofHandleDisplacement.size(0) == number_elements_ &&
       dofHandleDisplacement.size(1) == (interpolationOrder + 1) * 2);
@@ -104,7 +103,7 @@ Mesh::Mesh(const il::int_t interpolationOrder,
   // dofHandle for pressure has to have as many rows as elements and
   // as many columns as nodes per element x pressure dofs per node
   IL_EXPECT_FAST(dofHandlePressure.size(0) == number_elements_ &&
-      dofHandlePressure.size(1) == interpolationOrder + 1);
+      dofHandlePressure.size(1) == interpolationOrder + 1);*/
 
   dof_handle_displacement_ = dofHandleDisplacement;
   dof_handle_pressure_ = dofHandlePressure;
@@ -138,7 +137,7 @@ Mesh::Mesh(const il::int_t interpolationOrder,
 //             dofHandlePressure,
 //             sourceIdentifier);
 
-  // fracture identifier is an integer that determines to which "group" the element pertains
+/*  // fracture identifier is an integer that determines to which "group" the element pertains
   IL_EXPECT_FAST(fractureIdentifier.size() == number_elements_);
   // material identifier is an integer that determines which rock failure
   // and flow/transport properties are applied to the element
@@ -156,7 +155,7 @@ Mesh::Mesh(const il::int_t interpolationOrder,
   IL_EXPECT_FAST(porePressCondId.size() == number_nodes_);
 
   far_field_stress_condition_id_ = farStressCondId;
-  pressure_condition_id_ = porePressCondId;
+  pressure_condition_id_ = porePressCondId;*/
 
 };
 
@@ -194,9 +193,9 @@ Mesh::Mesh(const il::int_t interpolationOrder,
 //             porePressCondId,
 //             sourceIdentifier);
 
-  // isTip vector is a boolean vector which value is true if the node is part is a tip of the fracture
+/*  // isTip vector is a boolean vector which value is true if the node is part is a tip of the fracture
   IL_EXPECT_FAST(tipIdentifier.size() == number_nodes_);
-  is_tip_ = tipIdentifier;
+  is_tip_ = tipIdentifier;*/
 
 };
 
@@ -223,12 +222,12 @@ Mesh::Mesh(const il::int_t interpolationOrder,
   nodes_ = nodesCoordinates;
   connectivity_ = elementsConnectivity;
 
-  number_nodes_ = nodesCoordinates.size(0);
-  number_elements_ = elementsConnectivity.size(0);
+  //number_nodes_ = nodesCoordinates.size(0);
+  //number_elements_ = elementsConnectivity.size(0);
 
   // Save interpolation order per element
   //  - Placeholder for future mixing of elements with different interpolation orders
-  IL_EXPECT_FAST(interpolationOrder >= 0);
+/*  IL_EXPECT_FAST(interpolationOrder >= 0);
   interpolation_order_.resize(number_elements_);
   for(il::int_t i = 0; i < number_elements_; i++){
     interpolation_order_[i] = interpolationOrder;
@@ -288,7 +287,7 @@ Mesh::Mesh(const il::int_t interpolationOrder,
     }
     number_sources_=1;
 
-  }
+  }*/
 
 }
 
@@ -323,7 +322,7 @@ void Mesh::appendMesh(const Mesh &newMesh, const bool isJoined) {
 
   double distTol = 10 ^-6;
 
-  for (il::int_t i = 0; i < number_nodes_; i++) {
+  /*for (il::int_t i = 0; i < number_nodes_; i++) {
 
     if (is_tip_[i]) {
 
@@ -341,7 +340,7 @@ void Mesh::appendMesh(const Mesh &newMesh, const bool isJoined) {
         }
       }
     }
-  }
+  }*/
 
   // Now, the number of nodes are summed -1 (one node must be collapsed)
   // The number of elements is summed.
@@ -374,7 +373,7 @@ void Mesh::appendMesh(const Mesh &newMesh, const bool isJoined) {
 
 
   //
-
+/*
   const il::int_t oldNumNodes = number_nodes_;
   const il::int_t oldNumElements = number_elements_;
 
@@ -385,7 +384,7 @@ void Mesh::appendMesh(const Mesh &newMesh, const bool isJoined) {
   for (il::int_t i = oldNumNodes; i < number_nodes_; i++) {
     nodes_(i, 0) = newMesh.nodes_(i, 0);
     nodes_(i, 1) = newMesh.nodes_(i, 1);
-  }
+  }*/
 
   ///// APPENDING CONNECTIVITY AND DOF HANDLES
   // se dobbiamo aggiungere una mesh che é collegata a quella giá salvata
@@ -403,7 +402,7 @@ void Mesh::appendMesh(const Mesh &newMesh, const bool isJoined) {
 
   // connectivity resize: here the 2 is because the element is 1D with 2 nodes
   // but it should rather be the order of the polynomia on the element plus 1
-  connectivity_.resize(number_elements_, 2);
+  /*connectivity_.resize(number_elements_, 2);
   material_id_.resize(number_elements_);
   fracture_id_.resize(number_elements_);
 
@@ -416,11 +415,11 @@ void Mesh::appendMesh(const Mesh &newMesh, const bool isJoined) {
     material_id_[i] = newMesh.material_id_[i];
     fracture_id_[i] = newMesh.fracture_id_[i];
 
-  }
+  }*/
 
 }
 
-void Mesh::appendMesh(const il::Array2D<double> &newNodesCoordinates,
+/*void Mesh::appendMesh(const il::Array2D<double> &newNodesCoordinates,
                 const il::Array2D<il::int_t> &newElementsConnectivity,
                 const il::Array<il::int_t> &newMaterialIdentifier) {
 
@@ -575,7 +574,7 @@ void Mesh::appendNodeToMeshTip(const il::int_t mesh_node, const double x_new, co
     exit(4);
   }
 
-};
+};*/
 
 
 
@@ -619,7 +618,7 @@ void Mesh::appendNodeToMeshTip(const il::int_t mesh_node, const double x_new, co
 
 
 
-// SOME UTILITIES HERE below -> To be moved in a separate file ??
+/*// SOME UTILITIES HERE below -> To be moved in a separate file ??
 il::StaticArray2D<double, 2, 2> rotation_matrix_2D(double theta) {
   il::StaticArray2D<double, 2, 2> R;
 
@@ -717,7 +716,7 @@ SegmentData get_segment_DD_data(const Mesh &mesh, il::int_t ne,
   segment.CollocationPoints = Xcol;
 
   return segment;  // return structure with all we need on the segment.
-}
+}*/
 //----------------------------------------------------
 
 }

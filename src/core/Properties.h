@@ -34,7 +34,7 @@ namespace hfp2d {
 class Properties {
 
 private:
-
+/*
   Solid fault_solid;
   Fluid
 
@@ -46,7 +46,7 @@ private:
 
 public:
 
-
+*/
 
 };
 
@@ -145,10 +145,10 @@ public:
     return (stressMeasure > stress_threshold_);
   }
 
-  virtual SolidEvolution(const il::String &type, const double stress_threshold){
+  /*virtual SolidEvolution(const il::String &type, const double stress_threshold){
     type_=type;
     stress_threshold_=stress_threshold;
-  }
+  }*/
 
 
   SolidEvolution() {};

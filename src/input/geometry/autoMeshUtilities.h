@@ -46,7 +46,7 @@ il::int_t findNumElem(const il::String &inputFileName,
 
 il::int_t findInterpOrder(const il::String &inputFileName,
                                 il::int_t fractureID,
-                          const il::MapArray<il::String, il::Dynamic> &autoCreationMap)
+                          const il::MapArray<il::String, il::Dynamic> &autoCreationMap);
 
 il::String findSource(const il::String &inputFileName,
                       il::int_t fractureID,

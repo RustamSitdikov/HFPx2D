@@ -17,7 +17,7 @@
 #include "src/core/Properties.h"
 #include "src/core/Simulation.h"
 #include "src/input/geometry/loadGeometry.h"
-#include "src/input/solid/loadSolid.h"
+#include "src/input/material/loadSolid.h"
 
 namespace hfp2d{
 

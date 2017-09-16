@@ -50,7 +50,7 @@ void loadInput(const il::String &inputFileName,
   }
 
 
-  theMesh.
+//  theMesh.
   ////////// Materials: SOLID KEYWORD //////////
   keyFound = config.search("solid");
 
@@ -60,12 +60,12 @@ void loadInput(const il::String &inputFileName,
     // Save the geometry map, i.e. the data to create the mesh
     const il::MapArray<il::String, il::Dynamic> &solidMaterialMap = config.value(keyFound).asMapArray();
 
-    // Send the data in meshCreationMap to loadGeometry script
+/*    // Send the data in meshCreationMap to loadGeometry script
     loadSolid(inputFileName,
               solidMaterialMap,
               il::io,
               solidProperties);
-
+*/
   } else {
     std::cerr << "ERROR: Solid properties not found in input file " << inputFileName << std::endl;
     exit(2);
