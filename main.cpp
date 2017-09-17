@@ -93,9 +93,11 @@ int main() {
 
   int nelts = 10;
 
-  double ret = hfp2d::SimpleGriffithExampleLinearElement(nelts);
+  double ret1 = hfp2d::SimpleGriffithExampleLinearElement(nelts);
+  double ret2 = hfp2d::SimpleGriffithExampleS3D_P0(nelts);
 
-  std::cout << "\n rel error L2 norm: " << ret << "\n";
+  std::cout << "\n rel error L2 norm in Linear Elements: " << ret1 << "\n";
+  std::cout << "\n rel error L2 norm in Constant Elements: " << ret2 << "\n";
 
   std::cout << " end of code \n\n\n";
 

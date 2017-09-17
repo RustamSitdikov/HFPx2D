@@ -50,7 +50,6 @@ void loadInput(const il::String &inputFileName,
   }
 
 
-//  theMesh.
   ////////// Materials: SOLID KEYWORD //////////
   keyFound = config.search("solid");
 

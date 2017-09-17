@@ -15,10 +15,7 @@
 #include "il/base.h"
 #include "il/toml.h"
 #include "src/core/Mesh.h"
-#include "verticalOrientation.h"
-#include "horizontalOrientation.h"
-#include "diagonalOrientation.h"
-#include "customOrientation.h"
+#include "autoLineMeshCreation.h"
 #include "loadMeshFile.h"
 
 

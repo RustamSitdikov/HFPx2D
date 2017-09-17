@@ -12,18 +12,20 @@
 #define HFPX2DUNITTEST_CUSTOMORIENTATIONMESH_H
 
 #include <iostream>
+#include <il/Array.h>
 #include "il/toml.h"
 #include "src/core/Mesh.h"
-#include "src/input/geometry/createMesh.h"
-#include "src/input/geometry/autoMeshUtilities.h"
+#include "src/input/geometry/autoLineMeshUtilities.h"
+#include "src/input/geometry/autoLineMeshInfo.h"
 
 namespace hfp2d {
 
 ////////////// CUSTOM MESH //////////////
 
-Mesh customOrientationMesh(const il::String &inputFileName,
-                           const il::int_t idLayer,
-                           const il::MapArray<il::String, il::Dynamic> &autoCreationMap);
+Mesh autoLineMesh(const il::String &inputFileName,
+                  const il::int_t fractureID,
+                  const il::MapArray<il::String, il::Dynamic> &autoCreationMap,
+                  const il::int_t interpOrder);
 
 }
 

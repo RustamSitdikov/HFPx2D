@@ -21,25 +21,6 @@
 
 namespace hfp2d {
 
-il::Array2D<double> createVerticalMesh(double x_c,            // Center of line, x coordinate
-                                       double y_c,            // Center of line, y coordinate
-                                       double length,         // Length of line
-                                       il::int_t numElements, // Number of elements to be generated
-                                       il::int_t interpOrder);// Element interpolation order
-
-il::Array2D<double> createHorizontalMesh(double x_c,            // Center of line, x coordinate
-                                         double y_c,            // Center of line, y coordinate
-                                         double length,         // Length of line
-                                         il::int_t numElements, // Number of elements to be generated
-                                         il::int_t interpOrder);// Element interpolation order
-
-il::Array2D<double> createDiagonalMesh(double x_c,            // Center of line, x coordinate
-                                       double y_c,            // Center of line, y coordinate
-                                       double angle,          // Angle of line
-                                       double length,         // Length of line
-                                       il::int_t numElements, // Number of elements to be generated
-                                       il::int_t interpOrder);// Element interpolation order
-
 il::Array2D<double> createCustomMesh(double x_1,             // First point of the line, x coordinate
                                      double y_1,             // First point of the line, y coordinate
                                      double x_2,             // Second point of the line, x coordinate

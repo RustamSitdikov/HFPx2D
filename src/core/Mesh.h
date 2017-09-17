@@ -13,6 +13,7 @@
 
 // Inclusion from Inside Loop library
 #include <cmath>
+#include <il/base.h>
 #include <il/Array.h>
 #include <il/Array2D.h>
 #include <il/StaticArray.h>
@@ -52,69 +53,27 @@ private:
 
 public:
 
-  Mesh(){};
-
-  void init1DMesh(il::Array2D<double> xy, il::Array2D<il::int_t> myconn, il::Array<il::int_t> matid)
-  {
-    nodes_=xy;
-    connectivity_=myconn;
-    material_id_=matid;
-  }
-
   //////////////////////////////// CONSTRUCTORS (a.k.a. initializers) ////////////////////////////////
 
-  // Initialization without material properties and boundary conditions,
-  // as they are considered default (equal to zero) in the fracture mesh
-  Mesh(il::int_t interpolationOrder,
-       const il::Array2D<double> &nodesCoordinates,
-       const il::Array2D<il::int_t> &elementsConnectivity,
-       const il::Array<il::int_t> &sourceIdentifier);
+  Mesh(){};  // TODO: remove empty initialization of mesh class variables if possible.
+  // In any case, we need always to have temporal variable to construct a mesh.
 
-  // Initialization as before but with dof_handles passed explicitly
-  Mesh(il::int_t interpolationOrder,
-       const il::Array2D<double> &nodesCoordinates,
-       const il::Array2D<il::int_t> &elementsConnectivity,
-       const il::Array2D<il::int_t> &dofHandleDisplacement,
-       const il::Array2D<il::int_t> &dofHandlePressure,
-       const il::Array<il::int_t> &sourceIdentifier);
+  // Constructor with only nodes and elements. TODO: to be substituted in the Griffith test examples
+  Mesh(const il::Array2D<double> &nodesCoordinates,
+       const il::Array2D<il::int_t> &elementsConnectivity){
 
-  // Initialization with everything but tip identifier, for constant meshes
-  // which have the tip at the beginning and the end (default construction
-  // of the tip)
-  Mesh(il::int_t interpolationOrder,
-       const il::Array2D<double> &nodesCoordinates,
-       const il::Array2D<il::int_t> &elementsConnectivity,
-       const il::Array2D<il::int_t> &dofHandleDisplacement,
-       const il::Array2D<il::int_t> &dofHandlePressure,
-       const il::Array<il::int_t> &fractureIdentifier,
-       const il::Array<il::int_t> &materialIdentifier,
-       const il::Array<il::int_t> &farStressCondId,
-       const il::Array<il::int_t> &porePressCondId,
-       const il::Array<il::int_t> &sourceIdentifier);
+    nodes_=nodesCoordinates;
+    connectivity_=elementsConnectivity;
 
-  // Full mesh initialization
-  Mesh(il::int_t interpolationOrder,
-       const il::Array2D<double> &nodesCoordinates,
-       const il::Array2D<il::int_t> &elementsConnectivity,
-       const il::Array2D<il::int_t> &dofHandleDisplacement,
-       const il::Array2D<il::int_t> &dofHandlePressure,
-       const il::Array<il::int_t> &fractureIdentifier,
-       const il::Array<il::int_t> &materialIdentifier,
-       const il::Array<il::int_t> &farStressCondId,
-       const il::Array<il::int_t> &porePressCondId,
-       const il::Array<il::int_t> &sourceIdentifier,
-       const il::Array<bool> &tipIdentifier);
+  };
 
-  Mesh(il::int_t interpolationOrder,
+  Mesh(const il::int_t interpolationOrder,
        const il::Array2D<double> &nodesCoordinates,
        const il::Array2D<il::int_t> &elementsConnectivity,
-       const il::Array2D<il::int_t> &dofHandleDisplacement,
-       const il::Array2D<il::int_t> &dofHandlePressure,
-       il::int_t fractureIdentifier,
-       il::int_t materialIdentifier,
-       il::int_t farStressCondId,
-       il::int_t porePressCondId,
-       const il::String &sourceIdentifier);
+       const il::Array2D<il::int_t> &displ_dof_handle,
+       const il::Array2D<il::int_t> &press_dof_handle,
+       const il::Array<il::int_t> &fractureID,
+       const il::Array<il::int_t> &materialID);
 
   ////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -161,6 +120,8 @@ public:
     for (il::int_t i = 0; i < connectivity_.size(1); i++) {
       temp[i] = connectivity_(k, i);
     }
+
+    return temp;
   };
 
   il::int_t connectivity(il::int_t k, il::int_t i) const { return connectivity_(k, i); }

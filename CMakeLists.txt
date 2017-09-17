@@ -3,9 +3,17 @@ cmake_minimum_required(VERSION 3.6)
 project(HFPx2D CXX)
 project(HFPx2DUnitTest CXX)
 
+
+
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -std=c++11")
 
+# If you want to run another compiler, such as clang
+# set(CMAKE_C_COMPILER /usr/bin/clang)
+# set(CMAKE_CXX_COMPILER /usr/bin/clang++)
+
+# needed for clang-tidy?
+# set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 IF(CMAKE_BUILD_TYPE MATCHES DEBUG)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror -Wall -Wextra -pedantic")
@@ -34,26 +42,20 @@ set(SOURCE_FILES
         src/core/loadArguments.h
         src/input/loadInput.cpp
         src/input/loadInput.h
-        src/input/geometry/createMesh.cpp
-        src/input/geometry/createMesh.h
+        src/input/geometry/autoLineMeshUtilities.cpp
+        src/input/geometry/autoLineMeshUtilities.h
         src/core/Properties.cpp
         src/core/Properties.h
-        src/input/geometry/verticalOrientation.cpp
-        src/input/geometry/verticalOrientation.h
-        src/input/geometry/horizontalOrientation.cpp
-        src/input/geometry/horizontalOrientation.h
-        src/input/geometry/diagonalOrientation.cpp
-        src/input/geometry/diagonalOrientation.h
-        src/input/geometry/customOrientation.cpp
-        src/input/geometry/customOrientation.h
+        src/input/geometry/autoLineMeshCreation.cpp
+        src/input/geometry/autoLineMeshCreation.h
         src/input/geometry/loadGeometry.cpp
         src/input/geometry/loadGeometry.h
         src/input/geometry/loadMeshFile.cpp
         src/input/geometry/loadMeshFile.h
         src/input/material/loadSolid.cpp
         src/input/material/loadSolid.h
-        src/input/geometry/autoMeshUtilities.cpp
-        src/input/geometry/autoMeshUtilities.h
+        src/input/geometry/autoLineMeshInfo.cpp
+        src/input/geometry/autoLineMeshInfo.h
         src/core/segmentData.cpp
         src/core/segmentData.h)
 

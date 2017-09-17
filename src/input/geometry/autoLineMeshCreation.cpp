@@ -8,53 +8,51 @@
 //
 //
 
-#include "verticalOrientation.h"
+#include "autoLineMeshCreation.h"
 
 namespace hfp2d {
 
-////////////// VERTICAL MESH //////////////
+////////////// AUTOMATIC LINE MESH CREATION //////////////
 
-Mesh verticalOrientationMesh(const il::String &inputFileName,
-                             const il::int_t fractureID,
-                             const il::MapArray<il::String, il::Dynamic> &autoCreationMap) {
+Mesh autoLineMesh(const il::String &inputFileName,
+                  const il::int_t fractureID,
+                  const il::MapArray<il::String, il::Dynamic> &autoCreationMap,
+                  const il::int_t interpOrder) {
 
-  double x_c = findXC(inputFileName, fractureID, autoCreationMap);
-  double y_c = findYC(inputFileName, fractureID, autoCreationMap);
-  double length = findLength(inputFileName, fractureID, autoCreationMap);
+  // Find start and end coordinates of line mesh
+  double x_1 = findX1(inputFileName, fractureID, autoCreationMap);
+  double y_1 = findY1(inputFileName, fractureID, autoCreationMap);
+  double x_2 = findX2(inputFileName, fractureID, autoCreationMap);
+  double y_2 = findY2(inputFileName, fractureID, autoCreationMap);
+
+  // Recover number of elements
   il::int_t numElements = findNumElem(inputFileName, fractureID, autoCreationMap);
-  il::int_t interpOrder = findInterpOrder(inputFileName, fractureID, autoCreationMap);
-  il::String sourceLocation = findSource(inputFileName, fractureID, autoCreationMap);
 
-
-  //// Here we check for optional arguments to the automatic generation of mesh
-  // in particular we are dealing with:
-  // - materialID
-  // - farFieldStressID
-  // - porePressCondID
-
+  // Recover material ID
   il::int_t materialID = findMaterialID(inputFileName, fractureID, autoCreationMap);
-  il::int_t farFieldID = findFarFieldID(inputFileName, fractureID, autoCreationMap);
-  il::int_t porePresID = findPorePresID(inputFileName, fractureID, autoCreationMap);
 
   // create coordinates and connectivity matrices for the mesh
-  il::Array2D<double> nodesCoordinates = createVerticalMesh(x_c, y_c, length, numElements, interpOrder);
+  il::Array2D<double> nodesCoordinates = createCustomMesh(x_1, y_1, x_2, y_2, numElements, interpOrder);
   il::Array2D<il::int_t> elementsConnectivity = createAutoConnectivity(interpOrder, numElements);
   il::Array2D<il::int_t> displ_dof_handle = createAutoDisplacementDofHandle(interpOrder, numElements);
   il::Array2D<il::int_t> press_dof_handle = createAutoPressureDofHandle(interpOrder, numElements);
 
 
+  il::Array<il::int_t> vectorMaterialID(elementsConnectivity.size(0));
+  il::Array<il::int_t> vectorFractureID(elementsConnectivity.size(0));
+
+  // Creating the vectors of fracture ID and material ID
+#pragma omp parallel for
+  for(il::int_t i=0; i < elementsConnectivity.size(0); i++)
+  {
+    vectorMaterialID[i]=materialID;
+    vectorFractureID[i]=fractureID;
+  }
+
 ///// Create Mesh
 
-  Mesh theMesh(interpOrder,
-                 nodesCoordinates,
-                 elementsConnectivity,
-                 displ_dof_handle,
-                 press_dof_handle,
-                 fractureID,
-                 materialID,
-                 farFieldID,
-                 porePresID,
-                 sourceLocation);
+  Mesh theMesh(interpOrder, nodesCoordinates, elementsConnectivity,
+               displ_dof_handle, press_dof_handle, vectorFractureID, vectorMaterialID);
 
   return theMesh;
 }

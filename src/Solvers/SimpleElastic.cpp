@@ -52,7 +52,7 @@ double SimpleGriffithExampleLinearElement(int nelts) {
   int p = 1;
   double h = 2. / (nelts);  //  element size
 
-  il::Array<double> x{nelts + 1};
+  // il::Array<double> x{nelts + 1}; // Not needed
 
   il::Array2D<double> xy{nelts + 1, 2, 0.0};
   il::Array2D<il::int_t> myconn{nelts, 2, 0};
@@ -75,11 +75,13 @@ double SimpleGriffithExampleLinearElement(int nelts) {
     myconn(i, 1) = i + 1;
   };
 
-  il::Array<il::int_t> matid{nelts, 1};
+  //il::Array<il::int_t> matid{nelts, 1};
   // create mesh object
-  hfp2d::Mesh mesh;
+  //hfp2d::Mesh mesh;
 
-  mesh.init1DMesh(xy, myconn, matid);
+  //mesh.init1DMesh(xy, myconn, matid);
+
+  hfp2d::Mesh mesh(xy,myconn);
 
   hfp2d::ElasticProperties myelas(1, 0.);
   //  myelas.ElasticProperties(1.,0.);
@@ -167,7 +169,7 @@ double SimpleGriffithExampleS3D_P0(int nelts) {
   int p = 0;                // piece wise constant element
   double h = 2. / (nelts);  //  element size
 
-  il::Array<double> x{nelts + 1};
+  //il::Array<double> x{nelts + 1}; // Not needed
 
   il::Array2D<double> xy{nelts + 1, 2, 0.0};
   il::Array2D<il::int_t> myconn{nelts, 2, 0};
@@ -190,11 +192,12 @@ double SimpleGriffithExampleS3D_P0(int nelts) {
     myconn(i, 1) = i + 1;
   };
 
-  il::Array<il::int_t> matid{nelts, 1};
+  //il::Array<il::int_t> matid{nelts, 1};
   // create mesh object
-  hfp2d::Mesh mesh;
+  //hfp2d::Mesh mesh;
 
-  mesh.init1DMesh(xy, myconn, matid);
+  //mesh.init1DMesh(xy, myconn, matid);
+  hfp2d::Mesh mesh(xy,myconn);
 
   hfp2d::ElasticProperties myelas(1, 0.);
   //  myelas.ElasticProperties(1.,0.);
