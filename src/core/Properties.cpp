@@ -9,3 +9,17 @@
 //
 
 #include "Properties.h"
+
+namespace hfp2d{
+
+
+/*void myfunction(){
+
+
+  Properties myProperties;
+  double K=myProperties.fault_solid.bulkModulus();
+  double mu=myProperties.fault_fluid.fluidViscosity();
+
+}*/
+
+}

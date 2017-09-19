@@ -50,8 +50,7 @@ void set_submatrix(il::Array2D<double> &A, int i0, int i1,
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-
-
+///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 il::Array2D<double> basic_assembly(Mesh &mesh, il::Array2D<int> &id, int p,
                                    ElasticProperties& elas, vKernelCall KernelCall,
@@ -128,5 +127,81 @@ il::Array2D<double> basic_assembly(Mesh &mesh, il::Array2D<int> &id, int p,
 
 //todo need to write a function similar to Assembly for the addition of new rows and columms corresponding to the addition of new elements in the mesh !
 
+///////////////////////////////////////////////////////////////////////////////
+il::Array2D<double> basic_assembly_new(Mesh &mesh, ElasticProperties& elas,
+                                   vKernelCall KernelCall, double ker_options){
+
+  // Kmat : the stiffness matrix to assemble
+  // mesh:: the Mesh object
+  // id :: the DOF handle
+  // p :: the interpolation order
+  // Ep :: the Plane Strain Young's modulus
+
+  il::int_t p=mesh.interpolationOrder();
+
+  il::Array2D<double> xe{2, 2, 0}, xec{2, 2, 0};
+
+  hfp2d::SegmentData mysege, mysegc;
+
+  il::StaticArray2D<double, 2, 2> R;
+  il::Array<il::int_t> dofe{2 * (p + 1), 0}, dofc{2 * (p + 1), 0};
+
+  il::StaticArray2D<double, 2, 4> stnl;
+  il::StaticArray<double, 2> sec, nec, xcol;
+
+  const il::int_t numDisplDofs = mesh.numberOfDisplDofs();
+  const il::int_t numPressDofs = mesh.numberOfPressDofs();
+  const il::int_t totalNumDofDispl = numDisplDofs + numPressDofs;
+
+  il::Array2D<double> Kmat{numDisplDofs, numDisplDofs};
+
+  // Brute Force assembly
+  // double loop on elements to create the stiffness matrix ...
+
+
+  for (il::int_t e = 0; e < mesh.numberOfElements(); ++e) { // loop on all  elements
+
+    //   get characteristic of element # e
+    mysege = hfp2d::get_segment_DD_data(mesh, e, p);
+    // Rotation matrix of the element w.r. to x-axis.
+    R = hfp2d::rotation_matrix_2D(mysege.theta);
+
+    // vector of dof id of  element e
+    for (il::int_t i = 0; i < 2 * (p + 1); ++i) {
+      dofe[i] = mesh.dofDispl(e, i);
+    };
+
+    // loop on all  elements - to compute the effect of e on all other elements
+    for (il::int_t j = 0; j < mesh.numberOfElements(); ++j) {
+      //   get characteristic of element # j
+      mysegc = hfp2d::get_segment_DD_data(mesh, j, p);
+
+      for (il::int_t i = 0; i < 2 * (p + 1); ++i) {
+        dofc[i] = mesh.dofDispl(j, i); // vector of dof id of the  element j
+      };
+
+      // loop on collocation points of the target element
+      for (il::int_t ic = 0; ic < p + 1; ++ic) {
+
+        // call kernel fction for the effect of element e on collocation ic of element j
+
+        stnl = KernelCall(mysege,mysegc,ic, elas,ker_options);
+
+        for (il::int_t j1 = 0; j1 < 2*(p+1) ; ++j1) {
+          for (il::int_t j0 = 0; j0 < 2 ; ++j0) {
+            Kmat(dofc[2 * ic] + j0, dofe[0] + j1) = stnl(j0, j1);
+          }
+        }
+
+//        hfp2d::set_submatrix(Kmat, dofc[2 * ic], dofe[0], stnl);
+
+      }
+    }
+  }
+  return Kmat;
+};
+
+
+//todo need to write a function similar to Assembly for the addition of new rows and columms corresponding to the addition of new elements in the mesh !
 
 }

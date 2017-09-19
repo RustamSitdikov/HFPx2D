@@ -56,24 +56,39 @@ double SimpleGriffithExampleLinearElement(int nelts) {
 
   il::Array2D<double> xy{nelts + 1, 2, 0.0};
   il::Array2D<il::int_t> myconn{nelts, 2, 0};
-  il::Array2D<int> id{nelts, 4, 0};
+  il::Array2D<il::int_t> id_displ{nelts, 2*(p+1), 0};
+  il::Array2D<il::int_t> id_press{nelts, 2, 0};
+  il::Array<il::int_t> fracID {nelts,1};
+  il::Array<il::int_t> matID {nelts,1};
 
-  int ndof = (nelts) * (p + 1) * 2;  // number of dofs
+  //int ndof = (nelts) * (p + 1) * 2;  // number of dofs
   double Ep = 1.;                    // Plane strain Young's modulus
 
   //  Array2D M(i, j) -> M(i + 1, j) (Ordre Fortran)
   //  Array2C M(i, j) -> M(i, j + 1) (Ordre C)
 
   // create a basic 1D mesh ....
-  for (int i = 0; i < xy.size(0); ++i) {
+  for (il::int_t i = 0; i < xy.size(0); ++i) {
     xy(i, 0) = -1. + i * h;
     xy(i, 1) = 0.;
   };
 
-  for (int i = 0; i < myconn.size(0); ++i) {
+  for (il::int_t i = 0; i < myconn.size(0); ++i) {
     myconn(i, 0) = i;
     myconn(i, 1) = i + 1;
   };
+
+  for (il::int_t i=0; i < nelts; i++){
+    for (il::int_t j=0; j < 2*(p+1); j++){
+      id_displ(i,j)=i * 2 * (p+1) + j;
+    }
+  }
+
+  for (il::int_t i=0; i < nelts; i++){
+    id_press(i,0)=i;
+    id_press(i,1)=i+1;
+  }
+
 
   //il::Array<il::int_t> matid{nelts, 1};
   // create mesh object
@@ -81,26 +96,29 @@ double SimpleGriffithExampleLinearElement(int nelts) {
 
   //mesh.init1DMesh(xy, myconn, matid);
 
-  hfp2d::Mesh mesh(xy,myconn);
+  hfp2d::Mesh mesh(p,xy,myconn,id_displ,id_press,fracID,matID);
+
+  il::int_t ndof = mesh.numberOfDisplDofs();
 
   hfp2d::ElasticProperties myelas(1, 0.);
   //  myelas.ElasticProperties(1.,0.);
   std::cout << "EP :" << myelas.Ep() << "\n";
 
-  id = hfp2d::dofhandle_dp(2, nelts, p, il::io);  // dof handle for DDs
+  il::Array2D<int> id = hfp2d::dofhandle_dp(2, nelts, p, il::io);  // dof handle for DDs
 
   // some definitions needed for matrix assembly
   il::Array2D<double> xe{2, 2, 0}, xec{2, 2, 0};
 
   //  SegmentData mysege,mysegc;
 
+
   il::Array2D<double> K{ndof, ndof};
 
   std::cout << "Number of elements : " << mesh.nelts() << "\n";
   std::cout << "Number of dofs :" << id.size(0) * id.size(1) << "---"
-            << (nelts) * (p + 1) * 2 << "---" << ndof << "\n";
+            << (nelts) * (p + 1) * 2 << "---" << mesh.numberOfDisplDofs() << "\n";
   std::cout << myconn.size(0) << "\n";
-
+;
   std::cout << "------\n";
   std::time_t result = std::time(nullptr);
   std::cout << std::asctime(std::localtime(&result));
@@ -108,7 +126,7 @@ double SimpleGriffithExampleLinearElement(int nelts) {
   il::Timer timer{};
   timer.start();
 
-  K = hfp2d::basic_assembly(mesh, id, p, myelas,
+  K = hfp2d::basic_assembly_new(mesh, myelas,
                             hfp2d::normal_shear_stress_kernel_dp1_dd,
                             0.);  // passing p could be avoided here
 
@@ -122,7 +140,7 @@ double SimpleGriffithExampleLinearElement(int nelts) {
   // solve a constant pressurized crack problem...
   il::Array<double> f{ndof, -1.};
   // just opening dds - set shear loads to zero
-  for (int i = 0; i < ndof / 2; ++i) {
+  for (il::int_t i = 0; i < ndof / 2; ++i) {
     f[2 * i] = 0;
   }
 
@@ -130,13 +148,14 @@ double SimpleGriffithExampleLinearElement(int nelts) {
   // use a direct solver
   il::Array<double> dd = il::linearSolve(K, f, il::io, status);
   //
-  //  // Analytical solution at nodes
+
+  ////// Analytical solution at nodes
   il::Array<double> thex{ndof / 2, 0}, wsol{ndof / 2, 0};
 
-  int i = 0;
+  il::int_t i = 0;
   // this piece of codes gets 1D mesh of x doubling the nodes of
   // adjacent elements (for comparison with analytical solution)
-  for (int e = 0; e < nelts; ++e) {
+  for (il::int_t e = 0; e < nelts; ++e) {
     thex[i] = mesh.node(mesh.connectivity(e, 0), 0);
     thex[i + 1] = mesh.node(mesh.connectivity(e, 1), 0);
     i = i + 2;
@@ -173,9 +192,12 @@ double SimpleGriffithExampleS3D_P0(int nelts) {
 
   il::Array2D<double> xy{nelts + 1, 2, 0.0};
   il::Array2D<il::int_t> myconn{nelts, 2, 0};
-  il::Array2D<int> id{nelts, 2, 0};
+  il::Array2D<il::int_t> id_displ{nelts, 2*(p+1), 0};
+  il::Array2D<il::int_t> id_press{nelts, 2, 0};
+  il::Array<il::int_t> fracID {nelts,1};
+  il::Array<il::int_t> matID {nelts,1};
 
-  int ndof = (nelts) * (p + 1) * 2;  // total number of dofs
+  //int ndof = (nelts) * (p + 1) * 2;  // total number of dofs
   double Ep = 1.;                    // Plane strain Young's modulus
 
   //  Array2D M(i, j) -> M(i + 1, j) (Ordre Fortran)
@@ -192,18 +214,32 @@ double SimpleGriffithExampleS3D_P0(int nelts) {
     myconn(i, 1) = i + 1;
   };
 
+  for (il::int_t i=0; i < nelts; i++){
+    for (il::int_t j=0; j < 2*(p+1); j++){
+      id_displ(i,j)=i*2*(p+1)+j;
+    }
+  }
+
+  for (il::int_t i=0; i < nelts; i++){
+    id_press(i,0)=i;
+    id_press(i,1)=i+1;
+  }
+
   //il::Array<il::int_t> matid{nelts, 1};
   // create mesh object
   //hfp2d::Mesh mesh;
 
   //mesh.init1DMesh(xy, myconn, matid);
-  hfp2d::Mesh mesh(xy,myconn);
+  //hfp2d::Mesh mesh(xy,myconn);
+  hfp2d::Mesh mesh(p,xy,myconn,id_displ,id_press,fracID,matID);
+
+  il::int_t ndof = mesh.numberOfDisplDofs();
 
   hfp2d::ElasticProperties myelas(1, 0.);
   //  myelas.ElasticProperties(1.,0.);
   std::cout << "EP :" << myelas.Ep() << "\n";
 
-  id = hfp2d::dofhandle_dp(2, nelts, p, il::io);  // dof handle for DDs
+  il::Array2D<int> id = hfp2d::dofhandle_dp(2, nelts, p, il::io);  // dof handle for DDs
 
   // some definitions needed for matrix assembly
   il::Array2D<double> xe{2, 2, 0}, xec{2, 2, 0};
@@ -224,10 +260,15 @@ double SimpleGriffithExampleS3D_P0(int nelts) {
   il::Timer timer{};
   timer.start();
 
-  K = hfp2d::basic_assembly(mesh, id, p, myelas,
+//  K = hfp2d::basic_assembly(mesh, id, p, myelas,
+//                            hfp2d::normal_shear_stress_kernel_s3d_dp0_dd,
+//                            1000.);  // large pseudo-heigth to reproduce plane-strain kernel
+//  // passing p could be avoided here
+
+  K = hfp2d::basic_assembly_new(mesh, myelas,
                             hfp2d::normal_shear_stress_kernel_s3d_dp0_dd,
                             1000.);  // large pseudo-heigth to reproduce plane-strain kernel
-  // passing p could be avoided here
+
 
   timer.stop();
   std::cout << "---end of assembly--- \n";

@@ -14,99 +14,155 @@ namespace hfp2d {
 
 Mesh loadGeometry(const il::String &inputFileName, const il::MapArray<il::String, il::Dynamic> &meshCreationMap) {
 
-  Mesh theMesh;
+  Mesh theGlobalMesh;
+  Mesh theSingleMesh;
   il::int_t keyFound;
   il::int_t interpOrder;
   il::int_t numFractures;
 
-  // check type mesh generation
-  if (meshCreationMap.found(meshCreationMap.search("automatic"))) {
+  keyFound = meshCreationMap.search("mesh_generation");
+
+  // Check existence of mesh generation keyword
+  if (meshCreationMap.found(keyFound)) {
 
     ////////// Automatic creation of the mesh //////////
     // if mesh generation is "automatic", start loading the interpolation order and the number of fractures
 
-    // load interpolation order of the mesh
-    keyFound = meshCreationMap.search("interpolation_order");
+    if (meshCreationMap.value(keyFound).asString()=="automatic") {
 
-    if (meshCreationMap.found(keyFound) && meshCreationMap.value(keyFound).isInteger()) {
+      interpOrder = findInterpOrder(meshCreationMap, inputFileName);
 
-      interpOrder = meshCreationMap.value(keyFound).toInteger();
-      IL_EXPECT_FAST(interpOrder >= 0); // we do not want a negative interpolation order
+      numFractures = findNumFractures(meshCreationMap, inputFileName);
 
-    } else {
+      // For every fracture, search for the name "fracture" + number of fracture
+      for (il::int_t fractureID = 0; fractureID < numFractures; fractureID++) {
 
-      std::cerr << "ERROR: missing the interpolation order in geometry." << std::endl;
-      std::cerr << "file: " << inputFileName << std::endl;
-      exit(2);
+        // now we create a string with the layer name
+        const il::String fractureName = il::join("fracture", il::toString(fractureID));
 
-    }
+        // search for the layer name
+        keyFound = meshCreationMap.search(fractureName);
 
-    // load number of fractures
-    keyFound = meshCreationMap.search("number_of_fractures");
+        // here we check that the "fracture#" is found and that it is a map array
+        if (meshCreationMap.found(keyFound) && meshCreationMap.value(keyFound).isMapArray()) {
 
-    if (meshCreationMap.found(keyFound) && meshCreationMap.value(keyFound).isInteger()) {
+          // we save the map array into autoCreationMap
+          const il::MapArray<il::String, il::Dynamic> &autoCreationMap = meshCreationMap.value(keyFound).asMapArray();
 
-      numFractures = meshCreationMap.value(keyFound).toInteger();
-      IL_EXPECT_FAST(numFractures > 0); // we want at least 1 fracture
+          // and we pass it to the automatic mesher
+          theSingleMesh = autoLineMesh(inputFileName, fractureID, autoCreationMap, interpOrder);
 
-    } else {
+          std:: cout << " Mesh number " << fractureID << " has " << theSingleMesh.numberOfFractures() << " fractures" << std::endl;
+          if(theGlobalMesh.numberOfElements() == 0) {
+            theGlobalMesh = theSingleMesh;
 
-      std::cerr << "ERROR: missing the number of fractures in geometry." << std::endl;
-      std::cerr << "file: " << inputFileName << std::endl;
-      exit(2);
+          }else{
+            theGlobalMesh.appendMesh(theSingleMesh,false);
 
-    }
+          }
 
-    // For every fracture, search for the name "fracture" + number of fracture
-    for (il::int_t fractureID = 0; fractureID < numFractures; fractureID++) {
+          std:: cout << " after fracture " << fractureID << " the global mesh has " << theGlobalMesh.numberOfFractures() << " fractures" << std::endl;
+        } else {
+          std::cerr << "ERROR: missing fracture/mismatch in number of fractures." << std::endl;
+          std::cerr << "fracture: " << fractureID << "file: " << inputFileName << std::endl;
+          exit(2);
+        }
+      }
+    } else if (meshCreationMap.value(keyFound).asString()=="manual") {
 
-      // now we create a string with the layer name
-      const il::String fractureName = il::join("fracture", il::toString(fractureID));
+      keyFound = meshCreationMap.search(il::toString("mesh_input_file"));
 
-      // search for the layer name
-      keyFound = meshCreationMap.search(fractureName);
+      if (meshCreationMap.found(keyFound) && meshCreationMap.value(keyFound).isString()) {
 
-      // here we check that the "fracture#" is found and that it is a map array
-      if (meshCreationMap.found(keyFound) && meshCreationMap.value(keyFound).isMapArray()) {
+        ////////////// MANUAL MESH PROVIDED BY THE USER //////////////
 
-        // we save the map array into autoCreationMap
-        const il::MapArray<il::String, il::Dynamic> &autoCreationMap = meshCreationMap.value(keyFound).asMapArray();
+        // every key in TOML can be mapped to il::String
+        const il::String meshFileName = meshCreationMap.value(keyFound).asString();
 
-        // and we pass it to the automatic mesher
-        theMesh = autoLineMesh(inputFileName, fractureID, autoCreationMap, interpOrder);
+        // load the custom mesh
+        loadMeshFile(meshFileName, il::io, theGlobalMesh);
 
       } else {
-        std::cerr << "ERROR: missing fracture/mismatch in number of fractures." << std::endl;
-        std::cerr << "fracture: " << fractureID << "file: " << inputFileName << std::endl;
+
+        std::cerr << "ERROR: manual mode in mesh but not file specified." << std::endl;
+        std::cerr << "file: " << inputFileName << std::endl;
         exit(2);
+
       }
-    }
-  } else if (meshCreationMap.found(meshCreationMap.search(il::toString("manual")))) {
-
-    keyFound = meshCreationMap.search(il::toString("mesh_input_file"));
-
-    if (meshCreationMap.found(keyFound) && meshCreationMap.value(keyFound).isString()) {
-
-      ////////////// MANUAL MESH PROVIDED BY THE USER //////////////
-
-      // every key in TOML can be mapped to il::String
-      const il::String meshFileName = meshCreationMap.value(keyFound).asString();
-
-      // load the custom mesh
-      loadMeshFile(meshFileName, il::io, theMesh);
 
     } else {
-      std::cerr << "ERROR: manual mode in mesh but not file specified." << std::endl;
+
+      std::cerr << "ERROR: mesh generation not supported." << std::endl;
       std::cerr << "file: " << inputFileName << std::endl;
+
       exit(2);
     }
 
   } else {
-    std::cerr << "ERROR: mesh generation not supported." << std::endl;
+
+    std::cerr << "ERROR: no mesh generation specified." << std::endl;
     std::cerr << "file: " << inputFileName << std::endl;
     exit(2);
+
+  }
+  return theGlobalMesh;
+}
+
+
+
+/////////////////////////
+
+il::int_t findInterpOrder(const il::MapArray<il::String, il::Dynamic> &meshCreationMap, const il::String &inputFileName) {
+
+  il::int_t keyFound;
+  il::int_t interpOrder;
+
+  // load interpolation order of the mesh
+  keyFound = meshCreationMap.search("interpolation_order");
+
+  if (meshCreationMap.found(keyFound) && meshCreationMap.value(keyFound).isInteger()) {
+
+    interpOrder = meshCreationMap.value(keyFound).toInteger();
+    IL_EXPECT_FAST(interpOrder >= 0); // we do not want a negative interpolation order
+
+  } else {
+
+    std::cerr << "ERROR: missing the interpolation order in geometry." << std::endl;
+    std::cerr << "file: " << inputFileName << std::endl;
+    exit(2);
+
   }
 
-  return theMesh;
+  return interpOrder;
+
 }
+
+////////////////////////////////
+
+il::int_t findNumFractures(const il::MapArray<il::String, il::Dynamic> &meshCreationMap, const il::String &inputFileName) {
+
+
+  il::int_t keyFound;
+  il::int_t numFractures;
+  keyFound = meshCreationMap.search("number_of_fractures");
+
+  if (meshCreationMap.found(keyFound) && meshCreationMap.value(keyFound).isInteger()) {
+
+    numFractures = meshCreationMap.value(keyFound).toInteger();
+
+    IL_EXPECT_FAST(numFractures > 0); // we want at least 1 fracture
+
+  } else {
+
+    std::cerr << "ERROR: missing the number of fractures in geometry." << std::endl;
+    std::cerr << "file: " << inputFileName << std::endl;
+    exit(2);
+
+  }
+
+  return numFractures;
+}
+
+
+
 }

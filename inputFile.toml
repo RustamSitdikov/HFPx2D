@@ -75,3 +75,55 @@
 
 ########################################################################################################################
 
+[properties]
+
+    Young_modulus=1.0
+    Poisson_ratio=0.24
+
+    ## Also available
+    # Lame_first
+    # Bulk_modulus
+    # Shear_modulus or Lame_second
+
+    # Properties of existing fluid in the fault
+    fluid_law = "Newtonian"
+    fluid_density = 1.0
+    fluid_compressibility = 1.0
+    fluid_viscosity = 3.0e-3
+
+    number_of_materials = 2
+
+
+[properties.material0]
+        solid_evolution_type = "Cohesive Zone Model"
+
+        cohesive_zone_type = "Pure Opening"
+
+        # Pure opening CZM
+        failure_stress = 1.0e6
+        max_opening = 0.05
+        # fracture_energy is available as well
+
+        flow_evolution_type = "Constant"
+
+        permeability = 1.0
+
+
+[properties.material1]
+        solid_evolution_type = "Cohesive Zone Model"
+
+        cohesive_zone_type = "Pure Shear"
+
+        failure_stress = 1.0e6
+        max_slip = 0.1
+
+        flow_evolution_type = "Dilatancy dependence"
+
+        initial_permeability = 0.5
+
+        opening_increase_per_slip = 0.01
+
+        final_permeability = 1.0
+
+
+

@@ -20,16 +20,16 @@ Mesh autoLineMesh(const il::String &inputFileName,
                   const il::int_t interpOrder) {
 
   // Find start and end coordinates of line mesh
-  double x_1 = findX1(inputFileName, fractureID, autoCreationMap);
-  double y_1 = findY1(inputFileName, fractureID, autoCreationMap);
-  double x_2 = findX2(inputFileName, fractureID, autoCreationMap);
-  double y_2 = findY2(inputFileName, fractureID, autoCreationMap);
+  double x_1 = findDouble("x_1", autoCreationMap, inputFileName);
+  double y_1 = findDouble("y_1", autoCreationMap, inputFileName);
+  double x_2 = findDouble("x_2", autoCreationMap, inputFileName);
+  double y_2 = findDouble("y_2", autoCreationMap, inputFileName);
 
   // Recover number of elements
-  il::int_t numElements = findNumElem(inputFileName, fractureID, autoCreationMap);
+  il::int_t numElements = findInteger("number_of_elements", autoCreationMap, inputFileName);
 
   // Recover material ID
-  il::int_t materialID = findMaterialID(inputFileName, fractureID, autoCreationMap);
+  il::int_t materialID = findInteger("material_ID", autoCreationMap, inputFileName);
 
   // create coordinates and connectivity matrices for the mesh
   il::Array2D<double> nodesCoordinates = createCustomMesh(x_1, y_1, x_2, y_2, numElements, interpOrder);

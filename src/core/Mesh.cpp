@@ -37,7 +37,8 @@ Mesh::Mesh(const il::int_t interpolationOrder,
   IL_EXPECT_FAST(elementsConnectivity.size(0)==displ_dof_handle.size(0));
   IL_EXPECT_FAST(elementsConnectivity.size(0)==press_dof_handle.size(0));
   // - 2 displacement dofs per node x number of nodes in an element == dof handle per element
-  IL_EXPECT_FAST(elementsConnectivity.size(1)*2 == displ_dof_handle.size(1));
+  IL_EXPECT_FAST((interpolationOrder==0 && displ_dof_handle.size(1)==2) ||
+                     elementsConnectivity.size(1)*2 == displ_dof_handle.size(1));
   // - 1 pressure dof per node x number of nodes in an element == dof handle per element
   IL_EXPECT_FAST(elementsConnectivity.size(1) == press_dof_handle.size(1));
 
@@ -52,6 +53,7 @@ Mesh::Mesh(const il::int_t interpolationOrder,
   dof_handle_pressure_ = press_dof_handle;
   material_id_=materialID;
   fracture_id_=fractureID;
+  interpolation_order_=interpolationOrder;
 
 };
 
@@ -59,24 +61,17 @@ Mesh::Mesh(const il::int_t interpolationOrder,
 ////////////////////////////////////////////////////////////////////////////////////////////
 
 /// SETTER
-/*void Mesh::appendMesh(const Mesh &newMesh, const bool isJoined) {
+void Mesh::appendMesh(const Mesh &newMesh, const bool isJoined) {
+
+  //IL_EXPECT_FAST(interpolation_order_==newMesh.interpolation_order_);
 
   // Strategy for appendMesh method:
   // newMesh arrives and it can be either connected or not.
   // isJoined determines if the mesh will share some nodes with the previous one.
   //
-  // If isJoined == false, then the two meshes are not connected.
-  // Hence, the total number of nodes and elements are summed together.
-  // Connectivity matrices are concatenated. The new connectivity matrix contains
-  // values from 0 to the new number of elements. Consequently, all the connectivity
-  // will be shifted by the old number of elements.
-  // Similarly, dof_handle matrices are shifted respectively by num_nodes (in the case
-  // of the pressure one) and num_elements*2*(interpolation_error+1) (in the case
-  // of the displacement one).
-  // Fracture ID is the old one +1. Material ID, condition ID, far field stress ID,
-  // pressure condition ID, source ID are maintained as is and concatenated.
-  // The vector is_tip is concatenated as well.
-  //
+
+  if(isJoined){
+/* PLACEHOLDER
   // If isJoined == true, then the two meshes are connected VIA THE TIPS.
   // The is_tip vector determines which nodes in the mesh are tips. The following
   // step requires to check which nodes are in contacts, by computing the distance
@@ -180,9 +175,103 @@ Mesh::Mesh(const il::int_t interpolationOrder,
     material_id_[i] = newMesh.material_id_[i];
     fracture_id_[i] = newMesh.fracture_id_[i];
 
-  }
+  }*/
 
-}*/
+  } else {
+
+    // If isJoined == false, then the two meshes are not connected.
+    // Hence, the total number of nodes and elements are summed together.
+    // Connectivity matrices are concatenated. The new connectivity matrix contains
+    // values from 0 to the new number of elements. Consequently, all the connectivity
+    // will be shifted by the old number of elements.
+    // Similarly, dof_handle matrices are shifted respectively by old number of nodes
+    // (in the case of the pressure one) and num_elements*2*(interpolation_order+1)
+    // (in the case of the displacement one).
+    // Fracture ID and Material ID are saved as such.
+
+    // Computing the new number of nodes (being 2 independent fractures, they are just summed)
+    const il::int_t old_number_of_nodes = this->numberOfNodes();
+    const il::int_t new_number_of_nodes = this->numberOfNodes() + newMesh.numberOfNodes();
+
+    // Resize the array of nodes coordinates accordingly and fill it with the new values
+    nodes_.resize(new_number_of_nodes,2);
+
+    for(il::int_t i = 0; i < newMesh.numberOfNodes(); i++){
+
+      nodes_(i + old_number_of_nodes,0) = newMesh.nodes_(i,0);
+      nodes_(i + old_number_of_nodes,1) = newMesh.nodes_(i,1);
+
+    }
+
+    // Compute the new number of elements (simply summed as well)
+    const il::int_t old_number_of_elements = this->numberOfElements();
+    const il::int_t new_number_of_elements = this->numberOfElements() + newMesh.numberOfElements();
+
+    // Resize connectivity accordingly and save the connectivity of new elements, which nodes identifier
+    // have with a shift of old_number_of_elements w.r.t. the newMesh values
+
+    // also materialID and fractureID are element related and concatenated here
+
+    const il::int_t columns_conn_mtx = (interpolation_order_ == 0) ? 2 : (interpolation_order_+1);
+
+    connectivity_.resize(new_number_of_elements, columns_conn_mtx);
+
+    fracture_id_.resize(new_number_of_elements);
+
+    material_id_.resize(new_number_of_elements);
+
+    for(il::int_t i = 0; i < newMesh.numberOfElements(); i++){
+
+      for(il::int_t j = 0; j < columns_conn_mtx; j++ ) {
+
+        connectivity_(i + old_number_of_elements, j) = newMesh.connectivity_(i, j) + old_number_of_nodes;
+
+      }
+
+      material_id_[i+old_number_of_elements]=newMesh.material_id_[i];
+      fracture_id_[i+old_number_of_elements]=newMesh.fracture_id_[i];
+    }
+
+    std::cout << "got connectivity" <<std::endl;
+
+    // Displacement dof handles: concatenated and shifted by old_number_of_nodes * 2 * (interpolationOrder + 1)
+    const il::int_t columns_displ_dofh_mtx = ((interpolation_order_ == 0) ? (2*2) : (2*(interpolation_order_+1)));
+    const il::int_t displ_dof_handle_shift = old_number_of_elements * columns_displ_dofh_mtx;
+
+    dof_handle_displacement_.resize( new_number_of_elements, columns_displ_dofh_mtx );
+
+    for (il::int_t i = 0; i < newMesh.numberOfElements(); i++) {
+
+      for(il::int_t j=0; j< columns_displ_dofh_mtx; j++) {
+
+        dof_handle_displacement_(i + old_number_of_elements, j) = newMesh.dof_handle_displacement_(i, j) + displ_dof_handle_shift;
+
+      }
+
+    }
+
+    std::cout << "got displ dof" <<std::endl;
+
+
+    // Pressure dof handles are concatenated and shifted by old_number_of_elements + 1
+    const il::int_t columns_press_dofh_mtx = (interpolation_order_ == 0) ? 2 : (interpolation_order_+1);
+    const il::int_t press_dof_handle_shift = old_number_of_elements * ( columns_press_dofh_mtx -1 ) + numberOfFractures();
+
+    dof_handle_pressure_.resize(new_number_of_elements,columns_press_dofh_mtx);
+
+    for (il::int_t i=0; i< newMesh.numberOfElements(); i++){
+
+      for(il::int_t j=0; j< columns_press_dofh_mtx; j++){
+
+        dof_handle_pressure_(i + old_number_of_elements, j) = newMesh.dof_handle_pressure_(i, j) + press_dof_handle_shift;
+
+      }
+    }
+
+    std::cout << "got press dof" <<std::endl;
+  }
+}
+
 
 /*void Mesh::appendMesh(const il::Array2D<double> &newNodesCoordinates,
                 const il::Array2D<il::int_t> &newElementsConnectivity,

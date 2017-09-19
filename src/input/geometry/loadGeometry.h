@@ -23,6 +23,9 @@ namespace hfp2d {
 
 Mesh loadGeometry(const il::String &inputFileName, const il::MapArray<il::String, il::Dynamic> &meshCreationMap);
 
+il::int_t findInterpOrder(const il::MapArray<il::String, il::Dynamic> &meshCreationMap, const il::String &inputFileName);
+il::int_t findNumFractures(const il::MapArray<il::String, il::Dynamic> &meshCreationMap, const il::String &inputFileName);
+
 }
 
 #endif //HFPX2DUNITTEST_GEOMETRY_H

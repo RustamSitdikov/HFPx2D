@@ -17,14 +17,14 @@
 #include "src/core/Properties.h"
 #include "src/core/Simulation.h"
 #include "src/input/geometry/loadGeometry.h"
-#include "src/input/material/loadSolid.h"
+#include "src/input/properties/loadProperties.h"
 
 namespace hfp2d{
 
 void loadInput(const il::String &inputFileName,
                il::io_t,
                Mesh &theMesh,
-               Properties &matProperties,
+               Properties &theProperties,
                Simulation &simParameters);
 
 }

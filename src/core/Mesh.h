@@ -70,6 +70,19 @@ public:
   Mesh(const il::int_t interpolationOrder,
        const il::Array2D<double> &nodesCoordinates,
        const il::Array2D<il::int_t> &elementsConnectivity,
+       const il::Array2D<il::int_t> &displacementDOFHandle){
+
+    interpolation_order_=interpolationOrder;
+    nodes_=nodesCoordinates;
+    connectivity_=elementsConnectivity;
+    dof_handle_displacement_=displacementDOFHandle;
+
+  };
+
+
+  Mesh(const il::int_t interpolationOrder,
+       const il::Array2D<double> &nodesCoordinates,
+       const il::Array2D<il::int_t> &elementsConnectivity,
        const il::Array2D<il::int_t> &displ_dof_handle,
        const il::Array2D<il::int_t> &press_dof_handle,
        const il::Array<il::int_t> &fractureID,
@@ -100,10 +113,18 @@ public:
   il::int_t numberOfNodes() const { return nodes_.size(0); }
   il::int_t numberOfElements() const { return connectivity_.size(0); }
   il::int_t interpolationOrder() const {return interpolation_order_;}
-  il::int_t numberOfFractures() const { return *std::max_element(fracture_id_.begin(),fracture_id_.end()); }
-  il::int_t numberOfMaterials() const { return *std::max_element(material_id_.begin(),material_id_.end()); }
-  il::int_t numberOfDisplDofs() const { return dof_handle_displacement_.size(1); }
-  il::int_t numberOfPressDofs() const { return dof_handle_pressure_.size(1); }
+  il::int_t numberOfFractures() const { return (*std::max_element(fracture_id_.begin(),fracture_id_.end())+1); }
+  il::int_t numberOfMaterials() const { return (*std::max_element(material_id_.begin(),material_id_.end())+1); }
+  il::int_t numberOfDisplDofsPerElement() const { return dof_handle_displacement_.size(1); }
+  il::int_t numberOfPressDofsPerElement() const { return dof_handle_pressure_.size(1); }
+
+  il::int_t numberOfPressDofs() const {
+    return (numberOfElements()*interpolationOrder()+numberOfFractures());
+  }
+
+  il::int_t numberOfDisplDofs() const {
+    return (numberOfElements()*(interpolation_order_+1)*2);
+  }
 
   // Read the X coordinate of a node
   double X(il::int_t k) const { return nodes_(k, 0); }
@@ -125,6 +146,10 @@ public:
   };
 
   il::int_t connectivity(il::int_t k, il::int_t i) const { return connectivity_(k, i); }
+  il::int_t dofPress(il::int_t k, il::int_t i) const { return dof_handle_pressure_(k, i); }
+  il::int_t dofDispl(il::int_t k, il::int_t i) const { return dof_handle_displacement_(k, i); }
+  il::int_t fracID(il::int_t k) const { return fracture_id_[k]; }
+  il::int_t matID(il::int_t k) const { return material_id_[k]; }
 
   il::int_t matid(il::int_t k) const { return material_id_[k]; }
 
@@ -137,6 +162,8 @@ public:
   il::Array2D<il::int_t> conn() const { return connectivity_; };
 
   il::Array<il::int_t> matid() const { return material_id_; };
+
+
 
   // TODO: remove all methods that are not needed
 

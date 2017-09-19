@@ -10,7 +10,7 @@
 
 #include <iostream>
 #include <fstream>
-
+#include <cmath>
 #include "src/input/loadInput.h"
 #include "src/Solvers/SimpleElastic.h"
 #include "src/core/SolutionClass.h"
@@ -41,8 +41,8 @@
 
 
 ////////////////////////////////////////////////////////////////////////////////
-//int const argc, char const* const* argv
-int main() {
+//
+int main(int const argc, char const* const* argv) {
 /*
   // Creating variables to deal with input arguments
   il::String inputFileName, outputDirectory, restartFileName;
@@ -54,6 +54,8 @@ int main() {
                        checkInput, inputFileName,
                        checkRestart, restartFileName,
                        checkOutput, outputDirectory);
+
+
 
   hfp2d::Mesh theMesh;
   hfp2d::Properties matProperties;
@@ -70,26 +72,36 @@ int main() {
 
   if (checkOutput) { // Eliminate this once a script for the output is done
 
-    // Example output to DUMMY file
-    il::String outputFile = il::join(outputDirectory, "/", "cracklength.txt");
-    std::cout << outputDirectory << std::endl;
-    std::cout << outputFile << std::endl;
+//    // Example output to DUMMY file
+//    il::String outputFile = il::join(outputDirectory, "/", "cracklength.txt");
+//    std::cout << outputDirectory << std::endl;
+//    std::cout << outputFile << std::endl;
+//
+//    std::ofstream foutlc;
+//    foutlc.open(outputFile.asCString());
+//    for (int i = 0; i < 10; i++) {
+//      foutlc << i << " again good" << "\n";
+//    }
+//    foutlc << "Good bye, once again" << "\n";
+//    foutlc.close();
 
-    std::ofstream foutlc;
-    foutlc.open(outputFile.asCString());
-    for (int i = 0; i < 10; i++) {
-      foutlc << i << " again good" << "\n";
-    }
-    foutlc << "Good bye, once again" << "\n";
-    foutlc.close();
 
-  }*/
+    // prepare data for output
 
+  }
+*/
 //////////////////////// Prepare data for computation /////////////////////////////////
+
+  // create the source vector for displacement+pressure dofs
+  //il::int_t totalNumDofs= theMesh.numberOfDisplDofsPerElement()+ theMesh.numberOfPressDofsPerElement();
+
+  //il::Array2D<double> kmat = basic_assembly_new(mesh_total, id, p, material.Ep);
 
 //////////////////////// Initiate the computational loop /////////////////////////////////
 
 //////////////////////// Previous code snippet /////////////////////////////////
+
+  std::cout << "\n\n ----- Simple Griffith crack examples ----- \n\n" << std::endl;
 
   int nelts = 10;
 

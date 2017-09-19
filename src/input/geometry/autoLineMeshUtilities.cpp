@@ -91,18 +91,19 @@ il::Array2D<il::int_t> createAutoDisplacementDofHandle(const il::int_t interpola
 
   il::int_t columns_displ_dofh_mtx;
 
-  if(interpolationOrder == 0){
-
-    // 2 is the problem dimension (2D) which means 2 displacements at each node, even if constant element
-    // Also, for the constant element, we consider 2 nodes per element.
-    columns_displ_dofh_mtx = 2*2;
-
-  } else {
+//  if(interpolationOrder == 0){
+//
+//    // 2 is the problem dimension (2D) which means 2 displacements at each node, even if constant element
+//    // Also, for the constant element, we consider 2 nodes per element.
+//    columns_displ_dofh_mtx = 2*2;
+//
+//  } else {
 
     // In general, at each node we have 2 displacements (x,y). Every element possesses interpolationOrder + 1 nodes.
+    // CHANGE: only one collocation point in constant elements x 2 dimensions
     columns_displ_dofh_mtx = 2*(interpolationOrder + 1);
 
-  }
+//  }
 
   il::Array2D<il::int_t> dof_handle_displacement(numberOfElements, columns_displ_dofh_mtx);
 
@@ -135,6 +136,9 @@ il::Array2D<il::int_t> createAutoPressureDofHandle(const il::int_t interpolation
   } else {
 
     // In general, every element possesses interpolationOrder+1 nodes with 1 pressure value per node
+    // NOTE THAT even if the element has constant DD, for the pressure part of the element
+    // we are always using at least continuos galerkin linear interpolation.
+    // Hence the modification if interpolationOrder == 0
     columns_press_dofh_mtx = (interpolationOrder + 1); // 2D problem with generic interpolation order
   }
 

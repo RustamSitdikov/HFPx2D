@@ -4,13 +4,15 @@ project(HFPx2D CXX)
 project(HFPx2DUnitTest CXX)
 
 
-
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -std=c++11")
 
 # If you want to run another compiler, such as clang
-# set(CMAKE_C_COMPILER /usr/bin/clang)
-# set(CMAKE_CXX_COMPILER /usr/bin/clang++)
+set(CMAKE_C_COMPILER /usr/bin/gcc)
+set(CMAKE_CXX_COMPILER /usr/bin/g++)
+#set(CMAKE_C_COMPILER /usr/bin/clang)
+#set(CMAKE_CXX_COMPILER /usr/bin/clang++)
+
 
 # needed for clang-tidy?
 # set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -22,8 +24,6 @@ ENDIF(CMAKE_BUILD_TYPE MATCHES DEBUG)
 set(SOURCE_FILES_DIR ${PROJECT_SOURCE_DIR}/src)
 
 set(SOURCE_FILES
-        il/io/toml/toml.h
-        il/io/toml/toml.cpp
         src/Elasticity/AssemblyDDM.cpp
         src/Elasticity/AssemblyDDM.h
         src/core/Mesh.cpp
@@ -52,12 +52,22 @@ set(SOURCE_FILES
         src/input/geometry/loadGeometry.h
         src/input/geometry/loadMeshFile.cpp
         src/input/geometry/loadMeshFile.h
-        src/input/material/loadSolid.cpp
-        src/input/material/loadSolid.h
-        src/input/geometry/autoLineMeshInfo.cpp
-        src/input/geometry/autoLineMeshInfo.h
+        src/input/properties/loadProperties.cpp
+        src/input/properties/loadProperties.h
+        #src/input/geometry/autoLineMeshInfo.cpp
+        #src/input/geometry/autoLineMeshInfo.h
         src/core/segmentData.cpp
-        src/core/segmentData.h)
+        src/core/segmentData.h
+        src/core/Solid.h
+        src/core/Fluid.h
+        src/core/SolidEvolution.h
+        src/core/FluidEvolution.h
+        src/input/properties/loadSingleMaterial.cpp
+        src/input/properties/loadSingleMaterial.h
+        src/input/findUtilities.cpp
+        src/input/findUtilities.h
+        il/io/toml/toml.h
+        il/io/toml/toml.cpp)
 
 link_directories(/opt/intel/mkl/lib/intel64
                  /opt/intel/compilers_and_libraries/linux/lib/intel64)
@@ -88,7 +98,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DIL_FOLDER='\"${SR_FOLDER}\"'")
 set(UNIT_TEST_FILES
         src/_test/elastic_test.cpp
         gtest/src/gtest-all.cc
-        )
+        src/core/Solid.h)
 
 add_executable(HFPx2DUnitTest ${SOURCE_FILES} ${UNIT_TEST_FILES} test.cpp)
 

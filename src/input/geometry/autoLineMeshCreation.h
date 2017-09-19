@@ -12,11 +12,15 @@
 #define HFPX2DUNITTEST_CUSTOMORIENTATIONMESH_H
 
 #include <iostream>
+#include <il/base.h>
 #include <il/Array.h>
 #include "il/toml.h"
+#include <il/String.h>
 #include "src/core/Mesh.h"
 #include "src/input/geometry/autoLineMeshUtilities.h"
 #include "src/input/geometry/autoLineMeshInfo.h"
+#include <src/input/findUtilities.h>
+
 
 namespace hfp2d {
 
