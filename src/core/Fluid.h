@@ -25,12 +25,28 @@ private:
 
 public:
 
-  void setFluidParameters(double density, double viscosity, double compressibility) {
+  explicit Fluid(Fluid theFluid){
+
+    fluid_density_ = theFluid.fluid_density_;
+    fluid_viscosity_ = theFluid.fluid_viscosity_;
+    fluid_compressibility_ = theFluid.fluid_compressibility_;
+
+  }
+
+
+  explicit Fluid(double density, double viscosity, double compressibility) {
 
     fluid_density_ = density;
     fluid_viscosity_ = viscosity;
     fluid_compressibility_ = compressibility;
   }
+
+//  void setFluidParameters(double density, double viscosity, double compressibility) {
+//
+//    fluid_density_ = density;
+//    fluid_viscosity_ = viscosity;
+//    fluid_compressibility_ = compressibility;
+//  }
 
   double fluidDensity() { return fluid_density_; };
   double fluidViscosity() { return fluid_viscosity_; };

@@ -67,7 +67,7 @@ set(SOURCE_FILES
         src/input/findUtilities.cpp
         src/input/findUtilities.h
         il/io/toml/toml.h
-        il/io/toml/toml.cpp)
+        il/io/toml/toml.cpp src/core/Conditions.h)
 
 link_directories(/opt/intel/mkl/lib/intel64
                  /opt/intel/compilers_and_libraries/linux/lib/intel64)
@@ -98,7 +98,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DIL_FOLDER='\"${SR_FOLDER}\"'")
 set(UNIT_TEST_FILES
         src/_test/elastic_test.cpp
         gtest/src/gtest-all.cc
-        src/core/Solid.h)
+        src/core/Solid.h src/core/iterative_loop.cpp src/core/iterative_loop.h)
 
 add_executable(HFPx2DUnitTest ${SOURCE_FILES} ${UNIT_TEST_FILES} test.cpp)
 

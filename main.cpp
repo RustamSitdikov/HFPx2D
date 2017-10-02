@@ -43,7 +43,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 //
 int main(int const argc, char const* const* argv) {
-/*
+
   // Creating variables to deal with input arguments
   il::String inputFileName, outputDirectory, restartFileName;
   bool checkInput = false;
@@ -89,13 +89,19 @@ int main(int const argc, char const* const* argv) {
     // prepare data for output
 
   }
-*/
+
 //////////////////////// Prepare data for computation /////////////////////////////////
 
   // create the source vector for displacement+pressure dofs
   //il::int_t totalNumDofs= theMesh.numberOfDisplDofsPerElement()+ theMesh.numberOfPressDofsPerElement();
+  // the source vector (or forcing vector) will be created after we checked for the position of the injection
+  // there will be a method in the class to give that vector
 
+  // create the stiffness matrix for the computation
   //il::Array2D<double> kmat = basic_assembly_new(mesh_total, id, p, material.Ep);
+  //il::Array2D<double> kmat = basic_assembly_new( mesh, id, p, Ep);  // from Dong
+  // how I would like it
+  // kmat = basic_assembly (mesh, properties, kernel);
 
 //////////////////////// Initiate the computational loop /////////////////////////////////
 

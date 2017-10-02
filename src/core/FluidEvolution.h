@@ -16,28 +16,46 @@
 
 namespace hfp2d {
 
-class FlowEvolution {};
-
-
-class ConstChannel{
+class FluidEvolution {
 
   // Example of constant permeability
 private:
+
   il::String type_;
-  double permeability_;
-  double initial_permeability_;
+
+  il::Array<double> permeability_;
+  il::Array<double> initial_permeability_;
 
 public:
+
+  explicit FluidEvolution(FluidEvolution theFluidEvolution){
+
+    type_ = theFluidEvolution.type_;
+    initial_permeability_ = theFluidEvolution.initial_permeability_;
+    permeability_ = theFluidEvolution.permeability_;
+
+  }
+
+  FluidEvolution(il::Array<double> initialPermeability) {
+
+    type_ = il::toString("Constant permeability");
+    initial_permeability_ = initialPermeability;
+    permeability_ = initialPermeability;
+
+  };
+
   il::String getType() { return type_; }
 
-  void setInitialPermeability(double k) {
+  double getPermeability(il::int_t k) { return initial_permeability_[k]; }
+
+  /*void setInitialPermeability(double k) {
     permeability_ = k;
     initial_permeability_ = k;
-  }
+  }*/
 
-  double getPermeability() {
-    return permeability_;
-  }
+//  double getPermeability() {
+//    return permeability_;
+//  }
 
 };
 

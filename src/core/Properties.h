@@ -34,26 +34,44 @@ namespace hfp2d {
 
 // for each fracture ID we will provide a properties object which is
 
-class Properties {
+class Properties{ //}; : Solid, Fluid, SolidEvolution, FluidEvolution {
 
 private:
 
+  Solid& solid_;
+  Fluid& fluid_;
+
+  SolidEvolution& solid_evolution_;
+  FluidEvolution& fluid_evolution_;
 
 public:
 
-  Solid fault_solid;
-  Fluid fault_fluid;
+  Properties(Properties theProperties){
 
-  //SolidEvolution
-  LinearCZM evolutionCZM;
-  //FluidEvolution
-  ConstChannel evolutionFlow;
+    solid_ = theProperties.&solid_;
+    fluid_ = theProperties.&fluid_;
+
+    solid_evolution_ = theProperties.&solid_evolution_;
+    fluid_evolution_ = theProperties.&fluid_evolution_;
+
+  };
+
+  Properties(Solid &theSolid,
+             Fluid &theFluid,
+             SolidEvolution &theSolidEvolution,
+             FluidEvolution &theFluidEvolution){
+
+    solid_=theSolid;
+    fluid_=theFluid;
+    solid_evolution_=theSolidEvolution;
+    fluid_evolution_=theFluidEvolution;
+
+  };
 
 
 };
 
 
 };
-
 
 #endif //HFPX2D_PROPERTIES_H

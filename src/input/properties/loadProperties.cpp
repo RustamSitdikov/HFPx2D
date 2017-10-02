@@ -7,228 +7,129 @@
 
 namespace hfp2d {
 
-Properties loadProperties(const il::String &inputFileName,
-                          const il::MapArray<il::String, il::Dynamic> &propertiesMap,
-                          const il::int_t numOfMats) {
-
-  Properties theProperties;
-  //SolidEvolution
-  LinearCZM theSolidEvolution;
-
+Properties loadProperties(const Mesh &theLoadedMesh,
+                          const il::String &inputFileName,
+                          const il::MapArray<il::String, il::Dynamic> &propertiesMap) {
+  //// Properties
+  // We have to load properties for each material, and placing it into the respective slot in the Properties class.
+  // For the moment we accept only one type of solid and fluid evolution.
+  //
+  // The loading works as following.
+  // We start loading the elasticity properties which are -for the moment- constant on all the domain.
   double youngModulus = findDouble("Young_modulus",propertiesMap,inputFileName);
   double poissonRatio = findDouble("Poisson_ratio",propertiesMap,inputFileName);
+  Solid theSolid(youngModulus,poissonRatio);
 
-  il::String fluidLaw = findString("fluid_law",propertiesMap,inputFileName);
+  // Then, we load the fluid properties assuming a newtonian fluid in the natural fractures.
   double fluidDensity = findDouble("fluid_density",propertiesMap,inputFileName);
   double fluidCompres = findDouble("fluid_compressibility",propertiesMap,inputFileName);
   double fluidViscosity = findDouble("fluid_viscosity",propertiesMap,inputFileName);
+  Fluid theFluid(fluidDensity,fluidViscosity,fluidCompres);
+
+  // Which type of solid evolution did we selected?
+  il::String solidEvolType = findString("solid_evolution_type", propertiesMap, inputFileName);
+  il::String fluidEvolType = findString("fluid_evolution_type", propertiesMap, inputFileName);
+
+  /// ------------
+  // HERE we should create a switch which (i) select the kind of constitutive model depending on the name
+  // that is passed, (ii) allocates the memory for the parameters (iii) all stress/traction-separation laws/etc
+  // are virtual functions which point to the correct ones.
+  //
+  // In addition, it should point to the correct loading procedure, since keywords can be different!
+  //
+  // The same should be done for the parameters and constitutive laws described by the fluid evolution types.
+  //
+  // For linear cohesive zone models we have failure stress and opening as parameters. Then we would like to save
+  // also the last maximum opening. So we set it at 3.
+  il::int_t solidEvolParamNum = 3;
+  /// ------------
 
 
+  // How many number of solid evolution are there?
+  // We will maintain the same cohesive zone model for every element but with different parameters.
   il::int_t keyFound;
   il::int_t numMaterials = findInteger("number_of_materials",propertiesMap,inputFileName);
 
-  if(numOfMats != numMaterials) {
-    std::cerr << "ERROR: mismatch in number of materials between mesh and properties." << std::endl;
-    std::cerr << numOfMats << " in the mesh, " << numMaterials << "in the properties. file: " << inputFileName << std::endl;
-    exit(2);
+  if(theLoadedMesh.numberOfMaterials() != numMaterials){
+    std::cerr << "ERROR: mismatch between materials in geometry and materials in properties, \n"
+              << "in file " << inputFileName << std::endl;
+    exit(3);
   }
 
-  // For every fracture, search for the name "material" + number of material
-  for (il::int_t materialID = 0; materialID < numMaterials; materialID++) {
+  //
+  // Now we load the type of solid evolution.
+  // For example: cohesive zone model with linear variation of the stresses w.r.t. aperture
+  // The solid evolution is computed at each collocation point location, but the number of
+  // historical variables and parameters are depending on the type of constitutive model.
 
-    // now we create a string with the m name
+  il::int_t numDisplDofs = theLoadedMesh.numberOfDisplDofs();
+
+  il::Array<double> failureStresses(numDisplDofs);
+  il::Array<double> maxOpenings(numDisplDofs);
+  il::Array<double> permeabilities(numDisplDofs);
+
+  // we scan along the vector of materials ID which nodes will have the material ID
+  for(il::int_t materialID=0; materialID<numMaterials; materialID++){
+
+    // load the materialID-th material
     const il::String materialName = il::join("material", il::toString(materialID));
 
-    // search for the material name
     keyFound = propertiesMap.search(materialName);
 
-    // here we check that the "material#" is found and that it is a map array
-    if (propertiesMap.found(keyFound) && propertiesMap.value(keyFound).isMapArray()) {
+    if(propertiesMap.found(keyFound) && propertiesMap.value(keyFound).isMapArray()){
 
-      // we save the map array into autoCreationMap
-      const il::MapArray<il::String, il::Dynamic> &autoCreationMap = propertiesMap.value(keyFound).asMapArray();
+      // take the map array of the single material
+      const il::MapArray<il::String, il::Dynamic> &singleMaterial = propertiesMap.value(keyFound).asMapArray();
 
-      // and we pass it to the loader
-      //theSolidEvolution = loadSingleMaterial(inputFileName, materialID, autoCreationMap);
-      //theFluidEvolution = ...
+      // load the parameters of the single material (in this case for the linear cohesive zone model)
+      double singleFailureStress = findDouble("failure_stress", singleMaterial, inputFileName);
+      double singleMaxOpening = findDouble("max_opening", singleMaterial, inputFileName);
+
+      double singlePermeabiity = findDouble("permeability", singleMaterial, inputFileName);
+
+      // save the loaded parameters only in those dofs which matID correspond to the one that has been loaded
+      for(il::int_t elmtK=0; elmtK < numDisplDofs; elmtK++){
+        if(theLoadedMesh.matID(elmtK)==materialID){
+
+          // this loop is for collocation point properties (e.g. CZMs)
+          for(il::int_t j=0; j<theLoadedMesh.numberOfDisplDofsPerElement(); j++){
+
+            // save the material parameters at the location indicated by the dof handle
+            failureStresses[theLoadedMesh.dofDispl(elmtK,j)] = singleFailureStress;
+            maxOpenings[theLoadedMesh.dofDispl(elmtK,j)] = singleMaxOpening;
+
+          }
+
+          // this loop is for nodal properties (e.g. flow & transport)
+          for(il::int_t j=0; j<theLoadedMesh.numberOfPressDofsPerElement(); j++){
+
+            permeabilities[theLoadedMesh.dofPress(elmtK,j)] = singlePermeabiity;
+
+          }
+
+        }
+      }
 
     } else {
-      std::cerr << "ERROR: missing material from list." << std::endl;
-      std::cerr << "material: " << materialID << "file: " << inputFileName << std::endl;
-      exit(2);
+
+      std::cerr << "ERROR: missing Material number " << materialID << std::endl;
+      std::cerr << "in file: " << inputFileName << std::endl;
+      exit(4);
+
     }
 
   }
 
+  SolidEvolution theSolidEvolution(failureStresses,maxOpenings);
+  FluidEvolution theFluidEvolution(permeabilities);
+
+  // Having loaded all the parameters, the final step is create the properties container from each single container
+
+  Properties theProperties(theSolid, theFluid, theSolidEvolution, theFluidEvolution);
 
 return theProperties;
 }
 
-/* old routines
-
-double findYoungModulus(const il::MapArray<il::String, il::Dynamic> &meshCreationMap, const il::String &inputFileName) {
-
-  il::int_t keyFound;
-  double youngModulus;
-
-  // load interpolation order of the mesh
-  keyFound = meshCreationMap.search("Young_modulus");
-
-  if (meshCreationMap.found(keyFound) && meshCreationMap.value(keyFound).isDouble()) {
-
-    youngModulus = meshCreationMap.value(keyFound).toDouble();
-    IL_EXPECT_FAST(youngModulus >= 0); // we do not want a negative Young's modulus
-
-  } else {
-
-    std::cerr << "ERROR: missing the Young modulus in properties." << std::endl;
-    std::cerr << "file: " << inputFileName << std::endl;
-    exit(3);
-
-  }
-
-  return youngModulus;
-
-}
-
-////////////////////////////////
-
-double findPoissonRatio(const il::MapArray<il::String, il::Dynamic> &meshCreationMap, const il::String &inputFileName) {
-
-  il::int_t keyFound;
-  double poissonRatio;
-
-  // load interpolation order of the mesh
-  keyFound = meshCreationMap.search("Poisson_ratio");
-
-  if (meshCreationMap.found(keyFound) && meshCreationMap.value(keyFound).isDouble()) {
-
-    poissonRatio = meshCreationMap.value(keyFound).toDouble();
-    IL_EXPECT_FAST(poissonRatio >= 0); // we do not want a negative Poisson ratio
-
-  } else {
-
-    std::cerr << "ERROR: missing the Poisson ratio in properties." << std::endl;
-    std::cerr << "file: " << inputFileName << std::endl;
-    exit(3);
-
-  }
-
-  return poissonRatio;
-
-}
-
-////////////////////////////////
-
-double findFluidDensity(const il::MapArray<il::String, il::Dynamic> &meshCreationMap, const il::String &inputFileName) {
-
-  il::int_t keyFound;
-  double fluidDensity;
-
-  // load interpolation order of the mesh
-  keyFound = meshCreationMap.search("fluid_density");
-
-  if (meshCreationMap.found(keyFound) && meshCreationMap.value(keyFound).isDouble()) {
-
-    fluidDensity = meshCreationMap.value(keyFound).toDouble();
-    IL_EXPECT_FAST(fluidDensity >= 0); // we do not want a negative fluid density
-
-  } else {
-
-    std::cerr << "ERROR: missing the fluid density in properties." << std::endl;
-    std::cerr << "file: " << inputFileName << std::endl;
-    exit(3);
-
-  }
-
-  return fluidDensity;
-
-}
-
-////////////////////////////////
-
-double findFluidViscosity(const il::MapArray<il::String, il::Dynamic> &meshCreationMap, const il::String &inputFileName) {
-
-  il::int_t keyFound;
-  double fluidViscosity;
-
-  // load interpolation order of the mesh
-  keyFound = meshCreationMap.search("fluid_viscosity");
-
-  if (meshCreationMap.found(keyFound) && meshCreationMap.value(keyFound).isDouble()) {
-
-    fluidViscosity = meshCreationMap.value(keyFound).toDouble();
-    IL_EXPECT_FAST(fluidViscosity >= 0); // we do not want a negative fluid viscosity
-
-  } else {
-
-    std::cerr << "ERROR: missing the fluid viscosity in properties." << std::endl;
-    std::cerr << "file: " << inputFileName << std::endl;
-    exit(3);
-
-  }
-
-  return fluidViscosity;
-
-}
-
-////////////////////////////////
-
-double findFluidCompressibility(const il::MapArray<il::String, il::Dynamic> &meshCreationMap, const il::String &inputFileName) {
-
-  il::int_t keyFound;
-  double fluidCompressibility;
-
-  // load interpolation order of the mesh
-  keyFound = meshCreationMap.search("fluid_compressibility");
-
-  if (meshCreationMap.found(keyFound) && meshCreationMap.value(keyFound).isDouble()) {
-
-    fluidCompressibility = meshCreationMap.value(keyFound).toDouble();
-    IL_EXPECT_FAST(fluidCompressibility >= 0); // we do not want a fluid compressibility
-
-  } else {
-
-    std::cerr << "ERROR: missing the fluid compressibility in properties." << std::endl;
-    std::cerr << "file: " << inputFileName << std::endl;
-    exit(3);
-
-  }
-
-  return fluidCompressibility;
-
-}
-
-  ////////////////////////////////
-
-  il::int_t findNumMaterials(const il::MapArray<il::String, il::Dynamic> &meshCreationMap, const il::String &inputFileName) {
-
-    il::int_t keyFound;
-    il::int_t numMaterials;
-
-    // load interpolation order of the mesh
-    keyFound = meshCreationMap.search("number_of_materials");
-
-    std::cout << meshCreationMap.found(keyFound) <<std::endl;
-    std::cout << meshCreationMap.value(keyFound).isInteger() << std::endl;
-
-    if (meshCreationMap.found(keyFound) && meshCreationMap.value(keyFound).isInteger()) {
-
-      numMaterials = meshCreationMap.value(keyFound).toInteger();
-      IL_EXPECT_FAST(numMaterials >= 0); // we do not want a negative number of materials
-
-    } else {
-
-      std::cerr << "ERROR: missing the number of materials in properties." << std::endl;
-      std::cerr << "file: " << inputFileName << std::endl;
-      exit(3);
-
-    }
-
-    return numMaterials;
-
-  }
-*/
 }
 
 

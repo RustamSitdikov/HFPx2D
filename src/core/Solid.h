@@ -26,6 +26,19 @@ private:
   double lame2_; // Shear modulus or Lame' second parameter
 
 public:
+
+  Solid(Solid theSolid){
+    young_ = theSolid.young_;
+    poiss_ = theSolid.poiss_;
+    bulkm_ = theSolid.bulkm_;
+    lame1_ = theSolid.lame1_;
+    lame2_ = theSolid.lame2_;
+  }
+
+  Solid(double youngModulus, double poissonRatio){
+    this->setSolidParameters1(youngModulus,poissonRatio);
+  }
+
   /////////// SETTER OF PARAMETERS
   void setSolidParameters1(double YoungModulus, double PoissonRatio){
 

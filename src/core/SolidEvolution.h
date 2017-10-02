@@ -14,35 +14,95 @@
 #ifndef HFPX2DUNITTEST_SOLIDEVOLUTION_H
 #define HFPX2DUNITTEST_SOLIDEVOLUTION_H
 
+#include <il/base.h>
+#include <il/Array.h>
+#include <il/Array2D.h>
+#include <il/String.h>
+
 namespace hfp2d {
 
+class SolidEvolution {
 
-
-/*class SolidEvolution {
+//// Based on the linear cohesive zone model
 private:
+
   il::String type_;
 
-  double stress_threshold_;
+  il::Array<double> maximum_stress_;
+  il::Array<double> maximum_opening_;
+  il::Array<double> last_saved_opening_;
+  il::Array<double> fracture_energy_;
 
 public:
 
-  il::String getType() { return type_; }
+  SolidEvolution(SolidEvolution theSolidEvolution){
 
-  virtual bool isActive(double stressMeasure){
-    return (stressMeasure > stress_threshold_);
+    type_ = theSolidEvolution.type_;
+    maximum_stress_ = theSolidEvolution.maximum_stress_;
+    maximum_opening_ = theSolidEvolution.maximum_opening_;
+    fracture_energy_ = theSolidEvolution.fracture_energy_;
+    last_saved_opening_ = theSolidEvolution.last_saved_opening_;
   }
 
-  *//*virtual SolidEvolution(const il::String &type, const double stress_threshold){
-    type_=type;
-    stress_threshold_=stress_threshold;
-  }*//*
+  SolidEvolution(il::Array<double> failureStress, il::Array<double> decohesionOpening){
 
+    type_="Linear CZM";
 
-  SolidEvolution() {};
+    IL_EXPECT_FAST(failureStress.size() == decohesionOpening.size());
+    maximum_stress_=failureStress;
+    maximum_opening_= decohesionOpening;
 
-};*/
+    for(il::int_t i=0; i < failureStress.size(); i++) {
+      fracture_energy_[i] = 0.5 * failureStress[i] * decohesionOpening[i];
+      last_saved_opening_[i] = 0.0;
+    }
 
+  }
 
+  /////////// RECODE RECODE RECODE ///////////
+  /*
+  bool isActive(il::int_t i, double stress) {
+    return ( stress[i] > maximum_stress_[i]);
+  }
+
+  bool isLoading(double current_opening){
+    return ( current_opening > last_saved_opening_);
+  }
+
+  double stressLoading(double opening){
+    return ((opening < maximum_opening_) ?
+            maximum_stress_ * ( 1.0 - opening/maximum_opening_ ) : 0.0);
+  }
+
+  double stressUnloading(double opening){
+    return ((opening < maximum_opening_) ?
+            maximum_stress_ * ( opening/maximum_opening_ ) : 0.0);
+  }
+
+  double tractionSeparationLaw(double opening){
+
+    double stress;
+
+    if(isLoading(opening)){
+
+      stress = stressLoading(opening);
+      last_saved_opening_ = opening;
+
+    } else {
+
+      stress = stressUnloading(opening);
+
+    }
+
+    return stress;
+  }
+*/
+
+  il::String getType() { return type_; }
+
+};
+
+/*
 class LinearCZM { // Example of linear CZM
 
 private:
@@ -109,7 +169,7 @@ public:
 
 
 };
-
+*/
 
 
 }
