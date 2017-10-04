@@ -11,8 +11,12 @@
 #ifndef HFPX2D_MESH_H
 #define HFPX2D_MESH_H
 
-// Inclusion from Inside Loop library
+// include std libraries
 #include <cmath>
+#include <iostream>
+#include <algorithm>
+
+// Inclusion from Inside Loop library
 #include <il/base.h>
 #include <il/Array.h>
 #include <il/Array2D.h>
@@ -20,9 +24,8 @@
 #include <il/StaticArray2D.h>
 #include <il/container/1d/SmallArray.h>
 #include <il/String.h>
-#include <iostream>
 #include <il/linear_algebra.h>
-#include <algorithm>
+
 
 namespace hfp2d {
 
@@ -33,6 +36,7 @@ private:
 
   // Coordinates of the nodes - size: number of nodes x problem dimension (2D)
   il::Array2D<double> nodes_;
+
   // Connectivity matrix - size: number of elements x (order interpolation + 1)
   il::Array2D<il::int_t> connectivity_;
 
@@ -47,11 +51,12 @@ private:
 
   // Identifier number of the fracture - size: number of elements
   il::Array<il::int_t> fracture_id_;
+
+
   // Material identifier - size: number of elements
   il::Array<il::int_t> material_id_;
   // Material identifier - size: number of elements
   il::Array<il::int_t> condition_id_;
-
 
 public:
 

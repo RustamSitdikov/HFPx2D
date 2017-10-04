@@ -6,7 +6,7 @@
 
 namespace hfp2d {
 
-Conditions loadConditions(const Mesh &theLoadedMesh,
+InSituStress loadConditions(const Mesh &theLoadedMesh,
                           const il::String &inputFileName,
                           const il::MapArray<il::String, il::Dynamic> &conditionsMap) {
 
@@ -83,7 +83,7 @@ Conditions loadConditions(const Mesh &theLoadedMesh,
 
   }
 
-  Conditions theConditions(stressDistribution,porePressureDistribution);
+  InSituStress theConditions(stressDistribution,porePressureDistribution);
 
   return theConditions;
 

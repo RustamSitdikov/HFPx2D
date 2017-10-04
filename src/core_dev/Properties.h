@@ -24,17 +24,17 @@
 #include <il/Array.h>
 #include <il/Array2D.h>
 #include <il/String.h>
-#include "Solid.h"
-#include "Fluid.h"
+#include "src/core/Solid.h"
+#include "src/core/Fluid.h"
 #include "SolidEvolution.h"
-#include "FluidEvolution.h"
+#include "src/FluidFlow/PermeabilityEvolution.h"
 
 
 namespace hfp2d {
 
 // for each fracture ID we will provide a properties object which is
 
-class Properties{ //}; : Solid, Fluid, SolidEvolution, FluidEvolution {
+class Properties{ //}; : Solid, Fluid, SolidEvolution, PermeabilityEvolution {
 
 private:
 
@@ -42,7 +42,7 @@ private:
   Fluid* fluid_;
 
   SolidEvolution* solid_evolution_;
-  FluidEvolution* fluid_evolution_;
+  PermeabilityEvolution* fluid_evolution_;
 
 public:
 
@@ -62,7 +62,7 @@ public:
   explicit Properties(Solid &theSolid,
                       Fluid &theFluid,
                       SolidEvolution &theSolidEvolution,
-                      FluidEvolution &theFluidEvolution){
+                      PermeabilityEvolution &theFluidEvolution){
 
     *solid_=theSolid;
     *fluid_=theFluid;

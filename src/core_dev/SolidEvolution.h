@@ -35,6 +35,7 @@ private:
 
 public:
 
+
   explicit SolidEvolution(const SolidEvolution &theSolidEvolution){
 
     type_ = theSolidEvolution.type_;
@@ -43,6 +44,7 @@ public:
     fracture_energy_ = theSolidEvolution.fracture_energy_;
     last_saved_opening_ = theSolidEvolution.last_saved_opening_;
   }
+
 
   explicit SolidEvolution(const il::Array<double> &failureStress,
                           const il::Array<double> &decohesionOpening){

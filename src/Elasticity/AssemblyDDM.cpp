@@ -135,7 +135,7 @@ il::Array2D<double> basic_assembly_new(Mesh &mesh, ElasticProperties& elas,
   // mesh:: the Mesh object
   // id :: the DOF handle
   // p :: the interpolation order
-  // Ep :: the Plane Strain Young's modulus
+  // elas  :: the elastic properties object
 
   il::int_t p=mesh.interpolationOrder();
 

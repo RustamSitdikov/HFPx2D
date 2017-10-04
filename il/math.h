@@ -12,6 +12,7 @@
 
 #include <cmath>
 #include <complex>
+
 #include <il/base.h>
 
 namespace il {
@@ -57,9 +58,9 @@ T abs(T x) {
   return x >= 0 ? x : -x;
 }
 
-// Template for pow(x,N) where N is a positive int constant.
+// Template for pow(x,N) where N is a positive il::int_t constant.
 // General case, N is not a power of 2:
-template <bool IsPowerOf2, int N, typename T>
+template <bool IsPowerOf2, il::int_t N, typename T>
 class powN {
  public:
   static T p(T x) {
@@ -72,7 +73,7 @@ class powN {
 };
 
 // Partial template specialization for N a power of 2
-template <int N, typename T>
+template <il::int_t N, typename T>
 class powN<true, N, T> {
  public:
   static T p(T x) {
@@ -101,14 +102,14 @@ class powN<true, 0, T> {
 };
 
 // Function template for x to the power of N
-template <int N, typename T>
+template <il::int_t N, typename T>
 static T ipow(T x) {
   // (N & N-1) == 0 if N is a power of 2
   return powN<(N & (N - 1)) == 0, N, T>::p(x);
 }
 
 template <typename T>
-double ipow(T x, int n) {
+double ipow(T x, il::int_t n) {
   IL_EXPECT_FAST(n >= 0);
   T ans = 1;
   while (n != 0) {
@@ -183,8 +184,8 @@ inline int nextLog2(std::size_t x) {
   //  x |= x >> 8;
   //  x |= x >> 16;
   //  x |= x >> 32;
-  //  const int index =
-  //      static_cast<int>((x * 0x07EDD5E59A4E28C2) >> 58);
+  //  const il::int_t index =
+  //      static_cast<il::int_t>((x * 0x07EDD5E59A4E28C2) >> 58);
   //
   //  return table_log2_64[index];
   std::size_t power = 1;

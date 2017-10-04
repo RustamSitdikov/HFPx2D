@@ -8,14 +8,14 @@
 #include <iostream>
 #include "il/base.h"
 #include "il/toml.h"
-#include "src/core/Properties.h"
-#include "src/core/Conditions.h"
+#include "src/core_dev/Properties.h"
+#include "src/core/InSituStress.h"
 #include <src/input/findUtilities.h>
 #include <src/core/Mesh.h>
 
 namespace hfp2d {
 
-Conditions loadConditions(const Mesh &theLoadedMesh,
+InSituStress loadConditions(const Mesh &theLoadedMesh,
                           const il::String &inputFileName,
                           const il::MapArray<il::String, il::Dynamic> &conditionsMap);
 

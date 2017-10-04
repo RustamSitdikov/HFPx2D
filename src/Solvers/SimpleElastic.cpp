@@ -102,7 +102,7 @@ double SimpleGriffithExampleLinearElement(int nelts) {
   il::int_t ndof = mesh.numberOfDisplDofs();
 
   hfp2d::ElasticProperties myelas(1, 0.);
-  //  myelas.ElasticProperties(1.,0.);
+
   std::cout << "EP :" << myelas.Ep() << "\n";
 
   il::Array2D<int> id = hfp2d::dofhandle_dp(2, nelts, p, il::io);  // dof handle for DDs

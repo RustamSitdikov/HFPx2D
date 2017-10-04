@@ -31,6 +31,7 @@ class Solution {
 
 private:
 
+  //todo : we may remove this.
   // Private, number of displacement variables
   il::int_t sizeDisplacement_;
   // Private vector of pressure
@@ -47,8 +48,7 @@ private:
   // Private number of iterations
   il::int_t numIterations_;
 
-
-public:
+ public:
 
   /// CONSTRUCTORS
   // Constructor with size: it reserve the space for the problem solution

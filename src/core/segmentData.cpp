@@ -7,7 +7,7 @@
 
 namespace hfp2d {
 
-// SOME UTILITIES HERE below -> To be moved in a separate file ??
+//   Rotation Matrix
 il::StaticArray2D<double, 2, 2> rotation_matrix_2D(double theta) {
   il::StaticArray2D<double, 2, 2> R;
 
@@ -18,6 +18,8 @@ il::StaticArray2D<double, 2, 2> rotation_matrix_2D(double theta) {
 
   return R;
 }
+
+//
 
 // Function returning the segment characteristic from the matrix of the
 // coordinates of the end points and the knowledge of the degree of

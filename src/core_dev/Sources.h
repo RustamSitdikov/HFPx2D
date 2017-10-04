@@ -6,6 +6,9 @@
 #define HFPX2DUNITTEST_SOURCES_H
 
 #include <il/Array.h>
+
+
+// todo : will evolve .... we may not need a class for that.
 namespace hfp2d {
 class Sources {
 
@@ -17,7 +20,14 @@ public:
 
   Sources(il::Array<double> injectionRate) {
 
+    // we need the corresponding location of the injection
+    // element number (for P0) or nodes number for P1 ....
+    //
+
+    // can be a list if there is multiple rate....
+
     this->injection_rate_ = injectionRate;
+
 
   };
 

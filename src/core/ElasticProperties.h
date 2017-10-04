@@ -25,10 +25,11 @@ class ElasticProperties {
  public:
 // we construct from value of Young and PR
   ElasticProperties(double Young, double nu) {
+
     Young_ = Young;
     nu_ = nu;
     G_ = Young / (2. * (1 + nu));
-    Ep_ = Young / (1. - nu * nu);
+    Ep_ = Young / (1. - nu * nu);   // plane strain Ep
     K_ = Young / (3. * (1. - 2. * nu));
   }
 

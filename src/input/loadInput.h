@@ -14,10 +14,10 @@
 #include <iostream>
 #include "il/toml.h"
 #include "src/core/Mesh.h"
-#include "src/core/Properties.h"
-#include "src/core/Simulation.h"
-#include "src/core/Conditions.h"
-#include "src/core/Sources.h"
+#include "src/core_dev/Properties.h"
+#include "src/core_dev/Simulation.h"
+#include "src/core/InSituStress.h"
+#include "src/core_dev/Sources.h"
 #include "src/input/geometry/loadGeometry.h"
 #include "src/input/properties/loadProperties.h"
 #include "src/input/conditions/loadConditions.h"
@@ -29,7 +29,7 @@ void loadInput(const il::String &inputFileName,
                il::io_t,
                Mesh &theMesh,
                Properties &theProperties,
-               Conditions &theConditions,
+               InSituStress &theConditions,
                Sources &theSources,
                Simulation &simParameters);
 

@@ -11,6 +11,9 @@
 // See the LICENSE.TXT file for more details. 
 //
 
+
+//todo  -> merge into ElasticProperties
+
 #ifndef HFPX2DUNITTEST_SOLID_H
 #define HFPX2DUNITTEST_SOLID_H
 

@@ -11,12 +11,12 @@
 // See the LICENSE.TXT file for more details. 
 //
 
-#ifndef HFPX2DUNITTEST_FLUIDEVOLUTION_H
-#define HFPX2DUNITTEST_FLUIDEVOLUTION_H
+#ifndef HFPX2DUNITTEST_PERMEABILITYEVOLUTION_H
+#define HFPX2DUNITTEST_PERMEABILITYEVOLUTION_H
 
 namespace hfp2d {
 
-class FluidEvolution {
+class PermeabilityEvolution {
 
   // Example of constant permeability
 private:
@@ -28,7 +28,7 @@ private:
 
 public:
 
-  explicit FluidEvolution(const FluidEvolution &theFluidEvolution){
+  explicit PermeabilityEvolution(const PermeabilityEvolution &theFluidEvolution){
 
     type_ = theFluidEvolution.type_;
     initial_permeability_ = theFluidEvolution.initial_permeability_;
@@ -36,7 +36,7 @@ public:
 
   }
 
-  explicit FluidEvolution(const il::Array<double> &initialPermeability) {
+  explicit PermeabilityEvolution(const il::Array<double> &initialPermeability) {
 
     type_ = il::toString("Constant permeability");
     initial_permeability_ = initialPermeability;
@@ -61,4 +61,4 @@ public:
 
 }
 
-#endif //HFPX2DUNITTEST_FLUIDEVOLUTION_H
+#endif //HFPX2DUNITTEST_PERMEABILITYEVOLUTION_H

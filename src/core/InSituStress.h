@@ -2,8 +2,8 @@
 // Created by lorenzo on 10/2/17.
 //
 
-#ifndef HFPX2DUNITTEST_CONDITIONS_H
-#define HFPX2DUNITTEST_CONDITIONS_H
+#ifndef HFPX2DUNITTEST_InSituStress_H
+#define HFPX2DUNITTEST_InSituStress_H
 
 #include <il/base.h>
 #include <il/Array.h>
@@ -12,28 +12,35 @@
 
 namespace hfp2d {
 
-class Conditions {
+// distribution of stress and pore pressure.
+
+class InSituStress {
 
 private:
+
+  // stressField should be a nrow by 3 arrays with column wise (sxx, syy, sxy )
   il::Array2D<double> stress_field_;
+  // pore pressure is a nrow vector
   il::Array<double> pore_pressure_;
 
 public:
 
-  Conditions(){};
+  //  empty constructor
+  InSituStress(){};
 
-  Conditions(il::Array2D<double> &stressField,il::Array<double> &porePress){
+  // constructor from the 2 entries
+  InSituStress(il::Array2D<double> &stressField,il::Array<double> &porePress){
 
     this->stress_field_ = stressField;
     this->pore_pressure_ = porePress;
 
   }
 
-  Conditions(Conditions &theConditions){
+  // copy
+  InSituStress(InSituStress &theConditions){
 
     this->stress_field_ = theConditions.stress_field_;
     this->pore_pressure_ = theConditions.pore_pressure_;
-
   }
 
 

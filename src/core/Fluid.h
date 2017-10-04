@@ -19,38 +19,37 @@ namespace hfp2d {
 class Fluid {
 
 private:
-  double fluid_density_;
-  double fluid_viscosity_;
-  double fluid_compressibility_;
+  double density_;
+  double viscosity_;
+  double compressibility_;
 
 public:
 
   explicit Fluid(const Fluid& theFluid){
 
-    fluid_density_ = theFluid.fluid_density_;
-    fluid_viscosity_ = theFluid.fluid_viscosity_;
-    fluid_compressibility_ = theFluid.fluid_compressibility_;
+    density_ = theFluid.density_;
+    viscosity_ = theFluid.viscosity_;
+    compressibility_ = theFluid.compressibility_;
 
   }
-
-
+  
   explicit Fluid(double density, double viscosity, double compressibility) {
 
-    fluid_density_ = density;
-    fluid_viscosity_ = viscosity;
-    fluid_compressibility_ = compressibility;
+    density_ = density;
+    viscosity_ = viscosity;
+    compressibility_ = compressibility;
   }
 
 //  void setFluidParameters(double density, double viscosity, double compressibility) {
 //
-//    fluid_density_ = density;
-//    fluid_viscosity_ = viscosity;
-//    fluid_compressibility_ = compressibility;
+//    density_ = density;
+//    viscosity_ = viscosity;
+//    compressibility_ = compressibility;
 //  }
 
-  double fluidDensity() { return fluid_density_; };
-  double fluidViscosity() { return fluid_viscosity_; };
-  double fluidCompressibility() { return fluid_compressibility_; };
+  double fluidDensity() { return density_; };
+  double fluidViscosity() { return viscosity_; };
+  double fluidCompressibility() { return compressibility_; };
 
 };
 

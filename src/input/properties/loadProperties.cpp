@@ -122,7 +122,7 @@ Properties loadProperties(const Mesh &theLoadedMesh,
   }
 
   SolidEvolution theSolidEvolution(failureStresses,maxOpenings);
-  FluidEvolution theFluidEvolution(permeabilities);
+  PermeabilityEvolution theFluidEvolution(permeabilities);
 
   // Having loaded all the parameters, the final step is create the properties container from each single container
 
