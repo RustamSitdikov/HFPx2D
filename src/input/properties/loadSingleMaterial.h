@@ -2,8 +2,8 @@
 // Created by lorenzo on 9/18/17.
 //
 
-#ifndef HFPX2DUNITTEST_LOADSINGLEMATERIAL_H
-#define HFPX2DUNITTEST_LOADSINGLEMATERIAL_H
+#ifndef HFPX2D_LOADSINGLEMATERIAL_H
+#define HFPX2D_LOADSINGLEMATERIAL_H
 
 #include <iostream>
 #include "il/base.h"
@@ -22,4 +22,4 @@ namespace hfp2d {
 //il::String findSolidEvolutionType(const il::MapArray<il::String, il::Dynamic> &propertiesMap, const il::String &inputFileName);
 
 }
-#endif //HFPX2DUNITTEST_LOADSINGLEMATERIAL_H
+#endif //HFPX2D_LOADSINGLEMATERIAL_H

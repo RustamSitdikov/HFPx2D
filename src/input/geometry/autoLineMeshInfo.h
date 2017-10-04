@@ -8,8 +8,8 @@
 //
 //
 
-#ifndef HFPX2DUNITTEST_AUTOMESHUTILITIES_H
-#define HFPX2DUNITTEST_AUTOMESHUTILITIES_H
+#ifndef HFPX2D_AUTOMESHUTILITIES_H
+#define HFPX2D_AUTOMESHUTILITIES_H
 
 #include <iostream>
 #include "il/toml.h"
@@ -38,4 +38,4 @@ il::int_t findMaterialID(const il::String &inputFileName,
                          const il::int_t fractureID,
                          const il::MapArray<il::String, il::Dynamic> &autoCreationMap);
 
-#endif //HFPX2DUNITTEST_AUTOMESHUTILITIES_H
+#endif //HFPX2D_AUTOMESHUTILITIES_H

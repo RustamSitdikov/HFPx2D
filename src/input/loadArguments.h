@@ -8,8 +8,8 @@
 //
 //
 
-#ifndef HFPX2DUNITTEST_LOADARGUMENTS_H
-#define HFPX2DUNITTEST_LOADARGUMENTS_H
+#ifndef HFPX2D_LOADARGUMENTS_H
+#define HFPX2D_LOADARGUMENTS_H
 
 #include <iostream>
 #include <cstring>
@@ -29,4 +29,4 @@ void loadArguments(const int argc, const char* const* argv, il::io_t,
 void cleanOutputDir(const char *path);
 
 }
-#endif //HFPX2DUNITTEST_LOADARGUMENTS_H
+#endif //HFPX2D_LOADARGUMENTS_H

@@ -11,8 +11,8 @@
 // See the LICENSE.TXT file for more details. 
 //
 
-#ifndef HFPX2DUNITTEST_SOLIDEVOLUTION_H
-#define HFPX2DUNITTEST_SOLIDEVOLUTION_H
+#ifndef HFPX2D_SOLIDEVOLUTION_H
+#define HFPX2D_SOLIDEVOLUTION_H
 
 #include <il/base.h>
 #include <il/Array.h>
@@ -177,4 +177,4 @@ public:
 
 }
 
-#endif //HFPX2DUNITTEST_SOLIDEVOLUTION_H
+#endif //HFPX2D_SOLIDEVOLUTION_H

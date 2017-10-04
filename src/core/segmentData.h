@@ -2,21 +2,10 @@
 // Created by lorenzo on 9/14/17.
 //
 
-#ifndef HFPX2DUNITTEST_SEGMENTDATA_H
-#define HFPX2DUNITTEST_SEGMENTDATA_H
+#ifndef HFPX2D_SEGMENTDATA_H
+#define HFPX2D_SEGMENTDATA_H
 
 #include <src/core/Mesh.h>
-//#include <cmath>
-//#include <il/Array.h>
-//#include <il/Array2D.h>
-//#include <il/StaticArray.h>
-//#include <il/StaticArray2D.h>
-//#include <il/container/1d/SmallArray.h>
-//#include <il/String.h>
-//#include <iostream>
-#include <il/linear_algebra.h>
-
-
 
 namespace hfp2d{
 
@@ -42,4 +31,4 @@ SegmentData get_segment_DD_data(const Mesh &mesh,
 
 }
 
-#endif //HFPX2DUNITTEST_SEGMENTDATA_H
+#endif //HFPX2D_SEGMENTDATA_H

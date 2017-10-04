@@ -11,8 +11,8 @@
 // See the LICENSE.TXT file for more details. 
 //
 
-#ifndef HFPX2DUNITTEST_FLUID_H
-#define HFPX2DUNITTEST_FLUID_H
+#ifndef HFPX2D_FLUID_H
+#define HFPX2D_FLUID_H
 
 namespace hfp2d {
 
@@ -56,4 +56,4 @@ public:
 }
 
 
-#endif //HFPX2DUNITTEST_FLUID_H
+#endif //HFPX2D_FLUID_H

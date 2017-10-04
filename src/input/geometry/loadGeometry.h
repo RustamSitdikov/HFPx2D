@@ -8,8 +8,8 @@
 //
 //
 
-#ifndef HFPX2DUNITTEST_GEOMETRY_H
-#define HFPX2DUNITTEST_GEOMETRY_H
+#ifndef HFPX2D_GEOMETRY_H
+#define HFPX2D_GEOMETRY_H
 
 #include <iostream>
 #include "il/base.h"
@@ -28,4 +28,4 @@ il::int_t findNumFractures(const il::MapArray<il::String, il::Dynamic> &meshCrea
 
 }
 
-#endif //HFPX2DUNITTEST_GEOMETRY_H
+#endif //HFPX2D_GEOMETRY_H

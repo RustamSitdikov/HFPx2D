@@ -24,7 +24,7 @@
 #include <il/Array.h>
 #include <il/Array2D.h>
 #include <il/String.h>
-#include "src/core/Solid.h"
+#include <src/core/ElasticProperties.h>
 #include "src/core/Fluid.h"
 #include "SolidEvolution.h"
 #include "src/FluidFlow/PermeabilityEvolution.h"
@@ -38,7 +38,7 @@ class Properties{ //}; : Solid, Fluid, SolidEvolution, PermeabilityEvolution {
 
 private:
 
-  Solid* solid_;
+  ElasticProperties* solid_;
   Fluid* fluid_;
 
   SolidEvolution* solid_evolution_;
@@ -59,7 +59,7 @@ public:
 
   };
 
-  explicit Properties(Solid &theSolid,
+  explicit Properties(ElasticProperties &theSolid,
                       Fluid &theFluid,
                       SolidEvolution &theSolidEvolution,
                       PermeabilityEvolution &theFluidEvolution){

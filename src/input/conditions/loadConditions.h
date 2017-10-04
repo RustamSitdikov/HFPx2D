@@ -2,8 +2,8 @@
 // Created by lorenzo on 10/4/17.
 //
 
-#ifndef HFPX2DUNITTEST_LOADCONDITIONS_H
-#define HFPX2DUNITTEST_LOADCONDITIONS_H
+#ifndef HFPX2D_LOADCONDITIONS_H
+#define HFPX2D_LOADCONDITIONS_H
 
 #include <iostream>
 #include "il/base.h"
@@ -20,4 +20,4 @@ InSituStress loadConditions(const Mesh &theLoadedMesh,
                           const il::MapArray<il::String, il::Dynamic> &conditionsMap);
 
 }
-#endif //HFPX2DUNITTEST_LOADCONDITIONS_H
+#endif //HFPX2D_LOADCONDITIONS_H

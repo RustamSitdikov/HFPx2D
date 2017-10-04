@@ -10,24 +10,22 @@
 #include <cmath>
 #include <complex>
 #include <iostream>
-#include <string>
+//#include <string>
 
-#include "il/Array.h"
-#include "il/math.h"
+#include <il/Array.h>
+//#include "il/math.h"
 //#include <il/Array2C.h>
 #include <il/StaticArray.h>
 #include <il/Timer.h>
 #include <il/linear_algebra.h>
 #include <il/norm.h>
 
-#include "src/Elasticity/AssemblyDDM.h"
-
-#include <src/Elasticity/PlaneStrainInfinite.h>
-#include <src/Elasticity/Simplified3D.h>
-#include <src/core/DOF_Handles.h>
-#include <src/core/Mesh.h>
-
 #include "SimpleElastic.h"
+#include "src/Elasticity/Simplified3D.h"
+#include "src/Elasticity/AssemblyDDM.h"
+#include "src/Elasticity/PlaneStrainInfinite.h"
+#include "src/core/Mesh.h"
+#include "src/core/DOF_Handles.h"
 #include "src/core/ElasticProperties.h"
 
 namespace hfp2d {

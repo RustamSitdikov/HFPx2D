@@ -2,8 +2,8 @@
 // Created by lorenzo on 9/18/17.
 //
 
-#ifndef HFPX2DUNITTEST_FINDUTILITIES_H
-#define HFPX2DUNITTEST_FINDUTILITIES_H
+#ifndef HFPX2D_FINDUTILITIES_H
+#define HFPX2D_FINDUTILITIES_H
 
 #include <iostream>
 #include <typeinfo>
@@ -30,4 +30,4 @@ bool findBool(const il::String &keyword,
 
 }
 
-#endif //HFPX2DUNITTEST_FINDUTILITIES_H
+#endif //HFPX2D_FINDUTILITIES_H

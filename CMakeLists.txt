@@ -9,13 +9,14 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -std=c++11")
 
 # If you want to run another compiler, such as clang
 if (APPLE)
-set(CMAKE_C_COMPILER /usr/bin/clang)
-set(CMAKE_CXX_COMPILER /usr/bin/clang++)
-elseif (UNIX)
-set(CMAKE_C_COMPILER /usr/bin/gcc)
-set(CMAKE_CXX_COMPILER /usr/bin/g++)
+    set(CMAKE_C_COMPILER /usr/bin/clang)
+    set(CMAKE_CXX_COMPILER /usr/bin/clang++)
 
-    elseif(WIN32) # to fill up here
+elseif (UNIX)
+    set(CMAKE_C_COMPILER /usr/bin/gcc)
+    set(CMAKE_CXX_COMPILER /usr/bin/g++)
+
+elseif(WIN32) # to fill up here
 endif()
 
 # needed for clang-tidy?
@@ -28,6 +29,7 @@ ENDIF(CMAKE_BUILD_TYPE MATCHES DEBUG)
 set(SOURCE_FILES_DIR ${PROJECT_SOURCE_DIR}/src)
 
 set(SOURCE_FILES
+        src/core/ElasticProperties.h
         src/Elasticity/AssemblyDDM.cpp
         src/Elasticity/AssemblyDDM.h
         src/core/Mesh.cpp
@@ -61,7 +63,7 @@ set(SOURCE_FILES
         #src/input/geometry/autoLineMeshInfo.h
         src/core/segmentData.cpp
         src/core/segmentData.h
-        src/core/Solid.h
+        #src/core/Solid.h
         src/core/Fluid.h
         src/core_dev/SolidEvolution.h
         src/FluidFlow/PermeabilityEvolution.h
@@ -80,21 +82,18 @@ elseif(UNIX)
     link_directories(/opt/intel/mkl/lib/intel64
                      /opt/intel/compilers_and_libraries/linux/lib/intel64)
 endif()
-# below is for linux
-#
-
 
 add_executable(HFPx2D ${SOURCE_FILES}  main.cpp)
 
 target_compile_definitions(HFPx2D PRIVATE IL_MKL=1 IL_BLAS=1 IL_OPENMP=1)
 
-target_include_directories(HFPx2D PRIVATE ${CMAKE_SOURCE_DIR} $ENV{MKLROOT}/include)
-
 if(APPLE)
-target_link_libraries(HFPx2D mkl_intel_lp64 mkl_core mkl_intel_thread dl iomp5 pthread m)
+    target_include_directories(HFPx2D PRIVATE ${CMAKE_SOURCE_DIR} $ENV{MKLROOT}/include)
 elseif(UNIX)
     target_include_directories(HFPx2D PRIVATE ${CMAKE_SOURCE_DIR} /opt/intel/mkl/include)
 endif()
+
+target_link_libraries(HFPx2D mkl_intel_lp64 mkl_core mkl_intel_thread dl iomp5 pthread m)
 
 if(APPLE)
 # below for some under mac os

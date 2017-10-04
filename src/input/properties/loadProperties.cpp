@@ -18,7 +18,7 @@ Properties loadProperties(const Mesh &theLoadedMesh,
   // We start loading the elasticity properties which are -for the moment- constant on all the domain.
   double youngModulus = findDouble("Young_modulus",propertiesMap,inputFileName);
   double poissonRatio = findDouble("Poisson_ratio",propertiesMap,inputFileName);
-  Solid theSolid(youngModulus,poissonRatio);
+  ElasticProperties theSolid(youngModulus,poissonRatio);
 
   // Then, we load the fluid properties assuming a newtonian fluid in the natural fractures.
   double fluidDensity = findDouble("fluid_density",propertiesMap,inputFileName);

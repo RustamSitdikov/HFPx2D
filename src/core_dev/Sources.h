@@ -2,8 +2,8 @@
 // Created by lorenzo on 10/4/17.
 //
 
-#ifndef HFPX2DUNITTEST_SOURCES_H
-#define HFPX2DUNITTEST_SOURCES_H
+#ifndef HFPX2D_SOURCES_H
+#define HFPX2D_SOURCES_H
 
 #include <il/Array.h>
 
@@ -33,4 +33,4 @@ public:
 
 };
 }
-#endif //HFPX2DUNITTEST_SOURCES_H
+#endif //HFPX2D_SOURCES_H

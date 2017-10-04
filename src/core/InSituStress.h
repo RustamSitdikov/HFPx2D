@@ -2,13 +2,12 @@
 // Created by lorenzo on 10/2/17.
 //
 
-#ifndef HFPX2DUNITTEST_InSituStress_H
-#define HFPX2DUNITTEST_InSituStress_H
+#ifndef HFPX2D_INSITUSTRESS_H
+#define HFPX2D_INSITUSTRESS_H
 
 #include <il/base.h>
 #include <il/Array.h>
 #include <il/Array2D.h>
-#include <il/String.h>
 
 namespace hfp2d {
 
@@ -47,4 +46,4 @@ public:
 };
 
 }
-#endif //HFPX2DUNITTEST_CONDITIONS_H
+#endif //HFPX2D_INSITUSTRESS_H

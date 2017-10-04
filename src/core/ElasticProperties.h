@@ -13,34 +13,88 @@
 namespace hfp2d {
 
 class ElasticProperties {
-  // class to store Elastic properties of the medium - only isotropy for now
-  // should generalized...
+
  private:
-  double Young_; // Young;s modulus
-  double nu_; // Poisson's ratio
-  double G_; // shear modulus
-  double K_; // Bulk modulus
-  double Ep_; // Plane-strain modulus
+  double young_; // Young's modulus
+  double poiss_; // Poisson's ratio
+  double lame1_; // Lame's first parameter
+  double lame2_; // Lame's second parameter or shear modulus
+  double bulkm_; // Bulk modulus
+  double youngPS_; // Plane-strain Young's modulus
 
  public:
-// we construct from value of Young and PR
-  ElasticProperties(double Young, double nu) {
 
-    Young_ = Young;
-    nu_ = nu;
-    G_ = Young / (2. * (1 + nu));
-    Ep_ = Young / (1. - nu * nu);   // plane strain Ep
-    K_ = Young / (3. * (1. - 2. * nu));
+  // Creation of elastic properties class from Young's modulus and Poisson's Ratio
+  ElasticProperties(double YoungModulus, double PoissonRatio) {
+
+    young_ = YoungModulus;
+    poiss_ = PoissonRatio;
+
+    bulkm_ = young_ / (3.0* (1.0 - 2.0 * poiss_));
+    lame1_ = young_ / ((1.0 + poiss_)*(1.0 - 2.0 * poiss_));
+    lame2_ = young_ / (2.0 * (1 + poiss_));
+
+    youngPS_ = young_ / (1.0 - poiss_ * poiss_);
+
   }
 
-  double Young() const {return Young_;}
-  double nu() const {return nu_;}
-  double G() const {return G_;}
-  double Ep() const {return Ep_;}
-  double K() const {return K_;}
+  // Explicit creation from bulk and shear modulus
+  void setElasKG(double BulkModulus, double ShearModulus){
 
-// should set other
-// should set other
+    bulkm_ = BulkModulus;
+    lame2_ = ShearModulus;
+
+    young_ = 9.0 * bulkm_ * lame2_ / (3.0 * bulkm_ + lame2_);
+    poiss_ = (3.0 * bulkm_ - 2.0 * lame2_) / (2.0 * (3.0 * bulkm_ + lame2_ ));
+    lame1_ = bulkm_ - 2.0 * lame2_ / 3.0;
+
+    youngPS_ = young_ / (1.0 - poiss_ * poiss_);
+
+  }
+
+  // Explicit creation from the two Lame's parameters
+  void setElas12(double Lame1, double Lame2){
+
+    lame1_ = Lame1;
+    lame2_ = Lame2;
+
+    bulkm_ = lame1_ + 2.0 * lame2_ / 3.0;
+    young_ = lame2_ * (3.0 * lame1_ + 2.0 * lame2_) / (lame1_ + lame2_);
+    poiss_ = lame1_ / (2.0 * (lame1_ + lame2_));
+
+    youngPS_ = young_ / (1.0 - poiss_ * poiss_);
+
+  }
+
+  // Copy constructor
+  ElasticProperties(const ElasticProperties& theSolid){
+    young_ = theSolid.young_;
+    poiss_ = theSolid.poiss_;
+    bulkm_ = theSolid.bulkm_;
+    lame1_ = theSolid.lame1_;
+    lame2_ = theSolid.lame2_;
+    youngPS_= theSolid.youngPS_;
+  }
+
+
+  /////////// GETTER OF PARAMETERS
+  // Long version
+  double youngModulus(){ return young_; }
+  double poissonRatio(){ return poiss_; }
+  double bulkModulus(){ return bulkm_; }
+  double lame1Parameter(){ return lame1_; }
+  double lame2Parameter(){ return lame2_; }
+  double shearModulus(){ return lame2_; }
+  double planeStrainE(){ return youngPS_; }
+
+  // Short version
+  double E() const {return young_;}
+  double nu() const {return poiss_;}
+  double K() const {return bulkm_;}
+  double L1() const {return lame1_;}
+  double L2() const {return lame2_;}
+  double G() const {return lame2_;}
+  double Ep() const {return youngPS_;}
 
 };
 }

@@ -8,8 +8,8 @@
 //
 //
 
-#ifndef HFPX2DUNITTEST_CREATEMESH_H
-#define HFPX2DUNITTEST_CREATEMESH_H
+#ifndef HFPX2D_CREATEMESH_H
+#define HFPX2D_CREATEMESH_H
 
 
 #include <il/base.h>
@@ -38,4 +38,4 @@ il::Array2D<il::int_t> createAutoPressureDofHandle(il::int_t interpolationOrder,
                                                    il::int_t numberOfElements);
 
 }
-#endif //HFPX2DUNITTEST_CREATEMESH_H
+#endif //HFPX2D_CREATEMESH_H

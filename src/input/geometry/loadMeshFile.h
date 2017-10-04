@@ -2,8 +2,8 @@
 // Created by lorenzo on 9/8/17.
 //
 
-#ifndef HFPX2DUNITTEST_LOADMESHFILE_H
-#define HFPX2DUNITTEST_LOADMESHFILE_H
+#ifndef HFPX2D_LOADMESHFILE_H
+#define HFPX2D_LOADMESHFILE_H
 
 #include <iostream>
 #include "il/base.h"
@@ -18,4 +18,4 @@ void loadMeshFile(const il::String &meshFileName, il::io_t, Mesh &theMesh);
 
 }
 
-#endif //HFPX2DUNITTEST_LOADMESHFILE_H
+#endif //HFPX2D_LOADMESHFILE_H

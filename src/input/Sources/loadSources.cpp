@@ -70,20 +70,28 @@ il::int_t findSourceLocation(const double locationX,
 
   for(il::int_t i=0; i<theLoadedMesh.numberOfNodes(); i++){
 
-    //double dist
+    double distanceOnX = locationX - theLoadedMesh.node(i,0);
+    double distanceOnY = locationY - theLoadedMesh.node(i,1);
 
 
-    squareOfLocation[i]=sqrt(theLoadedMesh.node(i,0)*theLoadedMesh.node(i,0)+
-                        theLoadedMesh.node(i,1)*theLoadedMesh.node(i,1));
+    squareOfLocation[i]=sqrt(distanceOnX*distanceOnX+
+        distanceOnY*distanceOnY);
 
   }
 
-  il::int_t indexOfMin=0;
+  auto smallestDistance = std::max_element(std::begin(squareOfLocation),std::end(squareOfLocation));
+
+  il::int_t indexOfMin=std::distance(std::begin(squareOfLocation), smallestDistance);
+
+/*
   for(il::int_t i=1; i<theLoadedMesh.numberOfNodes(); i++){
-    //if(square)
+    if(squareOfLocation[i]<squareOfLocation[indexOfMin]){
+      indexOfMin=i;
+    }
   }
+*/
 
-  return 0;
+  return indexOfMin;
 }
 
 }

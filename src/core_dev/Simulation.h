@@ -8,8 +8,8 @@
 //
 //
 
-#ifndef HFPX2D_SIMULATIONPARAMETERS_H
-#define HFPX2D_SIMULATIONPARAMETERS_H
+#ifndef HFPX2D_SIMULATION_H
+#define HFPX2D_SIMULATION_H
 
 namespace hfp2d {
 
@@ -19,4 +19,4 @@ class Simulation {
 
 };
 }
-#endif //HFPX2_SIMULATIONPARAMETERS_H
+#endif //HFPX2_SIMULATION_H

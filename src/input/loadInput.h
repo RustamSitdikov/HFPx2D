@@ -8,11 +8,16 @@
 //
 //
 
-#ifndef HFPX2DUNITTEST_LOADINPUT_H
-#define HFPX2DUNITTEST_LOADINPUT_H
+#ifndef HFPX2D_LOADINPUT_H
+#define HFPX2D_LOADINPUT_H
 
+// Std libs
 #include <iostream>
-#include "il/toml.h"
+
+// IL libs
+#include <il/toml.h>
+
+// HFP2D libs
 #include "src/core/Mesh.h"
 #include "src/core_dev/Properties.h"
 #include "src/core_dev/Simulation.h"
@@ -35,4 +40,4 @@ void loadInput(const il::String &inputFileName,
 
 }
 
-#endif //HFPX2DUNITTEST_LOADINPUT_H
+#endif //HFPX2D_LOADINPUT_H
