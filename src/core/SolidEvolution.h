@@ -35,7 +35,7 @@ private:
 
 public:
 
-  SolidEvolution(SolidEvolution theSolidEvolution){
+  explicit SolidEvolution(const SolidEvolution &theSolidEvolution){
 
     type_ = theSolidEvolution.type_;
     maximum_stress_ = theSolidEvolution.maximum_stress_;
@@ -44,7 +44,8 @@ public:
     last_saved_opening_ = theSolidEvolution.last_saved_opening_;
   }
 
-  SolidEvolution(il::Array<double> failureStress, il::Array<double> decohesionOpening){
+  explicit SolidEvolution(const il::Array<double> &failureStress,
+                          const il::Array<double> &decohesionOpening){
 
     type_="Linear CZM";
 

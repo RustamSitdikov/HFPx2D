@@ -17,8 +17,11 @@
 #include "src/core/Properties.h"
 #include "src/core/Simulation.h"
 #include "src/core/Conditions.h"
+#include "src/core/Sources.h"
 #include "src/input/geometry/loadGeometry.h"
 #include "src/input/properties/loadProperties.h"
+#include "src/input/conditions/loadConditions.h"
+#include "src/input/Sources/loadSources.h"
 
 namespace hfp2d{
 
@@ -26,6 +29,8 @@ void loadInput(const il::String &inputFileName,
                il::io_t,
                Mesh &theMesh,
                Properties &theProperties,
+               Conditions &theConditions,
+               Sources &theSources,
                Simulation &simParameters);
 
 }

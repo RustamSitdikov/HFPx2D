@@ -60,6 +60,7 @@ double SimpleGriffithExampleLinearElement(int nelts) {
   il::Array2D<il::int_t> id_press{nelts, 2, 0};
   il::Array<il::int_t> fracID {nelts,1};
   il::Array<il::int_t> matID {nelts,1};
+  il::Array<il::int_t> condID {nelts,1};
 
   //int ndof = (nelts) * (p + 1) * 2;  // number of dofs
   double Ep = 1.;                    // Plane strain Young's modulus
@@ -96,7 +97,7 @@ double SimpleGriffithExampleLinearElement(int nelts) {
 
   //mesh.init1DMesh(xy, myconn, matid);
 
-  hfp2d::Mesh mesh(p,xy,myconn,id_displ,id_press,fracID,matID);
+  hfp2d::Mesh mesh(p,xy,myconn,id_displ,id_press,fracID,matID,condID);
 
   il::int_t ndof = mesh.numberOfDisplDofs();
 
@@ -196,6 +197,7 @@ double SimpleGriffithExampleS3D_P0(int nelts) {
   il::Array2D<il::int_t> id_press{nelts, 2, 0};
   il::Array<il::int_t> fracID {nelts,1};
   il::Array<il::int_t> matID {nelts,1};
+  il::Array<il::int_t> condID {nelts,1};
 
   //int ndof = (nelts) * (p + 1) * 2;  // total number of dofs
   double Ep = 1.;                    // Plane strain Young's modulus
@@ -231,7 +233,7 @@ double SimpleGriffithExampleS3D_P0(int nelts) {
 
   //mesh.init1DMesh(xy, myconn, matid);
   //hfp2d::Mesh mesh(xy,myconn);
-  hfp2d::Mesh mesh(p,xy,myconn,id_displ,id_press,fracID,matID);
+  hfp2d::Mesh mesh(p,xy,myconn,id_displ,id_press,fracID,matID,condID);
 
   il::int_t ndof = mesh.numberOfDisplDofs();
 

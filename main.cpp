@@ -59,12 +59,20 @@ int main(int const argc, char const* const* argv) {
 
   hfp2d::Mesh theMesh;
   hfp2d::Properties matProperties;
+  hfp2d::Conditions simConditions;
+  hfp2d::Sources sources;
   hfp2d::Simulation simParameters;
 
   /// TAKING CARE OF THE INPUT IN CASE OF NEW ANALYSIS OR RESTART
   if (checkInput) {
 
-    hfp2d::loadInput(inputFileName, il::io, theMesh, matProperties, simParameters);
+    hfp2d::loadInput(inputFileName,
+                     il::io,
+                     theMesh,
+                     matProperties,
+                     simConditions,
+                     sources,
+                     simParameters);
 
   } else if (checkRestart) {
     // hfp2d::loadRestart(resetFileName,il::io_t,Mesh,Properties,SimulationParam,Solution);

@@ -63,10 +63,11 @@ Properties loadProperties(const Mesh &theLoadedMesh,
   // historical variables and parameters are depending on the type of constitutive model.
 
   il::int_t numDisplDofs = theLoadedMesh.numberOfDisplDofs();
+  il::int_t numPressDofs = theLoadedMesh.numberOfPressDofs();
 
   il::Array<double> failureStresses(numDisplDofs);
   il::Array<double> maxOpenings(numDisplDofs);
-  il::Array<double> permeabilities(numDisplDofs);
+  il::Array<double> permeabilities(numPressDofs);
 
   // we scan along the vector of materials ID which nodes will have the material ID
   for(il::int_t materialID=0; materialID<numMaterials; materialID++){
@@ -88,7 +89,7 @@ Properties loadProperties(const Mesh &theLoadedMesh,
       double singlePermeabiity = findDouble("permeability", singleMaterial, inputFileName);
 
       // save the loaded parameters only in those dofs which matID correspond to the one that has been loaded
-      for(il::int_t elmtK=0; elmtK < numDisplDofs; elmtK++){
+      for(il::int_t elmtK=0; elmtK < theLoadedMesh.numberOfElements(); elmtK++){
         if(theLoadedMesh.matID(elmtK)==materialID){
 
           // this loop is for collocation point properties (e.g. CZMs)
@@ -125,7 +126,10 @@ Properties loadProperties(const Mesh &theLoadedMesh,
 
   // Having loaded all the parameters, the final step is create the properties container from each single container
 
-  Properties theProperties(theSolid, theFluid, theSolidEvolution, theFluidEvolution);
+  Properties theProperties(theSolid,
+                           theFluid,
+                           theSolidEvolution,
+                           theFluidEvolution);
 
 return theProperties;
 }

@@ -28,7 +28,7 @@ private:
 
 public:
 
-  explicit FluidEvolution(FluidEvolution theFluidEvolution){
+  explicit FluidEvolution(const FluidEvolution &theFluidEvolution){
 
     type_ = theFluidEvolution.type_;
     initial_permeability_ = theFluidEvolution.initial_permeability_;
@@ -36,7 +36,7 @@ public:
 
   }
 
-  FluidEvolution(il::Array<double> initialPermeability) {
+  explicit FluidEvolution(const il::Array<double> &initialPermeability) {
 
     type_ = il::toString("Constant permeability");
     initial_permeability_ = initialPermeability;

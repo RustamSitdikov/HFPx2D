@@ -10,7 +10,7 @@
 #include <il/Array2D.h>
 #include <il/String.h>
 
-namespace hfp2D {
+namespace hfp2d {
 
 class Conditions {
 
@@ -20,10 +20,12 @@ private:
 
 public:
 
+  Conditions(){};
+
   Conditions(il::Array2D<double> &stressField,il::Array<double> &porePress){
 
-    stress_field_ = stressField;
-    pore_pressure_ = porePress;
+    this->stress_field_ = stressField;
+    this->pore_pressure_ = porePress;
 
   }
 

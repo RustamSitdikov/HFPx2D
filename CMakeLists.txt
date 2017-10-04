@@ -67,7 +67,7 @@ set(SOURCE_FILES
         src/input/findUtilities.cpp
         src/input/findUtilities.h
         il/io/toml/toml.h
-        il/io/toml/toml.cpp src/core/Conditions.h)
+        il/io/toml/toml.cpp src/core/Conditions.h src/input/conditions/loadConditions.cpp src/input/conditions/loadConditions.h src/core/Sources.cpp src/core/Sources.h src/input/Sources/loadSources.cpp src/input/Sources/loadSources.h)
 
 link_directories(/opt/intel/mkl/lib/intel64
                  /opt/intel/compilers_and_libraries/linux/lib/intel64)

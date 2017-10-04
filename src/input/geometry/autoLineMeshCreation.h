@@ -14,12 +14,14 @@
 #include <iostream>
 #include <il/base.h>
 #include <il/Array.h>
-#include "il/toml.h"
+#include <il/Array2D.h>
+#include <il/toml.h>
 #include <il/String.h>
+#include <il/linear_algebra.h>
 #include "src/core/Mesh.h"
 #include "src/input/geometry/autoLineMeshUtilities.h"
 #include "src/input/geometry/autoLineMeshInfo.h"
-#include <src/input/findUtilities.h>
+#include "src/input/findUtilities.h"
 
 
 namespace hfp2d {

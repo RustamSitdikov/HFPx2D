@@ -7,11 +7,10 @@
 
 namespace hfp2d {
 
-LinearCZM loadSingleMaterial(const il::String &inputFileName,
+/*
+SolidEvolution loadSingleMaterial(const il::String &inputFileName,
                                   const il::int_t materialID,
                                   const il::MapArray<il::String, il::Dynamic> &propertiesMap) {
-
-  LinearCZM theSolidEvol;
 
   il::String solidEvolType = findString("solid_evolution_type",propertiesMap,inputFileName);
 
@@ -48,8 +47,12 @@ LinearCZM loadSingleMaterial(const il::String &inputFileName,
 
   }
 
+  SolidEvolution theSolidEvol;
+
   return theSolidEvol;
 }
+
+*/
 
 /*il::String findCZMType(const il::MapArray<il::String, il::Dynamic> &propertiesMap, const il::String &inputFileName) {
 

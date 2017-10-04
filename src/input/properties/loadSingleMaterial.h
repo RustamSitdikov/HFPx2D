@@ -13,13 +13,13 @@
 
 namespace hfp2d {
 
-LinearCZM loadSingleMaterial(const il::String &inputFileName,
-                                  const il::int_t materialID,
-                                  const il::MapArray <il::String, il::Dynamic> &propertiesMap);
-
-il::String findCZMType(const il::MapArray<il::String, il::Dynamic> &propertiesMap, const il::String &inputFileName);
-
-il::String findSolidEvolutionType(const il::MapArray<il::String, il::Dynamic> &propertiesMap, const il::String &inputFileName);
+//SolidEvolution loadSingleMaterial(const il::String &inputFileName,
+//                                  const il::int_t materialID,
+//                                  const il::MapArray <il::String, il::Dynamic> &propertiesMap);
+//
+//il::String findCZMType(const il::MapArray<il::String, il::Dynamic> &propertiesMap, const il::String &inputFileName);
+//
+//il::String findSolidEvolutionType(const il::MapArray<il::String, il::Dynamic> &propertiesMap, const il::String &inputFileName);
 
 }
 #endif //HFPX2DUNITTEST_LOADSINGLEMATERIAL_H

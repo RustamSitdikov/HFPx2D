@@ -8,6 +8,7 @@
 //
 //
 
+
 #include "loadInput.h"
 
 namespace hfp2d {
@@ -17,6 +18,7 @@ void loadInput(const il::String &inputFileName,
                Mesh &theMesh,
                Properties &theProperties,
                Conditions &theConditions,
+               Sources &theSources,
                Simulation &simParameters) {
 
   ///  **** Read the input data from TOML input file **** ///
@@ -70,6 +72,12 @@ void loadInput(const il::String &inputFileName,
   }
 
   ////////// Conditions: IN-SITU KEYWORD //////////
+
+  /// Create a vector as in the case of the materials for the materialID
+  /// then create a collocation point vector for the stress distribution
+  /// and a nodal vector for the pore pressure distribution
+  /// TO BE CHECKED if the pore pressure is needed only at nodes
+
   keyFound = config.search("in-situ_conditions");
 
   // If "solid" is found and it is a map
@@ -91,13 +99,45 @@ void loadInput(const il::String &inputFileName,
   }
 
   ////////// Conditions: INJECTION KEYWORD //////////
-  // placeholder
+  keyFound = config.search("injection");
+
+  // If "solid" is found and it is a map
+  if (config.found(keyFound) && config.value(keyFound).isMapArray()) {
+
+    // Save the geometry map, i.e. the data to create the mesh
+    const il::MapArray<il::String, il::Dynamic> &injectionMap = config.value(keyFound).asMapArray();
+
+    // Send the data in meshCreationMap to loadGeometry script
+    theSources=loadSources(theMesh, inputFileName, injectionMap);
+
+    // Once the properties are ready, create a vectors of properties
+    // at each collocation point (for stress related properties)
+    // and each node (for pore pressure/flow related properties)
+    // included the in-situ conditions
+  } else {
+    std::cerr << "ERROR: Solid properties not found in input file " << inputFileName << std::endl;
+    exit(3);
+  }
+
+  /// The injection take place at a number of locations. To make it as
+  /// easy as possible, givem the location, we consider the closest nodes
+  /// to the injection point.
+  /// A cool check would be if the distance is less than the segment size.
+  /// However in that case the segment size should be available for every
+  /// element.
 
   ////////// Solution: STRATEGY KEYWORD //////////
   // placeholder
 
+  /// Only one solver for the moment, so we just load the tolerances and
+  /// the maximum number of iterations for each loop.
 
-  // next cards
+  ////////// Solution: OUTPUT KEYWORD //////////
+  // placeholder
+
+  /// it should load which variable should be printed
+
+
 
 }
 

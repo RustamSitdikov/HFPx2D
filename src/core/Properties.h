@@ -38,33 +38,36 @@ class Properties{ //}; : Solid, Fluid, SolidEvolution, FluidEvolution {
 
 private:
 
-  Solid& solid_;
-  Fluid& fluid_;
+  Solid* solid_;
+  Fluid* fluid_;
 
-  SolidEvolution& solid_evolution_;
-  FluidEvolution& fluid_evolution_;
+  SolidEvolution* solid_evolution_;
+  FluidEvolution* fluid_evolution_;
 
 public:
 
-  Properties(Properties theProperties){
+  Properties(){};
 
-    solid_ = theProperties.&solid_;
-    fluid_ = theProperties.&fluid_;
+  Properties(const Properties &theProperties){
 
-    solid_evolution_ = theProperties.&solid_evolution_;
-    fluid_evolution_ = theProperties.&fluid_evolution_;
+    // pointer to pointer copy
+    this->solid_ = theProperties.solid_;
+    this->fluid_ = theProperties.fluid_;
+
+    this->solid_evolution_ = theProperties.solid_evolution_;
+    this->fluid_evolution_ = theProperties.fluid_evolution_;
 
   };
 
-  Properties(Solid &theSolid,
-             Fluid &theFluid,
-             SolidEvolution &theSolidEvolution,
-             FluidEvolution &theFluidEvolution){
+  explicit Properties(Solid &theSolid,
+                      Fluid &theFluid,
+                      SolidEvolution &theSolidEvolution,
+                      FluidEvolution &theFluidEvolution){
 
-    solid_=theSolid;
-    fluid_=theFluid;
-    solid_evolution_=theSolidEvolution;
-    fluid_evolution_=theFluidEvolution;
+    *solid_=theSolid;
+    *fluid_=theFluid;
+    *solid_evolution_=theSolidEvolution;
+    *fluid_evolution_=theFluidEvolution;
 
   };
 

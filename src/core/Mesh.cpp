@@ -20,7 +20,8 @@ Mesh::Mesh(const il::int_t interpolationOrder,
            const il::Array2D<il::int_t> &displ_dof_handle,
            const il::Array2D<il::int_t> &press_dof_handle,
            const il::Array<il::int_t> &fractureID,
-           const il::Array<il::int_t> &materialID) {
+           const il::Array<il::int_t> &materialID,
+           const il::Array<il::int_t> &conditionID) {
 
   // Initial assertions to check data consistency
   // Non-zero number of nodes and coordinates must be 2D
@@ -51,8 +52,11 @@ Mesh::Mesh(const il::int_t interpolationOrder,
   connectivity_ = elementsConnectivity;
   dof_handle_displacement_ = displ_dof_handle;
   dof_handle_pressure_ = press_dof_handle;
-  material_id_=materialID;
+
   fracture_id_=fractureID;
+  material_id_=materialID;
+  condition_id_=conditionID;
+
   interpolation_order_=interpolationOrder;
 
 };

@@ -27,7 +27,7 @@ private:
 
 public:
 
-  Solid(Solid theSolid){
+  Solid(const Solid& theSolid){
     young_ = theSolid.young_;
     poiss_ = theSolid.poiss_;
     bulkm_ = theSolid.bulkm_;

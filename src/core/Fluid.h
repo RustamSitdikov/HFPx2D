@@ -25,7 +25,7 @@ private:
 
 public:
 
-  explicit Fluid(Fluid theFluid){
+  explicit Fluid(const Fluid& theFluid){
 
     fluid_density_ = theFluid.fluid_density_;
     fluid_viscosity_ = theFluid.fluid_viscosity_;

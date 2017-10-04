@@ -49,6 +49,8 @@ private:
   il::Array<il::int_t> fracture_id_;
   // Material identifier - size: number of elements
   il::Array<il::int_t> material_id_;
+  // Material identifier - size: number of elements
+  il::Array<il::int_t> condition_id_;
 
 
 public:
@@ -86,7 +88,8 @@ public:
        const il::Array2D<il::int_t> &displ_dof_handle,
        const il::Array2D<il::int_t> &press_dof_handle,
        const il::Array<il::int_t> &fractureID,
-       const il::Array<il::int_t> &materialID);
+       const il::Array<il::int_t> &materialID,
+       const il::Array<il::int_t> &conditionID);
 
   ////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -115,6 +118,7 @@ public:
   il::int_t interpolationOrder() const {return interpolation_order_;}
   il::int_t numberOfFractures() const { return (*std::max_element(fracture_id_.begin(),fracture_id_.end())+1); }
   il::int_t numberOfMaterials() const { return (*std::max_element(material_id_.begin(),material_id_.end())+1); }
+  il::int_t numberOfConditions() const { return (*std::max_element(condition_id_.begin(),condition_id_.end())+1); }
   il::int_t numberOfDisplDofsPerElement() const { return dof_handle_displacement_.size(1); }
   il::int_t numberOfPressDofsPerElement() const { return dof_handle_pressure_.size(1); }
 
@@ -150,8 +154,9 @@ public:
   il::int_t dofDispl(il::int_t k, il::int_t i) const { return dof_handle_displacement_(k, i); }
   il::int_t fracID(il::int_t k) const { return fracture_id_[k]; }
   il::int_t matID(il::int_t k) const { return material_id_[k]; }
+  il::int_t condID(il::int_t k) const { return condition_id_[k]; }
 
-  il::int_t matid(il::int_t k) const { return material_id_[k]; }
+  //il::int_t matid(il::int_t k) const { return material_id_[k]; }
 
   il::int_t nelts() const { return connectivity_.size(0); };
 

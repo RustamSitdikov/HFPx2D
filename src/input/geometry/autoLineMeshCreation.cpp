@@ -31,6 +31,9 @@ Mesh autoLineMesh(const il::String &inputFileName,
   // Recover material ID
   il::int_t materialID = findInteger("material_ID", autoCreationMap, inputFileName);
 
+  // Recover material ID
+  il::int_t conditionID = findInteger("condition_ID", autoCreationMap, inputFileName);
+
   // create coordinates and connectivity matrices for the mesh
   il::Array2D<double> nodesCoordinates = createCustomMesh(x_1, y_1, x_2, y_2, numElements, interpOrder);
   il::Array2D<il::int_t> elementsConnectivity = createAutoConnectivity(interpOrder, numElements);
@@ -40,6 +43,7 @@ Mesh autoLineMesh(const il::String &inputFileName,
 
   il::Array<il::int_t> vectorMaterialID(elementsConnectivity.size(0));
   il::Array<il::int_t> vectorFractureID(elementsConnectivity.size(0));
+  il::Array<il::int_t> vectorConditionID(elementsConnectivity.size(0));
 
   // Creating the vectors of fracture ID and material ID
 #pragma omp parallel for
@@ -47,12 +51,14 @@ Mesh autoLineMesh(const il::String &inputFileName,
   {
     vectorMaterialID[i]=materialID;
     vectorFractureID[i]=fractureID;
+    vectorConditionID[i]=conditionID;
   }
 
 ///// Create Mesh
 
   Mesh theMesh(interpOrder, nodesCoordinates, elementsConnectivity,
-               displ_dof_handle, press_dof_handle, vectorFractureID, vectorMaterialID);
+               displ_dof_handle, press_dof_handle,
+               vectorFractureID, vectorMaterialID, vectorConditionID);
 
   return theMesh;
 }

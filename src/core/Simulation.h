@@ -15,6 +15,7 @@ namespace hfp2d {
 
 
 class Simulation {
+//placeholder for simulation parameters
 
 };
 }
