@@ -13,13 +13,11 @@
 
 // Inclusion from the project
 #include "AssemblyDDM.h"
-#include "Simplified3D.h"
 #include "PlaneStrainInfinite.h"
+#include "Simplified3D.h"
+
 #include <src/core/ElasticProperties.h>
-
 #include <src/core/Mesh.h>
-
-
 
 namespace hfp2d {
 
@@ -51,93 +49,20 @@ void set_submatrix(il::Array2D<double> &A, int i0, int i1,
 
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
-il::Array2D<double> basic_assembly(Mesh &mesh, il::Array2D<int> &id, int p,
-                                   ElasticProperties& elas, vKernelCall KernelCall,
-                                   double ker_options){
 
-  // Kmat : the stiffness matrix to assemble
-  // mesh:: the Mesh object
-  // id :: the DOF handle
-  // p :: the interpolation order
-  // Ep :: the Plane Strain Young's modulus
-  IL_EXPECT_FAST(id.size(0) == mesh.nelts());
-  IL_EXPECT_FAST(id.size(1) == 2 * (p + 1));
-
-
-  il::Array2D<double> xe{2, 2, 0}, xec{2, 2, 0};
-
-  hfp2d::SegmentData mysege, mysegc;
-
-  il::StaticArray2D<double, 2, 2> R;
-  il::Array<int> dofe{2 * (p + 1), 0}, dofc{2 * (p + 1), 0};
-
-  il::StaticArray2D<double, 2, 4> stnl;
-  il::StaticArray<double, 2> sec, nec, xcol;
-
-  il::Array2D<double> Kmat{id.size(0) * id.size(1), id.size(0) * id.size(1)};
-
-  // Brute Force assembly
-  // double loop on elements to create the stiffness matrix ...
-
-#pragma omp parallel for
-
-  for (int e = 0; e < mesh.nelts(); ++e) { // loop on all  elements
-
-    //   get characteristic of element # e
-    mysege = hfp2d::get_segment_DD_data(mesh, e, p);
-    // Rotation matrix of the element w.r. to x-axis.
-    R = hfp2d::rotation_matrix_2D(mysege.theta);
-
-    // vector of dof id of  element e
-    for (int i = 0; i < 2 * (p + 1); ++i) {
-      dofe[i] = id(e, i);
-    };
-
-    // loop on all  elements - to compute the effect of e on all other elements
-    for (int j = 0; j < mesh.nelts(); ++j) {
-      //   get characteristic of element # j
-      mysegc = hfp2d::get_segment_DD_data(mesh, j, p);
-
-      for (int i = 0; i < 2 * (p + 1); ++i) {
-        dofc[i] = id(j, i); // vector of dof id of the  element j
-      };
-
-      // loop on collocation points of the target element
-      for (int ic = 0; ic < p + 1; ++ic) {
-
-        // call kernel fction for the effect of element e on collocation ic of element j
-
-        stnl = KernelCall(mysege,mysegc,ic, elas,ker_options);
-
-        for (int j1 = 0; j1 < 2*(p+1) ; ++j1) {
-          for (int j0 = 0; j0 < 2 ; ++j0) {
-            Kmat(dofc[2 * ic] + j0, dofe[0] + j1) = stnl(j0, j1);
-          }
-        }
-
-//        hfp2d::set_submatrix(Kmat, dofc[2 * ic], dofe[0], stnl);
-
-      }
-    }
-  }
-  return Kmat;
-};
-
-
-//todo need to write a function similar to Assembly for the addition of new rows and columms corresponding to the addition of new elements in the mesh !
+// todo need to write a function similar to Assembly for the addition of new
+// rows and columms corresponding to the addition of new elements in the mesh !
 
 ///////////////////////////////////////////////////////////////////////////////
-il::Array2D<double> basic_assembly_new(Mesh &mesh, ElasticProperties& elas,
-                                   vKernelCall KernelCall, double ker_options){
+il::Array2D<double> basic_assembly(Mesh &mesh, ElasticProperties &elas,
+                                   vKernelCall KernelCall, double ker_options) {
+  // Kmat :: the stiffness matrix to assemble
+  // mesh :: the Mesh object
+  // id   :: the DOF handle
+  // p    :: the interpolation order
+  // elas :: the elastic properties object
 
-  // Kmat : the stiffness matrix to assemble
-  // mesh:: the Mesh object
-  // id :: the DOF handle
-  // p :: the interpolation order
-  // elas  :: the elastic properties object
-
-  il::int_t p=mesh.interpolationOrder();
+  il::int_t p = mesh.interpolationOrder();
 
   il::Array2D<double> xe{2, 2, 0}, xec{2, 2, 0};
 
@@ -147,19 +72,14 @@ il::Array2D<double> basic_assembly_new(Mesh &mesh, ElasticProperties& elas,
   il::Array<il::int_t> dofe{2 * (p + 1), 0}, dofc{2 * (p + 1), 0};
 
   il::StaticArray2D<double, 2, 4> stnl;
-  il::StaticArray<double, 2> sec, nec, xcol;
 
-  const il::int_t numDisplDofs = mesh.numberOfDisplDofs();
-  const il::int_t numPressDofs = mesh.numberOfPressDofs();
-  const il::int_t totalNumDofDispl = numDisplDofs + numPressDofs;
-
-  il::Array2D<double> Kmat{numDisplDofs, numDisplDofs};
+  il::Array2D<double> Kmat{mesh.numberOfDisplDofs(), mesh.numberOfDisplDofs()};
 
   // Brute Force assembly
   // double loop on elements to create the stiffness matrix ...
 
-
-  for (il::int_t e = 0; e < mesh.numberOfElements(); ++e) { // loop on all  elements
+  for (il::int_t e = 0; e < mesh.numberOfElements();
+       ++e) {  // loop on all  elements
 
     //   get characteristic of element # e
     mysege = hfp2d::get_segment_DD_data(mesh, e, p);
@@ -177,31 +97,55 @@ il::Array2D<double> basic_assembly_new(Mesh &mesh, ElasticProperties& elas,
       mysegc = hfp2d::get_segment_DD_data(mesh, j, p);
 
       for (il::int_t i = 0; i < 2 * (p + 1); ++i) {
-        dofc[i] = mesh.dofDispl(j, i); // vector of dof id of the  element j
+        dofc[i] = mesh.dofDispl(j, i);  // vector of dof id of the  element j
       };
 
       // loop on collocation points of the target element
       for (il::int_t ic = 0; ic < p + 1; ++ic) {
+        // call kernel fction for the effect of element e on collocation ic of
+        // element j
 
-        // call kernel fction for the effect of element e on collocation ic of element j
+        stnl = KernelCall(mysege, mysegc, ic, elas, ker_options);
 
-        stnl = KernelCall(mysege,mysegc,ic, elas,ker_options);
-
-        for (il::int_t j1 = 0; j1 < 2*(p+1) ; ++j1) {
-          for (il::int_t j0 = 0; j0 < 2 ; ++j0) {
+        for (il::int_t j1 = 0; j1 < 2 * (p + 1); ++j1) {
+          for (il::int_t j0 = 0; j0 < 2; ++j0) {
             Kmat(dofc[2 * ic] + j0, dofe[0] + j1) = stnl(j0, j1);
           }
         }
-
-//        hfp2d::set_submatrix(Kmat, dofc[2 * ic], dofe[0], stnl);
-
       }
     }
   }
   return Kmat;
 };
 
+// todo need to write a function similar to Assembly for the addition of new
+// rows and columms corresponding to the addition of new elements in the mesh !
 
-//todo need to write a function similar to Assembly for the addition of new rows and columms corresponding to the addition of new elements in the mesh !
+
+//  tip correction....
+void AddTipCorrectionP0(const Mesh &mesh, const ElasticProperties &elas,
+                        il::int_t tipElt, il::Array2D<double> &Kmat ) {
+
+  il::StaticArray2D<double, 2, 2> Xs;
+
+  Xs(0, 0) = mesh.node(mesh.connectivity(tipElt, 0), 0);
+  Xs(0, 1) = mesh.node(mesh.connectivity(tipElt, 0), 1);
+  Xs(1, 0) = mesh.node(mesh.connectivity(tipElt, 1), 0);
+  Xs(1, 1) = mesh.node(mesh.connectivity(tipElt, 1), 1);
+
+  il::StaticArray<double, 2> xdiff;
+  xdiff[0] = Xs(1, 0) - Xs(0, 0);
+  xdiff[1] = Xs(1, 1) - Xs(0, 1);
+
+  double hx = sqrt(pow(xdiff[0], 2) + pow(xdiff[1], 2));
+
+  double correct = elas.Ep()*(1. / 3.) / (4. * hx);
+
+
+  Kmat(mesh.dofDispl(tipElt,0),mesh.dofDispl(tipElt,0))-=correct;
+
+  Kmat(mesh.dofDispl(tipElt,1),mesh.dofDispl(tipElt,1))-=correct;
+
+}
 
 }

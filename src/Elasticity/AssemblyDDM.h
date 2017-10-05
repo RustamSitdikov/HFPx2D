@@ -22,24 +22,22 @@
 namespace hfp2d {
 
 typedef  il::StaticArray2D<double, 2, 4> (*vKernelCall)(
-    SegmentData source_elt, SegmentData receiver_elt, int i_col,
+    SegmentData source_elt, SegmentData receiver_elt, il::int_t i_col,
     ElasticProperties Elas, double ker_options);
 
-il::Array2D<double> basic_assembly( Mesh& mesh, ElasticProperties& elas,
-                                    vKernelCall KernelCall, double ker_options);
 
-il::Array2D<double> basic_assembly_new(Mesh &mesh, ElasticProperties& elas,
-                                       vKernelCall KernelCall, double ker_options);
+il::Array2D<double> basic_assembly(Mesh &mesh, ElasticProperties &elas,
+                                   vKernelCall KernelCall, double ker_options);
 
-il::Array2D<double> basic_assembly(Mesh &mesh, il::Array2D<int> &id, int p,
-                                   ElasticProperties& elas, vKernelCall KernelCall,
-                                   double ker_options);
 
 void take_submatrix(il::Array2D<double> &sub, int i0, int i1, int j0, int j1,
                     const il::Array2D<double> &A);
 
 void set_submatrix(il::Array2D<double> &A, int i0, int i1,
                    const il::StaticArray2D<double, 2, 4> &B);
+
+void AddTipCorrectionP0(const Mesh &mesh, const ElasticProperties &elas,
+                        il::int_t tipElt, il::Array2D<double> &Kmat );
 }
 
 #endif  // HFPX2D_ASSEMBLYDDM_H

@@ -91,12 +91,6 @@ double SimpleGriffithExampleLinearElement(int nelts) {
   }
 
 
-  //il::Array<il::int_t> matid{nelts, 1};
-  // create mesh object
-  //hfp2d::Mesh mesh;
-
-  //mesh.init1DMesh(xy, myconn, matid);
-
   hfp2d::Mesh mesh(p,xy,myconn,id_displ,id_press,fracID,matID,condID);
 
   il::int_t ndof = mesh.numberOfDisplDofs();
@@ -127,7 +121,7 @@ double SimpleGriffithExampleLinearElement(int nelts) {
   il::Timer timer{};
   timer.start();
 
-  K = hfp2d::basic_assembly_new(mesh, myelas,
+  K = hfp2d::basic_assembly(mesh, myelas,
                             hfp2d::normal_shear_stress_kernel_dp1_dd,
                             0.);  // passing p could be avoided here
 
@@ -267,9 +261,12 @@ double SimpleGriffithExampleS3D_P0(int nelts) {
 //                            1000.);  // large pseudo-heigth to reproduce plane-strain kernel
 //  // passing p could be avoided here
 
-  K = hfp2d::basic_assembly_new(mesh, myelas,
+  K = hfp2d::basic_assembly(mesh, myelas,
                             hfp2d::normal_shear_stress_kernel_s3d_dp0_dd,
                             1000.);  // large pseudo-heigth to reproduce plane-strain kernel
+
+  AddTipCorrectionP0(mesh, myelas,0, K);
+  AddTipCorrectionP0(mesh, myelas,nelts-1, K);
 
 
   timer.stop();

@@ -355,7 +355,7 @@ il::StaticArray2D<double, 2, 3> stresses_kernel_s3d_p0_dd(double a, double b,
 //------------------------------------------------------------------------------
 
 il::StaticArray2D<double, 2, 4> normal_shear_stress_kernel_s3d_dp0_dd(
-    SegmentData source_elt, SegmentData receiver_elt, int i_col,
+    SegmentData source_elt, SegmentData receiver_elt,  il::int_t i_col,
     ElasticProperties Elas, double ker_options)
 {
 //  Function to get the normal and shear stress at a point on a surface

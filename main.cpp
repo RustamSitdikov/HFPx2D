@@ -109,8 +109,8 @@
   // there will be a method in the class to give that vector
 
   // create the stiffness matrix for the computation
-  //il::Array2D<double> kmat = basic_assembly_new(mesh_total, id, p, material.Ep);
-  //il::Array2D<double> kmat = basic_assembly_new( mesh, id, p, Ep);  // from Dong
+  //il::Array2D<double> kmat = basic_assembly(mesh_total, id, p, material.Ep);
+  //il::Array2D<double> kmat = basic_assembly( mesh, id, p, Ep);  // from Dong
   // how I would like it
   // kmat = basic_assembly (mesh, properties, kernel);
 
@@ -129,9 +129,8 @@ int main(){
 
   il::Array<double> w{10};
 
-
   std::cout << "\n rel error L2 norm in Linear Elements: " << ret1 << "\n";
-  std::cout << "\n rel error L2 norm in Constant Elements: " << ret2 << "\n";
+  std::cout << "\n rel error L2 norm in Constant Elements (with tip correction): " << ret2 << "\n";
 
   std::cout << " end of code \n\n\n";
 

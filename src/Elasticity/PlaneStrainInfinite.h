@@ -25,7 +25,7 @@ il::StaticArray2D<double, 2, 4> stresses_kernel_dp1_dd(double h, double Ep,
 
 
 il::StaticArray2D<double, 2, 4> normal_shear_stress_kernel_dp1_dd(
-    SegmentData source_elt, SegmentData receiver_elt, int i_col,
+    SegmentData source_elt, SegmentData receiver_elt,  il::int_t i_col,
     ElasticProperties Elas, double ker_options);
 
 
