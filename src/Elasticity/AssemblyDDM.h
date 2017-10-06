@@ -38,6 +38,12 @@ void set_submatrix(il::Array2D<double> &A, int i0, int i1,
 
 void AddTipCorrectionP0(const Mesh &mesh, const ElasticProperties &elas,
                         il::int_t tipElt, il::Array2D<double> &Kmat );
+
+void RemoveTipCorrectionP0(const Mesh &mesh, const ElasticProperties &elas,
+                           il::int_t tipElt, il::Array2D<double> &Kmat );
+
+il::Array2D<double> ReArrangeKP0(const Mesh &mesh,il::Array2D<double> &Kmat);
+
 }
 
 #endif  // HFPX2D_ASSEMBLYDDM_H

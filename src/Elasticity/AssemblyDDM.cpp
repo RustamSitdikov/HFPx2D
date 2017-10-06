@@ -126,8 +126,8 @@ il::Array2D<double> basic_assembly(Mesh &mesh, ElasticProperties &elas,
 void AddTipCorrectionP0(const Mesh &mesh, const ElasticProperties &elas,
                         il::int_t tipElt, il::Array2D<double> &Kmat ) {
 
+// getting the element size ;( -> cry for a method in mesh class !
   il::StaticArray2D<double, 2, 2> Xs;
-
   Xs(0, 0) = mesh.node(mesh.connectivity(tipElt, 0), 0);
   Xs(0, 1) = mesh.node(mesh.connectivity(tipElt, 0), 1);
   Xs(1, 0) = mesh.node(mesh.connectivity(tipElt, 1), 0);
@@ -136,16 +136,84 @@ void AddTipCorrectionP0(const Mesh &mesh, const ElasticProperties &elas,
   il::StaticArray<double, 2> xdiff;
   xdiff[0] = Xs(1, 0) - Xs(0, 0);
   xdiff[1] = Xs(1, 1) - Xs(0, 1);
-
   double hx = sqrt(pow(xdiff[0], 2) + pow(xdiff[1], 2));
 
-  double correct = elas.Ep()*(1. / 3.) / (4. * hx);
+//  correction factor
+  double correct =- elas.Ep()*(1. / 3.) / (4. * hx);
 
+  Kmat(mesh.dofDispl(tipElt,0),mesh.dofDispl(tipElt,0))+=correct;
+
+  Kmat(mesh.dofDispl(tipElt,1),mesh.dofDispl(tipElt,1))+=correct;
+
+}
+
+// remove tip correction....
+void RemoveTipCorrectionP0(const Mesh &mesh, const ElasticProperties &elas,
+                        il::int_t tipElt, il::Array2D<double> &Kmat ) {
+
+// getting the element size ;( -> cry for a method in mesh class !
+  il::StaticArray2D<double, 2, 2> Xs;
+  Xs(0, 0) = mesh.node(mesh.connectivity(tipElt, 0), 0);
+  Xs(0, 1) = mesh.node(mesh.connectivity(tipElt, 0), 1);
+  Xs(1, 0) = mesh.node(mesh.connectivity(tipElt, 1), 0);
+  Xs(1, 1) = mesh.node(mesh.connectivity(tipElt, 1), 1);
+
+  il::StaticArray<double, 2> xdiff;
+  xdiff[0] = Xs(1, 0) - Xs(0, 0);
+  xdiff[1] = Xs(1, 1) - Xs(0, 1);
+  double hx = sqrt(pow(xdiff[0], 2) + pow(xdiff[1], 2));
+
+//  correction factor
+  double correct =- elas.Ep()*(1. / 3.) / (4. * hx);
 
   Kmat(mesh.dofDispl(tipElt,0),mesh.dofDispl(tipElt,0))-=correct;
 
   Kmat(mesh.dofDispl(tipElt,1),mesh.dofDispl(tipElt,1))-=correct;
 
 }
+
+
+il::Array2D<double> ReArrangeKP0(const Mesh &mesh,il::Array2D<double> &Kmat) {
+  // reorder K in the following blocks type
+  //  Knn Kns
+  //  Ksn Kss
+  //
+  IL_EXPECT_FAST(Kmat.size(0) == Kmat.size(1));
+// test that it should even (/2)
+
+  il::Array2D<double> Knew{Kmat.size(0), Kmat.size(1)};
+
+  il::int_t k = 0; il::int_t l = 0;
+  k=0;
+  for (il::int_t i = 0; i < Kmat.size(0); i=i+2) {
+    l=0;
+    for (il::int_t j = 0; j < Kmat.size(1); j = j + 2){
+      Knew(k,l) = Kmat(i,j);
+      l++;
+    }
+    for (il::int_t j = 1; j < Kmat.size(1); j = j + 2){
+      Knew(k,l) = Kmat(i,j);
+      l++;
+    }
+    k++;
+    };
+
+  for (il::int_t i = 1; i < Kmat.size(0); i=i+2) {
+    l=0;
+    for (il::int_t j = 0; j < Kmat.size(1); j = j + 2){
+      Knew(k,l) = Kmat(i,j);
+      l++;
+    }
+    for (il::int_t j = 1; j < Kmat.size(1); j = j + 2){
+      Knew(k,l) = Kmat(i,j);
+      l++;
+    }
+    k++;
+  };
+
+  return Knew;
+
+
+};
 
 }

@@ -192,6 +192,7 @@ class Mesh {  // class for 1D mesh of 1D segment elements ?
 
 // a method to output
 
+  il::Array<il::int_t> eltinFrac(il::int_t k) ;
 
 };
 }

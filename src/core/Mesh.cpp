@@ -45,7 +45,8 @@ Mesh::Mesh(const il::int_t interpolationOrder,
                  elementsConnectivity.size(1) * 2 == displ_dof_handle.size(1));
   // - 1 pressure dof per node x number of nodes in an element == dof handle per
   // element
-  IL_EXPECT_FAST(elementsConnectivity.size(1) == press_dof_handle.size(1));
+  // this test is WRONG  as pressure is P0 for P0 dd, so press dof has nothing to do with connectivity size in that cas
+//  IL_EXPECT_FAST(elementsConnectivity.size(1) == press_dof_handle.size(1));
 
   // Check of the size of fractureID and materialID
   IL_EXPECT_FAST(elementsConnectivity.size(0) == fractureID.size());
@@ -301,6 +302,10 @@ void Mesh::appendMesh(const Mesh &newMesh, const bool isJoined) {
     std::cout << "got press dof" << std::endl;
   }
 }
+
+
+
+
 
 /*void Mesh::appendMesh(const il::Array2D<double> &newNodesCoordinates,
                 const il::Array2D<il::int_t> &newElementsConnectivity,
@@ -614,4 +619,13 @@ SegmentData get_segment_DD_data(const Mesh &mesh, il::int_t ne,
   return segment;  // return structure with all we need on the segment.
 }*/
 //----------------------------------------------------
+
+
+il::Array<il::int_t> eltinFrac(il::int_t k){
+
+};
+
+
+
+
 }

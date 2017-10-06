@@ -71,7 +71,8 @@ set(SOURCE_FILES
         src/input/findUtilities.h
         il/io/toml/toml.h
         il/io/toml/toml.cpp src/core/InSituStress.h src/input/conditions/loadConditions.cpp
-        src/input/conditions/loadConditions.h src/core_dev/Sources.h src/input/Sources/loadSources.cpp src/input/Sources/loadSources.h)
+        src/input/conditions/loadConditions.h src/core_dev/Sources.h src/input/Sources/loadSources.cpp src/input/Sources/loadSources.h
+        src/FluidFlow/ReynoldsP0.cpp src/FluidFlow/ReynoldsP0.h src/Solvers/DevLHFMSolver.cpp src/Solvers/DevLHFMSolver.h)
 
 
 if(APPLE)

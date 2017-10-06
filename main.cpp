@@ -18,6 +18,7 @@
 #include "src/core_dev/SolutionClass.h"
 #include "src/input/loadArguments.h"
 
+#include "src/Solvers/DevLHFMSolver.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -120,17 +121,24 @@
 
 #include <il/Array.h>
 int main(){
-  std::cout << "\n\n ----- Simple Griffith crack examples ----- \n\n" << std::endl;
 
-  int nelts = 10;
+//  std::cout << "\n\n ----- Simple Griffith crack examples ----- \n\n" << std::endl;
 
-  double ret1 = hfp2d::SimpleGriffithExampleLinearElement(nelts);
-  double ret2 = hfp2d::SimpleGriffithExampleS3D_P0(nelts);
 
-  il::Array<double> w{10};
+  int nelts = 5;
+  double dist= 1e4;
 
-  std::cout << "\n rel error L2 norm in Linear Elements: " << ret1 << "\n";
-  std::cout << "\n rel error L2 norm in Constant Elements (with tip correction): " << ret2 << "\n";
+
+  int ret = hfp2d::TwoParallelHFs(nelts,dist);
+  std::cout << "return " << ret;
+
+//  double ret1 = hfp2d::SimpleGriffithExampleLinearElement(nelts);
+//  double ret2 = hfp2d::SimpleGriffithExampleS3D_P0(nelts);
+
+//  il::Array<double> w{10};
+
+//  std::cout << "\n rel error L2 norm in Linear Elements: " << ret1 << "\n";
+ // std::cout << "\n rel error L2 norm in Constant Elements (with tip correction): " << ret2 << "\n";
 
   std::cout << " end of code \n\n\n";
 

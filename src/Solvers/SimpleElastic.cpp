@@ -188,7 +188,7 @@ double SimpleGriffithExampleS3D_P0(int nelts) {
   il::Array2D<double> xy{nelts + 1, 2, 0.0};
   il::Array2D<il::int_t> myconn{nelts, 2, 0};
   il::Array2D<il::int_t> id_displ{nelts, 2*(p+1), 0};
-  il::Array2D<il::int_t> id_press{nelts, 2, 0};
+  il::Array2D<il::int_t> id_press{nelts, (p+1), 0};
   il::Array<il::int_t> fracID {nelts,1};
   il::Array<il::int_t> matID {nelts,1};
   il::Array<il::int_t> condID {nelts,1};
@@ -218,7 +218,7 @@ double SimpleGriffithExampleS3D_P0(int nelts) {
 
   for (il::int_t i=0; i < nelts; i++){
     id_press(i,0)=i;
-    id_press(i,1)=i+1;
+    id_press(i,1)=i+1; // WRONG
   }
 
   //il::Array<il::int_t> matid{nelts, 1};
@@ -315,7 +315,7 @@ double SimpleGriffithExampleS3D_P0(int nelts) {
   }
 
   std::cout << " end of Simple Griffith crack example \n";
-  status.ok();
+
 
   return il::norm(rel_err, il::Norm::L2);
 }
