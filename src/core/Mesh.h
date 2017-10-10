@@ -190,9 +190,18 @@ class Mesh {  // class for 1D mesh of 1D segment elements ?
 
   il::Array<il::int_t> matid() const { return material_id_; };
 
-// a method to output
+// a method to output...
 
   il::Array<il::int_t> eltinFrac(il::int_t k) ;
+
+
+  // a method to get the size of a given element.
+  double eltsize(il::int_t &e);
+
+  // a method to get all element sizes...
+
+  // a method to get the elements #  sharing a common node
+
 
 };
 }

@@ -620,12 +620,22 @@ SegmentData get_segment_DD_data(const Mesh &mesh, il::int_t ne,
 }*/
 //----------------------------------------------------
 
+//
+//il::Array<il::int_t> eltinFrac(il::int_t k){
+//
+//};
 
-il::Array<il::int_t> eltinFrac(il::int_t k){
+
+double Mesh::eltsize(il::int_t &e){
+
+  il::StaticArray<double, 2> xdiff;
+  xdiff[0] = nodes_(connectivity_(e, 1), 0)- nodes_(connectivity_(e, 0), 0);
+  xdiff[1] = nodes_(connectivity_(e, 1), 1) - nodes_(connectivity_(e, 0), 1);
+  double hx = sqrt(pow(xdiff[0], 2) + pow(xdiff[1], 2));
+
+ return hx;
 
 };
-
-
 
 
 }
