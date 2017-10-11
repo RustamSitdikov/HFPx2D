@@ -13,6 +13,7 @@
 #include <src/core_dev/Sources.h>
 
 #include <il/linear_algebra/dense/norm.h>
+#include <src/core/SimulationParameters.h>
 #include "il/Array.h"
 
 #include "src/core/Fluid.h"
@@ -60,7 +61,7 @@ il::Array2D<il::int_t> GetEdgesSharing2(hfp2d::Mesh &mesh) {
   // format is col1: element1, col2: element2   (note we don t store the
   // corresponding node here....)
 
-  il::Array2D<il::int_t> edge{mesh.numberOfNodes(),2, 0.};
+  il::Array2D<il::int_t> edge{mesh.numberOfNodes(), 2, 0.};
 
   il::StaticArray<il::int_t, 2> temp;
 
@@ -179,7 +180,8 @@ hfp2d::SolutionAtT ReynoldsSolverP0(hfp2d::SolutionAtT &soln,
                                     il::Array2D<double> &ElasMat,
                                     hfp2d::Fluid &fluid,
                                     hfp2d::RockProperties &rock,
-                                    hfp2d::Sources &source, double timestep) {
+                                    hfp2d::Sources &source, double timestep,
+                                    hfp2d::SimulationParameters &simulParams) {
   // Solution of the Elasto-Hydrodynamics Lubrication over a time step / known
   // mesh
   // PICARD/ Fixed Pt Iterations SCHEME
@@ -215,12 +217,11 @@ hfp2d::SolutionAtT ReynoldsSolverP0(hfp2d::SolutionAtT &soln,
   il::Array<double> sig0 = soln.sigma0();
   il::Array<double> tau0 = soln.tau0();
 
-
   // reglue DDs vector.
   il::Array<double> DDn{2 * n_elts, 0.};
   for (il::int_t i = 0; i < n_elts; i++) {
-    DDn[i] = shn[i];  // shear dd
-    DDn[i + n_elts] = Wn[i]; // normal dd
+    DDn[i] = shn[i];          // shear dd
+    DDn[i + n_elts] = Wn[i];  // normal dd
   }
 
   // INITIALIZE THE part of the tangent matrix that won't change during
@@ -252,23 +253,23 @@ hfp2d::SolutionAtT ReynoldsSolverP0(hfp2d::SolutionAtT &soln,
     Gamma[i + n_elts] = sig0[i] - Pn[i] - Fn_elas[i + n_elts];
   }
 
-  il::Array2D<il::int_t> sharedEdges = GetEdgesSharing2(meshn);//
+  il::Array2D<il::int_t> sharedEdges = GetEdgesSharing2(meshn);  //
 
   // hydraulic width;
   il::Array<double> Wh{n_elts, 0.}, err_Dw{n_elts, 1.}, err_Dv{n_elts, 1.},
       err_Dp{n_elts, 1.};
 
-  il::Array<double> Residuals{tot_dofs,1.};
-  double res_norm=0.;
+  il::Array<double> Residuals{tot_dofs, 1.};
+  double res_norm = 0.;
 
-  double tolerance = 1.e-6;
-  double betarela = 0.7;
-  il::int_t k = 0, itermax = 100;
+  double betarela = simulParams.EHL_relaxation();
+  il::int_t k = 0;
 
   // Fixed Point Iteration Solver.
-  while ((k < itermax) && (il::norm(err_Dp, il::Norm::L2) > tolerance) &&
-         (il::norm(err_Dw, il::Norm::L2) > tolerance) &&
-         (il::norm(err_Dv, il::Norm::L2) > tolerance)) {
+  while ((k < simulParams.EHL_max_its()) &&
+         (il::norm(err_Dp, il::Norm::L2) > simulParams.EHL_tol()) &&
+         (il::norm(err_Dw, il::Norm::L2) > simulParams.EHL_tol()) &&
+         (il::norm(err_Dv, il::Norm::L2) > simulParams.EHL_tol())) {
     k++;
 
     // update hydraulic width....
@@ -282,7 +283,8 @@ hfp2d::SolutionAtT ReynoldsSolverP0(hfp2d::SolutionAtT &soln,
     il::Array<double> LdotPn = il::dot(L, Pn);
 
     // construct the tangent system (matrix + RHS)
-    // add the effect of L mat (bottom right part of Xi), the rest being constant
+    // add the effect of L mat (bottom right part of Xi), the rest being
+    // constant
     for (il::int_t j = 0; j < n_elts; j++) {
       for (il::int_t i = 0; i < n_elts; i++) {
         if (i == j) {
@@ -294,16 +296,17 @@ hfp2d::SolutionAtT ReynoldsSolverP0(hfp2d::SolutionAtT &soln,
       Gamma[j + 2 * n_elts] = -LdotPn[j];
     }
     // don t forget to add sources to the RHS
-    for (il::int_t i=0;i<source.SourceElt().size();i++) {
-      Gamma[2 * n_elts + source.SourceElt(i)] += source.InjectionRate(i) * timestep;
+    for (il::int_t i = 0; i < source.SourceElt().size(); i++) {
+      Gamma[2 * n_elts + source.SourceElt(i)] +=
+          source.InjectionRate(i) * timestep;
     }
 
     // compute current residuals.. (before solution of the system)
-    Residuals=il::dot(Xi,DX_k);
-    for (il::int_t i=0;i<tot_dofs;i++){
-      Residuals[i]=Residuals[i]-Gamma[i];
+    Residuals = il::dot(Xi, DX_k);
+    for (il::int_t i = 0; i < tot_dofs; i++) {
+      Residuals[i] = Residuals[i] - Gamma[i];
     }
-    res_norm=il::norm(Residuals,il::Norm::L2);
+    res_norm = il::norm(Residuals, il::Norm::L2);
 
     // Solve the tangent system
     il::Status status;
@@ -314,8 +317,13 @@ hfp2d::SolutionAtT ReynoldsSolverP0(hfp2d::SolutionAtT &soln,
     // under-relaxation of the solution
     for (il::int_t i = 0; i < 3 * n_elts; i++) {
       DX_k[i] = betarela * DX_k[i] + (1. - betarela) * DX_k_1[i];
-      errDX[i] = abs((DX_k[i] - DX_k_1[i]) / DX_k[i]); // note that in case where shear dd is zero, this relative error on the shear dof will be large and insignificant.
-      DX_k_1[i] = DX_k[i];  // old is new
+      errDX[i] = abs((DX_k[i] - DX_k_1[i]) / DX_k[i]);  // note that in case
+                                                        // where shear dd is
+                                                        // zero, this relative
+                                                        // error on the shear
+                                                        // dof will be large and
+                                                        // insignificant.
+      DX_k_1[i] = DX_k[i];                              // old is new
     }
 
     // compute rel-error estimates ...
@@ -323,32 +331,34 @@ hfp2d::SolutionAtT ReynoldsSolverP0(hfp2d::SolutionAtT &soln,
     for (il::int_t i = 0; i < n_elts; i++) {
       err_Dv[i] = errDX[i];
       err_Dw[i] = errDX[i + n_elts];
-      err_Dp[i] = errDX[i + 2*n_elts];
+      err_Dp[i] = errDX[i + 2 * n_elts];
       DW_k[i] = DX_k[i + n_elts];
     }
 
-//    std::cout << " its " << k
-//              <<    " rel. err. dw: "<< il::norm(err_Dw,il::Norm::L2) <<  " rel. err dp: " << il::norm(err_Dp,il::Norm::L2)<< " rel. err. Dv:" <<
-//             il::norm(err_Dv,il::Norm::L2) << " rel. err. Dx:" << il::norm(errDX,il::Norm::L2)  << "\n" ;
-
+    //    std::cout << " its " << k
+    //              <<    " rel. err. dw: "<< il::norm(err_Dw,il::Norm::L2) <<
+    //              " rel. err dp: " << il::norm(err_Dp,il::Norm::L2)<< " rel.
+    //              err. Dv:" <<
+    //             il::norm(err_Dv,il::Norm::L2) << " rel. err. Dx:" <<
+    //             il::norm(errDX,il::Norm::L2)  << "\n" ;
   }
 
-  std::cout << " end of Picard Scheme for Reynolds, after " << k
-            << " its " <<  " rel. err. dw: "<< il::norm(err_Dw,il::Norm::L2) <<  " rel. err dp: " << il::norm(err_Dp,il::Norm::L2)
-            <<  " norm of residuals: " << res_norm
-            <<                                                                  "\n" ;
+  std::cout << " end of Picard Scheme for Reynolds, after " << k << " its "
+            << " rel. err. dw: " << il::norm(err_Dw, il::Norm::L2)
+            << " rel. err dp: " << il::norm(err_Dp, il::Norm::L2)
+            << " norm of residuals: " << res_norm << "\n";
 
   // update total width, pressure and shear to the end values
-  for (il::int_t i=0;i<n_elts;i++){
-    Wn[i]+=DX_k[i + n_elts];
-    Pn[i]+=DX_k[i + 2*n_elts];
-    shn[i]+=DX_k[i];
+  for (il::int_t i = 0; i < n_elts; i++) {
+    Wn[i] += DX_k[i + n_elts];
+    Pn[i] += DX_k[i + 2 * n_elts];
+    shn[i] += DX_k[i];
   }
 
-  return hfp2d::SolutionAtT(meshn,soln.time()+timestep,timestep,Wn,shn,Pn,sig0,tau0,soln.front_its(),k,soln.err_front(),
-                            il::norm(err_Dv,il::Norm::L2) ,il::norm(err_Dw,il::Norm::L2) ,il::norm(err_Dp,il::Norm::L2)  );
-
-  //   will need to create a deep copy of soln at some point
+  return hfp2d::SolutionAtT(
+      meshn, soln.time() + timestep, timestep, Wn, shn, Pn, sig0, tau0,
+      soln.front_its(), k, soln.err_front(), il::norm(err_Dv, il::Norm::L2),
+      il::norm(err_Dw, il::Norm::L2), il::norm(err_Dp, il::Norm::L2));
 };
 }
 ////////////////////////////////////////////////////////////////////////////////

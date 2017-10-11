@@ -21,6 +21,7 @@
 #include <src/Elasticity/AssemblyDDM.h>
 #include <src/Elasticity/Simplified3D.h>
 #include <src/FluidFlow/ReynoldsP0.h>
+#include <src/core/SimulationParameters.h>
 
 namespace hfp2d {
 
@@ -91,16 +92,9 @@ int TwoParallelHFs(int nelts, double dist) {
 
   const il::Array2D<il::int_t> edge = hfp2d::GetEdgesSharing2(mesh);
 
-  il::int_t ndof = mesh.numberOfDisplDofs();
-
   hfp2d::ElasticProperties myelas(1, 0.);
 
-  std::cout << "EP :" << myelas.Ep() << "\n";
-
-  std::cout << "nndoes :" << mesh.numberOfNodes() << "\n";
-
-  il::Array2D<double> K{ndof, ndof};
-  K = hfp2d::basic_assembly(
+  il::Array2D<double> K = hfp2d::basic_assembly(
       mesh, myelas, hfp2d::normal_shear_stress_kernel_s3d_dp0_dd,
       1000.);  // large pseudo-heigth to reproduce plane-strain kernel
 
@@ -110,28 +104,18 @@ int TwoParallelHFs(int nelts, double dist) {
   AddTipCorrectionP0(mesh, myelas, nelts, K);
   AddTipCorrectionP0(mesh, myelas, Ntot - 1, K);
 
-  // RE_ARRANGE THE DOF FOR DD HERE !!!
+  // RE_ARRANGE THE DOF FOR DD HERE !!! this is probably not needed.
   K = ReArrangeKP0(mesh, K);
 
   // initial stress field uniform to test.
   il::Array<double> sig_o{Ntot, 0.1}, tau_o{Ntot, 0.};
 
   // initial fluid pressure
-  il::Array<double> pf_o{
-      Ntot, 0.1 + 1.e-1};  // slightly above sig_o to have initial width
-
-  // fluid properties.
-  hfp2d::Fluid water(1., 0.1, 1.e-10);
-
-  // injection location
-  il::StaticArray<int, 1> inj_location;
-  inj_location[0] = 5;
-  inj_location[0] = 14;  // hardcocded for nelts=9 for now!
+  il::Array<double> pf_o{Ntot, 0.1 + 1.e-1};  // slightly above sig_o to have initial width
 
   // solve the initial elastic system
   il::Array<double> fini{2 * Ntot, 0.};
   il::int_t j = 0;
-
   for (il::int_t i = 0; i < Ntot; i = i + 1) {
     fini[i] = tau_o[i];
   }
@@ -157,40 +141,42 @@ int TwoParallelHFs(int nelts, double dist) {
 
   il::Array<double> width{mesh.numberOfElements(), 0.},
       sheardd{mesh.numberOfElements(), 0.};
+
   for (il::int_t i = 0; i < mesh.numberOfElements(); i++) {
     sheardd[i] = dd_ini[i];
     width[i] = dd_ini[i + mesh.numberOfElements()];
   }
 
-  il::Array2D<double> L = hfp2d::BuildFD_P0(mesh, water, width, 1.);
 
   // create a solution at time t=0 object.
-
   hfp2d::SolutionAtT Soln =
       hfp2d::SolutionAtT(mesh, 0., width, sheardd, pf_o, sig_o, tau_o);
 
-  // create source obj.
+  // fluid properties.
+  hfp2d::Fluid water(1., 0.1, 1.e-10);
+
+  // create source obj. - hardcoded for now....
   il::Array<il::int_t> elt_source{2, 0};
   elt_source[0] = 1;
   elt_source[1] = 4;
   il::Array<double> Qo{2, 0.001};
-
   hfp2d::Sources the_source = Sources(elt_source, Qo);
-  std::cout << elt_source[0] << " " << Qo[0] << "\n";
+//  std::cout << elt_source[0] << " " << Qo[0] << "\n";
+
   // create rock properties obj
-
   il::Array<double> wh_o{1, 1.e-6}, toughness{1, 1.e6}, Carter{1, 0.};
-
   hfp2d::RockProperties the_rock =
       RockProperties(myelas, toughness, wh_o, Carter);
 
   // call to Reynolds
   double dt = 0.00000001;
 
+  hfp2d::SimulationParameters SimulParam=SimulationParameters();
+  
   hfp2d::SolutionAtT Soln1 =
-      ReynoldsSolverP0(Soln, K, water, the_rock, the_source, dt);
+      ReynoldsSolverP0(Soln, K, water, the_rock, the_source, dt,SimulParam);
 
-  std::cout << "now oit of re"<<"\n";
+  std::cout << "now out of reynolds"<<"\n";
 
   return 0;
 };
