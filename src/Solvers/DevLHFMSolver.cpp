@@ -111,7 +111,8 @@ int TwoParallelHFs(int nelts, double dist) {
   il::Array<double> sig_o{Ntot, 0.1}, tau_o{Ntot, 0.};
 
   // initial fluid pressure
-  il::Array<double> pf_o{Ntot, 0.1 + 1.e-1};  // slightly above sig_o to have initial width
+  il::Array<double> pf_o{
+      Ntot, 0.1 + 1.e-1};  // slightly above sig_o to have initial width
 
   // solve the initial elastic system
   il::Array<double> fini{2 * Ntot, 0.};
@@ -119,9 +120,8 @@ int TwoParallelHFs(int nelts, double dist) {
   for (il::int_t i = 0; i < Ntot; i = i + 1) {
     fini[i] = tau_o[i];
   }
-  for (il::int_t i = 0; i <  Ntot; i = i + 1) {
-    fini[i+Ntot] = -(pf_o[i] - sig_o[i]);
-
+  for (il::int_t i = 0; i < Ntot; i = i + 1) {
+    fini[i + Ntot] = -(pf_o[i] - sig_o[i]);
   }
 
   il::int_t ea = 2;
@@ -147,7 +147,6 @@ int TwoParallelHFs(int nelts, double dist) {
     width[i] = dd_ini[i + mesh.numberOfElements()];
   }
 
-
   // create a solution at time t=0 object.
   hfp2d::SolutionAtT Soln =
       hfp2d::SolutionAtT(mesh, 0., width, sheardd, pf_o, sig_o, tau_o);
@@ -161,7 +160,7 @@ int TwoParallelHFs(int nelts, double dist) {
   elt_source[1] = 4;
   il::Array<double> Qo{2, 0.001};
   hfp2d::Sources the_source = Sources(elt_source, Qo);
-//  std::cout << elt_source[0] << " " << Qo[0] << "\n";
+  //  std::cout << elt_source[0] << " " << Qo[0] << "\n";
 
   // create rock properties obj
   il::Array<double> wh_o{1, 1.e-6}, toughness{1, 1.e6}, Carter{1, 0.};
@@ -171,12 +170,13 @@ int TwoParallelHFs(int nelts, double dist) {
   // call to Reynolds
   double dt = 0.00000001;
 
-  hfp2d::SimulationParameters SimulParam=SimulationParameters();
-  
-  hfp2d::SolutionAtT Soln1 =
-      ReynoldsSolverP0(Soln, K, water, the_rock, the_source, dt,SimulParam);
+  hfp2d::SimulationParameters SimulParam = SimulationParameters();
 
-  std::cout << "now out of reynolds"<<"\n";
+  hfp2d::SolutionAtT Soln1 =
+      ReynoldsSolverP0(Soln, K, water, the_rock, the_source, dt, SimulParam);
+
+  std::cout << "now out of reynolds"
+            << "\n";
 
   return 0;
 };

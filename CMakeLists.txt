@@ -40,12 +40,14 @@ set(SOURCE_FILES
         src/Elasticity/PlaneStrainInfinite.h
         src/Solvers/SimpleElastic.cpp
         src/Solvers/SimpleElastic.h
-        src/core_dev/SolutionClass.h
-        src/core_dev/Simulation.h
+#        src/core_dev/OldSolutionClass.h
+        src/core/SimulationParameters.h
         src/input/loadArguments.cpp
         src/input/loadArguments.h
-        src/input/loadInput.cpp
-        src/input/loadInput.h
+#        src/input/loadInput.cpp
+#        src/input/loadInput.h
+#        src/input/loadInput.cpp
+#        src/input/loadInput.h
         src/input/geometry/autoLineMeshUtilities.cpp
         src/input/geometry/autoLineMeshUtilities.h
         src/core_dev/Properties.h
@@ -55,14 +57,15 @@ set(SOURCE_FILES
         src/input/geometry/loadGeometry.h
         src/input/geometry/loadMeshFile.cpp
         src/input/geometry/loadMeshFile.h
-        src/input/properties/loadProperties.cpp
-        src/input/properties/loadProperties.h
+#        src/input/properties/loadProperties.cpp
+#        src/input/properties/loadProperties.h
         #src/input/geometry/autoLineMeshInfo.cpp
         #src/input/geometry/autoLineMeshInfo.h
         src/core/segmentData.cpp
         src/core/segmentData.h
         src/core/Solid.h
         src/core/Fluid.h
+        src/core/ElasticProperties.h
         src/core_dev/SolidEvolution.h
         src/FluidFlow/PermeabilityEvolution.h
         src/input/properties/loadSingleMaterial.cpp
@@ -70,9 +73,13 @@ set(SOURCE_FILES
         src/input/findUtilities.cpp
         src/input/findUtilities.h
         il/io/toml/toml.h
-        il/io/toml/toml.cpp src/core/InSituStress.h src/input/conditions/loadConditions.cpp
-        src/input/conditions/loadConditions.h src/core_dev/Sources.h src/input/Sources/loadSources.cpp src/input/Sources/loadSources.h
-        src/FluidFlow/ReynoldsP0.cpp src/FluidFlow/ReynoldsP0.h src/Solvers/DevLHFMSolver.cpp src/Solvers/DevLHFMSolver.h)
+        il/io/toml/toml.cpp src/core/InSituStress.h
+#        src/input/conditions/loadConditions.cpp
+#        src/input/conditions/loadConditions.h
+        src/core_dev/Sources.h
+#        src/input/Sources/loadSources.cpp
+#        src/input/Sources/loadSources.h
+        src/FluidFlow/ReynoldsP0.cpp src/FluidFlow/ReynoldsP0.h src/Solvers/DevLHFMSolver.cpp src/Solvers/DevLHFMSolver.h src/core/SolutionAtT.h src/core/RockProperties.h)
 
 
 if(APPLE)

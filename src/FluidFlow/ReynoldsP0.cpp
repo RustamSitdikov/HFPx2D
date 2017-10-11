@@ -198,11 +198,11 @@ hfp2d::SolutionAtT ReynoldsSolverP0(hfp2d::SolutionAtT &soln,
   // return a Solution at tn+1 object
 
   // todo: add simulation parameters data as input
-  // todo: add the case of imposed tip width in tip elements as option...
+  // todo: add the case of imposed tip width in tip elements as option ! ...
+  // todo: simplify API later on ... -> (fluid, rock, source in one object ?)
   // currently no inequality constraints on negative width are enforced....
 
   hfp2d::Mesh meshn = soln.CurrentMesh();
-
   il::int_t n_elts = soln.CurrentMesh().numberOfElements();
   il::int_t tot_dofs = 3 * n_elts;
   //
@@ -245,7 +245,7 @@ hfp2d::SolutionAtT ReynoldsSolverP0(hfp2d::SolutionAtT &soln,
     Xi(2 * n_elts + j, j) = CellSize[j];
   }
 
-  // RHS
+  // RHS part that does not change....
   il::Array<double> Fn_elas = il::dot(ElasMat, DDn);
   il::Array<double> Gamma{tot_dofs, 0.};  // tangent rhs
   for (il::int_t i = 0; i < n_elts; i++) {
@@ -255,13 +255,12 @@ hfp2d::SolutionAtT ReynoldsSolverP0(hfp2d::SolutionAtT &soln,
 
   il::Array2D<il::int_t> sharedEdges = GetEdgesSharing2(meshn);  //
 
-  // hydraulic width;
+  // hydraulic width, vectors of rel-errors
   il::Array<double> Wh{n_elts, 0.}, err_Dw{n_elts, 1.}, err_Dv{n_elts, 1.},
       err_Dp{n_elts, 1.};
 
   il::Array<double> Residuals{tot_dofs, 1.};
   double res_norm = 0.;
-
   double betarela = simulParams.EHL_relaxation();
   il::int_t k = 0;
 

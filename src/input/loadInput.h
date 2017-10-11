@@ -15,7 +15,7 @@
 #include "il/toml.h"
 #include "src/core/Mesh.h"
 #include "src/core_dev/Properties.h"
-#include "src/core_dev/Simulation.h"
+#include "src/core/SimulationParameters.h"
 #include "src/core/InSituStress.h"
 #include "src/core_dev/Sources.h"
 #include "src/input/geometry/loadGeometry.h"
@@ -31,7 +31,7 @@ void loadInput(const il::String &inputFileName,
                Properties &theProperties,
                InSituStress &theConditions,
                Sources &theSources,
-               Simulation &simParameters);
+               SimulationParameters &simParameters);
 
 }
 

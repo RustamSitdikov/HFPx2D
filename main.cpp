@@ -65,7 +65,7 @@
 //  hfp2d::Properties matProperties;
 //  hfp2d::InSituStress simConditions;
 //  hfp2d::Sources sources;
-//  hfp2d::Simulation simParameters;
+//  hfp2d::SimulationParameters simParameters;
 
 //  /// TAKING CARE OF THE INPUT IN CASE OF NEW ANALYSIS OR RESTART
 //  if (checkInput) {
