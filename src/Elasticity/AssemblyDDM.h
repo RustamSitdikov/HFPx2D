@@ -36,10 +36,10 @@ void take_submatrix(il::Array2D<double> &sub, int i0, int i1, int j0, int j1,
 void set_submatrix(il::Array2D<double> &A, int i0, int i1,
                    const il::StaticArray2D<double, 2, 4> &B);
 
-void AddTipCorrectionP0(const Mesh &mesh, const ElasticProperties &elas,
+void AddTipCorrectionP0(hfp2d::Mesh &mesh, const ElasticProperties &elas,
                         il::int_t tipElt, il::Array2D<double> &Kmat );
 
-void RemoveTipCorrectionP0(const Mesh &mesh, const ElasticProperties &elas,
+void RemoveTipCorrectionP0(hfp2d::Mesh &mesh, const ElasticProperties &elas,
                            il::int_t tipElt, il::Array2D<double> &Kmat );
 
 il::Array2D<double> ReArrangeKP0(const Mesh &mesh,il::Array2D<double> &Kmat);

@@ -15,7 +15,7 @@
 
 #include "src/input/loadInput.h"
 #include "src/Solvers/SimpleElastic.h"
-#include "src/core_dev/SolutionClass.h"
+#include "src/core_dev/OldSolutionClass.h"
 #include "src/input/loadArguments.h"
 
 #include "src/Solvers/DevLHFMSolver.h"
@@ -125,7 +125,7 @@ int main(){
 //  std::cout << "\n\n ----- Simple Griffith crack examples ----- \n\n" << std::endl;
 
 
-  int nelts = 5;
+  int nelts = 3;
   double dist= 1e4;
 
 

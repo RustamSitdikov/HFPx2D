@@ -75,6 +75,7 @@ class SolutionAtT {
   // simulation)
 
   // for now, we implement #2 ans #3
+  SolutionAtT(){};
 
   //#2.
   SolutionAtT(hfp2d::Mesh &mesh, double t, const il::Array<double> &width,
@@ -89,6 +90,7 @@ class SolutionAtT {
     shearDD_ = sheardd;
     sigma0_ = sigma0;
     tau0_ = tau0;
+    pressure_=pressure;
   };
 
   SolutionAtT(hfp2d::Mesh &mesh, double t, double dt,
@@ -104,10 +106,12 @@ class SolutionAtT {
     timestep_ = dt;
 
     currentmesh_ = mesh;
+
     openingDD_ = width;
     shearDD_ = sheardd;
     sigma0_ = sigma0;
     tau0_ = tau0;
+    pressure_=pressure;
 
     frontIts_ = itsFront;
     ehlIts_ = itsEHL;
@@ -120,10 +124,10 @@ class SolutionAtT {
 
   // get functions
   il::Array<double> openingDD() const { return openingDD_; };
-  il::Array<double> shearDD() const { return openingDD_; };
+  il::Array<double> shearDD() const { return shearDD_; };
   il::Array<double> pressure() const { return pressure_; };
 
-  il::Array<double> sigma0() const { return pressure_; };
+  il::Array<double> sigma0() const { return sigma0_; };
   il::Array<double> tau0() const { return tau0_; };
 
    double time() const { return time_;};
@@ -135,6 +139,7 @@ class SolutionAtT {
    il::int_t  front_its() const { return frontIts_;}
    il::int_t  ehl_its() const { return ehlIts_;}
 
+   hfp2d::Mesh CurrentMesh() const { return currentmesh_;};
 
   // methods:
 

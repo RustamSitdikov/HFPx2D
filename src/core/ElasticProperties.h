@@ -23,6 +23,9 @@ class ElasticProperties {
   double Ep_; // Plane-strain modulus
 
  public:
+
+  ElasticProperties(){};
+
 // we construct from value of Young and PR
   ElasticProperties(double Young, double nu) {
 

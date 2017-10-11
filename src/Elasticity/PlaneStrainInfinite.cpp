@@ -21,6 +21,8 @@
 // contains fundamental plane-strain elasticity kernels.
 // for fracture segment with linear variation of displacement discontinuities
 // (DD)
+// convention: Stress positive in tension
+//      Displacement discontinuity dd=u^+-u^-   >0  in opening
 
 namespace hfp2d {
 
@@ -33,7 +35,7 @@ il::StaticArray2D<double, 2, 4> stresses_kernel_dp1_dd(double h, double Ep,
   // opening displacement discontinuity
   // and stresses due to a linear variation from an unit value at the right node
   // (node 1) to zero at the right node (node 2) for both shear and opening
-  // displacement discontinuit
+  // displacement discontinuity
   // Ep is the plane strain Young'smodulus
   // notation of stress component:
   // 1 : left node influence, 2 : right node influence

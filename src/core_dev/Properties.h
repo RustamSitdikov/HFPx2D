@@ -20,6 +20,7 @@
 //   - Permeability change
 //   - Coupled opening/permeability effect
 
+
 #include <il/base.h>
 #include <il/Array.h>
 #include <il/Array2D.h>
@@ -71,10 +72,9 @@ public:
 
   };
 
-
 };
-
 
 };
 
 #endif //HFPX2D_PROPERTIES_H
+

@@ -15,7 +15,7 @@ InSituStress loadConditions(const Mesh &theLoadedMesh,
   // load number of states
   il::int_t numStates = findInteger("number_of_conditions",conditionsMap,inputFileName);
 
-  if(numStates=!theLoadedMesh.numberOfConditions()){
+  if(numStates!=theLoadedMesh.numberOfConditions()){
     std::cerr << "ERROR: mismatch between conditions in geometry and in-situ conditions, \n"
               << "in file " << inputFileName << std::endl;
     exit(4);

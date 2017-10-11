@@ -123,23 +123,13 @@ il::Array2D<double> basic_assembly(Mesh &mesh, ElasticProperties &elas,
 
 
 //  tip correction....
-void AddTipCorrectionP0(const Mesh &mesh, const ElasticProperties &elas,
+void AddTipCorrectionP0(hfp2d::Mesh &mesh, const ElasticProperties &elas,
                         il::int_t tipElt, il::Array2D<double> &Kmat ) {
 
 // getting the element size ;( -> cry for a method in mesh class !
-  il::StaticArray2D<double, 2, 2> Xs;
-  Xs(0, 0) = mesh.node(mesh.connectivity(tipElt, 0), 0);
-  Xs(0, 1) = mesh.node(mesh.connectivity(tipElt, 0), 1);
-  Xs(1, 0) = mesh.node(mesh.connectivity(tipElt, 1), 0);
-  Xs(1, 1) = mesh.node(mesh.connectivity(tipElt, 1), 1);
-
-  il::StaticArray<double, 2> xdiff;
-  xdiff[0] = Xs(1, 0) - Xs(0, 0);
-  xdiff[1] = Xs(1, 1) - Xs(0, 1);
-  double hx = sqrt(pow(xdiff[0], 2) + pow(xdiff[1], 2));
 
 //  correction factor
-  double correct =- elas.Ep()*(1. / 3.) / (4. * hx);
+  double correct =- elas.Ep()*(1. / 3.) / (4. * (mesh.eltsize(tipElt)));
 
   Kmat(mesh.dofDispl(tipElt,0),mesh.dofDispl(tipElt,0))+=correct;
 
@@ -148,23 +138,23 @@ void AddTipCorrectionP0(const Mesh &mesh, const ElasticProperties &elas,
 }
 
 // remove tip correction....
-void RemoveTipCorrectionP0(const Mesh &mesh, const ElasticProperties &elas,
+void RemoveTipCorrectionP0(hfp2d::Mesh &mesh, const ElasticProperties &elas,
                         il::int_t tipElt, il::Array2D<double> &Kmat ) {
 
-// getting the element size ;( -> cry for a method in mesh class !
-  il::StaticArray2D<double, 2, 2> Xs;
-  Xs(0, 0) = mesh.node(mesh.connectivity(tipElt, 0), 0);
-  Xs(0, 1) = mesh.node(mesh.connectivity(tipElt, 0), 1);
-  Xs(1, 0) = mesh.node(mesh.connectivity(tipElt, 1), 0);
-  Xs(1, 1) = mesh.node(mesh.connectivity(tipElt, 1), 1);
-
-  il::StaticArray<double, 2> xdiff;
-  xdiff[0] = Xs(1, 0) - Xs(0, 0);
-  xdiff[1] = Xs(1, 1) - Xs(0, 1);
-  double hx = sqrt(pow(xdiff[0], 2) + pow(xdiff[1], 2));
+//// getting the element size ;( -> cry for a method in mesh class !
+//  il::StaticArray2D<double, 2, 2> Xs;
+//  Xs(0, 0) = mesh.node(mesh.connectivity(tipElt, 0), 0);
+//  Xs(0, 1) = mesh.node(mesh.connectivity(tipElt, 0), 1);
+//  Xs(1, 0) = mesh.node(mesh.connectivity(tipElt, 1), 0);
+//  Xs(1, 1) = mesh.node(mesh.connectivity(tipElt, 1), 1);
+//
+//  il::StaticArray<double, 2> xdiff;
+//  xdiff[0] = Xs(1, 0) - Xs(0, 0);
+//  xdiff[1] = Xs(1, 1) - Xs(0, 1);
+//  double hx = sqrt(pow(xdiff[0], 2) + pow(xdiff[1], 2));
 
 //  correction factor
-  double correct =- elas.Ep()*(1. / 3.) / (4. * hx);
+  double correct =- elas.Ep()*(1. / 3.) / (4. * (mesh.eltsize(tipElt)));
 
   Kmat(mesh.dofDispl(tipElt,0),mesh.dofDispl(tipElt,0))-=correct;
 
@@ -175,8 +165,8 @@ void RemoveTipCorrectionP0(const Mesh &mesh, const ElasticProperties &elas,
 
 il::Array2D<double> ReArrangeKP0(const Mesh &mesh,il::Array2D<double> &Kmat) {
   // reorder K in the following blocks type
-  //  Knn Kns
-  //  Ksn Kss
+  //  Kss Ksn
+  //  Kns Knn
   //
   IL_EXPECT_FAST(Kmat.size(0) == Kmat.size(1));
 // test that it should even (/2)

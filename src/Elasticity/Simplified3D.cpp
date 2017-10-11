@@ -291,7 +291,7 @@ il::StaticArray2D<double, 2, 3> stresses_kernel_s3d_p0_dd(double a, double b,
 
   double Ip111, Ip122, Ip133, Ip112, Ip113, Ip123, Ip222, Ip223, Ip233;
 
-  double Ce = -1.* G / (4 * il::pi * (1. - nu));   // Minus sign here for convention !
+  double Ce = -1.* G / (4 * il::pi * (1. - nu));   // Minus sign here for convention of positive dd in opening !
 
   double C11, C12, D, H;
 

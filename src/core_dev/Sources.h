@@ -7,8 +7,7 @@
 
 #include <il/Array.h>
 
-// todo : will evolve .... we may not need a class for that.
-namespace hfp2d {
+ namespace hfp2d {
 class Sources {
  private:
   // we start simple with one rate and one location (given by the element
@@ -20,8 +19,8 @@ class Sources {
 
   // then when rate is variable  will have input table of rates and time etc.
 
-  il::int_t source_elt_;
-  double injection_rate_;
+  il::Array<il::int_t> source_elt_;
+  il::Array<double> injection_rate_;
 
   //  il::Array<double> injection_rate_;
 
@@ -30,7 +29,7 @@ class Sources {
  public:
   // constructor
 
-  Sources(il::int_t sourceElt, double injectionRate) {
+  Sources(il::Array<il::int_t> &sourceElt, il::Array<double> &injectionRate) {
     // we need the corresponding location of the injection
     // element number (for P0) or nodes number for P1 ....
     //
@@ -41,8 +40,12 @@ class Sources {
     source_elt_ = sourceElt;
   };
 
-  double injectiontate() const { return injection_rate_; };
-  il::int_t sourceElt() const { return source_elt_; };
+  il::Array<double> InjectionRate() const { return injection_rate_; };
+  double InjectionRate(il::int_t k) const { return injection_rate_[k];};
+
+  il::Array<il::int_t> SourceElt() const { return source_elt_; };
+  il::int_t SourceElt(il::int_t k) __const {return source_elt_[k];};
+
 };
 }
 #endif  // HFPX2DUNITTEST_SOURCES_H
