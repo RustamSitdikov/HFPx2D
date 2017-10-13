@@ -46,8 +46,8 @@ set(SOURCE_FILES
         src/core_dev/Simulation.h
         src/input/loadArguments.cpp
         src/input/loadArguments.h
-        src/input/loadInput.cpp
-        src/input/loadInput.h
+        #src/input/loadInput.cpp
+        #src/input/loadInput.h
         src/input/geometry/autoLineMeshUtilities.cpp
         src/input/geometry/autoLineMeshUtilities.h
         src/core_dev/Properties.h
@@ -61,9 +61,10 @@ set(SOURCE_FILES
         src/input/properties/loadProperties.h
         #src/input/geometry/autoLineMeshInfo.cpp
         #src/input/geometry/autoLineMeshInfo.h
+        #src/devt/iterativeLoop.cpp
+        #src/devt/iterativeLoop.h
         src/core/segmentData.cpp
         src/core/segmentData.h
-        #src/core/Solid.h
         src/core/Fluid.h
         src/core_dev/SolidEvolution.h
         src/FluidFlow/PermeabilityEvolution.h
@@ -72,8 +73,17 @@ set(SOURCE_FILES
         src/input/findUtilities.cpp
         src/input/findUtilities.h
         il/io/toml/toml.h
-        il/io/toml/toml.cpp src/core/InSituStress.h src/input/conditions/loadConditions.cpp
-        src/input/conditions/loadConditions.h src/core_dev/Sources.h src/input/Sources/loadSources.cpp src/input/Sources/loadSources.h)
+        il/io/toml/toml.cpp
+        #src/core/InSituStress.h
+        #src/input/conditions/loadConditions.cpp
+        #src/input/conditions/loadConditions.h
+        #src/core_dev/Sources.h
+        #src/input/Sources/loadSources.cpp
+        #src/input/Sources/loadSources.h
+        src/devt/FromEdgeToCol.cpp
+        src/devt/FromEdgeToCol.h
+        src/Solvers/ToughnessDominated.cpp
+        src/Solvers/ToughnessDominated.h)
 
 
 if(APPLE)

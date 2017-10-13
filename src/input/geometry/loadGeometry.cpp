@@ -52,8 +52,8 @@ Mesh loadGeometry(const il::String &inputFileName, const il::MapArray<il::String
           // and we pass it to the automatic mesher
           theSingleMesh = autoLineMesh(inputFileName, fractureID, autoCreationMap, interpOrder);
 
-          std:: cout << " Mesh number " << fractureID << " has " << theSingleMesh.numberOfFractures() << " fractures" << std::endl;
-          if(theGlobalMesh.numberOfElements() == 0) {
+          //std:: cout << " Mesh number " << fractureID << " has " << theSingleMesh.numFracs() << " fractures" << std::endl;
+          if(theGlobalMesh.numElems() == 0) {
             theGlobalMesh = theSingleMesh;
 
           }else{
@@ -61,7 +61,7 @@ Mesh loadGeometry(const il::String &inputFileName, const il::MapArray<il::String
 
           }
 
-          std:: cout << " after fracture " << fractureID << " the global mesh has " << theGlobalMesh.numberOfFractures() << " fractures" << std::endl;
+          //std:: cout << " after fracture " << fractureID << " the global mesh has " << theGlobalMesh.numFracs() << " fractures" << std::endl;
         } else {
           std::cerr << "ERROR: missing fracture/mismatch in number of fractures." << std::endl;
           std::cerr << "fracture: " << fractureID << "file: " << inputFileName << std::endl;

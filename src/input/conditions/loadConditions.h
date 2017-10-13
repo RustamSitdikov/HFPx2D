@@ -9,7 +9,7 @@
 #include "il/base.h"
 #include "il/toml.h"
 #include "src/core_dev/Properties.h"
-#include "src/core/InSituStress.h"
+//#include "src/core/InSituStress.h"
 #include <src/input/findUtilities.h>
 #include <src/core/Mesh.h>
 

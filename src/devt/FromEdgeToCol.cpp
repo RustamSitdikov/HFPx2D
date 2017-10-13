@@ -134,4 +134,40 @@ il::Array2D<double> from_edge_to_col_cg(int dof_dim,
 
   return Fetc;
 }
+
+
+il::Array2D<double> from_edge_to_col_cg_new(Mesh &theMesh) {
+
+  // From mesh
+  // Dof(i,j) = mesh.dofDispl(i,j)
+  // Dofp(i,j) = mesh.dofPress(i,j)
+  // dof_dim = 2 (number of dimensions of the problem)
+  // Dof.size(0) = mesh.numNodes()
+  // 4 = mesh.numDisplDofsPerElem()
+
+  // Internal pressure contributes only to the opening degrees of freedom
+  // so components 1 and 3
+
+  // Note matrix on all the DDs dofs
+  const il::int_t dim = 2; // 2 because the problem is 2D
+  il::Array2D<double> Fetc{theMesh.numDisplDofs(), theMesh.numPressDofs(), 0};
+  il::StaticArray2D<double,2,2> ShapeFunction{0};
+
+  ShapeFunction(0, 0) = (1 + (1 / sqrt(2))) / 2;
+  ShapeFunction(0, 1) = (1 - (1 / sqrt(2))) / 2;
+
+  ShapeFunction(1, 0) = (1 - (1 / sqrt(2))) / 2;
+  ShapeFunction(1, 1) = (1 + (1 / sqrt(2))) / 2;
+
+  for (il::int_t i = 0; i < theMesh.numElems(); ++i) {
+
+    for (il::int_t j = 0; j < dim; ++j) {
+
+      Fetc(theMesh.dofDispl(i, 1), theMesh.dofPress(i, j)) = ShapeFunction(0, j);
+      Fetc(theMesh.dofDispl(i, 3), theMesh.dofPress(i, j)) = ShapeFunction(1, j);
+    }
+  }
+
+  return Fetc;
+}
 }

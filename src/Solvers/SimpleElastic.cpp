@@ -97,7 +97,7 @@ double SimpleGriffithExampleLinearElement(int nelts) {
 
   hfp2d::Mesh mesh(p,xy,myconn,id_displ,id_press,fracID,matID,condID);
 
-  il::int_t ndof = mesh.numberOfDisplDofs();
+  il::int_t ndof = mesh.numDisplDofs();
 
   hfp2d::ElasticProperties myelas(1, 0.);
 
@@ -115,7 +115,7 @@ double SimpleGriffithExampleLinearElement(int nelts) {
 
   std::cout << "Number of elements : " << mesh.nelts() << "\n";
   std::cout << "Number of dofs :" << id.size(0) * id.size(1) << "---"
-            << (nelts) * (p + 1) * 2 << "---" << mesh.numberOfDisplDofs() << "\n";
+            << (nelts) * (p + 1) * 2 << "---" << mesh.numDisplDofs() << "\n";
   std::cout << myconn.size(0) << "\n";
 ;
   std::cout << "------\n";
@@ -233,7 +233,7 @@ double SimpleGriffithExampleS3D_P0(int nelts) {
   //hfp2d::Mesh mesh(xy,myconn);
   hfp2d::Mesh mesh(p,xy,myconn,id_displ,id_press,fracID,matID,condID);
 
-  il::int_t ndof = mesh.numberOfDisplDofs();
+  il::int_t ndof = mesh.numDisplDofs();
 
   hfp2d::ElasticProperties myelas(1, 0.);
   //  myelas.ElasticProperties(1.,0.);

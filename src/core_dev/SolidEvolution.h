@@ -49,17 +49,21 @@ public:
   explicit SolidEvolution(const il::Array<double> &failureStress,
                           const il::Array<double> &decohesionOpening){
 
+    std::cout << "Here 1" << std::endl;
+
     type_="Linear CZM";
 
     IL_EXPECT_FAST(failureStress.size() == decohesionOpening.size());
     maximum_stress_=failureStress;
     maximum_opening_= decohesionOpening;
 
+    std::cout << "Here 2" << failureStress.size()<< " " << failureStress.capacity() << std::endl;
     for(il::int_t i=0; i < failureStress.size(); i++) {
       fracture_energy_[i] = 0.5 * failureStress[i] * decohesionOpening[i];
       last_saved_opening_[i] = 0.0;
     }
 
+    std::cout << "Here 3" << std::endl;
   }
 
   /////////// RECODE RECODE RECODE ///////////

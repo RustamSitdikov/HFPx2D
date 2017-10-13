@@ -118,21 +118,33 @@ public:
 
   /// GETTER FUNCTIONS
 
-  il::int_t numberOfNodes() const { return nodes_.size(0); }
-  il::int_t numberOfElements() const { return connectivity_.size(0); }
-  il::int_t interpolationOrder() const {return interpolation_order_;}
-  il::int_t numberOfFractures() const { return (*std::max_element(fracture_id_.begin(),fracture_id_.end())+1); }
-  il::int_t numberOfMaterials() const { return (*std::max_element(material_id_.begin(),material_id_.end())+1); }
-  il::int_t numberOfConditions() const { return (*std::max_element(condition_id_.begin(),condition_id_.end())+1); }
-  il::int_t numberOfDisplDofsPerElement() const { return dof_handle_displacement_.size(1); }
-  il::int_t numberOfPressDofsPerElement() const { return dof_handle_pressure_.size(1); }
+  il::int_t numNodes() const { return nodes_.size(0); }
+  il::int_t numElems() const { return connectivity_.size(0); }
+  il::int_t interpOrd() const {return interpolation_order_;}
+  il::int_t numFracs() const {
 
-  il::int_t numberOfPressDofs() const {
-    return (numberOfElements()*interpolationOrder()+numberOfFractures());
+    auto thePosition =std::max_element(fracture_id_.begin(),fracture_id_.end());
+    il::int_t theValue=*thePosition;
+
+//    std::cout << "Position " << thePosition << std::endl;
+//    std::cout << "Begin " << fracture_id_.begin() << " End " << fracture_id_.end() << std::endl;
+//    std::cout << "Value " << theValue << " +1 " << theValue+1 << std::endl;
+
+    return (theValue+1);
+
+
+  }
+  il::int_t numMats() const { return (*std::max_element(material_id_.begin(),material_id_.end()))+1; }
+  il::int_t numConds() const { return (*std::max_element(condition_id_.begin(),condition_id_.end()))+1; }
+  il::int_t numDisplDofsPerElem() const { return dof_handle_displacement_.size(1); }
+  il::int_t numPressDofsPerElem() const { return dof_handle_pressure_.size(1); }
+
+  il::int_t numPressDofs() const {
+    return (numElems()* interpolation_order_+ numFracs());
   }
 
-  il::int_t numberOfDisplDofs() const {
-    return (numberOfElements()*(interpolation_order_+1)*2);
+  il::int_t numDisplDofs() const {
+    return (numElems()*(interpolation_order_+1)*2);
   }
 
   // Read the X coordinate of a node

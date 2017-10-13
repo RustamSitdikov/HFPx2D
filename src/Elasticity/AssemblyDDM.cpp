@@ -137,7 +137,7 @@ il::Array2D<double> basic_assembly_new(Mesh &mesh, ElasticProperties& elas,
   // p :: the interpolation order
   // elas  :: the elastic properties object
 
-  il::int_t p=mesh.interpolationOrder();
+  il::int_t p= mesh.interpOrd();
 
   il::Array2D<double> xe{2, 2, 0}, xec{2, 2, 0};
 
@@ -149,8 +149,8 @@ il::Array2D<double> basic_assembly_new(Mesh &mesh, ElasticProperties& elas,
   il::StaticArray2D<double, 2, 4> stnl;
   il::StaticArray<double, 2> sec, nec, xcol;
 
-  const il::int_t numDisplDofs = mesh.numberOfDisplDofs();
-  const il::int_t numPressDofs = mesh.numberOfPressDofs();
+  const il::int_t numDisplDofs = mesh.numDisplDofs();
+  const il::int_t numPressDofs = mesh.numPressDofs();
   const il::int_t totalNumDofDispl = numDisplDofs + numPressDofs;
 
   il::Array2D<double> Kmat{numDisplDofs, numDisplDofs};
@@ -159,7 +159,7 @@ il::Array2D<double> basic_assembly_new(Mesh &mesh, ElasticProperties& elas,
   // double loop on elements to create the stiffness matrix ...
 
 
-  for (il::int_t e = 0; e < mesh.numberOfElements(); ++e) { // loop on all  elements
+  for (il::int_t e = 0; e < mesh.numElems(); ++e) { // loop on all  elements
 
     //   get characteristic of element # e
     mysege = hfp2d::get_segment_DD_data(mesh, e, p);
@@ -172,7 +172,7 @@ il::Array2D<double> basic_assembly_new(Mesh &mesh, ElasticProperties& elas,
     };
 
     // loop on all  elements - to compute the effect of e on all other elements
-    for (il::int_t j = 0; j < mesh.numberOfElements(); ++j) {
+    for (il::int_t j = 0; j < mesh.numElems(); ++j) {
       //   get characteristic of element # j
       mysegc = hfp2d::get_segment_DD_data(mesh, j, p);
 

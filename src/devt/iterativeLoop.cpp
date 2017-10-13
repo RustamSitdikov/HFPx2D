@@ -2,15 +2,41 @@
 // Created by lorenzo on 9/20/17.
 //
 
-#include "iterative_loop.h"
+
+
+#include "iterativeLoop.h"
+
 
 namespace hfp2d {
 
 Solution iterative_solution(Mesh &theMesh,
                             Properties &theProperties,
-                            Source &theSource,
+                            Sources &theSource,
+                            InSituStress &theInSituStress,
                             Solution &theSolutionAtN,
                             Simulation &SimParam) {
+
+  il::int_t DDdofs = theMesh.numDisplDofs();
+  ElasticProperties myelas_TEMP;
+  il::Array2D<double> K(DDdofs,DDdofs) = basic_assembly_new(theMesh, myelas_TEMP, hfp2d::normal_shear_stress_kernel_dp1_dd, 0.);  // passing p could be avoided here
+
+  il::Array2D<double> matrix_edge_to_col_all = from_edge_to_col_cg_new(theMesh);
+
+  //// RESTART HERE
+  // create the force vector at collocation points
+  il::Array<double> localSigma0=theInSituStress.localStress(theMesh);
+
+  // check size of local initial stress vector
+  IL_EXPECT_FAST(localSigma0.size() == theMesh.numDisplDofs());
+
+  // create the source vector at nodal points
+  il::Array<double> sourceVec(theMesh.numPressDofs(),0.);
+
+  for(il::int_t i=0; i<theSource.)
+
+  // compute the force vector
+  // solve the initial distribution of opening
+
 
   Solution theSolutionAtN1;
 

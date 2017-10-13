@@ -18,9 +18,9 @@ Sources loadSources(const Mesh &theLoadedMesh,
                     const il::String &inputFileName,
                     const il::MapArray<il::String, il::Dynamic> &sourcesMap);
 
-il::int_t findSourceLocation(const double locationX,
-                             const double locationY,
-                             const Mesh &theLoadedMesh);
+//il::int_t findSourceLocation(const double locationX,
+//                             const double locationY,
+//                             const Mesh &theLoadedMesh);
 
 }
 

@@ -16,6 +16,8 @@
 // Inclusion from Inside Loop library
 #include <il/linear_algebra.h>
 
+#include "src/core/Mesh.h"
+
 namespace hfp2d {
 
 il::Array2D<double> from_edge_to_col_dg_full2d(int dof_dim,
@@ -27,6 +29,11 @@ il::Array2D<double> from_edge_to_col_dg(int dof_dim,
 il::Array2D<double> from_edge_to_col_cg(int dof_dim,
                                         il::Array2D<int> Dof,
                                         il::Array2D<int> Dofp, il::io_t);
+
+il::Array2D<double> from_edge_to_col_cg_new(Mesh &theMesh);
 }
+
+
+
 
 #endif // HFPX2D_FROMEDGETOCOL_H

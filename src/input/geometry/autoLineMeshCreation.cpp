@@ -72,7 +72,7 @@ Mesh autoLineMesh(const il::String &inputFileName,
 ////        overwriting them. Additionally, we will have to check that we do not have
 ////        repeated nodes, in particular when the joined_with flag is ON!!
 //
-//if(theMesh.numberOfElements()>0)
+//if(theMesh.numElems()>0)
 //{
 //theMesh=Mesh(1,coordinates, connectivity, sourceID);
 //}

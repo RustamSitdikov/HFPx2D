@@ -13,7 +13,8 @@
 
 #include "src/input/loadInput.h"
 #include "src/Solvers/SimpleElastic.h"
-#include "src/core_dev/SolutionClass.h"
+#include "src/Solvers/ToughnessDominated.h"
+//#include "src/core_dev/SolutionClass.h"
 #include "src/input/loadArguments.h"
 
 
@@ -43,14 +44,14 @@
 ////////////////////////////////////////////////////////////////////////////////
 //
 //
-//int main(int const argc, char const* const* argv) {
-//
-//  // Creating variables to deal with input arguments
-//  il::String inputFileName, outputDirectory, restartFileName;
-//  bool checkInput = false;
-//  bool checkOutput = false;
-//  bool checkRestart = false;
-//
+int main(int const argc, char const* const* argv) {
+
+  // Creating variables to deal with input arguments
+  il::String inputFileName, outputDirectory, restartFileName;
+  bool checkInput = false;
+  bool checkOutput = false;
+  bool checkRestart = false;
+
 //  hfp2d::loadArguments(argc, argv, il::io,
 //                       checkInput, inputFileName,
 //                       checkRestart, restartFileName,
@@ -60,20 +61,20 @@
 //
 //  hfp2d::Mesh theMesh;
 //  hfp2d::Properties matProperties;
-//  hfp2d::InSituStress simConditions;
+//  //hfp2d::InSituStress simConditions;
 //  hfp2d::Sources sources;
 //  hfp2d::Simulation simParameters;
-
+//
 //  /// TAKING CARE OF THE INPUT IN CASE OF NEW ANALYSIS OR RESTART
 //  if (checkInput) {
 //
-//    hfp2d::loadInput(inputFileName,
-//                     il::io,
-//                     theMesh,
-//                     matProperties,
-//                     simConditions,
-//                     sources,
-//                     simParameters);
+////    hfp2d::loadInput(inputFileName,
+////                     il::io,
+////                     theMesh,
+////                     matProperties,
+////                     //simConditions,
+////                     sources,
+////                     simParameters);
 //
 //  } else if (checkRestart) {
 //    // hfp2d::loadRestart(resetFileName,il::io_t,Mesh,Properties,SimulationParam,Solution);
@@ -102,7 +103,7 @@
 //////////////////////// Prepare data for computation /////////////////////////////////
 
   // create the source vector for displacement+pressure dofs
-  //il::int_t totalNumDofs= theMesh.numberOfDisplDofsPerElement()+ theMesh.numberOfPressDofsPerElement();
+  //il::int_t totalNumDofs= theMesh.numDisplDofsPerElem()+ theMesh.numPressDofsPerElem();
   // the source vector (or forcing vector) will be created after we checked for the position of the injection
   // there will be a method in the class to give that vector
 
@@ -115,21 +116,22 @@
 //////////////////////// Initiate the computational loop /////////////////////////////////
 
 //////////////////////// Previous code snippet /////////////////////////////////
+//
 
-#include <il/Array.h>
-int main(){
   std::cout << "\n\n ----- Simple Griffith crack examples ----- \n\n" << std::endl;
 
   int nelts = 10;
 
-  double ret1 = hfp2d::SimpleGriffithExampleLinearElement(nelts);
-  double ret2 = hfp2d::SimpleGriffithExampleS3D_P0(nelts);
+  //double ret1 = hfp2d::SimpleGriffithExampleLinearElement(nelts);
+  //double ret2 = hfp2d::SimpleGriffithExampleS3D_P0(nelts);
+  double ret3 = hfp2d::ToughnessDominated(nelts);
 
   il::Array<double> w{10};
 
 
-  std::cout << "\n rel error L2 norm in Linear Elements: " << ret1 << "\n";
-  std::cout << "\n rel error L2 norm in Constant Elements: " << ret2 << "\n";
+  //std::cout << "\n rel error L2 norm in Linear Elements: " << ret1 << "\n";
+  //std::cout << "\n rel error L2 norm in Constant Elements: " << ret2 << "\n";
+  std::cout << "\n pressure in Toughness Dominated case: " << ret3 << "\n";
 
   std::cout << " end of code \n\n\n";
 

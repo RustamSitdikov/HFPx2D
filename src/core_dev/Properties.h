@@ -24,10 +24,11 @@
 #include <il/Array.h>
 #include <il/Array2D.h>
 #include <il/String.h>
-#include <src/core/ElasticProperties.h>
+#include "src/core/ElasticProperties.h"
 #include "src/core/Fluid.h"
-#include "SolidEvolution.h"
 #include "src/FluidFlow/PermeabilityEvolution.h"
+#include "src/core_dev/SolidEvolution.h"
+
 
 
 namespace hfp2d {

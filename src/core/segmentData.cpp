@@ -29,7 +29,8 @@ il::StaticArray2D<double, 2, 2> rotation_matrix_2D(double theta) {
 // mesh object
 // ne element number in the mesh to get characterstic from
 // p order of the interpolation for that mesh
-SegmentData get_segment_DD_data(const Mesh &mesh, il::int_t ne,
+SegmentData get_segment_DD_data(const Mesh &mesh,
+                                il::int_t ne,
                                 il::int_t p) {
   //  IL_ASSERT(Xs.size(0) == 2);
   //  IL_ASSERT(Xs.size(1) == 2);

@@ -15,15 +15,16 @@ InSituStress loadConditions(const Mesh &theLoadedMesh,
   // load number of states
   il::int_t numStates = findInteger("number_of_conditions",conditionsMap,inputFileName);
 
-  if(numStates=!theLoadedMesh.numberOfConditions()){
+  if(numStates=!theLoadedMesh.numConds()){
     std::cerr << "ERROR: mismatch between conditions in geometry and in-situ conditions, \n"
               << "in file " << inputFileName << std::endl;
     exit(4);
   }
 
+
   // size of array/vectors
-  il::int_t numDisplDofs = theLoadedMesh.numberOfDisplDofs();
-  il::int_t numPressDofs = theLoadedMesh.numberOfPressDofs();
+  il::int_t numDisplDofs = theLoadedMesh.numDisplDofs();
+  il::int_t numPressDofs = theLoadedMesh.numPressDofs();
 
   // creation of the array/vectors
   il::Array2D<double> stressDistribution(numDisplDofs,3);
@@ -54,7 +55,7 @@ InSituStress loadConditions(const Mesh &theLoadedMesh,
         if(theLoadedMesh.condID(elmtK)==conditionID){
 
           // this loop is for collocation point properties (e.g. CZMs)
-          for(il::int_t j=0; j<theLoadedMesh.numberOfDisplDofsPerElement(); j++){
+          for(il::int_t j=0; j< theLoadedMesh.numDisplDofsPerElem(); j++){
 
             // save the material parameters at the location indicated by the dof handle
             stressDistribution(theLoadedMesh.dofDispl(elmtK,j),0) = singleSxx;
@@ -64,7 +65,7 @@ InSituStress loadConditions(const Mesh &theLoadedMesh,
           }
 
           // this loop is for nodal properties (e.g. flow & transport)
-          for(il::int_t j=0; j<theLoadedMesh.numberOfPressDofsPerElement(); j++){
+          for(il::int_t j=0; j< theLoadedMesh.numPressDofsPerElem(); j++){
 
             porePressureDistribution[theLoadedMesh.dofPress(elmtK,j)] = singlePP;
 

@@ -17,7 +17,7 @@ void loadInput(const il::String &inputFileName,
                il::io_t,
                Mesh &theMesh,
                Properties &theProperties,
-               InSituStress &theConditions,
+               //InSituStress &theConditions,
                Sources &theSources,
                Simulation &simParameters) {
 
