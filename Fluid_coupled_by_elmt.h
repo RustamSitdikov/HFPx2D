@@ -56,7 +56,7 @@ namespace hfp2d {
                                                     const il::Array<double> &vector,
                                                     il::Array<double> EltSizes,
                                                     Parameters_fluid &fluid_parameters,
-                                                    double kf, il::io_t);
+                                                    double kf, Material material, il::io_t);
 
     il::Array <double> element_size(Mesh mesh_total, const int &p );
 
@@ -79,7 +79,7 @@ namespace hfp2d {
                                   const il::int_t &dof_dim, const int &p,
                                   il::Array<double> element_size_all,
                                   Parameters_fluid &fluid_parameters,
-                                  const il::Array2D<int> &id);
+                                  const il::Array2D<int> &id, Material material);
 
     il::Array2D<double> matrix_vpw(Parameters_fluid &fluid_parameters,
                                    il::Array<double> element_size_all,

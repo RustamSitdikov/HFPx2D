@@ -1,8 +1,12 @@
 //
 // Created by DONG LIU on 2/23/17.
 //
+// This is valid for the partially filled case, with different confining stress
+// values
 
 #include "Coh_Col_Partial.h"
+#include "Coh_Linear_softening.h"
+// this is to use the cohesive_force_linear function
 
 #include<il/norm.h>
 
@@ -33,7 +37,9 @@ namespace hfp2d {
                               double pressure_f, il::Array<double> widthB,
                               const int &p, const il::int_t &dof_dim,
                               il::Array2D<double> partial_m, il::io_t,
-                              il::Array<double> &width, double &pressure) {
+                              il::Array<double> &width, double &pressure,
+                                      double &volume_vary,
+                                      il::Array<double> & elastic_vary) {
         il::int_t n = kmatC.size(0);
         il::Array2D<double> newmatrix{n + 1, n + 1, 0};
         il::Array<double> newvector{n + 1, 0};
@@ -46,7 +52,7 @@ namespace hfp2d {
         il::Array<double> fP{n, pressure_f};
 
         for (int c = 0; dof_dim * c < n; c++) {
-            fP[2 * c] = initial_condition.sigma0;//we minus here and add after to make the shear disappear
+            fP[2 * c] = 0.;
         };
 
         il::Array2D<double> vwc_p=il::dot(vwc,partial_m);
@@ -60,7 +66,6 @@ namespace hfp2d {
 
             newmatrix(q, n) = unit_p[q];
             newmatrix(n,q)=vwc(0,q);
-//            newmatrix(n, q) = vwc_p(0,q);
             newvector[q] = cohf[q] - fP_p[q] - fK[q]+initial_condition.sigma0;
         };
         newvector[n] = initial_condition.Q0 * initial_condition.timestep;
@@ -70,8 +75,24 @@ namespace hfp2d {
         for (int t = 0; t < n; ++t) {
             widthinter[t] = dd[t];
         };
+
+
         width = widthinter;
         pressure = dd[n];
+
+        //calculate the errors
+        il::Array<double> volume_residual=il::dot(newmatrix,dd);
+        il::blas(-1.,newvector,1.,il::io,volume_residual);
+        double volume_point_residual=volume_residual[n];
+        il::Array<double> elastic_point_residual{n,0.};
+        for (int t = 0; t < n; ++t) {
+            widthinter[t] = dd[t];
+            elastic_point_residual[t]=volume_residual[t];
+        };
+        volume_vary=volume_point_residual;
+        elastic_vary=elastic_point_residual;
+
+        //abort the errors required by insideloop library
         status.abort_on_error();
     }
 
@@ -88,7 +109,9 @@ namespace hfp2d {
                              const il::Array2D<int>&col_matrix, il::io_t,
                              il::Array<double> &delta_width,
                              double &pressure_change,
-                             il::Array<double> &coht,int &mm) {
+                             il::Array<double> &coht,int &mm,
+                                     double &volume_vary,
+                                     il::Array<double> &elastic_vary) {
         il::Array2D<int> col_row_i=search(col_matrix,int(c_i),il::io);
         il::Array2D<int> col_row_j=search(col_matrix,int(c_j),il::io);
 
@@ -101,7 +124,8 @@ namespace hfp2d {
 
         il::Array2D<double> vwc{1,dof_dim * (c_j - c_i + 1), 0.};
         //il::Array<double> vwc0= get_vwc_vc_col(mesh_total, p,dof_dim);
-        for (il::int_t m =0; m < id(col_row_j(0,0),dof_dim*col_row_j(0,1)+dof_dim-1)-id(col_row_i(0,0),dof_dim*col_row_i(0,1))+1; ++m) {
+        for (il::int_t m =0; m < id(col_row_j(0,0),dof_dim*col_row_j(0,1)+dof_dim-1)
+                                 -id(col_row_i(0,0),dof_dim*col_row_i(0,1))+1; ++m) {
             vwc(0,m) = vwc0[m +id(col_row_i(0,0),dof_dim*col_row_i(0,1))];
         }
         il::Array<double> unitm{dof_dim * (c_j - c_i + 1), 1.};
@@ -115,33 +139,61 @@ namespace hfp2d {
 
         int k = 0;
         double error_w = 1.;
-        il::Array<il::Status> statusk{100,};
+        il::Array<il::Status> statusk{400,};
         double error_p=1.;
         double error_r=1;
         double inter_pressure=0.;
+
+        double volume_vary_inter=0.;
+        il::Array<double> elastic_vary_inter{widthB.size(),0.};
 
 
         il::Array<double> delta_w_bitera=delta_w_ini;
 
 
-        while (k < 100 && (error_w > 0.00001 or error_p>0.00001 or error_r>0.000000001)) {//the number of k should be correlated to the statusk
+        while (k < 400 && (error_w > 0.00001 or error_p>0.00001
+                           or error_r>0.000000001)) {
+            //the number of k should be correlated to the statusk
             il::Array<double> width_inm = widthB;
-            il::blas(1.0, delta_w_ini, 1.0, il::io, width_inm);
-            coh = cohesive_force_col(material, width_inm, col_row_i,
-                                     col_row_j, width_history, p,dof_dim,id);
+            il::blas(1.0, delta_w_bitera, 1.0, il::io, width_inm);
+            //we use the Dugdale-Barenblatt model in Coh_Prop_Col
+            //coh = cohesive_force_col(material, width_inm, col_row_i,
+            //                         col_row_j, width_history, p,dof_dim,id);
+            // this should be changed to the linear-softening model
+
+            //we use the linear-softening model in Coh_Linear_softening
+            coh = cohesive_force_linear(material, width_inm, col_row_i,
+                                             col_row_j, width_history, p,dof_dim,id);
 
             il::Array2D<double> partial_m=partial_matrix(coh);//new
 
             construct_matrix_col_partial(kmatnew, vwc, coh, material, unitm,
                                  initial_condition, statusk[k],
                                  pressure_f, widthB, p, dof_dim,partial_m,il::io,
-                                 delta_width, pressure_change);//construct_matrix needs change also
+                                 delta_width, pressure_change,volume_vary_inter,
+                                         elastic_vary_inter);
+            //construct_matrix needs change also
+
+//            //to force the increment of w who contributes a negative
+//            // opening equal to zero
+//            il::Array<double> width_check=widthB;
+//            il::blas(1.0, delta_width, 1.0, il::io, width_check);
+//            //delta_w_ini could also be replaced by delta_width
+//            for(int w_check=0;w_check<widthB.size();w_check++){
+//                if(width_check[w_check]<0.){
+//                    delta_width[w_check]=-1.*widthB[w_check];
+//                    //to force the total opening is zero
+//                }
+//            }
+
+
+
+            il::blas(0.15, delta_w_bitera, 0.85, il::io, delta_width);
             il::Array<double> intermediate = delta_width;
             il::blas(-1.0, delta_w_bitera, 1.0, il::io, intermediate);
             double error_inter = il::norm(intermediate, il::Norm::L2);
             error_w = error_inter / il::norm(delta_width, il::Norm::L2);
 
-            il::blas(0.85, delta_width, 0.15, il::io, delta_w_ini);
             delta_w_bitera=delta_width;
 
             double error_inter_p= fabs(pressure_change-inter_pressure);
@@ -149,10 +201,9 @@ namespace hfp2d {
             inter_pressure=pressure_change;
 
 
-            error_r=fabs(il::dot(vwc,delta_width)[0]+pressure_change*material.U-initial_condition.Q0*initial_condition.timestep);
-
-
-
+            error_r=fabs(il::dot(vwc,delta_width)[0]
+                         +pressure_change*material.U
+                         -initial_condition.Q0*initial_condition.timestep);
 
             ++k;
 
@@ -164,6 +215,10 @@ namespace hfp2d {
         for (il::int_t r = 0; r < widthB.size(); r++) {
             coht[id(col_row_i(0,0),dof_dim*col_row_i(0,1))+ r] = coh[r];
         }
+
+        //get the error value
+        volume_vary =volume_vary_inter;
+        elastic_vary=elastic_vary_inter;
 
     }
 
@@ -178,7 +233,9 @@ namespace hfp2d {
                          il::Array<double> &plist, il::Array<double> &l_coh,
                          il::Array<double> &l, il::Array2C<double> &coh_list,
                          il::Array<int> &mvalue,int &break_time,
-                         il::Array2C<double> &stress_list, il::Array<double> &energy_g) {
+                         il::Array2C<double> &stress_list, il::Array<double> &energy_g,
+                                 il::Array<double> &volume_vary_list,
+                                 il::Array2D<double> &elastic_vary_list) {
 
         int n = mesh_total.nelts();
         IL_EXPECT_FAST(n == id.size(0));
@@ -236,6 +293,11 @@ namespace hfp2d {
         }
         crack_length[0]=l0;
 
+        // output the volume residual
+        il::Array<double> volume_vary_matrix{nstep,0.};
+        //output the residual of the elastic equations
+        il::Array2D<double> elastic_vary_matrix{nstep,ttn,0.};
+
         break_time=nstep;
 
 
@@ -247,10 +309,15 @@ namespace hfp2d {
                     break;
                 };
                 il::Array<double> delta_width;
+                double volume_vary;
+                il::Array<double> elastic_vary;
+
+
                 plasticity_loop_col_partial(material, initial_condition,c_i, c_j,
                                     kmat, vwc0, id, p, widthB, pressure,
                                     width_history,dof_dim,col_matrix,il::io,
-                                    delta_width, pressure_change, coht,mk);
+                                    delta_width, pressure_change, coht,mk, volume_vary,
+                                            elastic_vary);
                 m_value[s]=mk;
 
                 il::Array<il::int_t> index = stress_criteria_col(kmat, id, material,
@@ -264,7 +331,7 @@ namespace hfp2d {
                     il::blas(1.0, delta_width, 1.0, il::io, width);
                     break;
                 }
-                if (index[0] <= 0 or index[1] >= dof_dim*n - 1) {//not sure the 2 here is (p+1) or dof_dim
+                if (index[0] <= 0 or index[1] >= dof_dim*n - 1) {
                     width = widthB;
                     il::blas(1.0, delta_width, 1.0, il::io, width);
 
@@ -272,6 +339,8 @@ namespace hfp2d {
                     break_value=true;
                     break;
                 }
+
+                //rearrange the vector of width increment and elastic and volumne residual
                 il::Array<double> widthBnew{dof_dim * (index[1] - index[0] + 1),
                                             0.};
                 for (int wbn = 0; wbn < widthB.size(); wbn += 1) {
@@ -279,10 +348,19 @@ namespace hfp2d {
                 }
                 il::Array<double> delta_width_new{
                         dof_dim * (index[1] - index[0] + 1), 0.};
+                //for each loop, make the initial errors equal to zero
+                for(int ela_i=0;ela_i<elastic_vary_matrix.size(1);ela_i++){
+                    elastic_vary_matrix(s,ela_i)=0.;
+                }
                 for (int dwn = 0; dwn < widthB.size(); dwn += 1) {
                     delta_width_new[dof_dim * (c_i - index[0]) +
                                     dwn] = delta_width[dwn];
+                    //arrange the elastic residual
+                    elastic_vary_matrix(s,dof_dim*c_i+dwn)=elastic_vary[dwn];
                 }
+                volume_vary_matrix[s]=volume_vary;
+
+
                 widthB.resize(dof_dim * (index[1] - index[0] + 1));
                 widthB = widthBnew;
                 width = widthBnew;
@@ -346,18 +424,25 @@ namespace hfp2d {
         mvalue=m_value;
         stress_list=stress_profile;
         //to output the iteration times in plasticity_loop to get the solution
+        //transfer the error values
+        volume_vary_list=volume_vary_matrix;
+        elastic_vary_list=elastic_vary_matrix;
         status.abort_on_error();
     }
 
+// this function is no longer used, however with correction, it can output the
+// energy during the fracturation
 
-    void energy_output_partial(il::Array2C<double> widthlist,il::Array<double> plist,
-                       il::Array<double> l_c,il::Array<double> l_coh, il::Array2C<double> cohlist,
-                       Material material,Mesh mesh_total,il::Array2D<int> &id,
-                       const int &p,const int &dof_dim, Initial_condition initial_condition,
-                       il::io_t,
-                       il::Array<double> &energy_ff,
-                       il::Array<double> &energy_coh,
-                       il::Array<double> &energy_j_int){
+    void energy_output_partial(il::Array2C<double> widthlist,
+                               il::Array<double> plist,
+                               il::Array<double> l_c,il::Array<double> l_coh,
+                               il::Array2C<double> cohlist, Material material,
+                               Mesh mesh_total,il::Array2D<int> &id,
+                               const int &p,const int &dof_dim,
+                               Initial_condition initial_condition, il::io_t,
+                               il::Array<double> &energy_ff,
+                               il::Array<double> &energy_coh,
+                               il::Array<double> &energy_j_int){
         il::int_t n=widthlist.size(0);
         il::int_t nc=widthlist.size(1);
         il::Array<double> energy_f {n,0.};

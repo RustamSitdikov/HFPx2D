@@ -7,55 +7,50 @@
 //
 
 
-
-
 #include <cmath>
 #include <complex>
 #include <iostream>
-#include <string>
 #include <fstream>
 
 #include "il/Array.h"
 #include "il/math.h"
-//#include <il/Array2C.h>
 #include <il/StaticArray.h>
 #include <il/linear_algebra.h>
 #include <il/Timer.h>
 
-//#include "il/linear_algebra/dense/factorization/LU.h"
-
 #include "src/AssemblyDDM.h"
 #include "src/DOF_Handles.h"
 #include "src/Mesh.h"
-#include "Coh_Prop_Col.h"
+
 #include "src/FVM.h"
+#include "Coh_Prop_Col.h"
+//needs to check, Dugdale-Barenblatt model fully-filled case Overshoot problem
 #include "Coh_Col_Partial.h"
+//needs to check, partially filled cohesive zone case, not converged for all sigma0
+// using the linear-softening cohesive zone model
+
 #include "Coh_Linear_softening.h"
+//converged for toughness-only case, no viscosity,
+// propagation collocation point by collocation point,
+// valid for linear_softening model and exponential model
+
 //#include "Viscosity.h"
-#include "Viscosity_all_nodeselemt.h"
-//#include "Viscosity_right_side.h"
+//propagation collocation point by collocation point,
+// but taking only the inner related elements, not recommended
 
-// I'm writing another comment.....
-////////////////////////////////////////////////////////////////////////////////
-// analytical solution of the griffith-crack (ct pressure)
-il::Array<double> griffithcrack(const il::Array<double>& x, double a, double Ep,
-                                double sig) {
-  double coef = 4. * sig / (Ep);
-  il::Array<double> wsol{x.size(), 0.};
+//#include "Viscosity_all_nodeselemt.h"
+// propagation collocation point by collocation point,
+// taking all the related elements,
+// but putting zeros to related lines and columns
 
-  for (int i = 0; i < x.size(); ++i) {
-    if (std::abs(x[i]) < a) {
-      wsol[i] = coef * sqrt(pow(a, 2) - pow(x[i], 2));
-    }
-  }
-  return wsol;
-}
+#include "Fluid_coupled_by_elmt.h"
+// propagation element by element converged, taking viscosity into consideration
 
 
-////////////////////////////////////////////////////////////////////////////////
-// This is the start of the main routine.
+//------------------This is the start of the main routine.----------------------
+// Building the mesh
 int main() {
-        int nelts = 100, p = 1 ;
+        int nelts = 400, p = 1 ;// the total element number in the mesh
         double h = 2. / (nelts);  //  element size before h=2./(nelts);
 
         il::Array<double> x{nelts+1};// the nodes
@@ -121,7 +116,7 @@ int main() {
 
         il::Status status;
 
-        il::Array<double> dd = il::linear_solve(K, f, il::io, status);  // lu_decomposition.solve(f);
+        il::Array<double> dd = il::linear_solve(K, f, il::io, status);
 
     std::cout << "------\n";
     std::time_t resultwhole = std::time(nullptr);
@@ -129,58 +124,73 @@ int main() {
     il::Timer timerwhole{};
     timerwhole.start();
 
-
+//------------------------------------------------------------------------------
 
 
   //we add here to test the propagation code.
-  il::Array2C<double> widthlist;
-  il::Array<double> plist;
-    il::Array2D<double> plist_2d;
-    il::Array<double> l_coh;
-    il::Array<double> l_c;
+  il::Array2C<double> widthlist;// the width profile for each time step
+  il::Array<double> plist;//the pressure vector for each time step-zero visco
+    il::Array2D<double> plist_2d;//pressure profile for each time step
+    il::Array<double> l_coh;//cohesive length for each time step
+    il::Array<double> l_c;//crack length for each time step
     il::Array<double> energy;
     il::Array<double> energy_g;
     il::Array<double> energy_f;
     il::Array<double> energy_p;
     il::Array<double> energy_coh;
     il::Array<double> energy_j_integral;
-    il::Array2C<double> cohlist;
-    il::Array2C<double> stresslist;
+    il::Array2C<double> cohlist;//cohesive forces distribution for each time step
+    il::Array2C<double> stresslist;//stress profile for each time step
+    il::Array<double> timelist;
+    //time taken at the end of each time step for time adapted method only
     il::Array<double> volume_change;
-    il::Array2D<double> volume_vary_list;
-    il::Array2D<double> elastic_vary_list;
-  hfp2d::Material material;
-  hfp2d::Initial_condition initial_condition;
+    //change of the sum of the width for each time step
+    il::Array2D<double> volume_vary_list;//residual for conservation of mass
+    il::Array2D<double> elastic_vary_list;//residual for elastic equation
+  hfp2d::Material material;//structure of material properties
+  hfp2d::Initial_condition initial_condition;//structure of initial conditions
 
-    //For Dugdale cohesive law
 
-//    hfp2d::material_condition_col (0.001, 2.,100.0,0.,
-//                       0.00001,0.0005,1.,0.,il::io,material, initial_condition);
 
+//------------------------------------------------------------------------------
+    //Putting material properties and initial conditions
+    //form and order of the input data
 //  void material_condition(Material &material, Initial_condition &initial_condition,
 //                          double wc1, double sigma_t1,double Ep1,double U1,
 //                          double pini1,double Q01,double timestep1,double sigma01);
+//- - - - - - - - - - - - - - - - - - - - - - -- - - - - - - - - - - - - - - -
+    //For Dugdale cohesive law
+
+    //hfp2d::material_condition_col (0.001, 2.,100.0,0.,
+    //                   0.00001,0.0005,2,0.,il::io,material, initial_condition);
+
     //wc before=0.0001 changes on the 7th April
-//tstepbefore=0.01 changes on the 7th April
+    //tstepbefore=0.01 changes on the 7th April
 
-
+//- - - - - - - - - - - - - - - - - - - - - - -- - - - - - - - - - - - - - - -
     //For linear softening cohesive law
     // sigma_T should be doubled in order to have the same Gc
     // or wc should be doubled
 
-    hfp2d::material_condition_col (0.001*2, 2.,100.0,0.,
-                                   0.00001,0.0005,2.,0.,il::io,material, initial_condition);
+    //hfp2d::material_condition_col (0.001*2., 2.,100.0,0., 0.00001,0.0005,2.,0.,
+    //                               il::io,material, initial_condition);
+    //Q0=0.0005 or 0.00025 ye hen hao yong
+//- - - - - - - - - - - - - - - - - - - - - - -- - - - - - - - - - - - - - - -
+    //For partly exponential cohesive law
+    //sigma T or wc should be times a constant 6/exp(1.0)/0.982649
+    //hfp2d::material_condition_col (0.001*6/exp(1.0)/0.982649, 2.,100.0,0.,
+    //                              0.00001,0.0005*2.,2.,0.,il::io,material, initial_condition);
 
-    //For exponential cohesive law
-    //sigma T or wc should be times a constant 6/exp(1.0)/0.95
-    //hfp2d::material_condition_col (0.001, 2.*6/exp(1.0)/0.95,100.0,0.,
-     //                              0.00001,0.0040,0.1,0.,il::io,material, initial_condition);
+//- - - - - - - - - - - - - - - - - - - - - - -- - - - - - - - - - - - - - - -
+    //For other exponential cohesive laws
+    //sigma T or wc should be times a constant 1.12838 and the corrected original
+    // should be multiplied by 1.0/exp(1.0)
+    // the no-sqaure expoenetial law G=Gc don't need to multiply a constant
+    hfp2d::material_condition_col (0.001*1.12838, 2.,100.0,0.,
+                                  0.00001,0.0005,2.,0.,il::io,material, initial_condition);
 
-
-
-
-
-
+//-------------------------------------------------------------------------------
+// Propagation functions
 
     il::Array<double> widthB;
     il::Array<int> mvalue;
@@ -189,37 +199,45 @@ int main() {
     int break_time=0;
 
     il::Status status2;
+//- - - - - - - - - - - - - - - - - - - - - - -- - - - - - - - - - - - - - - -
 
-    //fully filled calculation
+    //fully filled calculation with only Dugdale-Barenblatt CZM
 
-//    hfp2d::propagation_loop_col(mesh,id,p,material,initial_condition,799,801,nstep,status2,il::io,widthlist,plist,l_coh,l_c,cohlist,mvalue,break_time,stresslist,energy);
-//
-//    hfp2d::energy_output(widthlist,plist,l_c,l_coh,material,mesh,id,p,2,initial_condition,il::io,energy_f,energy_coh,energy_j_integral);
+    //hfp2d::propagation_loop_col(mesh,id,p,material,initial_condition,399,400,
+ //nstep,status2,il::io,widthlist,plist,l_coh,l_c,cohlist,mvalue,break_time,
+    // stresslist,timelist,volume_change);
 //
 //    volume_change=hfp2d::volume_output(widthlist,2);
 //
 //    stresslist=hfp2d::deal_with_stress(stresslist,cohlist,plist,initial_condition);
 
+//- - - - - - - - - - - - - - - - - - - - - - -- - - - - - - - - - - - - - - -
 
     //partially filled calculation
 
-//    hfp2d::propagation_loop_col_partial(mesh,id,p,material,initial_condition,399,401,nstep,status2,il::io,widthlist,plist,l_coh,l_c,cohlist,mvalue,break_time,stresslist,energy);
-//
-//    volume_change=hfp2d::volume_output(widthlist,2);
-//
-//    hfp2d::energy_output_partial(widthlist,plist,l_c,l_coh,cohlist,material,mesh,id,p,2,initial_condition,il::io,energy_f,energy_coh,energy_j_integral);
+//    hfp2d::propagation_loop_col_partial(mesh,id,p,material,initial_condition,
+// 399,400,nstep,status2,il::io,widthlist,plist,l_coh,l_c,cohlist,mvalue,
+// break_time,stresslist,energy,volume_change,elastic_vary_list);
 
+//    volume_change=hfp2d::volume_output(widthlist,2);
+// volume change between the neighboring time step
+//
+
+//- - - - - - - - - - - - - - - - - - - - - - -- - - - - - - - - - - - - - - -
 
     //linear softening cohesive law, based on the fully-filled case
+//
+//    hfp2d::propagation_loop_linear(mesh,id,p,material,initial_condition,199,200,
+//                                   nstep,status2,il::io,widthlist,plist,l_coh,
+//                                   l_c,cohlist,mvalue,break_time,stresslist,energy);
 
-//    hfp2d::propagation_loop_linear(mesh,id,p,material,initial_condition,799,801,nstep,status2,il::io,widthlist,plist,l_coh,l_c,cohlist,mvalue,break_time,stresslist,energy);
-//
-//    hfp2d::energy_output(widthlist,plist,l_c,l_coh,material,mesh,id,p,2,initial_condition,il::io,energy_f,energy_coh,energy_j_integral);
-//
-//    volume_change=hfp2d::volume_output(widthlist,2);
-//
-//    stresslist=hfp2d::deal_with_stress(stresslist,cohlist,plist,initial_condition);
 
+    //volume_change=hfp2d::volume_output(widthlist,2);
+
+    //stresslist=hfp2d::deal_with_stress(stresslist,cohlist,plist,initial_condition);
+
+
+//------------------------------------------------------------------------------
 
     // Considering the viscosity
 
@@ -228,7 +246,10 @@ int main() {
     // Remember: continuous linear variation -> rho_2right = rho_1left and so on..
 
     double CompressFluid=0;
-    double Visc=0.001;
+    double Visc=0.01;
+    //0.000001 Toughness-dominated
+    // 0.001 small toughness
+    // 0.01 Viscosity-dominated
     double Density=1.;
 
     il::Array2D<double> rho{nelts, 2, Density};
@@ -240,8 +261,18 @@ int main() {
     fluid_parameters.compressibility = CompressFluid;
     fluid_parameters.density = rho;
     fluid_parameters.viscosity = Visc;
-    hfp2d::propagation_loop_visco(mesh,id,p,material,initial_condition,49,50,nstep,status2,fluid_parameters,il::io,widthlist,plist_2d,l_coh,l_c,cohlist,mvalue,break_time,stresslist,energy,volume_vary_list,elastic_vary_list,error_matrix);
 
+    //For time step adapted (Fluid_coupled_by_elmt)
+    hfp2d::propagation_loop_visco(mesh,id,p,material,initial_condition,199,200,
+                                  nstep,status2,fluid_parameters,il::io,
+                                  widthlist,plist_2d,l_coh,l_c,cohlist,mvalue,
+                                  break_time,stresslist,volume_vary_list,
+                                  elastic_vary_list,error_matrix, timelist);
+
+//------------------------------------------------------------------------------
+// General output
+
+//recording the running time
     timerwhole.stop();
     std::cout << "------ " << timerwhole.elapsed() << "  \n";
     std::cout << "---#---\n";
@@ -251,7 +282,7 @@ int main() {
 
 
 
-
+//output the breaktime in need of further plotting the results
 
     if(break_time!=nstep){
         std::cout<<"Oups! At the "<<break_time<< "th time step, the fracture reaches the mesh end point"<<"\n";
@@ -259,16 +290,16 @@ int main() {
     std::cout<<"To draw the curves,nstep="<<break_time<<"\n";
 
 
-
+//output for crack length vs time
 
     std::ofstream foutlc;
     foutlc.open("cracklength.txt");
-    for(int lca=0;lca<break_time;++lca){
+    for(int lca=0;lca<break_time+1;++lca){
         foutlc<<l_c[lca]<<"\n";
     }
     foutlc.close();
 
-
+//output for iteration times during plasticity part
     std::ofstream foutit;
     foutit.open("iteration.txt");
     for(int itera=0;itera<break_time;++itera){
@@ -278,9 +309,11 @@ int main() {
 
     il::Array<double> xlist{2*mesh.nelts(),0.};
     hfp2d::get_xlist_col(xlist,mesh);
-  std::ofstream fout;
-  fout.open("outputcn1.txt");
 
+
+//output for the width profile for different time step
+    std::ofstream fout;
+  fout.open("outputcn1.txt");
 
   for(int qq=0;qq<break_time;++qq){//qq<widthlist.size(0)
     for(int qqq=0;qqq<widthlist.size(1);++qqq){
@@ -289,20 +322,67 @@ int main() {
     fout<<"\n";
   }
   fout.close();
+
+//output for the stress
+    std::ofstream foutstress;
+    foutstress.open("outputstresscn1.txt");
+    for(int cstr=0;cstr<break_time;++cstr){//cf<cohlist.size(0)
+        for(int cstre=0;cstre<cohlist.size(1);++cstre){
+            foutstress<<stresslist(cstr,cstre)<<"\t";
+        }
+        foutstress<<"\n";
+    }
+    foutstress.close();
+
+
+//output for cohesive length
+    std::ofstream fout2;
+    fout2.open("outputlcohcn1.txt");
+    for(int cc=0;cc<break_time;++cc){//cc<l_coh.size()
+        fout2<<l_coh[cc]<<"\n";
+    }
+    fout2.close();
     
 
+
+
+//--------------------------plot only for zero viscosity------------------------
+////output pressure for zero visco
 //  std::ofstream fout1;
 //  fout1.open("outputpressurecn1.txt");
 //
 //  for(int mm=0;mm<break_time+1;++mm){//mm<plist.size()
 //      fout1<<plist[mm]<<"\n";
 //    }
-//
 //  fout1.close();
+//
+//
+//
+//
+//    std::ofstream foutf;
+//    foutf.open("outputcohfcn1.txt");
+//    for(int cf=0;cf<break_time;++cf){//cf<cohlist.size(0)
+//        for(int cff=0;cff<cohlist.size(1);++cff){
+//            foutf<<cohlist(cf,cff)<<"\t";
+//        }
+//        foutf<<"\n";
+//    }
+//    foutf.close();
+////
+////
+//////residual for the volume conservation
+//    std::ofstream fvol;
+//    fvol.open("outputvol.txt");
+//
+//    for(int v=0;v<break_time;++v){//mm<plist.size()
+//        fvol<<volume_change[v]<<"\n";
+//    }
+//
+//    fvol.close();
 
-
-//plot only for viscosity case
-
+//---------------------plot only for viscosity case-----------------------------
+////
+//
     std::ofstream fplist;
     fplist.open("outputplist.txt");
 
@@ -314,17 +394,17 @@ int main() {
     }
     fplist.close();
 
+//plot for time step adapted case
+    std::ofstream ftimelist;
+    ftimelist.open("timelist.txt");
 
-    std::ofstream fout2;
-    fout2.open("outputlcohcn1.txt");
-    for(int cc=0;cc<break_time;++cc){//cc<l_coh.size()
-        fout2<<l_coh[cc]<<"\n";
+    for(int tp=0;tp<break_time+1;++tp){//qq<widthlist.size(0)
+            ftimelist<<timelist[tp]<<"\n";
     }
-    fout2.close();
-
-
-
-//out put for viscosity case
+    ftimelist.close();
+////
+////
+//out put for viscosity case - residual of the volume residual
     std::ofstream foutvolume_list;
     foutvolume_list.open("outputvlist.txt");
 
@@ -335,8 +415,8 @@ int main() {
         foutvolume_list<<"\n";
     }
     foutvolume_list.close();
-
-
+//
+////for viscosity and partial zero-viscosity case
     std::ofstream felas;
     felas.open("outputelas.txt");
 
@@ -348,7 +428,7 @@ int main() {
         felas<<"\n";
     }
     felas.close();
-
+//
 //output only for viso case, check the iteration scheme
     std::ofstream fviscoitera;
     fviscoitera.open("outputviscoitera.txt");
@@ -360,8 +440,8 @@ int main() {
     }
     fviscoitera.close();
 
-
-
+//---------------------------------------------------------------------------------
+///////////////////////////////////////////////////////////////////////////////
 
 
 //energy output
@@ -404,37 +484,26 @@ int main() {
 //    }
 //    fenergy_j.close();
 //
-//    std::ofstream foutf;
-//    foutf.open("outputcohfcn1.txt");
-//    for(int cf=0;cf<break_time;++cf){//cf<cohlist.size(0)
-//        for(int cff=0;cff<cohlist.size(1);++cff){
-//            foutf<<cohlist(cf,cff)<<"\t";
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+////////////////////////////////////////////////////////////////////////////////
+// analytical solution of the griffith-crack (ct pressure)
+//    il::Array<double> griffithcrack(const il::Array<double>& x, double a, double Ep,
+//                                    double sig) {
+//        double coef = 4. * sig / (Ep);
+//        il::Array<double> wsol{x.size(), 0.};
+//
+//        for (int i = 0; i < x.size(); ++i) {
+//            if (std::abs(x[i]) < a) {
+//                wsol[i] = coef * sqrt(pow(a, 2) - pow(x[i], 2));
+//            }
 //        }
-//        foutf<<"\n";
+//        return wsol;
 //    }
-//    foutf.close();
-//
-    std::ofstream foutstress;
-    foutstress.open("outputstresscn1.txt");
-    for(int cstr=0;cstr<break_time;++cstr){//cf<cohlist.size(0)
-        for(int cstre=0;cstre<cohlist.size(1);++cstre){
-            foutstress<<stresslist(cstr,cstre)<<"\t";
-        }
-        foutstress<<"\n";
-    }
-    foutstress.close();
-//
-//    std::ofstream fvol;
-//    fvol.open("outputvol.txt");
-//
-//    for(int v=0;v<break_time;++v){//mm<plist.size()
-//        fvol<<volume_change[v]<<"\n";
-//    }
-//
-//    fvol.close();
-
-
-
 
 
 

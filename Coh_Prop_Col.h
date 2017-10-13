@@ -40,6 +40,8 @@ namespace hfp2d {
     il::Array<double>
     get_vwc_vc_col(Mesh mesh_total, const int &p, const il::int_t &dof_dim);
 
+    il::Array <double> element_size_col(Mesh mesh_total, const int &p );
+
 
     il::Array<il::int_t> stress_criteria_col(const il::Array2D<double> &kmat,
                                              const il::Array2D<int> &id,
@@ -101,6 +103,15 @@ namespace hfp2d {
                               const int &p, const il::int_t &dof_dim, il::io_t,
                               il::Array<double> &width,
                               double &pressure);
+    void construct_matrix_col_elmt(il::Array2D<double> &kmatC,
+                                   il::Array<double> vwc,
+                                   il::Array<double> cohf, const Material &material,
+                                   il::Array<double> unit,
+                                   const Initial_condition &initial_condition,
+                                   il::Status &status,
+                                   double pressure_f, il::Array<double> widthB,
+                                   const int &p, const il::int_t &dof_dim, double time_current,il::io_t,
+                                   il::Array<double> &width, double &pressure);
 
 
     void plasticity_loop_col(const Material &material,
@@ -111,11 +122,11 @@ namespace hfp2d {
                              il::Array<double> widthB, double pressure_f,
                              il::Array<double> width_history,
                              const il::int_t &dof_dim,
-                             const il::Array2D<int> &col_matrix,
+                             const il::Array2D<int> &col_matrix, double time_current,
                              il::io_t,
                              il::Array<double> &delta_width,
                              double &pressure_change,
-                             il::Array<double> &coht, int &mm);
+                             il::Array<double> &coht, int &mm, double &errv);
 
     il::Array2D<int> collocation_matrix(int &nelts, const int &p);
 
@@ -129,7 +140,7 @@ namespace hfp2d {
                          il::Array<double> &plist,
                          il::Array<double> &l_coh, il::Array<double> &l,
                          il::Array2C<double> &coh_list, il::Array<int> &mvalue,
-                         int &break_time,il::Array2C<double> &stress_list,il::Array<double> &energy_g);
+                         int &break_time,il::Array2C<double> &stress_list,il::Array<double> &timelistnew, il::Array<double> &err_v_list);
 
 
     void get_xlist_col(il::Array<double> &xlist, Mesh mesh_total);

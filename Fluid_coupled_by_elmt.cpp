@@ -2,15 +2,21 @@
 // Created by DONG LIU on 7/25/17.
 //
 
+// Taking the fluid viscosity into account, this code
+// can consider the fluid compressibility and a non-uniform fluid density
+// We try to do the propagation regime of element by element
 
+// Different CZMs(linear-softening and three exponential cohesive models)
+// can be considered if changing part of the function
+// cohesive_force_linear_elemt
 
-// We try to do the propagation regime, element by element(Normally we should
-// not have a convergence problem)
-
-//should try the timestep adaptive method
+//We have the timestep adaptive method which can control the number of elements
+//propagated per time step
 //calculate the velocity each time and determines the next timestep
 //to get better convergence
 
+
+// we can change the permeability of the fracture tip with this code
 
 #include "Fluid_coupled_by_elmt.h"
 #include <il/math.h>
@@ -23,6 +29,9 @@ namespace hfp2d {
         il::int_t ttn=id.size(0)*id.size(1);
         il::Array2D<double> width_edge_to_col{ttn,ttn,0.};
         for(il::int_t m=0;m<ttn;m+=id.size(1)){
+            // including the shear displacement arrangement, pay attention this can't be
+            // simply replaced by the EC matrix, because this is 4Nx4N while EC
+            // matrix is 4N*(N+1)
             width_edge_to_col(m,m)=sqrt(2.)/2.;
             width_edge_to_col(m,m+dof_dim)=1.-sqrt(2.)/2.;
             width_edge_to_col(m+1,m+1)=sqrt(2.)/2.;
@@ -47,7 +56,7 @@ namespace hfp2d {
         crack_length = 0.;
         length_coh = 0.;
 
-        //calculation of crack length
+        //calculation of crack length - sum of the activaed element length
         for (il::int_t s = 0; s < j - i + 1; ++s) {
             SegmentCharacteristic segi = get_segment_DD_characteristic(
                     mesh_total, int(s + i), p);
@@ -118,12 +127,13 @@ namespace hfp2d {
 
 
     il::Array<double> cohesive_force_linear_elemt(const Material &material,
-                                            il::Array<double> width,
-                                                  il::int_t i,
-                                                  il::int_t j,
-                                            il::Array<double> width_history,
-                                            const int &p, const il::int_t &dof_dim,
-                                            const il::Array2D<int> &id,il::Array2D<double> width_e_to_c) {
+                                                  il::Array<double> width,
+                                                  il::int_t i, il::int_t j,
+                                                  il::Array<double> width_history,
+                                                  const int &p,
+                                                  const il::int_t &dof_dim,
+                                                  const il::Array2D<int> &id,
+                                                  il::Array2D<double> width_e_to_c) {
         il::Array<double> f{width.size(), 0.};
         //we switch the dislocation from edge point to collocation point
 
@@ -132,27 +142,50 @@ namespace hfp2d {
         il::Array<double> width_etoc=il::dot(width_edge_col,width);
 
         for (il::int_t s = 1; s < width.size(); s += dof_dim) {
+            // the linear-softening model and the partly-exponenetial model
+            // considers the opening history
 
-            if (width_etoc[s]>0 and width_etoc[s] < material.wc and
-                width_history[id(i,0)+s] == 0.) {
-                //expression for linear softening model
-                f[s] = material.sigma_t*(material.wc-width_etoc[s])/material.wc;
+//            if (width_etoc[s]>0 and width_etoc[s] < material.wc and
+//                width_history[id(i,0)+s] == 0.) {
+//                //expression for linear softening model
+//                f[s] = material.sigma_t*(material.wc-width_etoc[s])/material.wc;
+//                //expression for exponential model
+//                //f[s] = material.sigma_t*6*width_etoc[s]/material.wc*
+//                // exp(1-width_etoc[s]*6/material.wc);
+//            };
+//
+//            if (width_etoc[s]>0 and width_etoc[s] < material.wc and
+//                width_history[id(i,0)+s] > 0. and
+//                width_history[id(i,0)+s] < material.wc) {
+//                if (width_etoc[s] < width_history[id(i,0)+s]) {
+//                    //expression for linear softening model
+//                    f[s] = width_etoc[s] / width_history[id(i,0)+s] *
+//                           material.sigma_t*(material.wc-width_history[id(i,0)+s])/material.wc;
+//                    //experssion for exponential model
+//                    //f[s]=width_etoc[s] / width_history[id(i,0)+s] *
+//                    //     material.sigma_t*6*width_history[id(i,0)+s]/material.wc
+//                    // *exp(1-6*width_history[id(i,0)+s]/material.wc);
+//                }
+//                else {
+//                    //expression for linear softening model
+//                    f[s] = material.sigma_t*(material.wc-width_etoc[s])/material.wc;
+//                    //expression for exponential model
+//                    //f[s] = material.sigma_t*6*width_etoc[s]/material.wc*
+//                    // exp(1-width_etoc[s]*6/material.wc);
+//                }
+//            };
+            // exponential cohesive force over all the elements
+            // in this case, we don't take the opening history into account which
+            // means that there's no unloading during the propagation process
+            if(width_etoc[s]>0  and
+               width_history[id(i,0)+s] >= 0.){
+                // exponential with one increasing part G=sigmaT*wc*exp(1.0) it's not working with the increasing branch
+                //f[s]=material.sigma_t* width_etoc[s]/material.wc *exp(1.0-width_etoc[s]/material.wc);
+                // exponential with decreasing part G=sigmaT*wc*0.886227
+                f[s]=material.sigma_t* exp(-(width_etoc[s]/material.wc)*(width_etoc[s]/material.wc));
+                // exponential with decreasing not square part G=sigmaT*wc
+                //f[s]=material.sigma_t*exp(-width_etoc[s]/material.wc);
             };
-
-            if (width_etoc[s]>0 and width_etoc[s] < material.wc and
-                width_history[id(i,0)+s] > 0. and
-                width_history[id(i,0)+s] < material.wc) {
-                if (width_etoc[s] < width_history[id(i,0)+s]) {
-                    //expression for linear softening model
-                    f[s] = width_etoc[s] / width_history[id(i,0)+s] *
-                           material.sigma_t*(material.wc-width_history[id(i,0)+s])/material.wc;
-                }
-                else {
-                    //expression for linear softening model
-                    f[s] = material.sigma_t*(material.wc-width_etoc[s])/material.wc;
-                }
-            };
-
         };
         return f;
     };//return the local cohesive force, and the force in total
@@ -185,9 +218,8 @@ namespace hfp2d {
         for (il::int_t r = 0; r < i; r++) {
             if (syy[id(r,1)] >=
                 material.sigma_t  and i >= 0) {
-                //here the failure criteria should add the sigma0 to
-                // become the total insitu-stress,
-                // not sure. + initial_condition.sigma0
+                //here personally thinking we should not + initial_condition.sigma0,
+                //but not sure
                 if(r<=min_i){
                     min_i=r;
                 }
@@ -212,7 +244,7 @@ namespace hfp2d {
         }
         //we suppose the far point stress is smaller than the near point stress
 
-        max_j=long(0.85*max_j+0.15*j+0.5);
+        max_j=long(0.85*max_j+0.15*j);// before we have +0.5
 
 
         if (max_j >= id.size(0)-1) {
@@ -236,7 +268,7 @@ namespace hfp2d {
                                                     const il::Array<double> &vector,
                                                     il::Array<double> EltSizes,
                                                     Parameters_fluid &fluid_parameters,
-                                                    double kf, il::io_t) {
+                                                    double kf, Material material, il::io_t) {
 
         // Inputs:
         //  - rho -> vector of fluid density values at the middle of each element
@@ -252,8 +284,19 @@ namespace hfp2d {
 
         for (il::int_t i = 0; i < Res.size(); ++i) {
 
-            Res[i] = ((rho[i] * (vector[i]*vector[i]*vector[i]* kf))
-                      / EltSizes[i]) * (1 / (12 * fluid_parameters.viscosity));
+            if(vector[i]>= material.wc){
+                Res[i] = ((rho[i] * (vector[i]*vector[i]*vector[i]))
+                          / EltSizes[i]) * (1 / (12 * fluid_parameters.viscosity));
+            }
+            else{
+                // //here we change the permeability of the fracture tip,
+                // // one needs to activate this part of the code
+                //Res[i]=((rho[i] * kf * (vector[i]*vector[i]*material.wc))
+                //        / EltSizes[i]) * (1 / (12 * fluid_parameters.viscosity));
+                //if we don't change the permeability around the tip
+                Res[i]=((rho[i] * (vector[i]*vector[i]*vector[i]))
+                 / EltSizes[i]) * (1 / (12 * fluid_parameters.viscosity));
+            }
         }
         return Res;
     }
@@ -317,7 +360,7 @@ namespace hfp2d {
                                   const il::int_t &dof_dim, const int &p,
                                   il::Array<double> element_size_all,
                                   Parameters_fluid &fluid_parameters,
-                                  const il::Array2D<int> &id) {
+                                  const il::Array2D<int> &id, Material material) {
 
         //widthB should be the adjusted-width profile at the previous moment
         // the size is (N+1)*(N+1)
@@ -342,7 +385,7 @@ namespace hfp2d {
         il::Array<double> rho_mid = average(density,il::io);
         il::Array<double> Kk =
                 conductivities_newtonian_open(rho_mid, w_mid, element_size,
-                                              fluid_parameters, 1., il::io);
+                                              fluid_parameters, 0., material, il::io);//this is where we should change the permeability coefficient kf
         //size of related element number
 
         il::int_t dofj = 0;
@@ -592,6 +635,7 @@ namespace hfp2d {
 
         il::Array<double> conf{n,initial_condition.sigma0};
         il::blas(-1.,conf,1.,il::io,fP);
+        // we embed the effect of the confining stress into fP
         il::Array<double> lp_b=il::dot(ll,pressure_f);
         for (int c = 0; dof_dim * c < n; c++) {
             fP[2 * c] = 0;
@@ -600,7 +644,7 @@ namespace hfp2d {
         for (int m = 0; m < n; ++m) {
             newvector[m]=cohf[m] - fP[m] - fK[m];
             for (int s = 0; s < n; ++s){
-                newmatrix(s, m) = kmatC(s, m);
+                newmatrix(m, s) = kmatC(m, s);
             }
             for (int s1=0; s1<n2;++s1){
                 newmatrix(s1+n,m)=vwc(s1,m);
@@ -615,7 +659,7 @@ namespace hfp2d {
                 newmatrix(s3+n,m1+n)=
                         vp(s3,m1)-ll(s3,m1)*time_inter;
             }
-        }
+        };
 
 
         il::Array<double> widthinter{n, 0.};
@@ -720,7 +764,7 @@ namespace hfp2d {
                                         j, width_history, p,dof_dim,id,width_e_to_c);
 
             ll=matrix_lw(width_inm, i,j,dof_dim, p,
-                         element_size_all, fluid_parameters, id);
+                         element_size_all, fluid_parameters, id, material);
             vp=matrix_vpw(fluid_parameters,element_size_all,i,j,
                           width_inm, id, dof_dim, p,col_matrix,il::io);
 
@@ -746,7 +790,7 @@ namespace hfp2d {
                 }
             }
             //relaxation of the increment of the dislocation
-            il::blas(0.85, delta_width, 0.15, il::io, delta_w_bitera);
+            il::blas(0.15, delta_w_bitera, 0.85, il::io, delta_width);
 
             //calculation of the relative errors
             il::Array<double> intermediate = delta_width;
@@ -764,8 +808,9 @@ namespace hfp2d {
             error_p=error_inter_p/il::norm(pressure_change,il::Norm::L2);
             //error_p=0.0;
             //this line tries to make the pressure iteration criteria unavalible
+            //if activated
 
-            //renouvellement of the relative error for increment of the pressure
+            //update of the relative error for increment of the pressure
             delta_p_ini=pressure_change;
 
             //check the iteration scheme is suitable or not
@@ -920,6 +965,7 @@ namespace hfp2d {
                 //the stop limit value for m should be big enough
                 if (break_value) {
                     break_value_2=true;
+                    // to stop the calculation for the next time step
                     break;
                 };
                 il::Array<double> delta_width;
@@ -952,7 +998,7 @@ namespace hfp2d {
                     timelist_inter[s+1]=timelist_inter[s]+time_inter[s];
                     break;
                 }
-                //the crack reaches the mesh end
+                //the crack reaches the end of the mesh
                 if (index[0] <= 0 or index[1] >= n- 1) {
 
                     width = widthB;
@@ -963,6 +1009,7 @@ namespace hfp2d {
 
                     break_time=s+1;//because s starts from 0
                     break_value=true;
+                    // to stop the plasticity and the front position loop
                     break;
                 }
                 //the crack propagates
@@ -992,7 +1039,7 @@ namespace hfp2d {
 
                 //current left tip, the node starting from 0,1,2,3...
                 left_node=index[0];
-                //right_node=col_row_j(0,1)+1;
+
                 //the current number of pressure nodes
                 il::int_t pn=index[1]-index[0]+1+1;
 
@@ -1035,38 +1082,55 @@ namespace hfp2d {
 
 
 
+            //Arrangement for the width plot over the whole mesh
             il::Array<double> width_large{dof_dim*(p+1)*n, 0.};
             for (int r = 0; r < width.size(); ++r) {
                 width_large[dof_dim *(p+1)*i + r] = width[r];
             }//needs to be carefully checked
+
+            //Arrangement for the width plot for all time steps
             for (int sc = 0; sc < dof_dim*(p+1)* n; ++sc) {
                 widthlistinter(s, sc) = width_large[sc];
             }
             il::Array<double> pressure_large{n+1,0.};
+
+            // Arrangement for the pressure over the whole Mesh
             for(int sp=0;sp<pressure.size();sp++){
                 plistinter(s,left_node+sp)=pressure[sp];
                 pressure_large[left_node+sp]=pressure[sp];
             }
 
 
+            // Calculation of the crack length and the cohesive length
             cc_length_elemt(mesh_total, material, width_large, i, j,
                           width_history, p,id,col_matrix,dof_dim, il::io,
                           length_coh[s], crack_length[s+1]);
 
-            double psi=4;
+            // Inner control of the elements failed(propagation) per time step
+            // this is based on the constant propagation velocity assumption
+            double psi=40;//before there's no *20
+            if(crack_length[s+1]==crack_length[s]){
+                time_inter[s+1]=2.*time_inter[s];
+            }
+            else{
+                time_inter[s+1]= psi*element_size_all[i]
+                                 /(crack_length[s+1]-crack_length[s])*time_inter[s];
+            }
 
-            time_inter[s+1]= psi*element_size_all[i]
-                             /(crack_length[s+1]-crack_length[s])*time_inter[s];
 
+            // Recording the maximum opening
             width_history =
                     write_history_elemt(width, width_history,
                                         i,j, material,p,dof_dim,id,width_e_to_c);
             //Here we use width_large, could be simpler for the coding
 
+            // Arrangement for the cohesive force vector for different time steps
             for (int cohi = 0; cohi < dof_dim*(p+1)* n; cohi++) {
                 coh_tt(s, cohi) = coht[cohi];
             }
 
+
+            // Calculation of the current stress plot caused by the dislocation
             il::Array<double> pressure_current=
                     il::dot(matrix_edge_to_col_all,pressure_large);
             il::Array<double> stress_current=il::dot(kmat,width_large);
@@ -1076,6 +1140,8 @@ namespace hfp2d {
                         -initial_condition.sigma0;
             }
 
+            // Error list arrangement for all timesteps, 200 is the
+            // maximum iteration number in plastisity loop
             for(int iter=0;iter<200;iter++){
                 error_lists(s,iter)=error_w_list[iter];
             }
@@ -1093,7 +1159,8 @@ namespace hfp2d {
         l_coh = length_coh;
         coh_list = coh_tt;
         timelist=timelist_inter;
-        mvalue=m_value;//to output the iteration times in plasticity_loop to get the solution
+        mvalue=m_value;
+        //to output the iteration times in plasticity_loop to get the solution
         stress_list=stress_profile;
         volume_vary_list=volume_vary_matrix;
         elastic_vary_list=elastic_vary_matrix;

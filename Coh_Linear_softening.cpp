@@ -1,11 +1,11 @@
 //
 // Created by DONG LIU on 5/24/17.
-//
+// Tougness only propagation considering several cohesive zone models, linear-
+// softening, exponential cohesive zone models
+// propagation collocation point by collocation point
 
 #include "Coh_Linear_softening.h"
 #include<il/norm.h>
-
-
 
 namespace hfp2d{
 
@@ -16,42 +16,59 @@ namespace hfp2d{
                                          il::Array<double> width_history,
                                          const int &p, const il::int_t &dof_dim,
                                          const il::Array2D<int> &id) {
-        il::Array<double> f{width.size(), 0.};//material.sigma_t*0.00001 one way to avoid the jump, seems not working
+        il::Array<double> f{width.size(), 0.};
+
+        il::Array<double> width_etoc =
+                width_edge_col_col(width,col_row_i,col_row_j,dof_dim,id);
+
 
         for (il::int_t s = 1; s < width.size(); s += dof_dim) {
 
+//            if (width_etoc[s]>0 and width_etoc[s] < material.wc and
+//                width_history[id(col_row_i(0,0),dof_dim*col_row_i(0,1))+s] == 0.) {
+//                //expression for linear softening model
+//                f[s] = material.sigma_t*(material.wc-width_etoc[s])/material.wc;
+//                //expression for exponential model change sigmaT
+//                //f[s] = material.sigma_t*6*width_etoc[s]/material.wc*exp(1-6*width_etoc[s]/material.wc);
+//                //expression for exponential model change wc
+//                //f[s] = material.sigma_t*6*width_etoc[s]/material.wc*exp(1-width_etoc[s]*6/material.wc);
+//            };
+//
+//            if (width_etoc[s]>0 and width_etoc[s] < material.wc and
+//                width_history[id(col_row_i(0,0),dof_dim*col_row_i(0,1))+s] > 0. and
+//                width_history[id(col_row_i(0,0),dof_dim*col_row_i(0,1))+s] <
+//                material.wc) {
+//                if (width_etoc[s] < width_history[id(col_row_i(0,0),dof_dim*col_row_i(0,1))+s]) {
+//                    //expression for linear softening model
+//                    f[s] = width_etoc[s] / width_history[id(col_row_i(0,0),dof_dim*col_row_i(0,1))+s] *
+//                            material.sigma_t*(material.wc-width_history[id(col_row_i(0,0),dof_dim*col_row_i(0,1))+s])/material.wc;
+//                    //expression for exponential model change sigmaT
+//                    //f[s]=width_etoc[s] / width_history[id(col_row_i(0,0),dof_dim*col_row_i(0,1))+s] *
+//                    //        material.sigma_t*6*width_history[id(col_row_i(0,0),dof_dim*col_row_i(0,1))+s]/material.wc*exp(1-6*width_history[id(col_row_i(0,0),dof_dim*col_row_i(0,1))+s]/material.wc);
+//                    //expression for exponential model change wc
+//                    //f[s]=width_etoc[s] / width_history[id(col_row_i(0,0),dof_dim*col_row_i(0,1))+s] *
+//                    //     material.sigma_t*6*width_history[id(col_row_i(0,0),dof_dim*col_row_i(0,1))+s]/material.wc*exp(1-6*width_history[id(col_row_i(0,0),dof_dim*col_row_i(0,1))+s]/material.wc);
+//                }
+//                else {
+//                    //expression for linear softening model
+//                    f[s] = material.sigma_t*(material.wc-width_etoc[s])/material.wc;
+//                    //expression for exponential model change sigmaT
+//                    //f[s] = material.sigma_t*6*width_etoc[s]/material.wc*exp(1-6*width_etoc[s]/material.wc);
+//                    //expression for exponential model change wc
+//                    //f[s] = material.sigma_t*6*width_etoc[s]/material.wc*exp(1-6*width_etoc[s]/material.wc);
+//                }
+//            };
 
-            il::Array<double> width_etoc =
-                    width_edge_col_col(width,col_row_i,col_row_j,dof_dim,id);
-
-            if (width_etoc[s]>0 and width_etoc[s] < material.wc and
-                width_history[id(col_row_i(0,0),dof_dim*col_row_i(0,1))+s] == 0.) {
-                //expression for linear softening model
-                f[s] = material.sigma_t*(material.wc-width_etoc[s])/material.wc;
-                //expression for exponential model
-                //f[s] = material.sigma_t*6*width_etoc[s]/material.wc*exp(1-6*width_etoc[s]/material.wc);
+            // exponential cohesive force over all the elements
+            if(width_etoc[s]>0  and
+               width_history[id(col_row_i(0,0),dof_dim*col_row_i(0,1))+s] >= 0.){
+                // exponential with one increasing part G=sigmaT*wc*exp(1.0) it's not working with the increasing branch
+                //f[s]=material.sigma_t* width_etoc[s]/material.wc *exp(1.0-width_etoc[s]/material.wc);
+                // exponential with decreasing part G=sigmaT*wc*0.886227
+                //f[s]=material.sigma_t* exp(-(width_etoc[s]/material.wc)*(width_etoc[s]/material.wc));
+                // exponential with decreasing not square part G=sigmaT*wc
+                f[s]=material.sigma_t*exp(-width_etoc[s]/material.wc);
             };
-
-            if (width_etoc[s]>0 and width_etoc[s] < material.wc and
-                width_history[id(col_row_i(0,0),dof_dim*col_row_i(0,1))+s] > 0. and
-                width_history[id(col_row_i(0,0),dof_dim*col_row_i(0,1))+s] <
-                material.wc) {
-                if (width_etoc[s] < width_history[id(col_row_i(0,0),dof_dim*col_row_i(0,1))+s]) {
-                    //expression for linear softening model
-                    f[s] = width_etoc[s] / width_history[id(col_row_i(0,0),dof_dim*col_row_i(0,1))+s] *
-                            material.sigma_t*(material.wc-width_history[id(col_row_i(0,0),dof_dim*col_row_i(0,1))+s])/material.wc;
-                    //expression for exponential model
-                    //f[s]=width_etoc[s] / width_history[id(col_row_i(0,0),dof_dim*col_row_i(0,1))+s] *
-                     //       material.sigma_t*6*width_history[id(col_row_i(0,0),dof_dim*col_row_i(0,1))+s]/material.wc*exp(1-6*width_history[id(col_row_i(0,0),dof_dim*col_row_i(0,1))+s]/material.wc);
-                }
-                else {
-                    //expression for linear softening model
-                    f[s] = material.sigma_t*(material.wc-width_etoc[s])/material.wc;
-                    //expression for exponential model
-                    //f[s] = material.sigma_t*6*width_etoc[s]/material.wc*exp(1-6*width_etoc[s]/material.wc);
-                }
-            };
-
         };
         return f;
     };//return the local cohesive force, and the force in total
@@ -73,7 +90,8 @@ namespace hfp2d{
         il::Array2D<int> col_row_i=search(col_matrix,int(c_i),il::io);
         il::Array2D<int> col_row_j=search(col_matrix,int(c_j),il::io);
 
-        il::Array2D<double> kmatnew{dof_dim * (c_j - c_i + 1), dof_dim * (c_j - c_i + 1), 0.};
+        il::Array2D<double> kmatnew{dof_dim * (c_j - c_i + 1),
+                                    dof_dim * (c_j - c_i + 1), 0.};
         take_submatrix(kmatnew, id(col_row_i(0,0),dof_dim*col_row_i(0,1)),
                        id(col_row_j(0,0),dof_dim*col_row_j(0,1)+dof_dim-1),
                        id(col_row_i(0,0),dof_dim*col_row_i(0,1)),
@@ -82,7 +100,9 @@ namespace hfp2d{
 
         il::Array<double> vwc{dof_dim * (c_j - c_i + 1), 0.};
 
-        for (il::int_t m =0; m < id(col_row_j(0,0),dof_dim*col_row_j(0,1)+dof_dim-1)-id(col_row_i(0,0),dof_dim*col_row_i(0,1))+1; ++m) {
+        for (il::int_t m =0;
+             m < id(col_row_j(0,0), dof_dim*col_row_j(0,1)+dof_dim-1)
+                 -id(col_row_i(0,0), dof_dim*col_row_i(0,1))+1; ++m) {
             vwc[m] = vwc0[m+id(col_row_i(0,0),dof_dim*col_row_i(0,1))];
         }
         il::Array<double> unitm{dof_dim * (c_j - c_i + 1), 1.};
@@ -96,7 +116,7 @@ namespace hfp2d{
 
         int k = 0;
         double error_w = 1.;
-        il::Array<il::Status> statusk{100,};
+        il::Array<il::Status> statusk{200,};
         double error_p=1.;
         double error_r=1;
         double inter_pressure=0.;
@@ -105,9 +125,9 @@ namespace hfp2d{
         il::Array<double> delta_w_bitera=delta_w_ini;
 
 
-        while (k < 100 && (error_w > 0.00001 or error_p>0.00001 or error_r>0.000000001)) {
+        while (k < 200 && (error_w > 0.00001 or error_p>0.00001 or error_r>0.000000001)) {
             il::Array<double> width_inm = widthB;
-            il::blas(1.0, delta_w_ini, 1.0, il::io, width_inm);
+            il::blas(1.0, delta_w_bitera, 1.0, il::io, width_inm);
             coh = cohesive_force_linear(material, width_inm, col_row_i,
                                      col_row_j, width_history, p,dof_dim,id);
 
@@ -115,19 +135,39 @@ namespace hfp2d{
                                  initial_condition, statusk[k],
                                  pressure_f, widthB, p, dof_dim,il::io,
                                  delta_width, pressure_change);
+
+//            //we add this part for the exponential CZM with the increasing branch over all the elements
+//            //to force the increment of w who contributes a negative
+//            // opening equal to zero
+//            il::Array<double> width_check=widthB;
+//            il::blas(1.0, delta_width, 1.0, il::io, width_check);
+//            //delta_w_ini could also be replaced by delta_width
+//            for(int w_check=0;w_check<widthB.size();w_check++){
+//                if(width_check[w_check]<0.){
+//                    delta_width[w_check]=-1.*widthB[w_check];
+//                    //to force the total opening is zero
+//                }
+//            }
+
+
+
+            //relaxation of the delta width
+
+            il::blas(0.15, delta_w_bitera, 0.85, il::io, delta_width);
             il::Array<double> intermediate = delta_width;
             il::blas(-1.0, delta_w_bitera, 1.0, il::io, intermediate);
             double error_inter = il::norm(intermediate, il::Norm::L2);
             error_w = error_inter / il::norm(delta_width, il::Norm::L2);
 
-            il::blas(0.85, delta_width, 0.15, il::io, delta_w_ini);
+            //renouvellement of the delta width
             delta_w_bitera=delta_width;
 
             double error_inter_p= fabs(pressure_change-inter_pressure);
             error_p=error_inter_p/fabs(pressure_change);
             inter_pressure=pressure_change;
 
-            error_r=fabs(il::dot(vwc,delta_width)+pressure_change*material.U-initial_condition.Q0*initial_condition.timestep);
+            error_r=fabs(il::dot(vwc,delta_width)+pressure_change*material.U
+                         -initial_condition.Q0*initial_condition.timestep);
 
 
             ++k;
@@ -300,15 +340,16 @@ namespace hfp2d{
                 coh_tt(s, cohi) = coht[cohi];
             }
 
-            il::Array<double> stress_current=il::dot(kmat,width_large);
-            for (int stre=0;stre<dof*n;stre++){
-                stress_profile(s,stre)=stress_current[stre];
-            }
-
-
             pressure += pressure_change;
             plistinter[s + 1] = pressure;//pressure output
             widthB = width;
+
+            il::Array<double> stress_current=il::dot(kmat,width_large);
+            for (int stre=0;stre<dof*n;stre++){
+                stress_profile(s,stre)=stress_current[stre]+pressure
+                                       -initial_condition.sigma0;
+            }
+
             time += initial_condition.timestep;
             ++s;
 

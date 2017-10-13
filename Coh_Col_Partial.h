@@ -28,7 +28,9 @@ namespace hfp2d {
                                       double pressure_f, il::Array<double> widthB,
                                       const int &p, const il::int_t &dof_dim,
                                       il::Array2D<double> partial_m, il::io_t,
-                                      il::Array<double> &width, double &pressure);
+                                      il::Array<double> &width, double &pressure,
+                                      double &volume_vary,
+                                      il::Array<double> & elastic_vary);
 
     void plasticity_loop_col_partial(const Material &material,
                                      const Initial_condition &initial_condition,
@@ -42,7 +44,9 @@ namespace hfp2d {
                                      const il::Array2D<int>&col_matrix, il::io_t,
                                      il::Array<double> &delta_width,
                                      double &pressure_change,
-                                     il::Array<double> &coht,int &mm);
+                                     il::Array<double> &coht,int &mm,
+                                     double &volume_vary,
+                                     il::Array<double> &elastic_vary);
 
     void
     propagation_loop_col_partial(Mesh mesh_total, il::Array2D<int> &id, const int &p,
@@ -55,7 +59,8 @@ namespace hfp2d {
                                  il::Array<double> &l, il::Array2C<double> &coh_list,
                                  il::Array<int> &mvalue,int &break_time,
                                  il::Array2C<double> &stress_list,
-                                 il::Array<double> &energy_g);
+                                 il::Array<double> &energy_g, il::Array<double> &volume_vary_list,
+                                 il::Array2D<double> &elastic_vary_list);
 
     void energy_output_partial(il::Array2C<double> widthlist,il::Array<double> plist,
                                il::Array<double> l_c,il::Array<double> l_coh, il::Array2C<double> cohlist,
