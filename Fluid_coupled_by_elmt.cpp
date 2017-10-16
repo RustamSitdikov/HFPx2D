@@ -145,7 +145,7 @@ namespace hfp2d {
             // the linear-softening model and the partly-exponenetial model
             // considers the opening history
 
-//            if (width_etoc[s]>0 and width_etoc[s] < material.wc and
+//            if (width_etoc[s]>=0 and width_etoc[s] < material.wc and
 //                width_history[id(i,0)+s] == 0.) {
 //                //expression for linear softening model
 //                f[s] = material.sigma_t*(material.wc-width_etoc[s])/material.wc;
@@ -154,7 +154,7 @@ namespace hfp2d {
 //                // exp(1-width_etoc[s]*6/material.wc);
 //            };
 //
-//            if (width_etoc[s]>0 and width_etoc[s] < material.wc and
+//            if (width_etoc[s]>=0 and width_etoc[s] < material.wc and
 //                width_history[id(i,0)+s] > 0. and
 //                width_history[id(i,0)+s] < material.wc) {
 //                if (width_etoc[s] < width_history[id(i,0)+s]) {
@@ -177,7 +177,7 @@ namespace hfp2d {
             // exponential cohesive force over all the elements
             // in this case, we don't take the opening history into account which
             // means that there's no unloading during the propagation process
-            if(width_etoc[s]>0  and
+            if(width_etoc[s]>=0  and
                width_history[id(i,0)+s] >= 0.){
                 // exponential with one increasing part G=sigmaT*wc*exp(1.0) it's not working with the increasing branch
                 //f[s]=material.sigma_t* width_etoc[s]/material.wc *exp(1.0-width_etoc[s]/material.wc);
@@ -1107,7 +1107,7 @@ namespace hfp2d {
                           length_coh[s], crack_length[s+1]);
 
             // Inner control of the elements failed(propagation) per time step
-            // this is based on the constant propagation velocity assumption
+
             double psi=40;//before there's no *20
             if(crack_length[s+1]==crack_length[s]){
                 time_inter[s+1]=2.*time_inter[s];
