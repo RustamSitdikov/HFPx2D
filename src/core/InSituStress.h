@@ -12,11 +12,14 @@
 
 namespace hfp2d {
 
-// distribution of stress and pore pressure.
+// distribution of stress and pore pressure....
+// kept as a class for now... or move it as a struct ???
 
 class InSituStress {
 
 private:
+
+  // need to a have reference to the mesh !!!
 
   // stressField should be a nrow by 3 arrays with column wise (sxx, syy, sxy )
   il::Array2D<double> stress_field_;
@@ -31,17 +34,19 @@ public:
   // constructor from the 2 entries
   InSituStress(il::Array2D<double> &stressField,il::Array<double> &porePress){
 
-    this->stress_field_ = stressField;
-    this->pore_pressure_ = porePress;
+     stress_field_ = stressField;
+     pore_pressure_ = porePress;
 
   }
 
-  // copy
+  // copy ......... we can do that with std::move
   InSituStress(InSituStress &theConditions){
 
-    this->stress_field_ = theConditions.stress_field_;
-    this->pore_pressure_ = theConditions.pore_pressure_;
+     stress_field_ = theConditions.stress_field_;
+     pore_pressure_ = theConditions.pore_pressure_;
   }
+
+// Method  to compute normal and shear traction on element of the mesh.....
 
 
 };

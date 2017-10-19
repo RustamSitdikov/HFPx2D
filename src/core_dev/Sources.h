@@ -10,6 +10,10 @@
  namespace hfp2d {
 class Sources {
  private:
+
+  // todo : move it to a struct
+
+
   // we start simple with one rate and one location (given by the element
   // number)
   // to modify later to 2 arrays for different sources... ? probably not needed
@@ -44,7 +48,7 @@ class Sources {
   double InjectionRate(il::int_t k) const { return injection_rate_[k];};
 
   il::Array<il::int_t> SourceElt() const { return source_elt_; };
-  il::int_t SourceElt(il::int_t k) __const {return source_elt_[k];};
+  il::int_t SourceElt(il::int_t k) const {return source_elt_[k];};
 
 };
 }

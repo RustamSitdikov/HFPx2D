@@ -8,13 +8,16 @@
 //
 //
 
+// todo : remove
+
+
 // Inclusion from Inside Loop library
 #include <il/Array2D.h>
 
 namespace hfp2d {
 
 //  FUNCTION TO CREATE A DOF HANDLE
-il::Array2D<int> dofhandle_dp(int dof_dim, il::int_t Nelts, int p, il::io_t) {
+il::Array2D<int> dofhandle_dp(int dof_dim, il::int_t Nelts, int p) {
   // function creating a matrix of dof handle - for a piece-wise linear
   // variation per element of BOTH shear AND opening DDs
   // (Discontinous Galerkin type)
@@ -38,7 +41,7 @@ il::Array2D<int> dofhandle_dp(int dof_dim, il::int_t Nelts, int p, il::io_t) {
   return Dof;
 }
 
-il::Array2D<int> dofhandle_cp(int dof_dim, il::int_t Nelts, il::io_t) {
+il::Array2D<int> dofhandle_cp(int dof_dim, il::int_t Nelts) {
   // function creating a matrix of dof handle - for continuous linear
   // variation per element (Continuous Polynomial type)
   // on a 1d Mesh object for the case of dof_dim Degrees of Freedoms per node

@@ -18,13 +18,13 @@ namespace hfp2d {
 class SolutionAtT {
   // base  class for solution of coupled fluid driven fracture problem
  private:
+
   double time_;  // current time (tn+1 = tn + timestep) at which the solution
                  // refers to
-
   double
       timestep_;  // time step  (of the last time step taken to arrive at time_)
 
-  hfp2d::Mesh currentmesh_;  // the associated mesh  // should be a reference ?
+  hfp2d::Mesh currentmesh_;  // the associated mesh  // should be a reference
 
   il::Array<double> openingDD_;  // opg DD (at nodes, with 2 values per node)
 
@@ -140,17 +140,22 @@ class SolutionAtT {
    il::int_t  ehl_its() const { return ehlIts_;}
 
    hfp2d::Mesh CurrentMesh() const { return currentmesh_;};
+//////////////////////////////////////////////////////////////////////////////
 
   // methods:
-
   // deep copy / clone  !
+  // use std::move
 
   // write solution to file
 
-
-
+ // read from file from restart.
 
 };
+
+
+
+
+
 }
 
 #endif  // HFPX2DUNITTEST_SOLUTIONATT_H

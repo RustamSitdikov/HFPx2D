@@ -8,7 +8,7 @@
 //
 
 #include "ReynoldsP0.h"
-#include <src/core/RockProperties.h>
+#include <src/core/SolidProperties.h>
 #include <src/core/SolutionAtT.h>
 #include <src/core_dev/Sources.h>
 
@@ -43,7 +43,6 @@ il::Array<double> EdgeConductivitiesP0Newtonian(
   }
   return Cond;
 };
-
 //
 
 il::Array2D<il::int_t> GetEdgesSharing2(hfp2d::Mesh &mesh) {
@@ -90,7 +89,6 @@ il::Array2D<il::int_t> GetEdgesSharing2(hfp2d::Mesh &mesh) {
         break;
       };
     }
-
     j = 0;
   }
 
@@ -120,6 +118,7 @@ il::Array2D<double> BuildFD_P0(hfp2d::Mesh &mesh, hfp2d::Fluid &fluid,
   // checks here....
 
   // loop on edges.....
+
   il::Array2D<il::int_t> edgecommon = hfp2d::GetEdgesSharing2(mesh);
 
   il::Array2D<double> L{mesh.numberOfElements(), mesh.numberOfElements(),
@@ -179,7 +178,7 @@ il::Array<double> EltSize(hfp2d::Mesh &mesh) {
 hfp2d::SolutionAtT ReynoldsSolverP0(hfp2d::SolutionAtT &soln,
                                     il::Array2D<double> &ElasMat,
                                     hfp2d::Fluid &fluid,
-                                    hfp2d::RockProperties &rock,
+                                    hfp2d::SolidProperties &rock,
                                     hfp2d::Sources &source, double timestep,
                                     hfp2d::SimulationParameters &simulParams) {
   // Solution of the Elasto-Hydrodynamics Lubrication over a time step / known
@@ -197,7 +196,6 @@ hfp2d::SolutionAtT ReynoldsSolverP0(hfp2d::SolutionAtT &soln,
   // timestep:: double, current size of the times step
   // return a Solution at tn+1 object
 
-  // todo: add simulation parameters data as input
   // todo: add the case of imposed tip width in tip elements as option ! ...
   // todo: simplify API later on ... -> (fluid, rock, source in one object ?)
   // currently no inequality constraints on negative width are enforced....
@@ -240,9 +238,9 @@ hfp2d::SolutionAtT ReynoldsSolverP0(hfp2d::SolutionAtT &soln,
   }
 
   //
-  il::Array<double> CellSize = EltSize(meshn);
+  il::Array<double> AllCellSizes = EltSize(meshn);
   for (il::int_t j = 0; j < n_elts; j++) {
-    Xi(2 * n_elts + j, j) = CellSize[j];
+    Xi(2 * n_elts + j, j) = AllCellSizes[j];
   }
 
   // RHS part that does not change....
@@ -253,25 +251,27 @@ hfp2d::SolutionAtT ReynoldsSolverP0(hfp2d::SolutionAtT &soln,
     Gamma[i + n_elts] = sig0[i] - Pn[i] - Fn_elas[i + n_elts];
   }
 
-  il::Array2D<il::int_t> sharedEdges = GetEdgesSharing2(meshn);  //
+  il::Array2D<il::int_t> sharedEdges = GetEdgesSharing2(meshn);
 
   // hydraulic width, vectors of rel-errors
   il::Array<double> Wh{n_elts, 0.}, err_Dw{n_elts, 1.}, err_Dv{n_elts, 1.},
       err_Dp{n_elts, 1.};
 
   il::Array<double> Residuals{tot_dofs, 1.};
+
   double res_norm = 0.;
-  double betarela = simulParams.EHL_relaxation();
+
+  double betarela = simulParams.EHL_relaxation;
   il::int_t k = 0;
 
   // Fixed Point Iteration Solver.
-  while ((k < simulParams.EHL_max_its()) &&
-         (il::norm(err_Dp, il::Norm::L2) > simulParams.EHL_tol()) &&
-         (il::norm(err_Dw, il::Norm::L2) > simulParams.EHL_tol()) &&
-         (il::norm(err_Dv, il::Norm::L2) > simulParams.EHL_tol())) {
+  while ((k < simulParams.EHL_max_its) &&
+         (il::norm(err_Dp, il::Norm::L2) > simulParams.EHL_tolerance) &&
+         (il::norm(err_Dw, il::Norm::L2) > simulParams.EHL_tolerance) &&
+         (il::norm(err_Dv, il::Norm::L2) > simulParams.EHL_tolerance)) {
     k++;
 
-    // update hydraulic width....
+    // update hydraulic width.... at tn+dt
     for (il::int_t i = 0; i < n_elts; i++) {
       Wh[i] = rock.Wh_O(0) + Wn[i] + DW_k[i];
     }

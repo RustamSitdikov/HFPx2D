@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.6)
 
 project(HFPx2D CXX)
+
 project(HFPx2DUnitTest CXX)
 
 
@@ -18,8 +19,10 @@ set(CMAKE_CXX_COMPILER /usr/bin/g++)
     elseif(WIN32) # to fill up here
 endif()
 
-# needed for clang-tidy?
-# set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+
+#  FOR HFPx2D
+ # set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 IF(CMAKE_BUILD_TYPE MATCHES DEBUG)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror -Wall -Wextra -pedantic")
@@ -79,8 +82,7 @@ set(SOURCE_FILES
         src/core_dev/Sources.h
 #        src/input/Sources/loadSources.cpp
 #        src/input/Sources/loadSources.h
-        src/FluidFlow/ReynoldsP0.cpp src/FluidFlow/ReynoldsP0.h src/Solvers/DevLHFMSolver.cpp src/Solvers/DevLHFMSolver.h src/core/SolutionAtT.h src/core/RockProperties.h)
-
+        src/FluidFlow/ReynoldsP0.cpp src/FluidFlow/ReynoldsP0.h src/Solvers/DevLHFMSolver.cpp src/Solvers/DevLHFMSolver.h src/core/SolutionAtT.h src/core/SolidProperties.h)
 
 if(APPLE)
 link_directories($ENV{MKLROOT}/lib $ENV{MKLROOT}/../compiler/lib )
@@ -88,24 +90,21 @@ elseif(UNIX)
     link_directories(/opt/intel/mkl/lib/intel64
                      /opt/intel/compilers_and_libraries/linux/lib/intel64)
 endif()
-# below is for linux
-#
-
 
 add_executable(HFPx2D ${SOURCE_FILES}  main.cpp)
 
 target_compile_definitions(HFPx2D PRIVATE IL_MKL=1 IL_BLAS=1 IL_OPENMP=1)
 
-target_include_directories(HFPx2D PRIVATE ${CMAKE_SOURCE_DIR} $ENV{MKLROOT}/include)
+target_link_libraries(HFPx2D mkl_intel_lp64 mkl_core mkl_intel_thread dl iomp5 pthread m)
 
 if(APPLE)
-target_link_libraries(HFPx2D mkl_intel_lp64 mkl_core mkl_intel_thread dl iomp5 pthread m)
+    target_include_directories(HFPx2D PRIVATE ${CMAKE_SOURCE_DIR} $ENV{MKLROOT}/include)
 elseif(UNIX)
     target_include_directories(HFPx2D PRIVATE ${CMAKE_SOURCE_DIR} /opt/intel/mkl/include)
 endif()
 
 if(APPLE)
-# below for some under mac os
+# below for some under mac os sierra ;(
 add_custom_command(TARGET HFPx2D
         POST_BUILD COMMAND
         /usr/bin/install_name_tool -add_rpath /opt/intel/compilers_and_libraries_2017.0.102/mac/mkl/lib
@@ -114,35 +113,39 @@ endif()
 
 
 ################################################################################
-# For Unit Tests
+# For Unit Tests  HFPx2DUnitTest
 ################################################################################
 
-#set(SR_FOLDER "${CMAKE_SOURCE_DIR}/src")
-#
-#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DIL_FOLDER='\"${SR_FOLDER}\"'")
-#
-#set(UNIT_TEST_FILES
-#        src/_test/elastic_test.cpp
-#        gtest/src/gtest-all.cc
-#        src/core/Solid.h src/core/iterative_loop.cpp src/core/iterative_loop.h)
-#
-#add_executable(HFPx2DUnitTest ${SOURCE_FILES} ${UNIT_TEST_FILES} test.cpp)
-#
-#target_compile_definitions(HFPx2DUnitTest PRIVATE IL_MKL=1 IL_BLAS=1 IL_OPENMP=1)
-#
-#target_include_directories(HFPx2DUnitTest PUBLIC ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/il ${CMAKE_SOURCE_DIR}/gtest $ENV{MKLROOT}/include)
-#
-#target_link_libraries(HFPx2DUnitTest mkl_intel_lp64 mkl_core mkl_intel_thread dl iomp5 pthread m)
-#
-#
-## For unit tests: The precondition of our fonctions are checked with assert
-## macros that terminate the program in debug mode. In order to test those macros
-## in our unit tests, the flag IL_UNIT_TEST turns them into exceptions that can
-## be caught and checked.
-#target_compile_options(HFPx2DUnitTest PRIVATE "-DIL_UNIT_TEST")
-#
-##add_custom_command(TARGET HFPx2DUnitTest
-##        POST_BUILD COMMAND
-##        /usr/bin/install_name_tool -add_rpath /opt/intel/compilers_and_libraries_2017.0.102/mac/mkl/lib
-##        $<TARGET_FILE:HFPx2DUnitTest>)
-#
+set(SR_FOLDER "${CMAKE_SOURCE_DIR}/src")
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DIL_FOLDER='\"${SR_FOLDER}\"'")
+
+set(UNIT_TEST_FILES src/_test/elastic_test.cpp  gtest/src/gtest-all.cc)
+
+add_executable(HFPx2DUnitTest ${SOURCE_FILES} ${UNIT_TEST_FILES} test.cpp)
+
+target_compile_definitions(HFPx2DUnitTest PRIVATE IL_MKL=1 IL_BLAS=1 IL_OPENMP=1)
+
+target_link_libraries(HFPx2DUnitTest mkl_intel_lp64 mkl_core mkl_intel_thread dl iomp5 pthread m)
+
+# should be the same -> make sure the MKLROOT is defined under linux
+if(APPLE)
+    target_include_directories(HFPx2DUnitTest PUBLIC ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/gtest $ENV{MKLROOT}/include)
+elseif(UNIX)
+    target_include_directories(HFPx2DUnitTest PUBLIC ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/gtest  /opt/intel/mkl/include)
+endif()
+
+
+# For unit tests: The precondition of our fonctions are checked with assert
+# macros that terminate the program in debug mode. In order to test those macros
+# in our unit tests, the flag IL_UNIT_TEST turns them into exceptions that can
+# be caught and checked.
+target_compile_options(HFPx2DUnitTest PRIVATE "-DIL_UNIT_TEST")
+
+if(APPLE)
+    # below for some under mac os sierra ;(
+    add_custom_command(TARGET HFPx2DUnitTest
+        POST_BUILD COMMAND
+        /usr/bin/install_name_tool -add_rpath /opt/intel/compilers_and_libraries_2017.0.102/mac/mkl/lib
+        $<TARGET_FILE:HFPx2DUnitTest>)
+endif()

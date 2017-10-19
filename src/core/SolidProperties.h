@@ -15,7 +15,7 @@
 
 namespace hfp2d {
 
-class RockProperties {
+class SolidProperties {
  private:
 
   hfp2d::ElasticProperties elastic_properties_;  // elastic properties object
@@ -24,6 +24,7 @@ class RockProperties {
                                           // match the number of differents
                                           // material in the matid vector of the
                                           // mesh)
+// todo :: add fracture energy array....
 
   il::Array<double> wh_o_;  // residual hydraulic width when the mechanical
                             // width is zero (should match the number of
@@ -35,11 +36,14 @@ class RockProperties {
                                            //  number of differents material in
                                            //  the matid vector of the mesh)
 
+  // add here a solid evolution object.
+
+
  public:
 
   // constructor
 
-  RockProperties(hfp2d::ElasticProperties &elas,
+  SolidProperties(hfp2d::ElasticProperties &elas,
                  const il::Array<double> &toughness,
                  const il::Array<double> wh_0, const il::Array<double> &Cl){
 

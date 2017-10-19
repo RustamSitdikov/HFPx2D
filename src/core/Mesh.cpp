@@ -29,7 +29,7 @@ Mesh::Mesh(const il::int_t interpolationOrder,
 
   // Non-zero number of elements and connectivity matrix shall have
   // as many columns as the interpolation order +1
-  IL_EXPECT_FAST(elementsConnectivity.size(0) > 0)
+  IL_EXPECT_FAST(elementsConnectivity.size(0) > 0);
   IL_EXPECT_FAST(
       (interpolationOrder == 0 && elementsConnectivity.size(1) == 2) ||
       (interpolationOrder > 0 &&

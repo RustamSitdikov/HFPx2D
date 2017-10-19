@@ -421,6 +421,8 @@ il::StaticArray2D<double, 2, 4> normal_shear_stress_kernel_s3d_dp0_dd(
   St(1, 1) = n1n1 * stress_l(1, 0) + 2. * n1n2 * stress_l(1, 1) +
              n2n2 * stress_l(1, 2);
 
+  // padding zero due to this agnostic kernel assembly.... un-needed if working by nodal values....
+
   St(0,2)=0;
   St(1,2)=0;
   St(0,3)=0;
@@ -428,4 +430,7 @@ il::StaticArray2D<double, 2, 4> normal_shear_stress_kernel_s3d_dp0_dd(
 
   return St;
 };
+
+// todo: Write function for Hmat call->    dof on collocatin points returning
+
 }

@@ -99,7 +99,8 @@ double SimpleGriffithExampleLinearElement(int nelts) {
 
   std::cout << "EP :" << myelas.Ep() << "\n";
 
-  il::Array2D<int> id = hfp2d::dofhandle_dp(2, nelts, p, il::io);  // dof handle for DDs
+//  il::Array2D<int> id = hfp2d::dofhandle_dp(2, nelts, p);  // dof handle for DDs
+
 
   // some definitions needed for matrix assembly
   il::Array2D<double> xe{2, 2, 0}, xec{2, 2, 0};
@@ -110,8 +111,8 @@ double SimpleGriffithExampleLinearElement(int nelts) {
   il::Array2D<double> K{ndof, ndof};
 
   std::cout << "Number of elements : " << mesh.nelts() << "\n";
-  std::cout << "Number of dofs :" << id.size(0) * id.size(1) << "---"
-            << (nelts) * (p + 1) * 2 << "---" << mesh.numberOfDisplDofs() << "\n";
+//  std::cout << "Number of dofs :" << id.size(0) * id.size(1) << "---"
+//            << (nelts) * (p + 1) * 2 << "---" << mesh.numberOfDisplDofs() << "\n";
   std::cout << myconn.size(0) << "\n";
 ;
   std::cout << "------\n";
@@ -185,14 +186,6 @@ double SimpleGriffithExampleS3D_P0(int nelts) {
 
   //il::Array<double> x{nelts + 1}; // Not needed
 
-  il::Array2D<double> xy{nelts + 1, 2, 0.0};
-  il::Array2D<il::int_t> myconn{nelts, 2, 0};
-  il::Array2D<il::int_t> id_displ{nelts, 2*(p+1), 0};
-  il::Array2D<il::int_t> id_press{nelts, (p+1), 0};
-  il::Array<il::int_t> fracID {nelts,1};
-  il::Array<il::int_t> matID {nelts,1};
-  il::Array<il::int_t> condID {nelts,1};
-
   //int ndof = (nelts) * (p + 1) * 2;  // total number of dofs
   double Ep = 1.;                    // Plane strain Young's modulus
 
@@ -200,15 +193,21 @@ double SimpleGriffithExampleS3D_P0(int nelts) {
   //  Array2C M(i, j) -> M(i, j + 1) (Ordre C)
 
   // create a basic 1D mesh ....
+  il::Array2D<double> xy{nelts + 1, 2, 0.0};
+
   for (int i = 0; i < xy.size(0); ++i) {
     xy(i, 0) = -1. + i * h;
     xy(i, 1) = 0.;
   };
 
+  il::Array2D<il::int_t> myconn{nelts, 2, 0};
+
   for (int i = 0; i < myconn.size(0); ++i) {
     myconn(i, 0) = i;
     myconn(i, 1) = i + 1;
   };
+
+  il::Array2D<il::int_t> id_displ{nelts, 2*(p+1), 0};
 
   for (il::int_t i=0; i < nelts; i++){
     for (il::int_t j=0; j < 2*(p+1); j++){
@@ -216,12 +215,18 @@ double SimpleGriffithExampleS3D_P0(int nelts) {
     }
   }
 
+  il::Array2D<il::int_t> id_press{nelts,(p+1),0};
+
   for (il::int_t i=0; i < nelts; i++){
     id_press(i,0)=i;
-    id_press(i,1)=i+1; // WRONG
+    //id_press(i,1)=i+1; // WRONG
   }
 
-  //il::Array<il::int_t> matid{nelts, 1};
+
+  il::Array<il::int_t> fracID {nelts,1};
+  il::Array<il::int_t> matID {nelts,1};
+  il::Array<il::int_t> condID {nelts,1};
+
   // create mesh object
   //hfp2d::Mesh mesh;
 
@@ -235,8 +240,6 @@ double SimpleGriffithExampleS3D_P0(int nelts) {
   //  myelas.ElasticProperties(1.,0.);
   std::cout << "EP :" << myelas.Ep() << "\n";
 
-  il::Array2D<int> id = hfp2d::dofhandle_dp(2, nelts, p, il::io);  // dof handle for DDs
-
   // some definitions needed for matrix assembly
   il::Array2D<double> xe{2, 2, 0}, xec{2, 2, 0};
 
@@ -245,8 +248,6 @@ double SimpleGriffithExampleS3D_P0(int nelts) {
   il::Array2D<double> K{ndof, ndof};
 
   std::cout << "Number of elements : " << mesh.nelts() << "\n";
-  std::cout << "Number of dofs :" << id.size(0) * id.size(1) << "---"
-            << (nelts) * (p + 1) * 2 << "---" << ndof << "\n";
   std::cout << myconn.size(0) << "\n";
 
   std::cout << "------\n";
@@ -315,6 +316,7 @@ double SimpleGriffithExampleS3D_P0(int nelts) {
   }
 
   std::cout << " end of Simple Griffith crack example \n";
+  status.ok();
 
 
   return il::norm(rel_err, il::Norm::L2);

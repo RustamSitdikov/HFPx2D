@@ -42,7 +42,7 @@ class Mesh {  // class for 1D mesh of 1D segment elements ?
   il::int_t interpolation_order_;
 
   // Dof handle matrices
-  // for displacements - size: number of elements x 2dofs per node x (order
+  // for displacements  Discontinuities - size: number of elements x 2dofs per node x (order
   // interpolation + 1)
   il::Array2D<il::int_t> dof_handle_displacement_;
   // for pressure - size: number of nodes x 1dof per node x (order interpolation
@@ -56,6 +56,12 @@ class Mesh {  // class for 1D mesh of 1D segment elements ?
   il::Array<il::int_t> material_id_;
   // Material identifier - size: number of elements
   il::Array<il::int_t> condition_id_;
+
+  // A tip elements array
+
+
+  // a structure  with nodes and corresponding adjacent elements .....
+
 
  public:
   /////////////////////          CONSTRUCTORS (a.k.a. initializers)

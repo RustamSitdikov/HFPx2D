@@ -19,8 +19,6 @@ il::StaticArray2D<double, 2, 2> rotation_matrix_2D(double theta) {
   return R;
 }
 
-//
-
 // Function returning the segment characteristic from the matrix of the
 // coordinates of the end points and the knowledge of the degree of
 // interpolation p
@@ -52,6 +50,8 @@ SegmentData get_segment_DD_data(const Mesh &mesh, il::int_t ne,
   xdiff[1] = Xs(1, 1) - Xs(0, 1);
 
   segment.size = sqrt(pow(xdiff[0], 2) + pow(xdiff[1], 2));
+
+  // s & n are a direct orhonormal frame .
 
   // s=xdiff; // tangent vector
   s[0] = xdiff[0] / segment.size;

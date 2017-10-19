@@ -128,7 +128,8 @@ void AddTipCorrectionP0(hfp2d::Mesh &mesh, const ElasticProperties &elas,
 
 // getting the element size ;( -> cry for a method in mesh class !
 
-//  correction factor
+//  correction factor from Ryder & Napier 1985.
+
   double correct =- elas.Ep()*(1. / 3.) / (4. * (mesh.eltsize(tipElt)));
 
   Kmat(mesh.dofDispl(tipElt,0),mesh.dofDispl(tipElt,0))+=correct;

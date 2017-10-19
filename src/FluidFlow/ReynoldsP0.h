@@ -17,7 +17,7 @@
 #include <src/core/Fluid.h>
 #include <src/core/Mesh.h>
 #include <src/core/SolutionAtT.h>
-#include <src/core/RockProperties.h>
+#include <src/core/SolidProperties.h>
 #include <src/core_dev/Sources.h>
 #include <src/core/SimulationParameters.h>
 
@@ -36,7 +36,7 @@ il::Array2D<double> BuildFD_P0(hfp2d::Mesh &mesh, hfp2d::Fluid &fluid,
 hfp2d::SolutionAtT ReynoldsSolverP0(hfp2d::SolutionAtT &soln,
                                     il::Array2D<double> &ElasMat,
                                     hfp2d::Fluid &fluid,
-                                    hfp2d::RockProperties &rock,
+                                    hfp2d::SolidProperties &rock,
                                     hfp2d::Sources &source, double timestep,
                                     hfp2d::SimulationParameters &simulParams);
 

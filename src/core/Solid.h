@@ -12,7 +12,9 @@
 //
 
 
-//todo  -> merge into ElasticProperties
+
+
+//todo  -> delete
 
 #ifndef HFPX2DUNITTEST_SOLID_H
 #define HFPX2DUNITTEST_SOLID_H

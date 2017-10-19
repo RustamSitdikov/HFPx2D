@@ -90,7 +90,7 @@ int TwoParallelHFs(int nelts, double dist) {
 
   hfp2d::Mesh mesh(p, xy, myconn, id_DD, id_press, fracID, matID, condID);
 
-  const il::Array2D<il::int_t> edge = hfp2d::GetEdgesSharing2(mesh);
+//  const il::Array2D<il::int_t> edge = hfp2d::GetEdgesSharing2(mesh);
 
   hfp2d::ElasticProperties myelas(1, 0.);
 
@@ -164,20 +164,24 @@ int TwoParallelHFs(int nelts, double dist) {
 
   // create rock properties obj
   il::Array<double> wh_o{1, 1.e-6}, toughness{1, 1.e6}, Carter{1, 0.};
-  hfp2d::RockProperties the_rock =
-      RockProperties(myelas, toughness, wh_o, Carter);
+  hfp2d::SolidProperties the_rock =
+      SolidProperties(myelas, toughness, wh_o, Carter);
 
   // call to Reynolds
   double dt = 0.00000001;
 
-  hfp2d::SimulationParameters SimulParam = SimulationParameters();
+  hfp2d::SimulationParameters SimulParam;
+
 
   hfp2d::SolutionAtT Soln1 =
       ReynoldsSolverP0(Soln, K, water, the_rock, the_source, dt, SimulParam);
 
-  std::cout << "now out of reynolds"
-            << "\n";
+
+
+
+  std::cout << "now out of reynolds" << "\n";
 
   return 0;
 };
+
 }

@@ -18,6 +18,9 @@ namespace hfp2d {
 
 class Fluid {
 
+  // could be a struct.....
+//
+
 private:
   double density_;
   double viscosity_;
@@ -25,15 +28,15 @@ private:
 
 public:
 
-  explicit Fluid(const Fluid& theFluid){
-
-    density_ = theFluid.density_;
-    viscosity_ = theFluid.viscosity_;
-    compressibility_ = theFluid.compressibility_;
-
-  }
-  
-  explicit Fluid(double density, double viscosity, double compressibility) {
+//  explicit Fluid(const Fluid& theFluid){
+//
+//    density_ = theFluid.density_;
+//    viscosity_ = theFluid.viscosity_;
+//    compressibility_ = theFluid.compressibility_;
+//
+//  }
+//
+   Fluid(double density, double viscosity, double compressibility) {
 
     density_ = density;
     viscosity_ = viscosity;
