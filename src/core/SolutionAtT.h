@@ -26,7 +26,7 @@ class SolutionAtT {
 
   hfp2d::Mesh currentmesh_;  // the associated mesh  // should be a reference
 
-  il::Array<double> openingDD_;  // opg DD (at nodes, with 2 values per node)
+  il::Array<double> openingDD_;  // opg DD (at nodes, with 2 values per coordinates)
 
   il::Array<double> shearDD_;
 

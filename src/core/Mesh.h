@@ -14,26 +14,30 @@
 // include std libraries
 #include <algorithm>
 #include <cmath>
-#include <iostream>
 
 // Inclusion from Inside Loop library
 #include <il/Array.h>
 #include <il/Array2D.h>
-#include <il/StaticArray.h>
-#include <il/StaticArray2D.h>
-#include <il/String.h>
-#include <il/base.h>
-#include <il/container/1d/SmallArray.h>
-#include <il/linear_algebra.h>
+
+#include <src/core/SegmentData.h>
 
 namespace hfp2d {
+
+il::Array2D<il::int_t> GetNodalEltConnectivity(
+    const il::int_t nt_nodes, const il::Array2D<il::int_t> &connectivity);
+il::Array<il::int_t> BuildTipNodes(
+    const il::Array2D<il::int_t> &node_connectivity);
+
+il::Array<il::int_t> BuildTipElts(
+    const il::Array2D<il::int_t> &node_connectivity,
+    const il::Array<il::int_t> &tipnodes);
 
 ///// 1D mesh class
 class Mesh {  // class for 1D mesh of 1D segment elements ?
 
  private:
   // Coordinates of the nodes - size: number of nodes x problem dimension (2D)
-  il::Array2D<double> nodes_;
+  il::Array2D<double> coordinates_;
 
   // Connectivity matrix - size: number of elements x (order interpolation + 1)
   il::Array2D<il::int_t> connectivity_;
@@ -42,173 +46,294 @@ class Mesh {  // class for 1D mesh of 1D segment elements ?
   il::int_t interpolation_order_;
 
   // Dof handle matrices
-  // for displacements  Discontinuities - size: number of elements x 2dofs per node x (order
+  // for displacements  Discontinuities - size: number of elements x 2dofs per
+  // coordinates x (order
   // interpolation + 1)
-  il::Array2D<il::int_t> dof_handle_displacement_;
-  // for pressure - size: number of nodes x 1dof per node x (order interpolation
-  // + 1)
+  il::Array2D<il::int_t> dof_handle_dd_;
+
+  // for pressure - size: number of nodes x 1dof per coordinates x (order
+  // interpolation  )
   il::Array2D<il::int_t> dof_handle_pressure_;
 
   // Identifier number of the fracture - size: number of elements
-  il::Array<il::int_t> fracture_id_;
+  //  il::Array<il::int_t> fracture_id_; //   not needed.....
 
   // Material identifier - size: number of elements
   il::Array<il::int_t> material_id_;
-  // Material identifier - size: number of elements
+
+  // Material identifier - size: number of elements ---- this is not really
+  // needed.
   il::Array<il::int_t> condition_id_;
 
-  // A tip elements array
-
-
   // a structure  with nodes and corresponding adjacent elements .....
+  // row node #, columms element sharing that nodes, if  entry is -1 then
+  // no more connected elt.  todo: switch to a sparse matrix and use
+  // smallArrays?
+  il::Array2D<il::int_t> node_adj_elt_;
 
+  //  2 arrays containing the tipnodes and the corresponding tipelts (could be a
+  //  matrix)
+  il::Array<il::int_t> tipnodes_;
+  il::Array<il::int_t> tipelts_;
 
  public:
-  /////////////////////          CONSTRUCTORS (a.k.a. initializers)
-  ///////////////////////////////////
-// todo: naming of the different entities are not consistent AND TOO LONG
+  //////////////////////////////////////////////////////////////////////////
+  //        CONSTRUCTORS
+  //////////////////////////////////////////////////////////////////////////
 
+  // todo: naming of the different entities are not consistent AND TOO LONG
+
+  //   Mesh()default;
   Mesh(){};  // TODO: remove empty initialization of mesh class variables if
              // possible.
-  // In any case, we need always to have temporal variable to construct a mesh.
 
-  // Constructor with only nodes and elements. TODO: to be substituted in the
-  // Griffith test examples
-  Mesh(const il::Array2D<double> &nodesCoordinates,
-       const il::Array2D<il::int_t> &elementsConnectivity) {
-    nodes_ = nodesCoordinates;
-    connectivity_ = elementsConnectivity;
-  };
+  // Basic constructor with  coordinates and connectivity array and
+  // interpolation order
+  Mesh(const il::Array2D<double> &Coordinates,
+       const il::Array2D<il::int_t> &Connectivity,
+       const il::int_t interpolationOrder) {
+    // check validity of inputs
 
-  Mesh(const il::int_t interpolationOrder,
-       const il::Array2D<double> &nodesCoordinates,
-       const il::Array2D<il::int_t> &elementsConnectivity,
-       const il::Array2D<il::int_t> &displacementDOFHandle) {
+    IL_EXPECT_FAST(Coordinates.size(0) > 1 && Coordinates.size(1) == 2);
+    // P0 and P1 elements only for now
+    IL_EXPECT_FAST(interpolationOrder == 0 || interpolationOrder == 1);
+    // check connectivity and coordinates consistency ??? currently no ->
+    // they should be properly compatible
+
+    coordinates_ = Coordinates;
+    connectivity_ = Connectivity;
     interpolation_order_ = interpolationOrder;
-    nodes_ = nodesCoordinates;
-    connectivity_ = elementsConnectivity;
-    dof_handle_displacement_ = displacementDOFHandle;
+
+    // matid_ was not passed as input, so we assume the material is homogeneous
+    il::Array<il::int_t> material_id_(connectivity_.size(0), 1);
+    il::Array<il::int_t> condition_id_(connectivity_.size(0), 1);
+
+    il::int_t nelts = connectivity_.size(0);
+    il::int_t p = interpolation_order_;
+
+    /// Discontinuous Polynomial DOF handles
+    il::Array2D<il::int_t> id_dd{nelts, 2 * (p + 1), 0};
+    for (il::int_t i = 0; i < nelts; i++) {
+      for (il::int_t j = 0; j < 2 * (p + 1); j++) {
+        id_dd(i, j) = i * 2 * (p + 1) + j;
+      }
+    }
+    dof_handle_dd_ = id_dd;  /// dof
+
+    /// //    dof(element, local nnodes number)
+    // actually this is the connectivity_ array for  p =1 and
+    // a simple elt number of P0
+    switch (interpolation_order_) {
+      case 0: {
+        il::Array2D<il::int_t> id_press{nelts, 1, 0};
+        for (il::int_t e = 0; e < nelts; e++) {
+          id_press(e, 0) = e;
+        };
+        dof_handle_pressure_ = id_press;
+      }
+      case 1:
+        dof_handle_pressure_ = connectivity_;  // 1 unknowns per nodes ....
+    };
+
+    // build the nodal connected table...
+    node_adj_elt_ =
+        GetNodalEltConnectivity(coordinates_.size(0), connectivity_);
+
+    // built tip nodes table...
+    tipnodes_ = BuildTipNodes(node_adj_elt_);
+    tipelts_ = BuildTipElts(node_adj_elt_, tipnodes_);
   };
 
-  Mesh(const il::int_t interpolationOrder,
-       const il::Array2D<double> &nodesCoordinates,
-       const il::Array2D<il::int_t> &elementsConnectivity, // connectivity is enough
-       const il::Array2D<il::int_t> &displ_dof_handle, // should be dd not displ.
-       const il::Array2D<il::int_t> &press_dof_handle,
-       const il::Array<il::int_t> &fractureID,
-       const il::Array<il::int_t> &materialID,
-       const il::Array<il::int_t> &conditionID);
+  // case where matid vector is provided
+  // constructor with interpolation order and coordinates and connectivity array
+  Mesh(const il::Array2D<double> &Coordinates,
+       const il::Array2D<il::int_t> &Connectivity,
+       const il::Array<il::int_t> &MatID, const il::int_t interpolationOrder) {
+    // check validity of inputs
 
-  ////////////////////////////////////////////////////////////////////////////////////////////
-// todo : do comments each methods !
-// todo: change interpolationOrder to DDOrder as it relates to the interpolation of Displacement Discontinuities
-  /// SETTER
-  void appendMesh(const Mesh &newMesh, bool isJoined);
+    IL_EXPECT_FAST(Coordinates.size(0) > 1 && Coordinates.size(1) == 2);
+    IL_EXPECT_FAST(Connectivity.size(0) == MatID.size());
 
-  void appendMesh(const il::Array2D<double> &newNodesCoordinates,
-                  const il::Array2D<il::int_t> &newElementsConnectivity,
-                  const il::Array<il::int_t> &newMaterialIdentifier);
+    // P0 and P1 elements only for now
+    IL_EXPECT_FAST(interpolationOrder == 0 || interpolationOrder == 1);
+    // check connectivity and coordinates consistency ??? currently no ->
+    // they should be properly compatible
 
-  void appendMesh(const il::Array2D<double> &newNodesCoordinates,
-                  const il::Array2D<il::int_t> &newElementsConnectivity,
-                  const il::Array<il::int_t> &newMaterialIdentifier,
-                  const il::Array<il::int_t> &newFractureIdentifier);
+    coordinates_ = Coordinates;
+    connectivity_ = Connectivity;
+    interpolation_order_ = interpolationOrder;
+    material_id_ = MatID;
 
-  void appendNodeToMeshTip(il::int_t mesh_node, double x_new, double y_new);
+    // condition id -> should be removed
+    il::Array<il::int_t> condition_id_(connectivity_.size(0), 1);
 
-  /// GETTER FUNCTIONS
+    il::int_t nelts = connectivity_.size(0);
+    il::int_t p = interpolation_order_;
 
-  // please avoid long names ... number-> Nn
-  // Displ should be DD
-  il::int_t numberOfNodes() const { return nodes_.size(0); }
-  il::int_t numberOfElements() const { return connectivity_.size(0); }
-  il::int_t interpolationOrder() const { return interpolation_order_; }
-  il::int_t numberOfFractures() const {
-    return (*std::max_element(fracture_id_.begin(), fracture_id_.end()) + 1);
-  }
-  il::int_t numberOfMaterials() const {
-    return (*std::max_element(material_id_.begin(), material_id_.end()) + 1);
-  }
-  il::int_t numberOfConditions() const {
-    return (*std::max_element(condition_id_.begin(), condition_id_.end()) + 1);
-  }
-  il::int_t numberOfDisplDofsPerElement() const {
-    return dof_handle_displacement_.size(1);
-  }
-  il::int_t numberOfPressDofsPerElement() const {
-    return dof_handle_pressure_.size(1);
-  }
-
-  // ??? what is this ?
-  il::int_t numberOfPressDofs() const {
-    return (numberOfElements() * interpolationOrder() + numberOfFractures()); // this is not necessarily true
-  }
-
-  il::int_t numberOfDisplDofs() const {
-    return (numberOfElements() * (interpolation_order_ + 1) * 2);
-  }
-
-  //  what is this mess below ?
-
-  // Read the X coordinate of a node
-  double X(il::int_t k) const { return nodes_(k, 0); }
-  // Read the Y coordinate of a node
-  double Y(il::int_t k) const { return nodes_(k, 1); }
-
-  // Read a particular element of the node coordinates
-  double node(il::int_t k, il::int_t i) const { return nodes_(k, i); }
-  // todo: restructure "node" method in order to have mesh.node(i).X for the x
-  // coordinate of node i ??  NO NO please. let's work with array
-
-  il::Array<il::int_t> elemConnectivity(il::int_t k) {
-    il::Array<il::int_t> temp(connectivity_.size(1));
-
-    for (il::int_t i = 0; i < connectivity_.size(1); i++) {
-      temp[i] = connectivity_(k, i);
+    /// Discontinuous Polynomial DOF handles
+    il::Array2D<il::int_t> id_dd{nelts, 2 * (p + 1), 0};
+    for (il::int_t i = 0; i < nelts; i++) {
+      for (il::int_t j = 0; j < 2 * (p + 1); j++) {
+        id_dd(i, j) = i * 2 * (p + 1) + j;
+      }
     }
+    dof_handle_dd_ = id_dd;  /// dof
 
+    /// //    dof(element, local nnodes number)
+    // actually this is the connectivity_ array for  p =1 and
+    // a simple elt number of P0
+    switch (interpolation_order_) {
+      case 0: {
+        il::Array2D<il::int_t> id_press{nelts, 1, 0};
+        for (il::int_t e = 0; e < nelts; e++) {
+          id_press(e, 0) = e;
+        };
+        dof_handle_pressure_ = id_press;
+      }
+      case 1:
+        dof_handle_pressure_ = connectivity_;
+    };
+
+    // build the nodal connected table...
+    node_adj_elt_ =
+        GetNodalEltConnectivity(coordinates_.size(0), connectivity_);
+
+    // built tip nodes table...
+    tipnodes_ = BuildTipNodes(node_adj_elt_);
+    tipelts_ = BuildTipElts(node_adj_elt_, tipnodes_);
+  };
+
+  //////////////////////////////////////////////////////////////////////////
+  //        get functions  - i.e. public interfaces
+  //////////////////////////////////////////////////////////////////////////
+
+  il::int_t numberOfElements() const { return connectivity_.size(0); };
+
+  il::int_t numberOfNodes() const { return coordinates_.size(0); };
+
+  // nodal coordinates related.
+  il::Array2D<double> coordinates() const { return coordinates_; };
+  // Read a particular element of the coordinates coordinates
+  double coordinates(il::int_t k, il::int_t i) const {
+    return coordinates_(k, i);
+  }
+  // Read the X coordinate of a coordinates
+  double X(il::int_t k) const { return coordinates_(k, 0); }
+  // Read the Y coordinate of a coordinates
+  double Y(il::int_t k) const { return coordinates_(k, 1); }
+
+  il::StaticArray<double, 2> coordinates(il::int_t k) const {
+    il::StaticArray<double, 2> temp;
+    temp[0] = coordinates_(k, 0);
+    temp[1] = coordinates_(k, 1);
     return temp;
   };
 
-  // todo: should be dofDD not dofDispl
-  il::int_t connectivity(il::int_t k, il::int_t i) const {
-    return connectivity_(k, i);
+  // connectivity related
+  il::Array2D<il::int_t> connectivity() const { return connectivity_; };
+  // get the connectivity of an element -> A StaticArray of size 2 here !
+  il::StaticArray<il::int_t, 2> connectivity(il::int_t k) const {
+    il::StaticArray<il::int_t, 2> temp;
+    for (il::int_t i = 0; i < connectivity_.size(1); i++) {
+      temp[i] = connectivity_(k, i);
+    }
+    return temp;
+  };
+
+  //
+  il::int_t connectivity(il::int_t e, il::int_t i) const {
+    // element e, local coordinates i - return global nodes
+    return connectivity_(e, i);
   }
+
+  // nodal connectivity related
+  il::Array2D<il::int_t> node_elt_connectivity() const {
+    return node_adj_elt_;
+  };
+  il::int_t node_elt_connectivity(il::int_t k, il::int_t l) const {
+    return node_adj_elt_(k, l);
+  };
+
+  il::Array<il::int_t> node_elt_connectivity(il::int_t k) const {
+    il::Array<il::int_t> temp(node_adj_elt_.size(1));
+    for (il::int_t i = 0; i < node_adj_elt_.size(1); i++) {
+      temp[i] = node_adj_elt_(k, i);
+    }
+    return temp;
+  };
+
+  // get tip nodes
+  il::Array<il::int_t> tip_nodes() const { return tipnodes_; };
+  il::int_t tip_nodes(il::int_t k) const { return tipnodes_[k]; };
+
+  // get tip elts
+  il::Array<il::int_t> tip_elts() const { return tipelts_; };
+  il::int_t tip_elts(il::int_t k) const { return tipelts_[k]; };
+
+  // material ID related
+  il::Array<il::int_t> matid() const { return material_id_; };
+  il::int_t matid(il::int_t k) const { return material_id_[k]; }
+
+  il::int_t numberOfMaterials() const {
+    return (*std::max_element(material_id_.begin(), material_id_.end()) + 1);
+  }
+
+  // similarly for conditions....
+  il::int_t numberOfConditions() const {
+    return (*std::max_element(condition_id_.begin(), condition_id_.end()) + 1);
+  }
+
+  // interpolation order
+  il::int_t interpolationOrder() const { return interpolation_order_; }
+
+  // dofs related.....
+  il::int_t DDDofsPerElement() const { return dof_handle_dd_.size(1); }
+
+  il::int_t PressDofsPerElement() const { return dof_handle_pressure_.size(1); }
+
+  il::int_t numberOfPressDofs() const {
+    return dof_handle_pressure_.size(0);
+  };  // this is a scalar continuous polynomial.
+
+  il::int_t numberOfDDDofs() const {
+    return (numberOfElements() * (interpolation_order_ + 1) * 2);
+  }
+
   il::int_t dofPress(il::int_t k, il::int_t i) const {
+    // coordinates k, dof i -> return global equation iD
     return dof_handle_pressure_(k, i);
   }
-  il::int_t dofDispl(il::int_t k, il::int_t i) const {
-    return dof_handle_displacement_(k, i);
+
+  il::int_t dofDD(il::int_t k, il::int_t i) const {
+    // coordinates k, dof i -> return global equation iD
+    return dof_handle_dd_(k, i);
   }
-  il::int_t fracID(il::int_t k) const { return fracture_id_[k]; }
-  il::int_t matID(il::int_t k) const { return material_id_[k]; }
-  il::int_t condID(il::int_t k) const { return condition_id_[k]; }
 
-  // il::int_t matid(il::int_t k) const { return material_id_[k]; }
+  ////////////////////////////////////////////////////////////////////////////////////////////
+  //   Methods
+  ////////////////////////////////////////////////////////////////////////////////////////////
 
-  il::int_t nelts() const { return connectivity_.size(0); };
-
-  il::int_t ncoor() const { return nodes_.size(0); };
-
-  il::Array2D<double> coor() const { return nodes_; };
-
-  il::Array2D<il::int_t> conn() const { return connectivity_; };
-
-  il::Array<il::int_t> matid() const { return material_id_; };
-
-// a method to output...
-
-  il::Array<il::int_t> eltinFrac(il::int_t k) ;
-
+  hfp2d::SegmentData getElementData(const il::int_t ne);
 
   // a method to get the size of a given element.
-  double eltsize(il::int_t &e);
+  double elt_size(il::int_t &e);
+
+  il::Array<double> All_elt_size();
+
+  il::Array2D<il::int_t> GetNodesSharing2Elts();
+
+  void AddNTipElements(const il::int_t t_e, const il::int_t the_tip_node,
+                       const il::int_t n_add, double kink_angle);
+
+  // todo : do comments each methods !
+  // todo: change interpolationOrder to DDOrder as it relates to the
+  // interpolation of Displacement Discontinuities
+  /// SETTER
+  void appendMesh(const Mesh &newMesh, bool isJoined);
+
+  //  il::Array<il::int_t> eltinFrac(il::int_t k);
 
   // a method to get all element sizes...
-
-  // a method to get the elements #  sharing a common node
-
-
 };
 }
 

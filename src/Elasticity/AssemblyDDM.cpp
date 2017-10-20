@@ -66,14 +66,14 @@ il::Array2D<double> basic_assembly(Mesh &mesh, ElasticProperties &elas,
 
   il::Array2D<double> xe{2, 2, 0}, xec{2, 2, 0};
 
-  hfp2d::SegmentData mysege, mysegc;
+//  hfp2d::SegmentData mysege, mysegc;
 
   il::StaticArray2D<double, 2, 2> R;
   il::Array<il::int_t> dofe{2 * (p + 1), 0}, dofc{2 * (p + 1), 0};
 
   il::StaticArray2D<double, 2, 4> stnl;
 
-  il::Array2D<double> Kmat{mesh.numberOfDisplDofs(), mesh.numberOfDisplDofs()};
+  il::Array2D<double> Kmat{mesh.numberOfDDDofs(), mesh.numberOfDDDofs()};
 
   // Brute Force assembly
   // double loop on elements to create the stiffness matrix ...
@@ -82,22 +82,22 @@ il::Array2D<double> basic_assembly(Mesh &mesh, ElasticProperties &elas,
        ++e) {  // loop on all  elements
 
     //   get characteristic of element # e
-    mysege = hfp2d::get_segment_DD_data(mesh, e, p);
+    hfp2d::SegmentData mysege = mesh.getElementData(e);
     // Rotation matrix of the element w.r. to x-axis.
-    R = hfp2d::rotation_matrix_2D(mysege.theta);
+    R = hfp2d::rotation_matrix_2D(mysege.theta());
 
     // vector of dof id of  element e
     for (il::int_t i = 0; i < 2 * (p + 1); ++i) {
-      dofe[i] = mesh.dofDispl(e, i);
+      dofe[i] = mesh.dofDD(e, i);
     };
 
     // loop on all  elements - to compute the effect of e on all other elements
     for (il::int_t j = 0; j < mesh.numberOfElements(); ++j) {
       //   get characteristic of element # j
-      mysegc = hfp2d::get_segment_DD_data(mesh, j, p);
+      hfp2d::SegmentData  mysegc = mesh.getElementData( j);
 
       for (il::int_t i = 0; i < 2 * (p + 1); ++i) {
-        dofc[i] = mesh.dofDispl(j, i);  // vector of dof id of the  element j
+        dofc[i] = mesh.dofDD(j, i);  // vector of dof id of the  element j
       };
 
       // loop on collocation points of the target element
@@ -130,11 +130,11 @@ void AddTipCorrectionP0(hfp2d::Mesh &mesh, const ElasticProperties &elas,
 
 //  correction factor from Ryder & Napier 1985.
 
-  double correct =- elas.Ep()*(1. / 3.) / (4. * (mesh.eltsize(tipElt)));
+  double correct =- elas.Ep()*(1. / 3.) / (4. * (mesh.elt_size(tipElt)));
 
-  Kmat(mesh.dofDispl(tipElt,0),mesh.dofDispl(tipElt,0))+=correct;
+  Kmat(mesh.dofDD(tipElt, 0), mesh.dofDD(tipElt, 0))+=correct;
 
-  Kmat(mesh.dofDispl(tipElt,1),mesh.dofDispl(tipElt,1))+=correct;
+  Kmat(mesh.dofDD(tipElt, 1), mesh.dofDD(tipElt, 1))+=correct;
 
 }
 
@@ -144,10 +144,10 @@ void RemoveTipCorrectionP0(hfp2d::Mesh &mesh, const ElasticProperties &elas,
 
 //// getting the element size ;( -> cry for a method in mesh class !
 //  il::StaticArray2D<double, 2, 2> Xs;
-//  Xs(0, 0) = mesh.node(mesh.connectivity(tipElt, 0), 0);
-//  Xs(0, 1) = mesh.node(mesh.connectivity(tipElt, 0), 1);
-//  Xs(1, 0) = mesh.node(mesh.connectivity(tipElt, 1), 0);
-//  Xs(1, 1) = mesh.node(mesh.connectivity(tipElt, 1), 1);
+//  Xs(0, 0) = mesh.coordinates(mesh.connectivity(tipElt, 0), 0);
+//  Xs(0, 1) = mesh.coordinates(mesh.connectivity(tipElt, 0), 1);
+//  Xs(1, 0) = mesh.coordinates(mesh.connectivity(tipElt, 1), 0);
+//  Xs(1, 1) = mesh.coordinates(mesh.connectivity(tipElt, 1), 1);
 //
 //  il::StaticArray<double, 2> xdiff;
 //  xdiff[0] = Xs(1, 0) - Xs(0, 0);
@@ -155,11 +155,11 @@ void RemoveTipCorrectionP0(hfp2d::Mesh &mesh, const ElasticProperties &elas,
 //  double hx = sqrt(pow(xdiff[0], 2) + pow(xdiff[1], 2));
 
 //  correction factor
-  double correct =- elas.Ep()*(1. / 3.) / (4. * (mesh.eltsize(tipElt)));
+  double correct =- elas.Ep()*(1. / 3.) / (4. * (mesh.elt_size(tipElt)));
 
-  Kmat(mesh.dofDispl(tipElt,0),mesh.dofDispl(tipElt,0))-=correct;
+  Kmat(mesh.dofDD(tipElt, 0), mesh.dofDD(tipElt, 0))-=correct;
 
-  Kmat(mesh.dofDispl(tipElt,1),mesh.dofDispl(tipElt,1))-=correct;
+  Kmat(mesh.dofDD(tipElt, 1), mesh.dofDD(tipElt, 1))-=correct;
 
 }
 

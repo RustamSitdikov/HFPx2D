@@ -13,10 +13,10 @@
 #include <cmath>
 
 
-#include "src/input/loadInput.h"
+//#include "src/input/loadInput.h"
 #include "src/Solvers/SimpleElastic.h"
-#include "src/core_dev/OldSolutionClass.h"
-#include "src/input/loadArguments.h"
+//#include "src/core_dev/OldSolutionClass.h"
+//#include "src/input/loadArguments.h"
 
 #include "src/Solvers/DevLHFMSolver.h"
 
@@ -105,7 +105,7 @@
 //////////////////////// Prepare data for computation /////////////////////////////////
 
   // create the source vector for displacement+pressure dofs
-  //il::int_t totalNumDofs= theMesh.numberOfDisplDofsPerElement()+ theMesh.numberOfPressDofsPerElement();
+  //il::int_t totalNumDofs= theMesh.DDDofsPerElement()+ theMesh.PressDofsPerElement();
   // the source vector (or forcing vector) will be created after we checked for the position of the injection
   // there will be a method in the class to give that vector
 
@@ -129,16 +129,16 @@ int main(){
   double dist= 1e4;
 
 
-//  int ret = hfp2d::TwoParallelHFs(nelts,dist);
-//  std::cout << "return " << ret;
+  int ret = hfp2d::TwoParallelHFs(nelts,dist);
+  std::cout << "return " << ret;
 
-  double ret1 = hfp2d::SimpleGriffithExampleLinearElement(nelts);
-  double ret2 = hfp2d::SimpleGriffithExampleS3D_P0(nelts);
-
-//  il::Array<double> w{10};
-
-  std::cout << "\n rel error L2 norm in Linear Elements: " << ret1 << "\n";
-  std::cout << "\n rel error L2 norm in Constant Elements (with tip correction): " << ret2 << "\n";
+//  double ret1 = hfp2d::SimpleGriffithExampleLinearElement(nelts);
+//  double ret2 = hfp2d::SimpleGriffithExampleS3D_P0(nelts);
+//
+////  il::Array<double> w{10};
+//
+//  std::cout << "\n rel error L2 norm in Linear Elements: " << ret1 << "\n";
+//  std::cout << "\n rel error L2 norm in Constant Elements (with tip correction): " << ret2 << "\n";
 
   std::cout << " end of code \n\n\n";
 

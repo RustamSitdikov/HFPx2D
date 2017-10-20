@@ -13,7 +13,6 @@
 
 #include "DevLHFMSolver.h"
 
-#include <src/core/DOF_Handles.h>
 #include <src/core/ElasticProperties.h>
 #include <src/core/Fluid.h>
 #include <src/core/Mesh.h>
@@ -28,16 +27,17 @@ namespace hfp2d {
 int TwoParallelHFs(int nelts, double dist) {
   // Test for Reynolds solver
   // 2 fractures parallel separated by dist
-  // nelts per frac (nelts should be odd for symmetry)
+  // nelts per frac (numberOfElements should be odd for symmetry)
 
-  // for now for debug we hardcode nelts = 9  so injection is in elt 5 and elt
+  // for now for debug we hardcode numberOfElements = 9  so injection is in elt
+  // 5 and elt
   // 14
 
   // step 1 create mesh
   int p = 0;
   double h = 2. / (nelts);  //  element size
 
-  // il::Array<double> x{nelts + 1}; // Not needed
+  // il::Array<double> x{numberOfElements + 1}; // Not needed
   int Ntot = 2 * nelts;
 
   il::Array2D<double> xy{Ntot + 2, 2, 0.0};
@@ -88,9 +88,16 @@ int TwoParallelHFs(int nelts, double dist) {
     fracID[i] = 2;
   }
 
-  hfp2d::Mesh mesh(p, xy, myconn, id_DD, id_press, fracID, matID, condID);
+   hfp2d::Mesh mesh( xy, myconn,p);
 
-//  const il::Array2D<il::int_t> edge = hfp2d::GetEdgesSharing2(mesh);
+    hfp2d::Mesh mesh2( xy, myconn,p);
+
+    mesh2.AddNTipElements(9,10,2,0.);
+
+//  il::Array2D<il::int_t> myed =
+//      hfp2d::GetNodalEltConnectivity(mesh.numberOfNodes(),mesh.connectivity());
+
+  //  const il::Array2D<il::int_t> edge = hfp2d::GetEdgesSharing2(mesh);
 
   hfp2d::ElasticProperties myelas(1, 0.);
 
@@ -125,7 +132,7 @@ int TwoParallelHFs(int nelts, double dist) {
   }
 
   il::int_t ea = 2;
-  std::cout << "elt size" << mesh.eltsize(ea) << "w " << h << "\n";
+  std::cout << "elt size" << mesh.elt_size(ea) << "w " << h << "\n";
 
   std::cout << " size of K" << K.size(0) << " by " << K.size(1) << "\n";
   std::cout << " size of f" << fini.size() << "\n";
@@ -172,16 +179,12 @@ int TwoParallelHFs(int nelts, double dist) {
 
   hfp2d::SimulationParameters SimulParam;
 
-
   hfp2d::SolutionAtT Soln1 =
       ReynoldsSolverP0(Soln, K, water, the_rock, the_source, dt, SimulParam);
 
-
-
-
-  std::cout << "now out of reynolds" << "\n";
+  std::cout << "now out of reynolds"
+            << "\n";
 
   return 0;
 };
-
 }

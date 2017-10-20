@@ -31,18 +31,18 @@ il::StaticArray2D<double, 2, 4> stresses_kernel_dp1_dd(double h, double Ep,
   // function computing the stresses at (x,y) induced by a linear DD segment (of
   // total length h) centered on the origin [-h/2,h/2]
   // it returns stresses due to a linear variation from an unit value at the
-  // left node (node 1)  to zero at the right node (node 2) for both shear and
+  // left node (node 1)  to zero at the right node (coordinates 2) for both shear and
   // opening displacement discontinuity
-  // and stresses due to a linear variation from an unit value at the right node
-  // (node 1) to zero at the right node (node 2) for both shear and opening
+  // and stresses due to a linear variation from an unit value at the right coordinates
+  // (node 1) to zero at the right node (coordinates 2) for both shear and opening
   // displacement discontinuity
   // Ep is the plane strain Young'smodulus
   // notation of stress component:
-  // 1 : left node influence, 2 : right node influence
+  // 1 : left node influence, 2 : right coordinates influence
   // s : shear dof, n : normal dof
   // sxx xx stress, sxy xy stress, syy yy stress
   // e.g.:  sxxs1 - sxx component due to a shear DD with a linear variation with
-  // unit value at node 1 .
+  // unit value at coordinates 1 .
   // note that we have the following relations : sxxn = sxys,  sxyn = syys such
   // that we don t output all values.
 
@@ -73,7 +73,7 @@ il::StaticArray2D<double, 2, 4> stresses_kernel_dp1_dd(double h, double Ep,
 
   double sxxs1, sxxs2;
 
-  // 1 : left node influence, 2 : right node influence
+  // 1 : left node influence, 2 : right coordinates influence
   // s : shear dof, n : normal dof
   // sxx xx stress, sxy xy stress, syy yy stress
 
@@ -128,7 +128,7 @@ il::StaticArray2D<double, 2, 4> stresses_kernel_dp1_dd(double h, double Ep,
 
   // note that we have the following relations : sxxn = sxys,  sxyn = syys
   // we return a matrix with 4 columns and 2 rows
-  // row 1: effect of node 1, row 2 effect of node 2
+  // row 1: effect of node 1, row 2 effect of coordinates 2
   // columns sxxs, sxys, syys, syyn    (knowing that we sxxn and sxyn are
   // respectively equal to sxys and syys )
 
@@ -173,18 +173,18 @@ il::StaticArray2D<double, 2, 4> normal_shear_stress_kernel_dp1_dd(
 
   // switch to the frame of the source element....
   il::StaticArray2D<double, 2, 2> R =
-      hfp2d::rotation_matrix_2D(source_elt.theta);
+      hfp2d::rotation_matrix_2D(source_elt.theta());
 
   il::StaticArray<double, 2> xe;
   for (int i = 0; i < 2; ++i) {
-    xe[i] = receiver_elt.CollocationPoints(i_col, i) - source_elt.Xmid[i];
+    xe[i] = receiver_elt.CollocationPoints(i_col, i) - source_elt.Xmid(i);
   }
   xe = il::dot(R, xe);
 
-  il::StaticArray<double, 2> n = il::dot(R, receiver_elt.n);
-  il::StaticArray<double, 2> s = il::dot(R, receiver_elt.s);
+  il::StaticArray<double, 2> n = il::dot(R, receiver_elt.n());
+  il::StaticArray<double, 2> s = il::dot(R, receiver_elt.s());
 
-  double h = source_elt.size;
+  double h = source_elt.size();
 
   double n1n1 = n[0] * n[0];
   double n2n2 = n[1] * n[1];
@@ -200,14 +200,14 @@ il::StaticArray2D<double, 2, 4> normal_shear_stress_kernel_dp1_dd(
       stresses_kernel_dp1_dd(h, Elas.Ep(), xe[0], xe[1]);
 
   // shear stress
-  // node 1
+  // coordinates 1
   // shear dd
   double sh1s = n1s1 * stress_l(0, 0) + n1s2pn2s1 * stress_l(0, 1) +
                 n2s2 * stress_l(0, 2);
   // normal dd
   double sh1n = n1s1 * stress_l(0, 1) + n1s2pn2s1 * stress_l(0, 2) +
                 n2s2 * stress_l(0, 3);
-  // node 2
+  // coordinates 2
   // shear dd
   double sh2s = n1s1 * stress_l(1, 0) + n1s2pn2s1 * stress_l(1, 1) +
                 n2s2 * stress_l(1, 2);
@@ -216,14 +216,14 @@ il::StaticArray2D<double, 2, 4> normal_shear_stress_kernel_dp1_dd(
                 n2s2 * stress_l(1, 3);
 
   // normal stress
-  // node 1
+  // coordinates 1
   // shear dd
   double sn1s =
       n1n1 * stress_l(0, 0) + 2 * n1n2 * stress_l(0, 1) + n2n2 * stress_l(0, 2);
   // normal dd
   double sn1n =
       n1n1 * stress_l(0, 1) + 2 * n1n2 * stress_l(0, 2) + n2n2 * stress_l(0, 3);
-  // node 2
+  // coordinates 2
   // shear dd
   double sn2s =
       n1n1 * stress_l(1, 0) + 2 * n1n2 * stress_l(1, 1) + n2n2 * stress_l(1, 2);
@@ -234,12 +234,12 @@ il::StaticArray2D<double, 2, 4> normal_shear_stress_kernel_dp1_dd(
   // output the desired stress components induced either by normal or shear dd
   // of the 2 nodes of the linear DD segment.
   il::StaticArray2D<double, 2, 4> St;
-  // shear stress (node 1 shear dd, normal dd ; node 2 shear dd , normal dd)
+  // shear stress (node 1 shear dd, normal dd ; coordinates 2 shear dd , normal dd)
   St(0, 0) = sh1s;
   St(0, 1) = sh1n;
   St(0, 2) = sh2s;
   St(0, 3) = sh2n;
-  // normal stress (node 1 shear dd, normal dd ; node 2 shear dd , normal dd)
+  // normal stress (coordinates 1 shear dd, normal dd ; node 2 shear dd , normal dd)
   St(1, 0) = sn1s;
   St(1, 1) = sn1n;
   St(1, 2) = sn2s;

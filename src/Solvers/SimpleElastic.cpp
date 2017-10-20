@@ -24,7 +24,6 @@
 
 #include <src/Elasticity/PlaneStrainInfinite.h>
 #include <src/Elasticity/Simplified3D.h>
-#include <src/core/DOF_Handles.h>
 #include <src/core/Mesh.h>
 
 #include "SimpleElastic.h"
@@ -52,7 +51,7 @@ double SimpleGriffithExampleLinearElement(int nelts) {
   int p = 1;
   double h = 2. / (nelts);  //  element size
 
-  // il::Array<double> x{nelts + 1}; // Not needed
+  // il::Array<double> x{numberOfElements + 1}; // Not needed
 
   il::Array2D<double> xy{nelts + 1, 2, 0.0};
   il::Array2D<il::int_t> myconn{nelts, 2, 0};
@@ -62,7 +61,7 @@ double SimpleGriffithExampleLinearElement(int nelts) {
   il::Array<il::int_t> matID {nelts,1};
   il::Array<il::int_t> condID {nelts,1};
 
-  //int ndof = (nelts) * (p + 1) * 2;  // number of dofs
+  //int ndof = (numberOfElements) * (p + 1) * 2;  // number of dofs
   double Ep = 1.;                    // Plane strain Young's modulus
 
   //  Array2D M(i, j) -> M(i + 1, j) (Ordre Fortran)
@@ -91,15 +90,15 @@ double SimpleGriffithExampleLinearElement(int nelts) {
   }
 
 
-  hfp2d::Mesh mesh(p,xy,myconn,id_displ,id_press,fracID,matID,condID);
+  hfp2d::Mesh mesh(xy,myconn,p);
 
-  il::int_t ndof = mesh.numberOfDisplDofs();
+  il::int_t ndof = mesh.numberOfDDDofs();
 
   hfp2d::ElasticProperties myelas(1, 0.);
 
   std::cout << "EP :" << myelas.Ep() << "\n";
 
-//  il::Array2D<int> id = hfp2d::dofhandle_dp(2, nelts, p);  // dof handle for DDs
+//  il::Array2D<int> id = hfp2d::dofhandle_dp(2, numberOfElements, p);  // dof handle for DDs
 
 
   // some definitions needed for matrix assembly
@@ -110,9 +109,9 @@ double SimpleGriffithExampleLinearElement(int nelts) {
 
   il::Array2D<double> K{ndof, ndof};
 
-  std::cout << "Number of elements : " << mesh.nelts() << "\n";
+  std::cout << "Number of elements : " << mesh.numberOfElements() << "\n";
 //  std::cout << "Number of dofs :" << id.size(0) * id.size(1) << "---"
-//            << (nelts) * (p + 1) * 2 << "---" << mesh.numberOfDisplDofs() << "\n";
+//            << (numberOfElements) * (p + 1) * 2 << "---" << mesh.numberOfDDDofs() << "\n";
   std::cout << myconn.size(0) << "\n";
 ;
   std::cout << "------\n";
@@ -152,8 +151,8 @@ double SimpleGriffithExampleLinearElement(int nelts) {
   // this piece of codes gets 1D mesh of x doubling the nodes of
   // adjacent elements (for comparison with analytical solution)
   for (il::int_t e = 0; e < nelts; ++e) {
-    thex[i] = mesh.node(mesh.connectivity(e, 0), 0);
-    thex[i + 1] = mesh.node(mesh.connectivity(e, 1), 0);
+    thex[i] = mesh.coordinates(mesh.connectivity(e, 0), 0);
+    thex[i + 1] = mesh.coordinates(mesh.connectivity(e, 1), 0);
     i = i + 2;
   }
 
@@ -184,9 +183,9 @@ double SimpleGriffithExampleS3D_P0(int nelts) {
   int p = 0;                // piece wise constant element
   double h = 2. / (nelts);  //  element size
 
-  //il::Array<double> x{nelts + 1}; // Not needed
+  //il::Array<double> x{numberOfElements + 1}; // Not needed
 
-  //int ndof = (nelts) * (p + 1) * 2;  // total number of dofs
+  //int ndof = (numberOfElements) * (p + 1) * 2;  // total number of dofs
   double Ep = 1.;                    // Plane strain Young's modulus
 
   //  Array2D M(i, j) -> M(i + 1, j) (Ordre Fortran)
@@ -232,9 +231,9 @@ double SimpleGriffithExampleS3D_P0(int nelts) {
 
   //mesh.init1DMesh(xy, myconn, matid);
   //hfp2d::Mesh mesh(xy,myconn);
-  hfp2d::Mesh mesh(p,xy,myconn,id_displ,id_press,fracID,matID,condID);
+  hfp2d::Mesh mesh( xy,myconn,p);
 
-  il::int_t ndof = mesh.numberOfDisplDofs();
+  il::int_t ndof = mesh.numberOfDDDofs();
 
   hfp2d::ElasticProperties myelas(1, 0.);
   //  myelas.ElasticProperties(1.,0.);
@@ -247,7 +246,7 @@ double SimpleGriffithExampleS3D_P0(int nelts) {
 
   il::Array2D<double> K{ndof, ndof};
 
-  std::cout << "Number of elements : " << mesh.nelts() << "\n";
+  std::cout << "Number of elements : " << mesh.numberOfElements() << "\n";
   std::cout << myconn.size(0) << "\n";
 
   std::cout << "------\n";
@@ -293,10 +292,9 @@ double SimpleGriffithExampleS3D_P0(int nelts) {
   il::Array<double> thex{ndof / 2, 0}, wsol{ndof / 2, 0};
 
   int i = 0;
-  SegmentData sege;
-  for (int e = 0; e < nelts; ++e) {
-    sege=get_segment_DD_data(mesh,e,p);
-    thex[e] = sege.Xmid[0];
+   for (int e = 0; e < nelts; ++e) {
+    hfp2d::SegmentData sege=mesh.getElementData(e);
+    thex[e] = sege.Xmid(0);
   }
 
   wsol = griffithcrack(thex, 1., 1., 1.);  // call to analytical solution

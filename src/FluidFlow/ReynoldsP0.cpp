@@ -50,15 +50,15 @@ il::Array2D<il::int_t> GetEdgesSharing2(hfp2d::Mesh &mesh) {
 
   // loop over all nodes of the mesh
   // find corresponding elements
-  // if n of elt sharing that node ==2 -> put in array...
+  // if n of elt sharing that coordinates ==2 -> put in array...
   //
 
   // maximum number of vertex with 2 elements is
-  // this will not work for the case of more than 2 elements sharing the node.
+  // this will not work for the case of more than 2 elements sharing the coordinates.
   // we don t care of that case for now.
 
   // format is col1: element1, col2: element2   (note we don t store the
-  // corresponding node here....)
+  // corresponding coordinates here....)
 
   il::Array2D<il::int_t> edge{mesh.numberOfNodes(), 2, 0.};
 
@@ -136,7 +136,7 @@ il::Array2D<double> BuildFD_P0(hfp2d::Mesh &mesh, hfp2d::Fluid &fluid,
     er = edgecommon(i, 0);
     el = edgecommon(i, 1);
 
-    hi = (mesh.eltsize(er) + mesh.eltsize(el)) / 2.;
+    hi = (mesh.elt_size(er) + mesh.elt_size(el)) / 2.;
 
     L(er, er) += coef * CurrentCond[i] / hi;
     L(el, el) += coef * CurrentCond[i] / hi;
@@ -156,7 +156,7 @@ il::Array<double> P0VolumeCompressibility(hfp2d::Mesh &mesh,
 
   for (il::int_t e = 0; e < mesh.numberOfElements(); e++) {
     volume[e] =
-        mesh.eltsize(e) * (hydraulic_width[e]) * fluid.fluidCompressibility();
+        mesh.elt_size(e) * (hydraulic_width[e]) * fluid.fluidCompressibility();
   }
 
   return volume;
@@ -169,7 +169,7 @@ il::Array<double> EltSize(hfp2d::Mesh &mesh) {
   il::Array<double> all_eltsize{mesh.numberOfElements(), 0.};
 
   for (il::int_t e = 0; e < mesh.numberOfElements(); e++) {
-    all_eltsize[e] = mesh.eltsize(e);
+    all_eltsize[e] = mesh.elt_size(e);
   }
   return all_eltsize;
 }
