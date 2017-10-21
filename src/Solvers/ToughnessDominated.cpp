@@ -75,8 +75,11 @@ ToughnessDominated(int nelts)
     const double tolX2 = 1.0e-8;
     const double tolFX = 1.0e-4;
 
-    il::int_t iter = 0;
-    const il::int_t iterMax = 1000;
+    il::int_t NLiter = 0;
+    il::int_t globalIter = 0;
+    bool NLSolConv = false;
+    bool actSetConv = false;
+    const il::int_t NLiterMax = 1000;
 
     SolidEvolution linearCZM(failStress, maxOpening, total_DD);
 
@@ -338,8 +341,13 @@ ToughnessDominated(int nelts)
     {
 
         //// loop 1 - Start non-linear iterative solver for last active set
-        bool convergedSolution = false;
-        iter = 0;
+        NLSolConv = false;
+        actSetConv = false;
+        NLiter = 0;
+        globalIter = 0;
+
+
+
 
         // --- computing residual of iteration zero using Kact, deltaW = 0
         // means just computing the norm of Fact in new step, with openings
@@ -348,9 +356,9 @@ ToughnessDominated(int nelts)
         double normR0_DD = normSplit(Fact,0,numActDispl);
         double normR0_PP = normSplit(Fact,numActDispl,numActDispl+1);
 
-        while (!convergedSolution || iter < iterMax)
+        while (!NLSolConv || NLiter < NLiterMax)
         {
-            iter++;
+            NLiter++;
 
             // NB: the active set is constant in this loop
             // NB: Kact is constant (in shape and values) in this loop
@@ -422,10 +430,10 @@ ToughnessDominated(int nelts)
             // compute 1.0 Kact dw - 1.0 R
             il::blas(1.0, Kact, deltaActSol, -1.0, il::io, R);
 
-            double normR = il::norm(R, il::Norm::L2);
+            //double normR = il::norm(R, il::Norm::L2);
 
-            double normDeltaSol = il::norm(deltaActSol, il::Norm::L2);
-            double normSol = il::norm(actSol, il::Norm::L2);
+            //double normDeltaSol = il::norm(deltaActSol, il::Norm::L2);
+            //double normSol = il::norm(actSol, il::Norm::L2);
 
             double normDeltaDD = normSplit(deltaActSol,0,numActDispl);
             double normDD = normSplit(actSol,numActDispl,numActDispl+1);
@@ -436,8 +444,8 @@ ToughnessDominated(int nelts)
             double normResDD = normSplit(R, 0, numActDispl);
             double normResPP = normSplit(R, numActDispl, numActDispl+1);
 
-            double ratio1 = normDeltaSol / (tolX1 * normSol + tolX2);
-            double ratio2 = (normR / (normR0 * tolFX));
+            //double ratio1 = normDeltaSol / (tolX1 * normSol + tolX2);
+            //double ratio2 = (normR / (normR0 * tolFX));
 
             double ratioDD = normDeltaDD / (tolX1 * normDD + tolX2);
             double ratioPP = normDeltaPP / (tolX1 * normPP + tolX2);
@@ -445,15 +453,23 @@ ToughnessDominated(int nelts)
             double ratioResDD = normResDD / (normR0_DD * tolFX);
             double ratioResPP = normResPP / (normR0_PP * tolFX);
 
-            convergedSolution = (ratioDD < 1.0) && (ratioResDD < 1.0) &&
-                                (ratioPP < 1.0) && (ratioResPP < 1.0);
+            NLSolConv = (ratioDD < 1.0) && (ratioResDD < 1.0) &&
+                        (ratioPP < 1.0) && (ratioResPP < 1.0);
 
-        }  // TODO ::::: RESTART FROM HERE :::::
+        }
 
 
         ///////////////////////////   (SCATTER STEP)   ///////////////////////////
         //// Save solution to global vector
         // Update global vector
+
+        // first reset solution to zero
+        for(il::int_t i=0; i<total_DD;i++)
+        {
+            globalSol[i]=0.0;
+            globalDDs[i]=0.0;
+        }
+
         // save DDs
         for (il::int_t i = 0; i < numActElems; i++)
         {
@@ -520,6 +536,10 @@ ToughnessDominated(int nelts)
             ///////////////////////////   (GATHER STEP)   ///////////////////////////
             //// Extract the vector of solution correspondent to the new active list
 
+            numActDispl=numActDispl_temp;
+            numActElems=numActElems_temp;
+            activeList=activeList_temp;
+
             //// Reconstruct previous step solution vector with new active nodes
             // indeed, activeList_temp != activeList
             actSol.resize(numActDispl + 1);
@@ -537,8 +557,8 @@ ToughnessDominated(int nelts)
                         globalSol_old[mesh.dofDispl(activeList[i], j)];
                 }
             }
-            actSol[numActDispl]=globalSol[numActDispl];
-            actSol_old = actSol;
+            actSol[numActDispl]=globalSol[numActDispl]; // for pressure solution
+            actSol_old = actSol; // reset actSol_old to old size/values
 
             //// Extract Kact and compute Fact
             Kact.resize(numActDispl + 1, numActDispl + 1);
@@ -570,26 +590,55 @@ ToughnessDominated(int nelts)
                 }
             }
 
-            // Filling the force vector with last step values
+
+            // LOAD Fact
+            // 1. Compute displacements at collocation points
+            // Calculating DDs at **ALL** collocation points
+            il::Array<double> DDatColl = il::dot(fetc, globalDDs);
+
+            // Initialize the DDs at **ACTIVE** collocation points
+            il::Array<double> actDDatColl(numActElems * DDxElem, 0.0);
+            // reload the active displacement discontinuities
             for (il::int_t i = 0; i < numActElems; i++)
             {
-                // the block to copy starts from xStart,yStart
-                il::int_t xStart = i * DDxElem;
-
                 for (il::int_t j = 0; j < DDxElem; j++)
                 {
-                    // save force vector as the system converged at the last time step
-                    // NOT the last iteration!!
-                    Fact[xStart + j] =
-                        globalF_DD[mesh.dofDispl(activeList[i], j)];
 
-                    // TODO: fill the Fact with new vector size and computing
-                    // the values of the opening at collocation points and
-                    // then the subsequent cohesive force
-                    // The opening is the last converged time step
-                    // Basically we have to recall globalFDD_old, which has
-                    // been saved at last time step
+                    actDDatColl[i * DDxElem + j] =
+                        DDatColl[mesh.dofDispl(activeList[i], j)];
+
                 }
+            }
+
+            // 2. computation of pressure at collocation points from nodes is
+            // not required since it is constant
+
+            // 3. update the force vector with the new cohesive stress values
+            // computed from the collocation points opening
+            for (il::int_t i = 0; i < numActElems; i++)
+            {
+
+                il::int_t coll1 = mesh.dofDispl(activeList[i], 1);
+                il::int_t coll2 = mesh.dofDispl(activeList[i], 3);
+
+                double opening1 = DDatColl[coll1];
+                double opening2 = DDatColl[coll2];
+
+                double cohStress1 =
+                    linearCZM.tractionSeparationLaw(opening1, coll1);
+                double cohStress2 =
+                    linearCZM.tractionSeparationLaw(opening2, coll2);
+
+                // starting location for element in active lists
+                il::int_t xStart = i * DDxElem;
+
+                // save the values of globalF_DD in Fact
+                Fact[xStart] = globalF_DD[mesh.dofDispl(activeList[i], 0)];
+                Fact[xStart + 1] = globalF_DD[mesh.dofDispl(activeList[i], 1)]
+                    + poreP_old - cohStress1;
+                Fact[xStart + 2] = globalF_DD[mesh.dofDispl(activeList[i], 2)];
+                Fact[xStart + 3] = globalF_DD[mesh.dofDispl(activeList[i], 3)]
+                    + poreP_old - cohStress2;
 
             }
 
@@ -610,7 +659,7 @@ ToughnessDominated(int nelts)
             Kact(numActDispl, numActDispl) = 0.0;
 
             Fact[numActDispl] = injectionRate * deltaTime;
-
+        ////////////////////////   (END GATHER STEP)   ////////////////////////
         }
         else
         {
@@ -626,6 +675,7 @@ ToughnessDominated(int nelts)
             //
         }
     }
+
 std::cout << "End of the analysis" <<
 std::endl;
 
