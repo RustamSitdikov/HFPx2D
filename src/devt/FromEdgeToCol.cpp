@@ -62,6 +62,51 @@ il::Array2D<double> from_edge_to_col_dg_full2d(int dof_dim,
 
   return Fetc;
 };
+
+// Function which allow us to switch from end points (two values per node ->
+// discontinuous polinomial) to collocation points
+// Dof.size(0) = number of elements
+// 4 * Dof.size(0) = number of collocation points for DD
+
+// It returns a matrix (size 4Nelts x 4Nelts) that, if multiplied by nodal
+// slip + opening vector (size 4Nelts), it returns the slip AND opening vector
+// at collocation points
+
+il::Array2D<double> from_edge_to_col_dg_full2d_new(Mesh &mesh) {
+
+  // Inputs:
+  //  - dof_dim -> degrees of freedom per nodes
+  //  - Dofw -> DOFs handle for BOTH slip AND opening (size -> Neltsx4)
+
+  // Note matrix on all the DDs dofs
+  il::Array2D<double> Fetc{mesh.numDisplDofs(), mesh.numDisplDofs(), 0};
+  il::StaticArray2D<double,2,4> ShapeFunction{0};
+
+  ShapeFunction(0, 0) = (1 + (1 / sqrt(2))) / 2;
+  ShapeFunction(0, 1) = (1 + (1 / sqrt(2))) / 2;
+  ShapeFunction(0, 2) = (1 - (1 / sqrt(2))) / 2;
+  ShapeFunction(0, 3) = (1 - (1 / sqrt(2))) / 2;
+
+  ShapeFunction(1, 0) = (1 - (1 / sqrt(2))) / 2;
+  ShapeFunction(1, 1) = (1 - (1 / sqrt(2))) / 2;
+  ShapeFunction(1, 2) = (1 + (1 / sqrt(2))) / 2;
+  ShapeFunction(1, 3) = (1 + (1 / sqrt(2))) / 2;
+
+  for (il::int_t i = 0; i < mesh.numElems(); ++i) {
+
+    for (il::int_t j = 0; j < mesh.numDisplDofsPerElem(); ++j) {
+
+      Fetc(mesh.dofDispl(i, 0), mesh.dofDispl(i, j)) = ShapeFunction(0, j);
+      Fetc(mesh.dofDispl(i, 1), mesh.dofDispl(i, j)) = ShapeFunction(0, j);
+      Fetc(mesh.dofDispl(i, 2), mesh.dofDispl(i, j)) = ShapeFunction(1, j);
+      Fetc(mesh.dofDispl(i, 3), mesh.dofDispl(i, j)) = ShapeFunction(1, j);
+    }
+  }
+
+  return Fetc;
+};
+
+
 // TODO store the matrix as sparse
 // Function which allow us to switch from end points (two values per node ->
 // discontinuous polinomial) to collocation points

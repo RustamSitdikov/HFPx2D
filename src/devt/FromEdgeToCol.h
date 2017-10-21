@@ -23,6 +23,8 @@ namespace hfp2d {
 il::Array2D<double> from_edge_to_col_dg_full2d(int dof_dim,
                                                il::Array2D<int> Dof, il::io_t);
 
+il::Array2D<double> from_edge_to_col_dg_full2d_new(Mesh &theMesh);
+
 il::Array2D<double> from_edge_to_col_dg(int dof_dim,
                                         il::Array2D<int> Dofw, il::io_t);
 
