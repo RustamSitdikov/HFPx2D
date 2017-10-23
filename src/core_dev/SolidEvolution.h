@@ -18,6 +18,7 @@
 #include <il/Array2D.h>
 #include <il/String.h>
 #include <il/base.h>
+#include "src/core/Mesh.h"
 
 namespace hfp2d
 {
@@ -132,8 +133,10 @@ public:
 
         if(opening < maximum_opening_[collPT])
         {
-            stress =
-                failure_stress_[collPT] * (opening / maximum_opening_[collPT]);
+            stress = stressLoading(maximum_opening_[collPT],collPT)*
+                (opening/maximum_opening_[collPT]);
+                //failure_stress_[collPT] * (opening /
+            // maximum_opening_[collPT]);
         } else {
 
             stress = 0.0;
@@ -172,14 +175,15 @@ public:
     // This method sets the **HISTORICAL** maximum opening in the element in
     // the list crackElements, so that they are considered a crack that is
     // already open and they have cohesive stress equal to zero.
-    void setInitialCrack(il::Array<il::int_t> crackElements, il::int_t DDxElem){
+    void setInitialCrack(il::Array<il::int_t> crackElements, Mesh mesh){
 
         for(il::int_t i=0; i < crackElements.size(); i++){
 
-            for(il::int_t j=0; j < DDxElem; j++){
+            for(il::int_t j=0; j < mesh.numDisplDofsPerElem(); j++){
 
-                last_saved_opening_[i * DDxElem + j] =
-                                maximum_opening_[i * DDxElem + j];
+                il::int_t dofLocation = mesh.dofDispl(crackElements[i],j);
+
+                last_saved_opening_[dofLocation]=maximum_opening_[dofLocation];
 
             }
 

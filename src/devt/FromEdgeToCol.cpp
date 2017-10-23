@@ -79,29 +79,62 @@ il::Array2D<double> from_edge_to_col_dg_full2d_new(Mesh &mesh) {
   //  - Dofw -> DOFs handle for BOTH slip AND opening (size -> Neltsx4)
 
   // Note matrix on all the DDs dofs
+  const il::int_t DDxElem = mesh.numDisplDofsPerElem();
   il::Array2D<double> Fetc{mesh.numDisplDofs(), mesh.numDisplDofs(), 0};
-  il::StaticArray2D<double,2,4> ShapeFunction{0};
+  il::StaticArray2D<double,4,4> ShapeFunction{0};
 
+  // contribution to slip at collocation node 1
   ShapeFunction(0, 0) = (1 + (1 / sqrt(2))) / 2;
-  ShapeFunction(0, 1) = (1 + (1 / sqrt(2))) / 2;
   ShapeFunction(0, 2) = (1 - (1 / sqrt(2))) / 2;
-  ShapeFunction(0, 3) = (1 - (1 / sqrt(2))) / 2;
 
-  ShapeFunction(1, 0) = (1 - (1 / sqrt(2))) / 2;
-  ShapeFunction(1, 1) = (1 - (1 / sqrt(2))) / 2;
-  ShapeFunction(1, 2) = (1 + (1 / sqrt(2))) / 2;
-  ShapeFunction(1, 3) = (1 + (1 / sqrt(2))) / 2;
+  // contribution to opening at collocation node 1
+  ShapeFunction(1, 1) = (1 + (1 / sqrt(2))) / 2;
+  ShapeFunction(1, 3) = (1 - (1 / sqrt(2))) / 2;
 
-  for (il::int_t i = 0; i < mesh.numElems(); ++i) {
+  // contribution to slip at collocation node 2
+  ShapeFunction(2, 0) = (1 - (1 / sqrt(2))) / 2;
+  ShapeFunction(2, 2) = (1 + (1 / sqrt(2))) / 2;
 
-    for (il::int_t j = 0; j < mesh.numDisplDofsPerElem(); ++j) {
+  // contribution to opening at collocation node 2
+  ShapeFunction(3, 1) = (1 - (1 / sqrt(2))) / 2;
+  ShapeFunction(3, 3) = (1 + (1 / sqrt(2))) / 2;
 
-      Fetc(mesh.dofDispl(i, 0), mesh.dofDispl(i, j)) = ShapeFunction(0, j);
-      Fetc(mesh.dofDispl(i, 1), mesh.dofDispl(i, j)) = ShapeFunction(0, j);
-      Fetc(mesh.dofDispl(i, 2), mesh.dofDispl(i, j)) = ShapeFunction(1, j);
-      Fetc(mesh.dofDispl(i, 3), mesh.dofDispl(i, j)) = ShapeFunction(1, j);
+  for (il::int_t i = 0; i < mesh.numElems(); ++i)
+  {
+
+    for (il::int_t j = 0; j < DDxElem; j++)
+    {
+      for (il::int_t k = 0; k < DDxElem; k++)
+      {
+        Fetc(mesh.dofDispl(i, j), mesh.dofDispl(i, k)) = ShapeFunction(j, k);
+      }
     }
   }
+    // TODO: avoid copying zeros and use only the two main values of ShapeFunc.
+
+//  il::StaticArray2D<double,2,4> ShapeFunction{0};
+//
+//  ShapeFunction(0, 0) = (1 + (1 / sqrt(2))) / 2;
+//  ShapeFunction(0, 1) = (1 + (1 / sqrt(2))) / 2;
+//  ShapeFunction(0, 2) = (1 - (1 / sqrt(2))) / 2;
+//  ShapeFunction(0, 3) = (1 - (1 / sqrt(2))) / 2;
+//
+//  ShapeFunction(1, 0) = (1 - (1 / sqrt(2))) / 2;
+//  ShapeFunction(1, 1) = (1 - (1 / sqrt(2))) / 2;
+//  ShapeFunction(1, 2) = (1 + (1 / sqrt(2))) / 2;
+//  ShapeFunction(1, 3) = (1 + (1 / sqrt(2))) / 2;
+//
+//  for (il::int_t i = 0; i < mesh.numElems(); ++i) {
+//
+//    for (il::int_t j = 0; j < mesh.numDisplDofsPerElem(); ++j) {
+//
+//      Fetc(mesh.dofDispl(i, 0), mesh.dofDispl(i, j)) = ShapeFunction(0, j);
+//      Fetc(mesh.dofDispl(i, 1), mesh.dofDispl(i, j)) = ShapeFunction(0, j);
+//      Fetc(mesh.dofDispl(i, 2), mesh.dofDispl(i, j)) = ShapeFunction(1, j);
+//      Fetc(mesh.dofDispl(i, 3), mesh.dofDispl(i, j)) = ShapeFunction(1, j);
+//    }
+//  }
+
 
   return Fetc;
 };
