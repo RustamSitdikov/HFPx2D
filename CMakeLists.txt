@@ -85,7 +85,9 @@ set(SOURCE_FILES
         src/Solvers/DevLHFMSolver.cpp
         src/Solvers/DevLHFMSolver.h
         src/core/SolutionAtT.h
-        src/core/SolidProperties.h)
+        src/core/SolidProperties.h
+        src/tip/tipAsymptote.cpp
+        src/tip/tipAsymptote.h)
 
 if(APPLE)
 link_directories($ENV{MKLROOT}/lib $ENV{MKLROOT}/../compiler/lib )
