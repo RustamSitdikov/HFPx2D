@@ -23,7 +23,8 @@ endif()
 # set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 IF(CMAKE_BUILD_TYPE MATCHES DEBUG)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror -Wall -Wextra -pedantic")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m64 -march=native -Werror -Wall
+    -Wextra -pedantic")
 ENDIF(CMAKE_BUILD_TYPE MATCHES DEBUG)
 
 set(SOURCE_FILES_DIR ${PROJECT_SOURCE_DIR}/src)

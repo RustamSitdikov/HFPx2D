@@ -70,7 +70,7 @@ ToughnessDominated(int nelts)
     double failStress = 1.0e9;
     double maxOpening = 1.0e-3;
 
-    il::int_t finalTimeStep = 100;
+    il::int_t finalTimeStep = 30;
     double deltaTime = 1.0e-4;
 
     const double tolX1 = 1.0e-4;
@@ -81,8 +81,8 @@ ToughnessDominated(int nelts)
     il::int_t globalIter = 0;
     bool NLSolConv = false;
     bool actSetConv = false;
-    const il::int_t NLiterMax = 100;
-    const il::int_t globalIterMax = 100;
+    const il::int_t NLiterMax = 10;
+    const il::int_t globalIterMax = 10;
 
     SolidEvolution linearCZM(failStress, maxOpening, total_DD);
 
@@ -206,8 +206,7 @@ ToughnessDominated(int nelts)
                     il::int_t dof1 = mesh.dofDispl(activeList[i], k);
                     il::int_t dof2 = mesh.dofDispl(activeList[j], l);
 
-                    double extValue = globalK_DD(dof1, dof2);
-                    Kact(xStart + k, yStart + l) = extValue;
+                    Kact(xStart + k, yStart + l) = globalK_DD(dof1, dof2);
                 }
             }
 
@@ -350,8 +349,12 @@ ToughnessDominated(int nelts)
 
         /////////////////////////   GLOBAL LOOP   /////////////////////////
         //// Non linear system and activated set of elements must converge
-        while((!NLSolConv && !actSetConv) && (globalIter < globalIterMax))
+        //globalIter=0;
+        while((!NLSolConv || !actSetConv) && (globalIter < globalIterMax))
         {
+            NLSolConv = false;
+            actSetConv = false;
+
             // increase iteration counter
             globalIter++;
 
@@ -482,6 +485,10 @@ ToughnessDominated(int nelts)
 
             Fact[numActDispl] = injectionRate * deltaTime;
 
+            // subtract the part of previous solution, i.e. compute the
+            // residual with - 1.0 Kact W + 1.0 Fact
+            il::blas(-1.0, Kact, actSol, +1.0, il::io, Fact);
+
 
             //// SET INITIAL RESIDUAL NORMS
             // --- computing residual of iteration zero using Kact, deltaW = 0
@@ -495,6 +502,7 @@ ToughnessDominated(int nelts)
             // NB: the active set is constant in this loop
             // NB: Kact is constant (in shape and values) in this loop
             // NB: pressure is constant everywhere, at collocation points too
+            //NLiter = 0;
             while ((!NLSolConv) && (NLiter < NLiterMax))
             {
                 // increase iteration counter
@@ -507,7 +515,8 @@ ToughnessDominated(int nelts)
                 // and update solution
                 for (il::int_t i = 0; i < numActDispl + 1; i++)
                 {
-                    actSol[i] = actSol_old[i] + deltaActSol[i];
+                    actSol[i] = actSol[i] + deltaActSol[i];
+//                        0.85*(actSol[i] + deltaActSol[i]) + 0.15*actSol[i];
                 }
 
                 //// UPDATE GLOBAL SOLUTION
@@ -589,6 +598,10 @@ ToughnessDominated(int nelts)
                             - poreP + cohStress2;
                 }
 
+                // subtract the part of previous solution, i.e. compute the
+                // residual with - 1.0 Kact W + 1.0 Fact
+                il::blas(-1.0, Kact, actSol, +1.0, il::io, Fact);
+
                 //// CHECK convergence
                 // create current residual
                 il::Array<double> R = Fact;
@@ -608,8 +621,8 @@ ToughnessDominated(int nelts)
                     = normSplit(deltaActSol, numActDispl, numActDispl+1);
                 double normPP = normSplit(actSol, numActDispl, numActDispl + 1);
 
-                double normResDD = normSplit(R, 0, numActDispl);
-                double normResPP = normSplit(R, numActDispl, numActDispl + 1);
+                //double normResDD = normSplit(R, 0, numActDispl);
+                //double normResPP = normSplit(R, numActDispl, numActDispl + 1);
 
                 //double ratio1 = normDeltaSol / (tolX1 * normSol + tolX2);
                 //double ratio2 = (normR / (normR0 * tolFX));
@@ -639,11 +652,11 @@ ToughnessDominated(int nelts)
             // Update global vector
 
             // first reset solution to zero
-            for (il::int_t i = 0; i < total_DD; i++)
-            {
-                globalSol[i] = 0.0;
-                globalDDs[i] = 0.0;
-            }
+//            for (il::int_t i = 0; i < total_DD; i++)
+//            {
+//                globalSol[i] = 0.0;
+//                globalDDs[i] = 0.0;
+//            }
 
             // save DDs
             for (il::int_t i = 0; i < numActElems; i++)
@@ -693,9 +706,11 @@ ToughnessDominated(int nelts)
                         > linearCZM.getMaxStress(i)) &&
                         (globalStressColl[mesh.dofDispl(i, 3)]
                             > linearCZM.getMaxStress(i)))
+                    {
 
                         activeList_temp.append(i); // add the element to the list
-                    // of active ones
+                        // of active ones
+                    }
 
                 }
             }
@@ -717,6 +732,11 @@ ToughnessDominated(int nelts)
 
         }
 
+        globalDDs_old = globalDDs;
+        globalSol_old = globalSol;
+        poreP_old = poreP;
+
+        actSol_old=actSol;
 
         //// OUTPUT
         std::cout << "Opening values full: \n" << std::endl;
