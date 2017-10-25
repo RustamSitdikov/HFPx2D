@@ -34,7 +34,7 @@ namespace tip {
     const double m_tol = 2.221e-016;
 
     // fracture tip parameters
-    struct TAParam {
+    struct TipParameters {
         double k1c; // SIF // K' = 4.0 * std::pow(2.0 / il::pi, 0.5) * K1c
         double e_p; // Plane strain modulus = youngPS_ = E / (1.0 - nu*nu)
         double cl; // Carter leak-off coefficient; C' = 2.0 * Cl is used
@@ -50,7 +50,7 @@ namespace tip {
 
     // input
     struct TAInParam {
-        TAParam taPrev; // Previous tip state
+        TipParameters taPrev; // Previous tip state
         double wa; // New opening at the ribbon cell
         double dt; // Time step
     };
@@ -85,45 +85,45 @@ namespace tip {
 
     // moments
     double deltaP(double k_h, double c_h, double p);
-    double moment0(TAParam &taParam);
-    double moment1(TAParam &taParam);
-    double moment0(double s, TAParam &taParam);
-    double moment1(double s, TAParam &taParam);
+    double moment0(TipParameters &taParam);
+    double moment1(TipParameters &taParam);
+    double moment0(double s, TipParameters &taParam);
+    double moment1(double s, TipParameters &taParam);
 
     // (virtual) residual function of distance to minimize (set to zero)
-    typedef double (*ResFun)(double s, TAParam &taParam);
+    typedef double (*ResFun)(double s, TipParameters &taParam);
 
     // possibly, viscosity & leak-off asymptotes to be added
     // zero-order approximation
-    double res_g_0(double s, TAParam &taParam);
-    double res_g_0_s(double s, TAParam &taParam);
+    double res_g_0(double s, TipParameters &taParam);
+    double res_g_0_s(double s, TipParameters &taParam);
     // 1st order delta-correction
-    double res_g_1(double s, TAParam &taParam);
-    double res_g_1_s(double s, TAParam &taParam);
+    double res_g_1(double s, TipParameters &taParam);
+    double res_g_1_s(double s, TipParameters &taParam);
 
     // checking propagation criterion
-    bool isPropagating(TAParam &taParam);
-    bool isPropagating(double s, TAParam &taParam); // overload just in case...
+    bool isPropagating(TipParameters &taParam);
+    bool isPropagating(double s, TipParameters &taParam); // overload just in case...
 
     // bracketing the tip
     il::StaticArray<double, 2> bracket(ResFun resF,
-                                       TAParam &taParam,
+                                       TipParameters &taParam,
                                        int maxIter);
 
     // Brent root finder
     double brent(tip::ResFun fun,
-                 tip::TAParam &params,
+                 tip::TipParameters &params,
                  double a0, double b0,
                  double epsilon, int maxIter);
 
     // finding the distance to the tip, moments, etc.
-    TAParam propagateTip(ResFun resF,
+    TipParameters propagateTip(ResFun resF,
                          TAInParam &taIn,
                          double epsilonS, int maxIterS,
                          double epsilonV, int maxIterV,
                          bool mute);
 
-    TAParam propagateTip(ResFun resF,
+    TipParameters propagateTip(ResFun resF,
                          TAInParam &taIn,
                          double epsilon, int maxIter,
                          bool mute);

@@ -95,7 +95,7 @@ double g_1(double k_h, double c_h) {
 ////////////////////////////////////////////////////////////////////////////////
 // residual functions to find the root
 // zero-order
-double res_g_0(double s, TAParam &taParam) {
+double res_g_0(double s, TipParameters &taParam) {
   double k_h = k_H(taParam.k1c, taParam.e_p, taParam.wa, s);
   double s_t = s_T(taParam.mu, taParam.k1c, taParam.e_p, taParam.vt, s);
   // use k-m approximate solution for zero leak-off
@@ -111,7 +111,7 @@ double res_g_0(double s, TAParam &taParam) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-double res_g_0_s(double s, TAParam &taParam) {
+double res_g_0_s(double s, TipParameters &taParam) {
   double k_h = k_H(taParam.k1c, taParam.e_p, taParam.wa, s);
   double s_t = s_T(taParam.mu, taParam.k1c, taParam.e_p, taParam.vt, s);
   // use k-m approximate solution for zero leak-off
@@ -137,7 +137,7 @@ double res_g_0_s(double s, TAParam &taParam) {
 
 ////////////////////////////////////////////////////////////////////////////////
 // 1st order delta-correction
-double res_g_1(double s, TAParam &taParam) {
+double res_g_1(double s, TipParameters &taParam) {
   double k_h = k_H(taParam.k1c, taParam.e_p, taParam.wa, s);
   double s_t = s_T(taParam.mu, taParam.k1c, taParam.e_p, taParam.vt, s);
   // use k-m approximate solution for zero leak-off
@@ -154,7 +154,7 @@ double res_g_1(double s, TAParam &taParam) {
 ////////////////////////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////////////////////////////
-double res_g_1_s(double s, TAParam &taParam) {
+double res_g_1_s(double s, TipParameters &taParam) {
   double k_h = k_H(taParam.k1c, taParam.e_p, taParam.wa, s);
   double s_t = s_T(taParam.mu, taParam.k1c, taParam.e_p, taParam.vt, s);
   // use k-m approximate solution for zero leak-off
@@ -184,14 +184,14 @@ double deltaP(double k_h, double c_h, double p) {
   return (1.0 - p + p * g_0(k_h, c_h)) * delta;
 }
 
-double moment0(TAParam &taParam) {
+double moment0(TipParameters &taParam) {
   double k_h = k_H(taParam.k1c, taParam.e_p, taParam.wa, taParam.st);
   double c_h = c_H(taParam.cl, taParam.vt, taParam.wa, taParam.st);
   double delta_p = deltaP(k_h, c_h, 0.377);
   return (2.0 * taParam.wa * taParam.st) / (3.0 + delta_p);
 }
 
-double moment1(TAParam &taParam) {
+double moment1(TipParameters &taParam) {
   double k_h = k_H(taParam.k1c, taParam.e_p, taParam.wa, taParam.st);
   double c_h = c_H(taParam.cl, taParam.vt, taParam.wa, taParam.st);
   double delta_p = deltaP(k_h, c_h, 0.26);
@@ -199,14 +199,14 @@ double moment1(TAParam &taParam) {
 }
 
 // overload for s as an independent parameter
-double moment0(double s, TAParam &taParam) {
+double moment0(double s, TipParameters &taParam) {
   double k_h = k_H(taParam.k1c, taParam.e_p, taParam.wa, s);
   double c_h = c_H(taParam.cl, taParam.vt, taParam.wa, s);
   double delta_p = deltaP(k_h, c_h, 0.377);
   return (2.0 * taParam.wa * s) / (3.0 + delta_p);
 }
 
-double moment1(double s, TAParam &taParam) {
+double moment1(double s, TipParameters &taParam) {
   double k_h = k_H(taParam.k1c, taParam.e_p, taParam.wa, s);
   double c_h = c_H(taParam.cl, taParam.vt, taParam.wa, s);
   double delta_p = deltaP(k_h, c_h, 0.26);
@@ -216,20 +216,20 @@ double moment1(double s, TAParam &taParam) {
 // todo: Carter tip leak-off
 
 // checking propagation criterion
-bool isPropagating(TAParam &taParam) {
+bool isPropagating(TipParameters &taParam) {
   // return (k_H(taParam.k_p, taParam.e_p,
   // taParam.wa, taParam.s_prev) <= 1.0);
   return (taParam.k1c * std::pow(taParam.st, 0.5) <= taParam.e_p * taParam.wa);
 }
 
 // overload for s as an independent parameter
-bool isPropagating(double s, TAParam &taParam) {
+bool isPropagating(double s, TipParameters &taParam) {
   // return (k_H(taParam.k_p, taParam.e_p, taParam.wa, s) <= 1.0);
   return (taParam.k1c * std::pow(s, 0.5) <= taParam.e_p * taParam.wa);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-il::StaticArray<double, 2> bracket(ResFun resF, TAParam &taParam, int maxIter) {
+il::StaticArray<double, 2> bracket(ResFun resF, TipParameters &taParam, int maxIter) {
   //
   double k_p = 4.0 * std::pow(2.0 / il::pi, 0.5) * taParam.k1c;
   double s_k = std::pow((taParam.e_p * taParam.wa) / k_p, 2);
@@ -271,7 +271,7 @@ il::StaticArray<double, 2> bracket(ResFun resF, TAParam &taParam, int maxIter) {
 // Algorithms for Minimization without Derivatives,
 // Englewood Cliffs, NJ: Prentice-Hall, ISBN 0-13-022335-2
 //
-double brent(tip::ResFun fun, tip::TAParam &params, double a0, double b0,
+double brent(tip::ResFun fun, tip::TipParameters &params, double a0, double b0,
              double epsilon, int maxIter) {
   //
   double a = a0;
@@ -373,7 +373,7 @@ double brent(tip::ResFun fun, tip::TAParam &params, double a0, double b0,
 
 ////////////////////////////////////////////////////////////////////////////////
 // finding the distance to the tip, moments, etc.
-TAParam propagateTip(ResFun resF, TAInParam &taIn, double epsilonS,
+TipParameters propagateTip(ResFun resF, TAInParam &taIn, double epsilonS,
                      int maxIterS, double epsilonV, int maxIterV, bool mute) {
   // Substitute the corresponding residual function
   // resF(x, params)
@@ -382,7 +382,7 @@ TAParam propagateTip(ResFun resF, TAInParam &taIn, double epsilonS,
   // under-relaxation parameter
   const double beta = 0.5;
 
-  TAParam taNew;
+  TipParameters taNew;
   taNew.wa = taIn.wa;                          // new ribbon cell opening
   taNew.st = taIn.taPrev.st;                   // previous distance to the tip
   taNew.vt = std::max(taIn.taPrev.vt, m_tol);  // previous tip velocity
@@ -458,7 +458,7 @@ TAParam propagateTip(ResFun resF, TAInParam &taIn, double epsilonS,
 ////////////////////////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////////////////////////////
-TAParam propagateTip(ResFun resF, TAInParam &taIn, double epsilon, int maxIter,
+TipParameters propagateTip(ResFun resF, TAInParam &taIn, double epsilon, int maxIter,
                      bool mute) {
   return propagateTip(resF, taIn, epsilon, maxIter, epsilon, maxIter, mute);
 }

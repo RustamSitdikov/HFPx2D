@@ -56,6 +56,8 @@ public:
 
 };
 
+// method would be friction(Reynolds,roughness) -> different models ?
+
 }
 
 

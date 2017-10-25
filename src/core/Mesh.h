@@ -19,12 +19,14 @@
 #include <il/Array.h>
 #include <il/Array2D.h>
 
+// Inclusion from hfp2d
 #include <src/core/SegmentData.h>
 
 namespace hfp2d {
 
 il::Array2D<il::int_t> GetNodalEltConnectivity(
     const il::int_t nt_nodes, const il::Array2D<il::int_t> &connectivity);
+
 il::Array<il::int_t> BuildTipNodes(
     const il::Array2D<il::int_t> &node_connectivity);
 
@@ -61,9 +63,6 @@ class Mesh {  // class for 1D mesh of 1D segment elements ?
   // Material identifier - size: number of elements
   il::Array<il::int_t> material_id_;
 
-  // Material identifier - size: number of elements ---- this is not really
-  // needed.
-  il::Array<il::int_t> condition_id_;
 
   // a structure  with nodes and corresponding adjacent elements .....
   // row node #, columms element sharing that nodes, if  entry is -1 then
@@ -106,7 +105,6 @@ class Mesh {  // class for 1D mesh of 1D segment elements ?
 
     // matid_ was not passed as input, so we assume the material is homogeneous
     il::Array<il::int_t> material_id_(connectivity_.size(0), 1);
-    il::Array<il::int_t> condition_id_(connectivity_.size(0), 1);
 
     il::int_t nelts = connectivity_.size(0);
     il::int_t p = interpolation_order_;
@@ -163,9 +161,6 @@ class Mesh {  // class for 1D mesh of 1D segment elements ?
     connectivity_ = Connectivity;
     interpolation_order_ = interpolationOrder;
     material_id_ = MatID;
-
-    // condition id -> should be removed
-    il::Array<il::int_t> condition_id_(connectivity_.size(0), 1);
 
     il::int_t nelts = connectivity_.size(0);
     il::int_t p = interpolation_order_;
@@ -278,10 +273,6 @@ class Mesh {  // class for 1D mesh of 1D segment elements ?
     return (*std::max_element(material_id_.begin(), material_id_.end()) + 1);
   }
 
-  // similarly for conditions....
-  il::int_t numberOfConditions() const {
-    return (*std::max_element(condition_id_.begin(), condition_id_.end()) + 1);
-  }
 
   // interpolation order
   il::int_t interpolationOrder() const { return interpolation_order_; }
@@ -306,7 +297,7 @@ class Mesh {  // class for 1D mesh of 1D segment elements ?
 
   il::int_t dofDD(il::int_t k, il::int_t i) const {
     // coordinates k, dof i -> return global equation iD
-    return dof_handle_dd_(k, i);
+    return dof_handle_dd_(k, i); // element , dof dim.
   }
 
   ////////////////////////////////////////////////////////////////////////////////////////////
@@ -320,20 +311,15 @@ class Mesh {  // class for 1D mesh of 1D segment elements ?
 
   il::Array<double> All_elt_size();
 
+  // method to get nodes sharing 2 elts. (i.e. the nodal_connectivity for all nodes with 2 neighbours)
+  // todo rename
   il::Array2D<il::int_t> GetNodesSharing2Elts();
 
-  void AddNTipElements(const il::int_t t_e, const il::int_t the_tip_node,
+   void AddNTipElements(const il::int_t t_e, const il::int_t the_tip_node,
                        const il::int_t n_add, double kink_angle);
 
   // todo : do comments each methods !
-  // todo: change interpolationOrder to DDOrder as it relates to the
-  // interpolation of Displacement Discontinuities
-  /// SETTER
-  void appendMesh(const Mesh &newMesh, bool isJoined);
 
-  //  il::Array<il::int_t> eltinFrac(il::int_t k);
-
-  // a method to get all element sizes...
 };
 }
 

@@ -92,12 +92,12 @@ int TwoParallelHFs(int nelts, double dist) {
 
     hfp2d::Mesh mesh2( xy, myconn,p);
 
-    mesh2.AddNTipElements(9,10,2,0.);
+//    mesh2.AddNTipElements(9,10,2,0.);
 
 //  il::Array2D<il::int_t> myed =
 //      hfp2d::GetNodalEltConnectivity(mesh.numberOfNodes(),mesh.connectivity());
 
-  //  const il::Array2D<il::int_t> edge = hfp2d::GetEdgesSharing2(mesh);
+  //  const il::Array2D<il::int_t> edge = hfp2d::GetEdgesSharing2_old(mesh);
 
   hfp2d::ElasticProperties myelas(1, 0.);
 
@@ -111,27 +111,27 @@ int TwoParallelHFs(int nelts, double dist) {
   AddTipCorrectionP0(mesh, myelas, nelts, K);
   AddTipCorrectionP0(mesh, myelas, Ntot - 1, K);
 
-  // RE_ARRANGE THE DOF FOR DD HERE !!! this is probably not needed.
-  K = ReArrangeKP0(mesh, K);
+//   RE_ARRANGE THE DOF FOR DD HERE !!! this is probably not needed.
+//  K = ReArrangeKP0(mesh, K);
 
   // initial stress field uniform to test.
   il::Array<double> sig_o{Ntot, 0.1}, tau_o{Ntot, 0.};
 
   // initial fluid pressure
-  il::Array<double> pf_o{
-      Ntot, 0.1 + 1.e-1};  // slightly above sig_o to have initial width
+  il::Array<double> pf_o{Ntot, 0.1 + 1.e-1};  // slightly above sig_o to have initial width
 
   // solve the initial elastic system
   il::Array<double> fini{2 * Ntot, 0.};
   il::int_t j = 0;
-  for (il::int_t i = 0; i < Ntot; i = i + 1) {
-    fini[i] = tau_o[i];
-  }
-  for (il::int_t i = 0; i < Ntot; i = i + 1) {
-    fini[i + Ntot] = -(pf_o[i] - sig_o[i]);
-  }
+  std::cout << "e !!!" << (Ntot+Ntot) <<"\n";
+  for (il::int_t i = 0; i <(Ntot+Ntot); i=i+2) {
+    fini[i] = tau_o[j];
+    fini[i + 1] = -(pf_o[j] - sig_o[j]);
+    j++;
+   }
 
-  il::int_t ea = 2;
+  il::int_t ea = 2 ;
+
   std::cout << "elt size" << mesh.elt_size(ea) << "w " << h << "\n";
 
   std::cout << " size of K" << K.size(0) << " by " << K.size(1) << "\n";
@@ -148,11 +148,10 @@ int TwoParallelHFs(int nelts, double dist) {
 
   il::Array<double> width{mesh.numberOfElements(), 0.},
       sheardd{mesh.numberOfElements(), 0.};
-
-  for (il::int_t i = 0; i < mesh.numberOfElements(); i++) {
-    sheardd[i] = dd_ini[i];
-    width[i] = dd_ini[i + mesh.numberOfElements()];
-  }
+   for (il::int_t i = 0; i < mesh.numberOfElements(); i++) {
+    sheardd[i] = dd_ini[2*i];
+    width[i] = dd_ini[2*i + 1];
+   }
 
   // create a solution at time t=0 object.
   hfp2d::SolutionAtT Soln =
@@ -175,16 +174,23 @@ int TwoParallelHFs(int nelts, double dist) {
       SolidProperties(myelas, toughness, wh_o, Carter);
 
   // call to Reynolds
-  double dt = 0.00000001;
+  double dt = 0.000001;
 
   hfp2d::SimulationParameters SimulParam;
 
+  bool imp_tip = false ; //
+  il::Array<il::int_t> tip_elt{4};
+  il::Array<double> tip_width{4,0.16};
+
+  tip_elt=mesh.tip_elts();
+
   hfp2d::SolutionAtT Soln1 =
-      ReynoldsSolverP0(Soln, K, water, the_rock, the_source, dt, SimulParam);
+      ReynoldsSolverP0(Soln, K, water, the_rock, the_source, dt,imp_tip,tip_elt,tip_width, SimulParam);
 
   std::cout << "now out of reynolds"
             << "\n";
 
-  return 0;
+  return 0 ;
+
 };
 }

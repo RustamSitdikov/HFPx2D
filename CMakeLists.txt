@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.6)
 
-project(HFPx2D CXX)
 
 project(HFPx2DUnitTest CXX)
 
+project(HFPx2D CXX)
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -std=c++11")
@@ -18,8 +18,6 @@ set(CMAKE_CXX_COMPILER /usr/bin/g++)
 
     elseif(WIN32) # to fill up here
 endif()
-
-
 
 #  FOR HFPx2D
  # set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -67,7 +65,6 @@ set(SOURCE_FILES
         src/core/Fluid.h
         src/core/ElasticProperties.h
         src/core_dev/SolidEvolution.h
-#        src/FluidFlow/PermeabilityEvolution.h
 #        src/input/properties/loadSingleMaterial.cpp
 #        src/input/properties/loadSingleMaterial.h
         src/input/findUtilities.cpp
@@ -80,8 +77,8 @@ set(SOURCE_FILES
         src/core_dev/Sources.h
 #        src/input/Sources/loadSources.cpp
 #        src/input/Sources/loadSources.h
-        src/FluidFlow/ReynoldsP0.cpp
-        src/FluidFlow/ReynoldsP0.h
+        src/FractureFluidFlow/ReynoldsP0.cpp
+        src/FractureFluidFlow/ReynoldsP0.h
         src/Solvers/DevLHFMSolver.cpp
         src/Solvers/DevLHFMSolver.h
         src/core/SolutionAtT.h
@@ -125,7 +122,10 @@ set(SR_FOLDER "${CMAKE_SOURCE_DIR}/src")
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DIL_FOLDER='\"${SR_FOLDER}\"'")
 
-set(UNIT_TEST_FILES src/_test/elastic_test.cpp  gtest/src/gtest-all.cc)
+set(UNIT_TEST_FILES src/_test/elastic_test.cpp
+        gtest/src/gtest-all.cc
+        #src/_test/mesh_test.cpp
+        src/tip/_test/tip_test.cpp)
 
 add_executable(HFPx2DUnitTest ${SOURCE_FILES} ${UNIT_TEST_FILES} test.cpp)
 

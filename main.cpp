@@ -125,7 +125,7 @@ int main(){
 //  std::cout << "\n\n ----- Simple Griffith crack examples ----- \n\n" << std::endl;
 
 
-  int nelts = 10;
+  int nelts = 3;
   double dist= 1e4;
 
 
