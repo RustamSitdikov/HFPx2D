@@ -69,7 +69,7 @@ ToughnessDominated(int nelts)
     double sigmaW = 1.0e6;          // in situ stress, opening
 
     double initPress = 1.0e6 + epsiP0; // initial pore pressure
-    double injectionRate = 1.0e-6;
+    double injectionRate = 1.0e-1;
     double failStress = 1.0e12;
     double maxOpening = 1.0e-3;
 
@@ -453,7 +453,7 @@ ToughnessDominated(int nelts)
             for (il::int_t i = 0; i < numActDispl; i = i + 2)
             {
                 Kact(numActDispl, i) = 0.0;
-                Kact(numActDispl, i + 1) = h / 2.0;
+                Kact(numActDispl, i + 1) = h / 2.0; //mesh.eltsize(activeList[i]) / 2.0;
             }
             Kact(numActDispl, numActDispl) = 0.0;
 
@@ -543,9 +543,13 @@ ToughnessDominated(int nelts)
             // --- computing residual of iteration zero using Kact, deltaW = 0
             // means just computing the norm of Fact in new step, with openings
             // from last time step (or active set) and in particular new Q Deltat
-            double normR0 = il::norm(Fact, il::Norm::L2);
+//            double normR0 = il::norm(Fact, il::Norm::L2);
             double normR0_DD = normSplit(Fact, 0, numActDispl);
             double normR0_PP = normSplit(Fact, numActDispl, numActDispl + 1);
+
+//            double normSol = il::norm(actSol_old, il::Norm::L2);
+            double normDD = normSplit(actSol_old, 0, numActDispl);
+            double normPP = normSplit(actSol_old, numActDispl, numActDispl + 1);
 
             //// LOOP 1 - ITERATIVE SOLUTION OF NON LINEAR SYSTEM OF EQUATIONS
             // NB: the active set is constant in this loop
@@ -650,7 +654,7 @@ ToughnessDominated(int nelts)
                             + cohStress2;
                 }
 
-                Fact[numActDispl]=injectedVol+injectionRate*deltaTime;
+                Fact[numActDispl]= injectionRate * deltaTime;
                 // subtract the part of previous solution, i.e. compute the
                 // residual with - 1.0 Kact W + 1.0 Fact
                 //il::blas(-1.0, Kact, actSol_old, +1.0, il::io, Fact);
@@ -658,7 +662,7 @@ ToughnessDominated(int nelts)
                 for(il::int_t i=0; i<numActDispl; i++){
                     Fact[i] = Fact[i] - vec1[i];
                 }
-                injectedVol_old=vec1[numActDispl];
+                injectedVol=vec1[numActDispl];
 
                 //// CHECK convergence
                 // create current residual
@@ -667,38 +671,50 @@ ToughnessDominated(int nelts)
                 // compute 1.0 Kact dw - 1.0 R
                 il::blas(1.0, Kact, deltaActSol, -1.0, il::io, R);
 
-                double normR = il::norm(R, il::Norm::L2);
+//                double normR = il::norm(R, il::Norm::L2);
 
-                double normDeltaSol = il::norm(deltaActSol, il::Norm::L2);
-                double normSol = il::norm(actSol, il::Norm::L2);
+//                double normDeltaSol = il::norm(deltaActSol, il::Norm::L2);
+//                double normSol = il::norm(actSol, il::Norm::L2);
 
-                double normDeltaDD = normSplit(deltaActSol, 0, numActDispl);
-                double normDD = normSplit(actSol, 0, numActDispl);
+                il::Array<double> deltadeltaActSol(numActDispl+1);
+                for(il::int_t i=0; i<numActDispl+1; i++){
+                    deltadeltaActSol[i] = deltaActSol[i]-deltaActSol_old[i];
+                }
 
-                double normDeltaPP
-                    = normSplit(deltaActSol, numActDispl, numActDispl+1);
-                double normPP = normSplit(actSol, numActDispl, numActDispl + 1);
+                // computation of norms of difference of correction
+                double normDeltaDD = normSplit(deltadeltaActSol,
+                                               0, numActDispl);
 
+
+                double normDeltaPP = normSplit(deltadeltaActSol,
+                                               numActDispl, numActDispl+1);
+
+                double ratioDeltaDD = normDeltaDD/(tolX1 * normDD + tolX2);
+                double ratioDeltaPP = normDeltaPP/(tolX1 * normDD + tolX2);
+
+
+                // Computation of norms and ratios of residuals
                 double normResDD = normSplit(R, 0, numActDispl);
                 double normResPP = normSplit(R, numActDispl, numActDispl + 1);
-
-                double ratio1 = normDeltaSol / (tolX1 * normSol + tolX2);
-                double ratio2 = (normR / (normR0 * tolFX));
-
-                double ratioDD = normDeltaDD / (tolX1 * normDD + tolX2);
-                double ratioPP = normDeltaPP / (tolX1 * normPP + tolX2);
 
                 double ratioResDD = normResDD / (normR0_DD * tolFX);
                 double ratioResPP = normResPP / (normR0_PP * tolFX);
 
-                NLSolConv = (ratioDD < 1.0) && //(ratioResDD < 1.0) &&
-                    (ratioPP < 1.0);// && (ratioResPP < 1.0);
+                NLSolConv = (ratioDeltaDD < 1.0) &&
+                            (ratioDeltaPP < 1.0) &&
+                            (ratioResDD < 1.0) &&
+                            (ratioResPP < 1.0);
 
-                std::cout << "   NL #" << NLiter
-                          << "   DD: " << ratioDD //<< "   ResDD: " <<
-                          // ratioResDD
-                          << "   PP: " << ratioPP //<< "   ResPP: " <<
-                          // ratioResPP
+                std::cout << std::setprecision(6) << std::scientific
+                          << "NL #" << std::left << std::setw(5) <<   NLiter
+                          << "   DD: " << std::left << std::setw(10)
+                          << ratioDeltaDD
+                          << "   PP: " << std::left << std::setw(10)
+                          << ratioDeltaPP
+                          << "   ResDD: " << std::left << std::setw(10)
+                          << ratioResDD
+                          << "   ResPP: " << std::left << std::setw(10)
+                          << ratioResPP
                           << std::endl;
                 //std::cout << "   NL iteration: \t" << NLiter << std::endl;
 
@@ -803,7 +819,8 @@ ToughnessDominated(int nelts)
         actSol_old=actSol;
 
         //// OUTPUT
-        std::cout << "Opening values full: \n" << std::endl;
+        std::cout << "injected volume = " << injectedVol <<std::endl;
+        std::cout << "---End of time step\n" << std::endl;
 //            for (il::int_t i = 0; i < Xfull.size(); i++)
 //            {
 //                std::cout << i << "\t" << Xfull[i] << std::endl;
@@ -814,6 +831,12 @@ ToughnessDominated(int nelts)
 
 
     }
+
+    // TODO: make a better output, write down when it is converged, when it
+    // is not, when we are updating the set, when the set continues to be
+    // fixed, how much volume is injected (versus the one that is computed) and
+    // how much pressure is there. Also add the value of the time step and
+    // the length of the crack (or tip position..)
 
 std::cout << "End of the analysis" <<
 std::endl;
