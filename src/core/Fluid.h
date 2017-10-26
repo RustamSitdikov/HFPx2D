@@ -2,7 +2,6 @@
 // Created by lorenzo on 9/18/17.
 //
 
-
 //
 // This file is part of HFPx2DUnitTest.
 //
@@ -28,14 +27,6 @@ private:
 
 public:
 
-//  explicit Fluid(const Fluid& theFluid){
-//
-//    density_ = theFluid.density_;
-//    viscosity_ = theFluid.viscosity_;
-//    compressibility_ = theFluid.compressibility_;
-//
-//  }
-//
    Fluid(double density, double viscosity, double compressibility) {
 
     density_ = density;
@@ -43,20 +34,12 @@ public:
     compressibility_ = compressibility;
   }
 
-//  void setFluidParameters(double density, double viscosity, double compressibility) {
-//
-//    density_ = density;
-//    viscosity_ = viscosity;
-//    compressibility_ = compressibility;
-//  }
-
   double fluidDensity() { return density_; };
   double fluidViscosity() { return viscosity_; };
   double fluidCompressibility() { return compressibility_; };
 
 };
 
-// method would be friction(Reynolds,roughness) -> different models ?
 
 }
 

@@ -275,6 +275,7 @@ void Mesh::AddNTipElements(const il::int_t t_e, const il::int_t the_tip_node,
     }
   };
 
+  // now UPDATE THE MESH....
   coordinates_ = new_all_coor;
   connectivity_ = new_conn;
 
@@ -318,7 +319,7 @@ void Mesh::AddNTipElements(const il::int_t t_e, const il::int_t the_tip_node,
   // rebuilt tip nodes table...
   tipnodes_ = BuildTipNodes(node_adj_elt_);
   tipelts_ = BuildTipElts(node_adj_elt_, tipnodes_);
-  
+
 }
 
 

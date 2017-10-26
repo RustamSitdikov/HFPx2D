@@ -19,7 +19,7 @@
 
 #include <src/Elasticity/AssemblyDDM.h>
 #include <src/Elasticity/Simplified3D.h>
-#include <src/FluidFlow/ReynoldsP0.h>
+#include <src/FractureFluidFlow/ReynoldsP0.h>
 #include <src/core/SimulationParameters.h>
 
 namespace hfp2d {
@@ -29,9 +29,9 @@ int TwoParallelHFs(int nelts, double dist) {
   // 2 fractures parallel separated by dist
   // nelts per frac (numberOfElements should be odd for symmetry)
 
-  // for now for debug we hardcode numberOfElements = 9  so injection is in elt
-  // 5 and elt
-  // 14
+  // for now for debug we hardcode numberOfElements = 3  so injection is in elt
+  // 1 and elt
+  // 4
 
   // step 1 create mesh
   int p = 0;
@@ -88,14 +88,14 @@ int TwoParallelHFs(int nelts, double dist) {
     fracID[i] = 2;
   }
 
-   hfp2d::Mesh mesh( xy, myconn,p);
+  hfp2d::Mesh mesh(xy, myconn, p);
 
-    hfp2d::Mesh mesh2( xy, myconn,p);
+//  hfp2d::Mesh mesh2(xy, myconn, p);
 
-//    mesh2.AddNTipElements(9,10,2,0.);
+  //    mesh2.AddNTipElements(9,10,2,0.);
 
-//  il::Array2D<il::int_t> myed =
-//      hfp2d::GetNodalEltConnectivity(mesh.numberOfNodes(),mesh.connectivity());
+  //  il::Array2D<il::int_t> myed =
+  //      hfp2d::GetNodalEltConnectivity(mesh.numberOfNodes(),mesh.connectivity());
 
   //  const il::Array2D<il::int_t> edge = hfp2d::GetEdgesSharing2_old(mesh);
 
@@ -111,26 +111,27 @@ int TwoParallelHFs(int nelts, double dist) {
   AddTipCorrectionP0(mesh, myelas, nelts, K);
   AddTipCorrectionP0(mesh, myelas, Ntot - 1, K);
 
-//   RE_ARRANGE THE DOF FOR DD HERE !!! this is probably not needed.
-//  K = ReArrangeKP0(mesh, K);
+  //   RE_ARRANGE THE DOF FOR DD HERE !!! this is probably not needed.
+  //  K = ReArrangeKP0(mesh, K);
 
   // initial stress field uniform to test.
   il::Array<double> sig_o{Ntot, 0.1}, tau_o{Ntot, 0.};
 
   // initial fluid pressure
-  il::Array<double> pf_o{Ntot, 0.1 + 1.e-1};  // slightly above sig_o to have initial width
+  il::Array<double> pf_o{
+      Ntot, 0.1 + 1.e-1};  // slightly above sig_o to have initial width
 
   // solve the initial elastic system
   il::Array<double> fini{2 * Ntot, 0.};
   il::int_t j = 0;
-  std::cout << "e !!!" << (Ntot+Ntot) <<"\n";
-  for (il::int_t i = 0; i <(Ntot+Ntot); i=i+2) {
+  std::cout << "e !!!" << (Ntot + Ntot) << "\n";
+  for (il::int_t i = 0; i < (Ntot + Ntot); i = i + 2) {
     fini[i] = tau_o[j];
     fini[i + 1] = -(pf_o[j] - sig_o[j]);
     j++;
-   }
+  }
 
-  il::int_t ea = 2 ;
+  il::int_t ea = 2;
 
   std::cout << "elt size" << mesh.elt_size(ea) << "w " << h << "\n";
 
@@ -148,10 +149,10 @@ int TwoParallelHFs(int nelts, double dist) {
 
   il::Array<double> width{mesh.numberOfElements(), 0.},
       sheardd{mesh.numberOfElements(), 0.};
-   for (il::int_t i = 0; i < mesh.numberOfElements(); i++) {
-    sheardd[i] = dd_ini[2*i];
-    width[i] = dd_ini[2*i + 1];
-   }
+  for (il::int_t i = 0; i < mesh.numberOfElements(); i++) {
+    sheardd[i] = dd_ini[2 * i];
+    width[i] = dd_ini[2 * i + 1];
+  }
 
   // create a solution at time t=0 object.
   hfp2d::SolutionAtT Soln =
@@ -178,19 +179,21 @@ int TwoParallelHFs(int nelts, double dist) {
 
   hfp2d::SimulationParameters SimulParam;
 
-  bool imp_tip = false ; //
+  bool imp_tip = false;  //
   il::Array<il::int_t> tip_elt{4};
-  il::Array<double> tip_width{4,0.16};
+  il::Array<double> tip_width{4, 0.16};
 
-  tip_elt=mesh.tip_elts();
+  tip_elt = mesh.tip_elts();
+// create a function to get ribbon elements.
+
 
   hfp2d::SolutionAtT Soln1 =
-      ReynoldsSolverP0(Soln, K, water, the_rock, the_source, dt,imp_tip,tip_elt,tip_width, SimulParam);
+      ReynoldsSolverP0(Soln, K, water, the_rock, the_source, dt, imp_tip,
+                       tip_elt, tip_width, SimulParam);
 
   std::cout << "now out of reynolds"
             << "\n";
 
-  return 0 ;
-
+  return 0;
 };
 }
