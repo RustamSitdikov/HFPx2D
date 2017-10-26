@@ -107,7 +107,8 @@ il::Array<il::int_t> BuildTipNodes(
   return tipnodes;
 }
 ////////////////////////////////////////////////////////////////////////////////
-// function to build tip element vector from nodal_connectivity table and the tipnodes array
+// function to build tip element vector from nodal_connectivity table and the
+// tipnodes array
 il::Array<il::int_t> BuildTipElts(
     const il::Array2D<il::int_t> &node_connectivity,
     const il::Array<il::int_t> &tipnodes) {
@@ -119,7 +120,6 @@ il::Array<il::int_t> BuildTipElts(
   return tipelt;
 }
 ////////////////////////////////////////////////////////////////////////////////
-
 
 ////////////////////////////////////////////////////////////////////////////////
 //          METHODS
@@ -174,8 +174,51 @@ il::Array2D<il::int_t> Mesh::GetNodesSharing2Elts() {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+// method to get next to tip elements - so-called ribbons element in an
+// ILSA-like scheme
+
+il::Array<il::int_t> Mesh::getRibbonElements(){
+
+
+  il::Array<il::int_t> ribbon_elts{tipelts_.size(),0};
+  il::int_t  nt_1;
+
+  for (il::int_t e=0; e< ribbon_elts.size(); e++){
+
+      // local connectivity of the tip elements
+      if( connectivity(tipelts_[e],0) == tipnodes_[e] ){
+          nt_1 = connectivity(tipelts_[e],1);
+      } else {
+        if (connectivity(tipelts_[e],1) == tipnodes_[e] ) {
+          nt_1 = connectivity(tipelts_[e],0);
+        } else
+        {
+          il::abort();
+        }
+      }
+
+    if (node_elt_connectivity(nt_1,0)== tipelts_[e]){
+        ribbon_elts[e]=node_elt_connectivity(nt_1,1);
+    }
+    else
+    {
+      if (node_elt_connectivity(nt_1,1)== tipelts_[e]) {
+        ribbon_elts[e]=node_elt_connectivity(nt_1,0);
+      } else
+      {il::abort();
+      }
+    }
+
+
+  }
+
+  return ribbon_elts;
+
+}
+
+////////////////////////////////////////////////////////////////////////////////
 // could do a method returning the element and nodes of a given fracture
-/// this is honestly not really needed.....
+/// this is honestly not really needed for now.....
 
 ////////////////////////////////////////////////////////////////////////////////
 // Function returning the segment characteristic object for element ne
@@ -194,7 +237,8 @@ hfp2d::SegmentData Mesh::getElementData(const il::int_t ne) {
 // adding elements function...
 void Mesh::AddNTipElements(const il::int_t t_e, const il::int_t the_tip_node,
                            const il::int_t n_add, double kink_angle) {
-  // add n_add elements in the Mesh object ahead of the nodes the_tip_node (global numbering) of
+  // add n_add elements in the Mesh object ahead of the nodes the_tip_node
+  // (global numbering) of
   // element t_e
   // with a kink_angle   with respect to element t_e
   //  The size of the added elements are equal to the size of element of t_e
@@ -213,7 +257,6 @@ void Mesh::AddNTipElements(const il::int_t t_e, const il::int_t the_tip_node,
 
   // we need to know how if the tip nodes is the first or second nodes of the
   // element to know the direction of propagation
-
 
   if (the_tip_node == tipEltConn[0]) {
     local_tip_node = 0;
@@ -253,18 +296,20 @@ void Mesh::AddNTipElements(const il::int_t t_e, const il::int_t the_tip_node,
     new_all_coor(i, 0) = coordinates(i, 0);
     new_all_coor(i, 1) = coordinates(i, 1);
   }
+  //
   for (il::int_t i = 0; i < n_add; i++) {
     new_all_coor(i + numberOfNodes(), 0) = new_nodes(i, 0);
     new_all_coor(i + numberOfNodes(), 1) = new_nodes(i, 1);
   }
 
-  // duplicating the connectivity table....
+  // duplicating the old connectivity table....
   il::Array2D<il::int_t> new_conn(numberOfElements() + n_add, 2);
   for (il::int_t i = 0; i < numberOfElements(); i++) {
     new_conn(i, 0) = connectivity(i, 0);
     new_conn(i, 1) = connectivity(i, 1);
   }
-  // adding the new connectivity
+  // adding the new connectivity at the end (so old element numbers are still
+  // the same).
   for (il::int_t i = 0; i < n_add; i++) {
     if (i == 0) {
       new_conn(i + numberOfElements(), 0) = connectivity(t_e, local_tip_node);
@@ -319,8 +364,5 @@ void Mesh::AddNTipElements(const il::int_t t_e, const il::int_t the_tip_node,
   // rebuilt tip nodes table...
   tipnodes_ = BuildTipNodes(node_adj_elt_);
   tipelts_ = BuildTipElts(node_adj_elt_, tipnodes_);
-
 }
-
-
 }

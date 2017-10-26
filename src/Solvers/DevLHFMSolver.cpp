@@ -184,12 +184,43 @@ int TwoParallelHFs(int nelts, double dist) {
   il::Array<double> tip_width{4, 0.16};
 
   tip_elt = mesh.tip_elts();
+
 // create a function to get ribbon elements.
+
+  il::Array<il::int_t> ribbon=mesh.getRibbonElements();
+  il::Array<double> ribbon_widths{ribbon.size(),0.};
 
 
   hfp2d::SolutionAtT Soln1 =
       ReynoldsSolverP0(Soln, K, water, the_rock, the_source, dt, imp_tip,
                        tip_elt, tip_width, SimulParam);
+
+  // ribbon cell width
+   for (il::int_t i=0; i< ribbon.size();i++){
+      ribbon_widths[i] = Soln1.openingDD()[ribbon[i]];
+   }
+
+  hfp2d::Mesh newmesh = mesh;
+
+   newmesh.AddNTipElements(0,0,1,0.);
+
+  std::cout << " new mesh "<<  newmesh.numberOfElements() << "\n";
+//
+  std::cout <<" old mesh " << mesh.numberOfElements() << "\n";
+
+  // loop on each tips
+  // invert tip asymptotics for each tip....
+  // check if elements have to be added
+  // compute tip width at tn+1 according to asymptote for these tip elements.
+
+  // if yes, new mesh
+  // pad with zero the width and fluid pressure array of the previous time solution accordingly
+  // adapt elasticity matrix
+
+  // we need to be able to make a deep copy of the mesh object. and the solution object.
+
+
+//  Soln=std::move(Soln1);
 
   std::cout << "now out of reynolds"
             << "\n";

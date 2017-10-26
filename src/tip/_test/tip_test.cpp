@@ -14,7 +14,7 @@
 //  UNIT TESTS FOR TIP Asymptote Libary
 TEST(tip_inversion_1,t1) {
   //
-  //  double ret = 0.0333916;
+   double ret = 0.0333916;
 
   ASSERT_NEAR(0.0333916, ret, 0.001);
 

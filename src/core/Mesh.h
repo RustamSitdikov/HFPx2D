@@ -315,10 +315,15 @@ class Mesh {  // class for 1D mesh of 1D segment elements ?
   // todo rename
   il::Array2D<il::int_t> GetNodesSharing2Elts();
 
+  // method to get the ribbon elements  - of a given mesh.
+  il::Array<il::int_t>  getRibbonElements() ;
+
+
+  // method to add N element ahead of a tip node of a tip element at a given kick angle
    void AddNTipElements(const il::int_t t_e, const il::int_t the_tip_node,
                        const il::int_t n_add, double kink_angle);
 
-  // todo : do comments each methods !
+  // todo : do comments each methods better !
 
 };
 }
