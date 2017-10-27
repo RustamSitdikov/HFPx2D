@@ -120,13 +120,11 @@ int main(int const argc, char const* const* argv) {
 
   std::cout << "\n\n ----- Simple Griffith crack examples ----- \n\n" << std::endl;
 
-  int nelts = 10;
+  int nelts = 1000;
 
   //double ret1 = hfp2d::SimpleGriffithExampleLinearElement(nelts);
   //double ret2 = hfp2d::SimpleGriffithExampleS3D_P0(nelts);
   double ret3 = hfp2d::ToughnessDominated(nelts);
-
-  il::Array<double> w{10};
 
 
   //std::cout << "\n rel error L2 norm in Linear Elements: " << ret1 << "\n";

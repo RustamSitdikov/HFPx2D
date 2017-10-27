@@ -118,10 +118,12 @@ public:
         double stress;
 
         if (opening < maximum_opening_[collPT]){
-            stress =
-                failure_stress_[collPT] * (1.0 - opening / maximum_opening_[collPT]);
+            stress = std::max(
+                (failure_stress_[collPT] * (1.0 - opening /
+                    maximum_opening_[collPT])),
+                1.0e-4 *failure_stress_[collPT]);
         } else {
-            stress = 0.0;
+            stress = 1.0e-4 *failure_stress_[collPT];
         }
 
         return stress;
@@ -133,13 +135,15 @@ public:
 
         if(opening < maximum_opening_[collPT])
         {
-            stress = stressLoading(maximum_opening_[collPT],collPT)*
-                (opening/maximum_opening_[collPT]);
+            stress = std::max(
+                (stressLoading(maximum_opening_[collPT],collPT)*
+                (opening/maximum_opening_[collPT])),
+                1.0e-4 *failure_stress_[collPT]);
                 //failure_stress_[collPT] * (opening /
             // maximum_opening_[collPT]);
         } else {
 
-            stress = 0.0;
+            stress = 1.0e-4 *failure_stress_[collPT];
         }
 
         return stress;

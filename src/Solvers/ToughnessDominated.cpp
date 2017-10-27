@@ -16,7 +16,7 @@ ToughnessDominated(int nelts)
 {
 
     int p = 1;
-    double h = 2. / (nelts); //  element size
+    double h = 0.1; //2. / (nelts); //  element size
     il::Array2D<double> xy{nelts + 1, 2, 0.0};
     il::Array2D<il::int_t> myconn{nelts, 2, 0};
     il::Array2D<il::int_t> id_displ{nelts, 2 * (p + 1), 0};
@@ -59,32 +59,33 @@ ToughnessDominated(int nelts)
 
     // Elastic properties initialization
     // double Ep = 1.;                    // Plane strain Young's modulus
-    hfp2d::ElasticProperties myelas(1.0e7, 0.);
+    hfp2d::ElasticProperties myelas(20.0e9, 0.);
     // std::cout << "EP :" << myelas.Ep() << "\n";
 
     // Stress distribution and other quantities
     double epsiP0 = 1.0e-4;         // variation in pore pressure
 
     double sigmaS = 0.0;            // in situ stress, shear
-    double sigmaW = 1.0e6;          // in situ stress, opening
+    double sigmaW = 100.0e6;          // in situ stress, opening
 
-    double initPress = 1.0e6 + epsiP0; // initial pore pressure
-    double injectionRate = 2.0e-3;
-    double failStress = 2.0e5;
-    double maxOpening = failStress/myelas.Ep(); //1.0;
+    double initPress = 100.0e6 + epsiP0; // initial pore pressure
+    double injectionRate = 1.0e-4;
+    double failStress = 10.0e6;
+    double maxOpening = 0.001; //failStress/myelas.Ep(); //1.0;
 
-    il::int_t finalTimeStep = 100;
-    double deltaTime = 1.0; // secs
+    il::int_t finalTimeStep = 50;
+    double deltaTime = 0.0001; // secs
 
     const double tolX1 = 1.0e-4;
     const double tolX2 = 1.0e-8;
     const double tolFX = 1.0e-4;
+    const double relaxParam=0.75;
 
     il::int_t NLiter = 0;
     il::int_t globalIter = 0;
     bool NLSolConv = false;
     bool actSetConv = false;
-    const il::int_t NLiterMax = 10;
+    const il::int_t NLiterMax = 100;
     const il::int_t globalIterMax = 10;
 
     SolidEvolution linearCZM(failStress, maxOpening, totalNumDD);
@@ -175,9 +176,6 @@ ToughnessDominated(int nelts)
 
     il::int_t numActElems = activeList.size();  // number of active elements
     il::int_t numActDispl = numActElems * DDxElem; // # of active dofs
-
-    il::int_t numActElems_old = activeList.size();  // number of active elements
-    il::int_t numActDispl_old = numActElems * DDxElem; // # of active dofs
 
 
     //// EXTRACTION OF ACTIVE K MATRIX AND F VECTOR
@@ -315,7 +313,18 @@ ToughnessDominated(int nelts)
     il::Array<double> globalStressColl(totalNumDD, 0.0);
 
     // save first active list as old
-    il::Array<il::int_t> activeList_old = activeList;
+    il::int_t numActDispl_old = numActDispl;
+    il::int_t numActElems_old = numActElems;
+    il::Array<il::int_t> activeList_old;
+    activeList_old.reserve(mesh.numElems());
+    activeList_old= activeList;
+
+    il::int_t numActDispl_temp = numActDispl;
+    il::int_t numActElems_temp = numActElems;
+    il::Array<il::int_t> activeList_temp;
+    activeList_temp.reserve(mesh.numElems());
+    activeList_temp= activeList;
+
 
 
     // global vector of DD at collocation points
@@ -569,8 +578,9 @@ ToughnessDominated(int nelts)
                 // and update solution
                 for (il::int_t i = 0; i < numActDispl + 1; i++)
                 {
-                    actSol[i] = actSol_old[i] + deltaActSol[i];
-//                        0.85*(actSol[i] + deltaActSol[i]) + 0.15*actSol[i];
+                    //actSol[i] = actSol_old[i] + deltaActSol[i];
+                    actSol[i] = (relaxParam)*(actSol[i] + deltaActSol[i])
+                        + (1.0-relaxParam)*actSol[i];
                 }
 
                 //// UPDATE GLOBAL SOLUTION
@@ -701,8 +711,8 @@ ToughnessDominated(int nelts)
                 double normResDD = normSplit(R, 0, numActDispl);
                 double normResPP = normSplit(R, numActDispl, numActDispl + 1);
 
-                double ratioResDD = normResDD / (normR0_DD * tolFX);
-                double ratioResPP = normResPP / (normR0_PP * tolFX);
+                double ratioResDD = normResDD / (tolX1 * normR0_DD + tolX2);
+                double ratioResPP = normResPP / (tolX1 * normR0_PP + tolX2);
 
                 NLSolConv = (ratioDeltaDD < 1.0) &&
                             (ratioDeltaPP < 1.0) &&
@@ -808,6 +818,8 @@ ToughnessDominated(int nelts)
             numActElems = numActElems_temp;
             numActDispl = numActDispl_temp;
 
+            std::cout << "Max aperture: " << *std::max_element(globalDDs.begin
+                (), globalDDs.end()) << std::endl;
         }
 
 //        for (il::int_t i = 0; i < numActElems; i++)
