@@ -17,6 +17,10 @@ double SimpleGriffithExampleLinearElement(int nelts);
 
 double SimpleGriffithExampleS3D_P0(int nelts);
 
+double SimpleGriffithExampleLinearElement_AddMesh(int nelts);
+
+double SimpleGriffithExampleS3D_P0_AddMesh(int nelts);
+
 }
 
 #endif //HFPX2D_SIMPLEELASTIC_H

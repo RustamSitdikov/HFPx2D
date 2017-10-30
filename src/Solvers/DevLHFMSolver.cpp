@@ -351,7 +351,7 @@ hfp2d::Solution FractureFrontLoop(hfp2d::Solution &Sol_n,
       };
       // be careful, do things in reverse from the new tip location...
       for (il::int_t et=n_add;et>=0;et--){
-        if (et=n_add){
+        if (et==n_add){
           tipW[et]=tipVol[et]/h_ribbon;
         } else
         {
@@ -369,6 +369,7 @@ hfp2d::Solution FractureFrontLoop(hfp2d::Solution &Sol_n,
 
     // if number of elements have changed modify the Elasticity_Matrix -> increase etc.
     // always resize to original at tn (in case of element decrease)
+
 
     imp_tip = true;
 
