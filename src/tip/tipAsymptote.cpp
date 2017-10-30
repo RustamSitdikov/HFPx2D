@@ -219,13 +219,15 @@ double moment1(double s, TipParameters &taParam) {
 bool isPropagating(TipParameters &taParam) {
   // return (k_H(taParam.k_p, taParam.e_p,
   // taParam.wa, taParam.s_prev) <= 1.0);
-  return (taParam.k1c * std::pow(taParam.st, 0.5) <= taParam.e_p * taParam.wa);
+  double k_p = 4.0 * std::pow(2.0 / il::pi, 0.5) * taParam.k1c;   // there was an ERROR HERE K' not K_1c
+  return (k_p * std::pow(taParam.st, 0.5)  <= taParam.e_p * taParam.wa);
 }
 
 // overload for s as an independent parameter
 bool isPropagating(double s, TipParameters &taParam) {
   // return (k_H(taParam.k_p, taParam.e_p, taParam.wa, s) <= 1.0);
-  return (taParam.k1c * std::pow(s, 0.5) <= taParam.e_p * taParam.wa);
+  double k_p = 4.0 * std::pow(2.0 / il::pi, 0.5) * taParam.k1c;   // there was an ERROR HERE K' not K_1c
+  return (k_p * std::pow(s, 0.5) <= taParam.e_p * taParam.wa);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -380,7 +382,7 @@ TipParameters propagateTip(ResFun resF, TAInParam &taIn, double epsilonS,
   // defining the tip asymptote.
 
   // under-relaxation parameter
-  const double beta = 0.5;
+  const double beta = 1.0;
 
   TipParameters taNew;
   taNew.wa = taIn.wa;                          // new ribbon cell opening

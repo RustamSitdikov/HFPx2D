@@ -73,7 +73,7 @@ il::Array2D<double> basic_assembly(Mesh &mesh, ElasticProperties &elas,
 
   il::StaticArray2D<double, 2, 4> stnl;
 
-  il::Array2D<double> Kmat{mesh.numberOfDDDofs(), mesh.numberOfDDDofs()};
+  il::Array2D<double> Kmat{mesh.numberOfDDDofs(),mesh.numberOfDDDofs()};
 
   // Brute Force assembly
   // double loop on elements to create the stiffness matrix ...
@@ -120,9 +120,26 @@ il::Array2D<double> basic_assembly(Mesh &mesh, ElasticProperties &elas,
 
 // todo need to write a function similar to Assembly for the addition of new
 // rows and columms corresponding to the addition of new elements in the mesh !
+///////////////////////////////////////////////////////////////////////////////
+void basic_assembly_add_elts(Mesh &new_mesh,il::int_t n_add,ElasticProperties &elas,
+                             vKernelCall KernelCall, double ker_options,il::io_t,il::Array2D<double> &K){
+// here newmesh containing the mesh on which the whole elasticity matrix will be built
+// n_add : number of elements added - note that the new element added MUST be stored
+// at the end of the newmesh connectivity table (consistency not checked)
+// (or better have the new and old mesh ? )
+
+  // resize K
+
+  // loop on all element of new_mesh (including the added elt)
+
+  // loop to calculate effect on the added elts.
+
+};
+///////////////////////////////////////////////////////////////////////////////
 
 
-//  tip correction....
+///////////////////////////////////////////////////////////////////////////////
+//  tip correction for PO elements
 void AddTipCorrectionP0(hfp2d::Mesh &mesh, const ElasticProperties &elas,
                         il::int_t tipElt, il::Array2D<double> &Kmat ) {
 
@@ -137,8 +154,10 @@ void AddTipCorrectionP0(hfp2d::Mesh &mesh, const ElasticProperties &elas,
   Kmat(mesh.dofDD(tipElt, 1), mesh.dofDD(tipElt, 1))+=correct;
 
 }
+///////////////////////////////////////////////////////////////////////////////
 
-// remove tip correction....
+///////////////////////////////////////////////////////////////////////////////
+// remove tip correction for PO elements
 void RemoveTipCorrectionP0(hfp2d::Mesh &mesh, const ElasticProperties &elas,
                         il::int_t tipElt, il::Array2D<double> &Kmat ) {
 
@@ -168,7 +187,7 @@ il::Array2D<double> ReArrangeKP0(const Mesh &mesh,il::Array2D<double> &Kmat) {
   // reorder K in the following blocks type
   //  Kss Ksn
   //  Kns Knn
-  //
+  //  not used.
   IL_EXPECT_FAST(Kmat.size(0) == Kmat.size(1));
 // test that it should even (/2)
 

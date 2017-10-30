@@ -81,7 +81,7 @@ set(SOURCE_FILES
         src/FractureFluidFlow/ReynoldsP0.h
         src/Solvers/DevLHFMSolver.cpp
         src/Solvers/DevLHFMSolver.h
-        src/core/SolutionAtT.h
+        src/core/Solution.h
         src/core/SolidProperties.h
         src/tip/tipAsymptote.cpp
         src/tip/tipAsymptote.h)
