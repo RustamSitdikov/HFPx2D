@@ -159,7 +159,7 @@ void basic_assembly_add_elts(Mesh &new_mesh, il::int_t n_add,
     il::int_t nl = new_mesh.numberOfElements();
     il::int_t j_off = 0;
 
-    if (e < old_nelts) { // case of already existing elements-
+    if (e < old_nelts) {  // case of already existing elements-
       // we just compute their effects on the added elements
       il::int_t nl = n_add;
       il::int_t j_off = old_nelts;
