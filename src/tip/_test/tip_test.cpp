@@ -29,7 +29,7 @@ prevTipPar.vt = 0.0;
 double dt = 0.312799;
 double wa = 0.00026694;
 
-tip::TipParameters newTipPar = tip::propagateTip
+tip::TipParameters newTipPar = tip::tipStep
         (tip::res_u_0_m, prevTipPar,
          dt, wa, 1000,
          1E-6, 50, mute);

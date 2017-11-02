@@ -13,7 +13,7 @@
 #include "tipAsymptote.h"
 #include <iostream>
 
-// fracture tip asymptote(s)
+// fracture tip asymptote(s) inversion
 namespace tip {
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -112,6 +112,7 @@ namespace tip {
     double res_u_0_m(double s, TipParameters &taParam) {
       // assume fully coupled iteration
       double v = (s - taParam.s0) / taParam.dt;
+      // cutting out negative values (remove zero if necessary)
       v = std::max(v, 0.0 * m_tol);
       double k_h = k_H(taParam.k1c, taParam.e_p, taParam.wa, s);
       double s_h = s_H(taParam.mu, taParam.e_p, v, taParam.wa, s);
@@ -138,6 +139,7 @@ namespace tip {
     double res_u_1_m(double s, TipParameters &taParam) {
       // assume fully coupled iteration
       double v = (s - taParam.s0) / taParam.dt;
+      // cutting out negative values (remove zero if necessary)
       v = std::max(v, m_tol);
       double k_h = k_H(taParam.k1c, taParam.e_p, taParam.wa, s);
       double s_h = s_H(taParam.mu, taParam.e_p, v, taParam.wa, s);
@@ -212,12 +214,13 @@ namespace tip {
       ab[0] = taParam.s0; // + m_tol;
       double fa = resF(ab[0], taParam);
 
+      // search for a better lower bound if signs of fa and fb are equal
       int count = 0;
-      double wt = 2.0;
+      double wt1 = 2.0, wt2 = 1.0;
       double mid = ab[1];
       while (fa * fb > 0.0 && count < maxIter) {
         // take an intermediate point for lower bound
-        mid = (ab[0] + wt * mid) / (wt + 1.0);
+        mid = (wt1 * ab[0] + wt2 * mid) / (wt1 + wt2);
         ab[0] = mid;
         fa = resF(ab[0], taParam);
         ++count;
@@ -355,7 +358,7 @@ namespace tip {
 
 ////////////////////////////////////////////////////////////////////////////////
 // finding the distance to the tip & velocity after a time step dt
-    TipParameters propagateTip
+    TipParameters tipStep
             (ResidualFunction resF,
              TipParameters &taPrev,
              double dt, double wa,
@@ -367,19 +370,18 @@ namespace tip {
       // defining the tip asymptote.
 
       TipParameters taNew;
-      taNew.wa = wa; // taPrev.wa; // new ribbon cell opening
+      taNew.wa = wa; // new ribbon cell opening
       taNew.s0 = taPrev.st; // previous distance to the tip
       taNew.vt = std::max(taPrev.vt, m_tol); // previous tip velocity
-      // taNew.coupleV = true;
       taNew.dt = dt; // taPrev.dt; // time step
       // copying other parameters
       taNew.k1c = taPrev.k1c;
       taNew.e_p = taPrev.e_p;
       taNew.cl = taPrev.cl;
       taNew.mu = taPrev.mu;
-      // todo: triggering time
+      // todo: triggering time for Carter leak-off
 
-      // check K vs K1c (taParam.k_p)
+      // check K vs K1c (taParam.k1c)
       bool isProp = isPropagating(taNew);
 
       if (!isProp) {
@@ -391,7 +393,6 @@ namespace tip {
         // bracketing the tip position for fine root finding
         il::StaticArray<double, 2> ab =
                 bracket(resF, taNew, up_bound, 30, mute);
-        // taNew.coupleV = true; // taNew.coupleV && !isNotConv;
         // fine root finding (adjusting tip position)
         double s_a = brent(resF, taNew, ab[0], ab[1],
                            epsilon, maxIter);

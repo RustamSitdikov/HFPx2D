@@ -14,7 +14,7 @@
 // #include <il/math.h>
 #include <il/StaticArray.h>
 
-// fracture tip asymptote inversion
+// fracture tip asymptote(s) inversion
 namespace tip {
     // constants
     // const double beta_m = std::pow(2.0, 1.0 / 3.0) * std::pow(3.0, 5.0 / 6.0);
@@ -113,7 +113,7 @@ namespace tip {
              double epsilon, int maxIter);
 
     // finding the distance to the tip & velocity after a time step dt
-    TipParameters propagateTip
+    TipParameters tipStep
             (ResidualFunction resF,
              TipParameters &taIn,
              double dt, double wa,
