@@ -65,6 +65,7 @@ namespace tip {
     // approximate solution of integral eqn (see Dontsov & Peirce 2015, 2017)
     double effe(double k_h, double b_h, double c1_h);
 
+    // various scaled tip asymptote approximations
     // approximations for k-m edge
     double g_km_0(double s_t); // zero-order approximation
     double g_km_1(double s_t); // 1st order delta-correction
@@ -88,14 +89,14 @@ namespace tip {
     // (virtual) residual function of distance to minimize (set to zero)
     typedef double (*ResidualFunction)(double s, TipParameters &taParam);
 
-    // particular residual functions
+    // particular residual functions to find the root (distance to the tip)
     // (modified to overcome misbehavior at high chi values)
     // zero-order approximation
     double res_u_0_m(double s, TipParameters &taParam);
     // 1st order delta-correction
     double res_u_1_m(double s, TipParameters &taParam);
 
-    // bracketing the tip simply
+    // bracketing the tip
     // (works for modified residual function for high chi)
     il::StaticArray<double, 2> bracket
             (ResidualFunction resF,

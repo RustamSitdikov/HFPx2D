@@ -66,7 +66,7 @@ namespace tip {
 ////////////////////////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////////////////////////////
-// various scaled
+// various scaled tip asymptote approximations
 // zero-order approximation for universal tip asymptote
     double g_un_0(double k_h, double c_h) {
       return effe(k_h, con_mc * c_h, con_m);
