@@ -2,7 +2,6 @@
 // Created by lorenzo on 10/13/17.
 //
 
-#include <iomanip>
 #include "ToughnessDominated.h"
 
 namespace hfp2d
@@ -16,7 +15,7 @@ ToughnessDominated(int nelts)
 {
 
     int p = 1;
-    double h = 0.1; //2. / (nelts); //  element size
+    double h = 2. / (nelts); //  element size
     il::Array2D<double> xy{nelts + 1, 2, 0.0};
     il::Array2D<il::int_t> myconn{nelts, 2, 0};
     il::Array2D<il::int_t> id_displ{nelts, 2 * (p + 1), 0};
@@ -57,10 +56,10 @@ ToughnessDominated(int nelts)
     const il::int_t totalNumDD = mesh.numDisplDofs();
     const il::int_t DDxElem = mesh.numDisplDofsPerElem(); // dof per element
 
+    ////////////////////////////////////////////////////////////
     // Elastic properties initialization
-    // double Ep = 1.;                    // Plane strain Young's modulus
+/*
     hfp2d::ElasticProperties myelas(20.0e9, 0.);
-    // std::cout << "EP :" << myelas.Ep() << "\n";
 
     // Stress distribution and other quantities
     double epsiP0 = 1.0e-4;         // variation in pore pressure
@@ -68,18 +67,46 @@ ToughnessDominated(int nelts)
     double sigmaS = 0.0;            // in situ stress, shear
     double sigmaW = 100.0e6;          // in situ stress, opening
 
-    double initPress = 100.0e6 + epsiP0; // initial pore pressure
+    double initPress = 100.0e6 + epsiP0; // initial pressure
     double injectionRate = 1.0e-4;
-    double failStress = 10.0e6;
+    double failStress = 10.0e3;
     double maxOpening = 0.001; //failStress/myelas.Ep(); //1.0;
 
     il::int_t finalTimeStep = 50;
-    double deltaTime = 0.0001; // secs
+    double deltaTime = 0.01; // secs
+
+    const double tolX1 = 1.0e-6;
+    const double tolX2 = 1.0e-10;
+    const double tolFX = 1.0e-6;
+    const double relaxParam=0.15;
+
+    il::int_t NLiter = 0;
+    il::int_t globalIter = 0;
+    bool NLSolConv = false;
+    bool actSetConv = false;
+    const il::int_t NLiterMax = 100;
+    const il::int_t globalIterMax = 10;
+*/
+    ////////////////////////////////////////////////////////////
+
+    hfp2d::ElasticProperties myelas(100, 0.); //myelas(20.0e9, 0.);
+    double epsiP0 = 0.00001;         // variation in pore pressure
+
+    double sigmaS = 0.0;            // in situ stress, shear
+    double sigmaW = 0.0;          // in situ stress, opening
+
+    double initPress = 0.0 + epsiP0; // initial pressure
+    double injectionRate = 0.0005; //0.0005
+    double failStress = 2.0;
+    double maxOpening = 0.002; //failStress/myelas.Ep(); //1.0;
+
+    il::int_t finalTimeStep = 50;
+    double deltaTime = 1; // secs
 
     const double tolX1 = 1.0e-4;
     const double tolX2 = 1.0e-8;
     const double tolFX = 1.0e-4;
-    const double relaxParam=0.75;
+    const double relaxParam=1.0;
 
     il::int_t NLiter = 0;
     il::int_t globalIter = 0;
@@ -88,9 +115,11 @@ ToughnessDominated(int nelts)
     const il::int_t NLiterMax = 100;
     const il::int_t globalIterMax = 10;
 
-    SolidEvolution linearCZM(failStress, maxOpening, totalNumDD);
+
 
     /////////////////////////////////////////////////////////////////////////////
+    SolidEvolution linearCZM(failStress, maxOpening, totalNumDD);
+
 
     //  std::cout << "Number of elements : " << mesh.nelts() << "\n";
     //  std::cout << "------ Assembly: \t";
@@ -101,6 +130,18 @@ ToughnessDominated(int nelts)
     il::Array2D<double> globalK_DD{totalNumDD, totalNumDD};
     globalK_DD = hfp2d::basic_assembly_new(
         mesh, myelas, hfp2d::normal_shear_stress_kernel_dp1_dd, 0.);
+
+//    il::Array2D<int> id1(id_displ.size(0), id_displ.size(1));
+//
+//    for(il::int_t i=0; i < id_displ.size(0); i++){
+//        for(il::int_t j=0; j < id_displ.size(1); j++){
+//            id1(i,j) = id_displ(i,j);
+//        }
+//    }
+//
+//    il::Array2D<double> globalK_DD_alt = hfp2d::basic_assembly(mesh,id1,p,
+//                                                               myelas,
+//                                       hfp2d::normal_shear_stress_kernel_dp1_dd, 0.);
 
     //  timer.stop();
     //  std::cout << timer.elapsed() << " s" << "  \n";
@@ -158,19 +199,19 @@ ToughnessDominated(int nelts)
     { // even number of elements
 
         activeList.resize(4);
-        activeList[0]=sourceElem-2; //.append(sourceElem - 1);
-        activeList[1]=sourceElem-1; //.append(sourceElem - 1);
-        activeList[2]=sourceElem;   //.append(sourceElem);
-        activeList[3]=sourceElem+1; //.append(sourceElem);
+        activeList[0]=sourceElem-1;
+        activeList[1]=sourceElem;
+        activeList[2]=sourceElem+1;
+        activeList[3]=sourceElem+2;
 
     }
     else
     { // odd number of elements
 
         activeList.resize(3);
-        activeList[0]=sourceElem-1; //.append(sourceElem);
-        activeList[1]=sourceElem; //.append(sourceElem);
-        activeList[2]=sourceElem+1; //.append(sourceElem);
+        activeList[0]=sourceElem-1;
+        activeList[1]=sourceElem;
+        activeList[2]=sourceElem+1;
 
     }
 
@@ -246,6 +287,7 @@ ToughnessDominated(int nelts)
 
     // initial pore pressure
     press = initPress;
+    il::Array<double> forceCheck = il::dot(Kact, initialDDSol);
 
     // initial volume
     double initVolume = 0.0;
@@ -317,21 +359,18 @@ ToughnessDominated(int nelts)
     il::int_t numActElems_old = numActElems;
     il::Array<il::int_t> activeList_old;
     activeList_old.reserve(mesh.numElems());
-    activeList_old= activeList;
+    activeList_old = activeList;
 
     il::int_t numActDispl_temp = numActDispl;
     il::int_t numActElems_temp = numActElems;
     il::Array<il::int_t> activeList_temp;
     activeList_temp.reserve(mesh.numElems());
-    activeList_temp= activeList;
+    activeList_temp = activeList;
 
 
 
     // global vector of DD at collocation points
     il::Array<double> DDatColl(totalNumDD,0.0);
-    // vector of active DD at collocation points (its max size is the totalNumDD)
-    il::Array<double> actDDatColl;
-    actDDatColl.reserve(totalNumDD);
 
     //// INITIALIZATION OF ADDITIONAL MATRICES
     // matrix to compute collocation values starting from nodal values
@@ -342,19 +381,7 @@ ToughnessDominated(int nelts)
     // it is done so the cohesive force is zero
     linearCZM.setInitialCrack(activeList,mesh);
 
-
-    // printing Kact to check if sliding and opening are coupled (and they
-    // are not!!)
-    //std::cout << std::setprecision(6) ;
-//    for(il::int_t i=0; i<numActDispl; i++){
-//        for(il::int_t j=0; j<numActDispl; j++){
-//            std::cout << std::scientific << std::setprecision(4) << Kact(i,j)
-//                      << "\t" ;
-//        }
-//        std::cout << std::endl;
-//    }
-//
-//    std::cin.get();
+    double maxAperture;
 
     ////////////////////////////////////////////////////////////////////////////
 
@@ -383,7 +410,6 @@ ToughnessDominated(int nelts)
 
         /////////////////////////   GLOBAL LOOP   /////////////////////////
         //// Non linear system and activated set of elements must converge
-        //globalIter=0;
         while((!NLSolConv || !actSetConv) && (globalIter < globalIterMax))
         {
             NLSolConv = false;
@@ -415,10 +441,11 @@ ToughnessDominated(int nelts)
                     deltaActSol[xStart + j]=0.0;
                 }
             }
-            deltaActSol[numActDispl]=0.0;
-            actSol[numActDispl] = globalSol[totalNumDD]; // for pressure solution
+            deltaActSol[numActDispl]=0.0; // pressure increment reset to 0
+            actSol[numActDispl] = globalSol_old[totalNumDD]; // for pressure
+            // solution
             actSol_old = actSol; // reset actSol_old to old size/values
-            deltaActSol_old = deltaActSol;
+            deltaActSol_old = deltaActSol; // reset deltaActSol_old to zero
 
             //// INITIALIZATION OF Kact AND Fact FOR THE SOLUTION at this
             /// time step
@@ -469,21 +496,8 @@ ToughnessDominated(int nelts)
             // LOAD Fact
             // 1. Compute displacements at collocation points
             // Calculating DDs at **ALL** collocation points
-            DDatColl = il::dot(fetc, globalDDs);
-
-            // Resize the DDs at **ACTIVE** collocation points
-            actDDatColl.resize(numActDispl);
-            // reload the active displacement discontinuities
-            for (il::int_t i = 0; i < numActElems; i++)
-            {
-                for (il::int_t j = 0; j < DDxElem; j++)
-                {
-
-                    actDDatColl[i * DDxElem + j] =
-                        DDatColl[mesh.dofDispl(activeList[i], j)];
-
-                }
-            }
+            DDatColl = il::dot(fetc, globalDDs_old); // we use old values
+            // because we are still in the initialization of the timestep
 
             // 2. computation of pressure at collocation points from nodes is
             // not required since it is constant
@@ -509,34 +523,50 @@ ToughnessDominated(int nelts)
 
                 // save the values of inSituStr in Fact
                 Fact[xStart]     = + inSituStr[mesh.dofDispl(activeList[i], 0)];
-                Fact[xStart + 1] = - press_old
+                Fact[xStart + 1] = //- press_old
                                    + inSituStr[mesh.dofDispl(activeList[i], 1)]
                                    + cohStress1;
                 Fact[xStart + 2] = + inSituStr[mesh.dofDispl(activeList[i], 2)];
-                Fact[xStart + 3] = - press_old
+                Fact[xStart + 3] = //- press_old
                                    + inSituStr[mesh.dofDispl(activeList[i], 3)]
-                                   - cohStress2;
+                                   + cohStress2;
 
+            }
+
+            // subtract the part of previous solution,
+            // compute ( [-K] w_n + p_n ) = Kact * actSol_old
+            // and subtract it from Fact
+            il::Array<double> oldTimeStepContr=il::dot(Kact,actSol_old);
+            //il::blas(-1.0, Kact, actSol_old, +1.0, il::io, Fact);
+            for(il::int_t i=0; i<numActDispl; i++){
+                ////***** CHECK SIGN CHANGE HERE FOR LAST STEP CONTRIBUTION
+                Fact[i] = Fact[i] - oldTimeStepContr[i];
+
+                // here it is - because the pressure is negative and the
+                // contribution of the dislocations must be positive,
+                // contributing in the same direction of the insitu stresses.
+                // In the original formulation, the signs may have been inverted
+            }
+            injectedVol_old=oldTimeStepContr[numActDispl];
+
+
+            // to remove the pressure contribution in new nodes
+            if(numActElems != numActElems_old){
+                for(il::int_t i = numActElems_old; i<numActElems; i++){
+
+                    il::int_t xStart = i * DDxElem;
+
+                    // new elements does not have old pressure value
+                    Fact[xStart + 1] = Fact[xStart + 1] + press_old;
+                    Fact[xStart + 3] = Fact[xStart + 3] + press_old;
+
+                }
             }
 
             // the initial crack has already an initial volume that we must
             // take into account in the first iteration.
             // Then it will be always Q*deltaT, the additional inj per time step
             Fact[numActDispl] = injectionRate * deltaTime;
-
-            // subtract the part of previous solution, i.e. compute the
-            // residual with - 1.0 Kact W + 1.0 Fact
-            auto vec1=il::dot(Kact,actSol_old);
-            //auto vec2=il::dot(Kact,actSol);
-            //auto vec3=il::dot(Kact,deltaActSol);
-            //il::blas(-1.0, Kact, actSol_old, +1.0, il::io, Fact);
-            for(il::int_t i=0; i<numActDispl; i++){
-                Fact[i] = Fact[i] + vec1[i]; // here it is + but only because
-                // the pressure and the in situ stress signs are inverted. In
-                // reality, in the initial formulation, the contribution of
-                // last time step (given by actSol_old) should have - sign.
-            }
-            injectedVol_old=vec1[numActDispl];
 
 //            il::Array<double> sol_DD(numActDispl);
 //            il::Array2D<double> K_DD(numActDispl,numActDispl);
@@ -579,10 +609,19 @@ ToughnessDominated(int nelts)
                 for (il::int_t i = 0; i < numActDispl + 1; i++)
                 {
                     //actSol[i] = actSol_old[i] + deltaActSol[i];
-                    actSol[i] = (relaxParam)*(actSol[i] + deltaActSol[i])
-                        + (1.0-relaxParam)*actSol[i];
+                    actSol[i] = (relaxParam)*(actSol_old[i] + deltaActSol[i])
+                        + (1.0-relaxParam)*actSol_old[i];
                 }
 
+                // check that widths are positive
+//                for(il::int_t i=0; i<numActDispl; i++){
+//                    if(actSol[i]<0.0)
+//                    {
+//                        actSol[i] = 0.0;
+//                        deltaActSol[i] = -actSol_old[i];
+//                        //deltaActSol[i] = 0.0;
+//                    }
+//                }
                 //// UPDATE GLOBAL SOLUTION
                 // first reset solution to zero
 //                for (il::int_t i = 0; i < totalNumDD; i++)
@@ -615,19 +654,19 @@ ToughnessDominated(int nelts)
                 // Calculating DDs at **ALL** collocation points
                 DDatColl = il::dot(fetc, globalDDs);
 
-                // Resize the DDs at **ACTIVE** collocation points
-                actDDatColl.resize(numActDispl);
-                // reload the active displacement discontinuities
-                for (il::int_t i = 0; i < numActElems; i++)
-                {
-                    for (il::int_t j = 0; j < DDxElem; j++)
-                    {
-
-                        actDDatColl[i * DDxElem + j] =
-                            DDatColl[mesh.dofDispl(activeList[i], j)];
-
-                    }
-                }
+//                // Resize the DDs at **ACTIVE** collocation points
+//                actDDatColl.resize(numActDispl);
+//                // reload the active displacement discontinuities
+//                for (il::int_t i = 0; i < numActElems; i++)
+//                {
+//                    for (il::int_t j = 0; j < DDxElem; j++)
+//                    {
+//
+//                        actDDatColl[i * DDxElem + j] =
+//                            DDatColl[mesh.dofDispl(activeList[i], j)];
+//
+//                    }
+//                }
 
                 // 2. computation of pressure at collocation points from nodes is
                 // not required since it is constant
@@ -654,29 +693,84 @@ ToughnessDominated(int nelts)
                     Fact[xStart] =
                         inSituStr[mesh.dofDispl(activeList[i], 0)];
                     Fact[xStart + 1] =
-                        - press_old
+                        //- press_old
                         + inSituStr[mesh.dofDispl(activeList[i], 1)]
                         + cohStress1;
                     Fact[xStart + 2]=
                         inSituStr[mesh.dofDispl(activeList[i],2)];
                     Fact[xStart + 3] =
-                        - press_old
+                        //- press_old
                         + inSituStr[mesh.dofDispl(activeList[i], 3)]
                         + cohStress2;
+//                    if(cohStress1 > 0.0 || cohStress2 > 0.0){
+//                        std::cout << "ERROR: " << cohStress1 << "  "
+//                                  << cohStress2 << std::endl;
+//                        il::abort();
+//                    }
                 }
 
-                Fact[numActDispl]= injectionRate * deltaTime;
-                // subtract the part of previous solution, i.e. compute the
-                // residual with - 1.0 Kact W + 1.0 Fact
+//                // to remove the pressure
+//                if(numActElems != numActElems_old){
+//                    for(il::int_t i = numActElems_old; i<numActElems; i++){
+//
+//                        il::int_t xStart = i * DDxElem;
+//
+//                        // new elements does not have old pressure value
+//                        Fact[xStart + 1] = Fact[xStart + 1] + press_old;
+//                        Fact[xStart + 3] = Fact[xStart + 3] + press_old;
+//
+//                    }
+//                }
+//
+//                Fact[numActDispl]= injectionRate * deltaTime;
+//                // subtract the part of previous solution, i.e. compute the
+//                // residual with - 1.0 Kact W + 1.0 Fact
+//                //il::blas(-1.0, Kact, actSol_old, +1.0, il::io, Fact);
+//                oldTimeStepContr=il::dot(Kact,actSol_old);
+//                for(il::int_t i=0; i<numActDispl; i++){////***** CHECK
+///// CHANGE HERE
+//                    Fact[i] = Fact[i] + oldTimeStepContr[i]; // here it is + but only because
+//                    // the pressure and the in situ stress signs are inverted. In
+//                    // reality, in the initial formulation, the contribution of
+//                    // last time step (given by actSol_old) should have - sign.
+//                }
+//                injectedVol=oldTimeStepContr[numActDispl];
+
+
+                // subtract the part of previous solution,
+                // compute ( [-K] w_n + p_n ) = Kact * actSol_old
+                // and subtract it from Fact
+                oldTimeStepContr=il::dot(Kact,actSol_old);
                 //il::blas(-1.0, Kact, actSol_old, +1.0, il::io, Fact);
-                vec1=il::dot(Kact,actSol_old);
                 for(il::int_t i=0; i<numActDispl; i++){
-                    Fact[i] = Fact[i] + vec1[i]; // here it is + but only because
-                    // the pressure and the in situ stress signs are inverted. In
-                    // reality, in the initial formulation, the contribution of
-                    // last time step (given by actSol_old) should have - sign.
+                    ////***** CHECK SIGN CHANGE HERE FOR LAST STEP CONTRIBUTION
+                    Fact[i] = Fact[i] - oldTimeStepContr[i];
+
+                    // here it is - because the pressure is negative and the
+                    // contribution of the dislocations must be positive,
+                    // contributing in the same direction of the insitu stresses.
+                    // In the original formulation, the signs may have been inverted
                 }
-                injectedVol=vec1[numActDispl];
+                injectedVol_old=oldTimeStepContr[numActDispl];
+
+                // to remove the pressure contribution in new nodes
+                if(numActElems != numActElems_old){
+                    for(il::int_t i = numActElems_old; i<numActElems; i++){
+
+                        il::int_t xStart = i * DDxElem;
+
+                        // new elements does not have old pressure value
+                        Fact[xStart + 1] = Fact[xStart + 1] + press_old;
+                        Fact[xStart + 3] = Fact[xStart + 3] + press_old;
+
+                    }
+                }
+
+                // the initial crack has already an initial volume that we must
+                // take into account in the first iteration.
+                // Then it will be always Q*deltaT, the additional inj per time step
+                Fact[numActDispl] = injectionRate * deltaTime;
+
 
                 //// CHECK convergence
                 // create current residual
@@ -718,7 +812,7 @@ ToughnessDominated(int nelts)
                             (ratioDeltaPP < 1.0) &&
                             (ratioResDD < 1.0) &&
                             (ratioResPP < 1.0);
-
+//
                 std::cout << std::setprecision(6) << std::scientific
                           << "NL #" << std::left << std::setw(5) <<   NLiter
                           << "   DD: " << std::left << std::setw(10)
@@ -765,9 +859,9 @@ ToughnessDominated(int nelts)
 
             //// LOOP 2 - CHECK SET OF ACTIVE ELEMENTS
             /// (restart from list of old time step)
-            il::int_t numActDispl_temp = numActDispl;
-            il::int_t numActElems_temp = numActElems;
-            il::Array<il::int_t> activeList_temp = activeList;
+            numActDispl_temp = numActDispl;
+            numActElems_temp = numActElems;
+            activeList_temp = activeList;
 
             // compute stress at collocation points (using new global values)
             globalStressColl = il::dot(globalK_DD, globalDDs);
@@ -791,8 +885,10 @@ ToughnessDominated(int nelts)
                     // node 2, component x (sliding),          component y (opening)
                     //         stressFull[mesh.dofDispl(i,2)] stressFull[mesh.dofDispl(i,3)]
                     if ((globalStressColl[mesh.dofDispl(i, 1)]
+                        -inSituStr[mesh.dofDispl(i, 1)]
                         > linearCZM.getMaxStress(i)) &&
                         (globalStressColl[mesh.dofDispl(i, 3)]
+                            -inSituStr[mesh.dofDispl(i, 3)]
                             > linearCZM.getMaxStress(i)))
                     {
 
@@ -813,13 +909,23 @@ ToughnessDominated(int nelts)
 
             std::cout << "   Old set: \t" << numActElems
                       << "   New set: \t" << numActElems_temp << std::endl;
+//            // Save the actual set as the old one
+//            if(!actSetConv)
+//            {
+//                activeList_old.resize(numActElems);
+//                activeList_old = activeList;
+//                numActElems_old = numActElems;
+//                numActDispl_old = numActDispl;
+//            }
+
             // Save the newly computed set as the working one
             activeList = activeList_temp;
             numActElems = numActElems_temp;
             numActDispl = numActDispl_temp;
 
-            std::cout << "Max aperture: " << *std::max_element(globalDDs.begin
-                (), globalDDs.end()) << std::endl;
+            maxAperture=*std::max_element(globalDDs.begin(), globalDDs.end());
+
+            std::cout << "Max aperture: " << maxAperture << std::endl;
         }
 
 //        for (il::int_t i = 0; i < numActElems; i++)
@@ -834,13 +940,71 @@ ToughnessDominated(int nelts)
 
         actSol_old=actSol;
 
+        //if()
+        activeList_old.resize(numActElems);
         activeList_old = activeList;
         numActElems_old = numActElems;
         numActDispl_old = numActDispl;
 
         //// OUTPUT
-        std::cout << "injected volume = " << injectedVol <<std::endl;
-        std::cout << "---End of time step\n" << std::endl;
+        std::string trg_dir{"/home/lorenzo/CLionProjects"
+                                          "/HFPx2D_Master_refactor/results/"};
+
+        std::string of_name; // = std::string{"Test"} + std::to_string
+            //(timeStep*deltaTime) +
+            //std::string{".txt"};
+
+        char filename[50];
+
+        std::sprintf(filename,"Test%010.6f.txt",(timeStep*deltaTime));
+
+        of_name = std::string(filename);
+
+        std::string f_path = trg_dir + of_name;
+        const char *format1 = "%.16g %10";
+        const char *format6 = "%6.0d";
+        const char *format2 = "N. iteration: %i\n\n";
+        const char *format3 = "Current time step: %.5g\n\n";
+        const char *format4 = "Current time:\n%2.5g\n\n";
+        //const char *format5 = "Slippage length:\n%2.5g";
+
+        FILE *of = std::fopen(f_path.c_str(), "w");
+        std::fprintf(of, format2, NLiter, 1);
+        std::fprintf(of, format3, deltaTime, 1);
+        std::fprintf(of, format4, deltaTime*timeStep);
+        //std::fprintf(of, format5, SolutionAtTj.slippagezone);
+
+        std::fputs("\n\n******* Pressure *******\n", of);
+        std::fprintf(of, format1, press);
+
+        std::fprintf(of, "\n\n******* Total sliding *******\n");
+        for (int j = 0; j < totalNumDD; j=j+2) {
+            std::fprintf(of, format1, globalDDs[j]);
+        }
+
+        std::fprintf(of, "\n\n******* Total opening *******\n");
+        for (int j = 1; j < totalNumDD; j=j+2) {
+            std::fprintf(of, format1, globalDDs[j]);
+        }
+
+        std::fprintf(of, "\n\n******* Stress XX *******\n");
+        for (int j = 0; j < totalNumDD; j=j+2) {
+            std::fprintf(of, format1, globalStressColl[j]);
+        }
+
+        std::fprintf(of, "\n\n******* Stress YY *******\n");
+        for (int j = 1; j < totalNumDD; j=j+2) {
+            std::fprintf(of, format1, globalStressColl[j]);
+        }
+
+        std::fprintf(of, "\n\n######################################\n\n");
+
+        std::fclose(of);
+
+
+
+//        std::cout << "injected volume = " << injectedVol <<std::endl;
+//        std::cout << "---End of time step\n" << std::endl;
 //            for (il::int_t i = 0; i < Xfull.size(); i++)
 //            {
 //                std::cout << i << "\t" << Xfull[i] << std::endl;
@@ -848,6 +1012,42 @@ ToughnessDominated(int nelts)
         // print to file
 
         //
+
+//        std::ofstream outputDD("outputDD.txt", std::ios_base::app |
+//            std::ios_base::out);
+//        for(il::int_t i=1; i<totalNumDD; i=i+2){
+//            outputDD << globalDDs[i] << "\n";
+//        }
+//        outputDD.close();
+//
+//        std::ofstream foutlc;
+//        foutlc.open("cracklength.txt");
+//        for(int lca=0;lca<break_time;++lca){
+//            foutlc<<l_c[lca]<<"\n";
+//        }
+//        foutlc.close();
+//
+//
+//        std::ofstream foutit;
+//        foutit.open("iteration.txt");
+//        for(int itera=0;itera<break_time;++itera){
+//            foutit<<mvalue[itera]<<"\n";
+//        }
+//        foutit.close();
+//
+//        il::Array<double> xlist{2*mesh.nelts(),0.};
+//        hfp2d::get_xlist_col(xlist,mesh);
+//        std::ofstream fout;
+//        fout.open("outputcn1.txt");
+//
+//
+//        for(int qq=0;qq<break_time;++qq){//qq<widthlist.size(0)
+//            for(int qqq=0;qqq<widthlist.size(1);++qqq){
+//                fout<<widthlist(qq,qqq)<<"\t";
+//            }
+//            fout<<"\n";
+//        }
+//        fout.close();
 
 
     }
@@ -860,7 +1060,7 @@ ToughnessDominated(int nelts)
 
 std::cout << "End of the analysis" << std::endl;
 
-return initialDDSol[numActDispl];
+return maxAperture;
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -877,14 +1077,14 @@ bool checkActOpening(double strShear, double strOpening){
 
     return (strOpening > strThreshold);
 
-};
+}
 
 il::StaticArray<double ,2> tractionSeparation(il::int_t i,double u_x, double u_y){
 
     il::StaticArray<double, 2> cohForces;
 
     return cohForces;
-};
+}
 
 double normDD(il::Array<double> R, il::int_t dd_dofs){
 
@@ -898,7 +1098,7 @@ double normDD(il::Array<double> R, il::int_t dd_dofs){
     theNorm = il::norm(DDres,il::Norm::L2);
 
     return theNorm;
-};
+}
 
 double normSplit(il::Array<double> R, il::int_t begin, il::int_t end){
 
@@ -918,7 +1118,9 @@ double normSplit(il::Array<double> R, il::int_t begin, il::int_t end){
     theNorm = il::norm(newR,il::Norm::L2);
 
     return theNorm;
-};
+}
+
+//void gatherSolution(il::Array<double> globalSol, )
 
 
 

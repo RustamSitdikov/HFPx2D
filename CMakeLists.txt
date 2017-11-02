@@ -22,14 +22,23 @@ endif()
 # needed for clang-tidy?
 # set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-IF(CMAKE_BUILD_TYPE MATCHES DEBUG)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m64 -march=native -Werror -Wall
-    -Wextra -pedantic")
-ENDIF(CMAKE_BUILD_TYPE MATCHES DEBUG)
+IF(CMAKE_BUILD_TYPE MATCHES Debug)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -pedantic -msse2")
+    #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Werror -Wall -Wextra
+    #-Wstrict-aliasing -pedantic")
+    #-fmax-errors=5 -Werror -Wunreachable-code -Wcast-align -Wcast-qual
+    #-Wctor-dtor-privacy -Wdisabled-optimization -Wformat=2 -Winit-self
+    #-Wlogical-op -Wmissing-include-dirs -Wnoexcept -Wold-style-cast
+    #-Woverloaded-virtual -Wredundant-decls -Wshadow -Wsign-promo
+    #-Wstrict-null-sentinel -Wstrict-overflow=5 -Wswitch-default -Wundef
+    #-Wno-unused -Wno-variadic-macros -Wno-parentheses
+    #-fdiagnostics-show-option ${CMAKE_CXX_FLAGS}")
+    #-m64 -march=native
+ENDIF(CMAKE_BUILD_TYPE MATCHES Debug)
 
-IF(CMAKE_BUILD_TYPE MATCHES RELEASE)
+IF(CMAKE_BUILD_TYPE MATCHES Release)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m64 -march=native -o3")
-ENDIF(CMAKE_BUILD_TYPE MATCHES RELEASE)
+ENDIF(CMAKE_BUILD_TYPE MATCHES Release)
 
 set(SOURCE_FILES_DIR ${PROJECT_SOURCE_DIR}/src)
 
