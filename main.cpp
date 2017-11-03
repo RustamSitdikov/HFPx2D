@@ -125,16 +125,18 @@ int main(){
 //  std::cout << "\n\n ----- Simple Griffith crack examples ----- \n\n" << std::endl;
 
 
-  int nelts = 3;
-  double dist= 1e4;
 
-
-  int ret = hfp2d::TwoParallelHFs(nelts,dist);
-  std::cout << "return " << ret;
+//  int nelts = 3;
+//  double dist= 1e4;
+//
+//
+//  int ret = hfp2d::TwoParallelHFs(nelts,dist);
+//  std::cout << "return " << ret;
 
 //  double ret1 = hfp2d::SimpleGriffithExampleLinearElement(nelts);
 //  double ret2 = hfp2d::SimpleGriffithExampleS3D_P0(nelts);
-//
+  double ret2 = hfp2d::SimpleGriffithExampleS3D_P0_AddMesh(10);
+
 ////  il::Array<double> w{10};
 //
 //  std::cout << "\n rel error L2 norm in Linear Elements: " << ret1 << "\n";

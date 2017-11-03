@@ -71,8 +71,7 @@ set(SOURCE_FILES
         src/input/findUtilities.h
         il/io/toml/toml.h
         il/io/toml/toml.cpp
-        src/core/InSituStress.h
-#        src/input/conditions/loadConditions.cpp
+        #        src/input/conditions/loadConditions.cpp
 #        src/input/conditions/loadConditions.h
         src/core_dev/Sources.h
 #        src/input/Sources/loadSources.cpp
