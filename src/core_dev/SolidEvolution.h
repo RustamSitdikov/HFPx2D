@@ -32,7 +32,7 @@ private:
 
     il::Array<double> failure_stress_;
     il::Array<double> maximum_opening_;
-    il::Array<double> last_saved_opening_;
+    il::Array<double> max_hist_opening_;
     il::Array<double> fracture_energy_;
 
 public:
@@ -43,7 +43,7 @@ public:
         failure_stress_ = theSolidEvolution.failure_stress_;
         maximum_opening_ = theSolidEvolution.maximum_opening_;
         fracture_energy_ = theSolidEvolution.fracture_energy_;
-        last_saved_opening_ = theSolidEvolution.last_saved_opening_;
+        max_hist_opening_ = theSolidEvolution.max_hist_opening_;
     }
 
     explicit SolidEvolution(const double failureStress,
@@ -58,14 +58,14 @@ public:
         maximum_opening_.resize(numCollPoints);
         failure_stress_.resize(numCollPoints);
         fracture_energy_.resize(numCollPoints);
-        last_saved_opening_.resize(numCollPoints);
+        max_hist_opening_.resize(numCollPoints);
 
         for (il::int_t i = 0; i < numCollPoints; i++)
         {
             failure_stress_[i] = failureStress;
             maximum_opening_[i] = decohesionOpening;
             fracture_energy_[i] = fracEnergy;
-            last_saved_opening_[i] = 0.0;
+            max_hist_opening_[i] = 0.0;
         }
     }
 
@@ -84,7 +84,7 @@ public:
         for (il::int_t i = 0; i < failureStress.size(); i++)
         {
             fracture_energy_[i] = 0.5 * failureStress[i] * decohesionOpening[i];
-            last_saved_opening_[i] = 0.0;
+            max_hist_opening_[i] = 0.0;
         }
 
         // std::cout << "Here 3" << std::endl;
@@ -110,7 +110,7 @@ public:
 
     bool isLoading(double current_opening, il::int_t collPT)
     {
-        return (current_opening > last_saved_opening_[collPT]);
+        return (current_opening > max_hist_opening_[collPT]);
     }
 
     double stressLoading(double opening, il::int_t collPT)
@@ -158,7 +158,7 @@ public:
         {
 
             stress = stressLoading(opening, collPT);
-            last_saved_opening_[collPT] = opening;
+            max_hist_opening_[collPT] = opening;
 
         }
         else
@@ -187,7 +187,7 @@ public:
 
                 il::int_t dofLocation = mesh.dofDispl(crackElements[i],j);
 
-                last_saved_opening_[dofLocation]=maximum_opening_[dofLocation];
+                max_hist_opening_[dofLocation]=maximum_opening_[dofLocation];
 
             }
 
@@ -204,7 +204,7 @@ private:
 
   double failure_stress_;
   double maximum_opening_;
-  double last_saved_opening_;
+  double max_hist_opening_;
   double fracture_energy_;
 
 
@@ -220,7 +220,7 @@ public:
     failure_stress_=failureStress;
     maximum_opening_=decohesionOpening;
     fracture_energy_=0.5 * failureStress * decohesionOpening;
-    last_saved_opening_=0.0;
+    max_hist_opening_=0.0;
 
   }
 
@@ -229,7 +229,7 @@ public:
   }
 
   bool isLoading(double current_opening){
-    return ( current_opening > last_saved_opening_);
+    return ( current_opening > max_hist_opening_);
   }
 
   double stressLoading(double opening){
@@ -249,7 +249,7 @@ public:
     if(isLoading(opening)){
 
       stress = stressLoading(opening);
-      last_saved_opening_ = opening;
+      max_hist_opening_ = opening;
 
     } else {
 

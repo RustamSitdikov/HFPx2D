@@ -4,6 +4,20 @@
 
 #include "ToughnessDominated.h"
 
+// TODO: check with active sets which can close or open (use activeList_old)
+// TODO: make it modular
+// TODO: make the solidEvolution as general
+// TODO: the fracture front can move forward or backward
+// TODO: use the solution class
+// TODO: align with the mesh class of Brice
+// TODO: data from the files
+
+// TODO: other solvers
+// TODO: check the case of summing delta_w on w for the iterative solution?
+// TODO: quasi newton/newton method?
+// TODO: acceleration by "precomputing" the next time step?
+
+
 namespace hfp2d
 {
 
@@ -93,7 +107,7 @@ ToughnessDominated(int nelts)
     double epsiP0 = 0.00001;         // variation in pore pressure
 
     double sigmaS = 0.0;            // in situ stress, shear
-    double sigmaW = 0.0;          // in situ stress, opening
+    double sigmaW = 1.0;          // in situ stress, opening
 
     double initPress = 0.0 + epsiP0; // initial pressure
     double injectionRate = 0.0005; //0.0005
@@ -401,7 +415,7 @@ ToughnessDominated(int nelts)
     for (il::int_t timeStep = 0; timeStep < finalTimeStep; timeStep++)
     {
 
-        std::cout << "   Timestep: \t" << timeStep << std::endl;
+        std::cout << "\n\n   Timestep: \t" << timeStep << std::endl;
 
         NLSolConv = false;
         actSetConv = false;
@@ -903,6 +917,13 @@ ToughnessDominated(int nelts)
             numActElems_temp = activeList_temp.size();
             // new size of system of equation (for displacements)
             numActDispl_temp = numActElems_temp * DDxElem;
+
+            //// In the case we want to use the active set of previous time
+            /// step, it is possible to run the following two comparisons:
+            /// 1. the number of added elements is the same
+            /// 2. the elements of one list are permutations of the other list
+            /// notice that the first point is required for the second point
+            /// to function properly with function std::is_permutation
 
             //// CHECK convergence on set
             actSetConv = (numActElems_temp == numActElems);
