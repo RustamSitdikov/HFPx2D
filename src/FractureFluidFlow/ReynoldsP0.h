@@ -18,7 +18,7 @@
 #include <src/core/SimulationParameters.h>
 #include <src/core/SolidProperties.h>
 #include <src/core/Solution.h>
-#include <src/core_dev/Sources.h>
+#include <src/core/Sources.h>
 
 namespace hfp2d {
 

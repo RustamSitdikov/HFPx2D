@@ -6,13 +6,12 @@
 // See the LICENSE.TXT file for more details. 
 //
 
-#include "matrix_utilities.h"
-
-
-
-
 // Inclusion from Inside Loop library
 #include <il/linear_algebra.h>
+
+
+
+#include <src/core/utilities.h>
 
 namespace hfp2d{
 
@@ -41,5 +40,20 @@ void set_submatrix(il::Array2D<double> &A, int i0, int i1,
     }
   }
 }
+
+
+//   Rotation Matrix
+il::StaticArray2D<double, 2, 2> rotation_matrix_2D(double theta) {
+  il::StaticArray2D<double, 2, 2> R;
+
+  R(0, 0) = cos(1. * theta);
+  R(0, 1) = -1. * sin(1. * theta);
+  R(1, 0) = sin(theta);
+  R(1, 1) = cos(theta);
+
+  return R;
+}
+
+
 
 }

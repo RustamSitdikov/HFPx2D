@@ -29,17 +29,24 @@ ENDIF(CMAKE_BUILD_TYPE MATCHES DEBUG)
 set(SOURCE_FILES_DIR ${PROJECT_SOURCE_DIR}/src)
 
 set(SOURCE_FILES
-        src/Elasticity/AssemblyDDM.cpp
-        src/Elasticity/AssemblyDDM.h
         src/core/Mesh.cpp
         src/core/Mesh.h
+        src/core/utilities.h
+        src/core/utilities.cpp
+        src/core/SegmentData.h
+        src/core/Fluid.h
+        src/core/ElasticProperties.h
+        src/core_dev/SolidEvolution.h
+        src/core/Sources.h
+
+        src/Elasticity/AssemblyDDM.cpp
+        src/Elasticity/AssemblyDDM.h
         src/Elasticity/Simplified3D.cpp
         src/Elasticity/Simplified3D.h
         src/Elasticity/PlaneStrainInfinite.cpp
         src/Elasticity/PlaneStrainInfinite.h
         src/Solvers/SimpleElastic.cpp
         src/Solvers/SimpleElastic.h
-#        src/core_dev/OldSolutionClass.h
         src/core/SimulationParameters.h
 #        src/input/loadArguments.cpp
 #        src/input/loadArguments.h
@@ -59,12 +66,6 @@ set(SOURCE_FILES
 #        src/input/properties/loadProperties.h
         #src/input/geometry/autoLineMeshInfo.cpp
         #src/input/geometry/autoLineMeshInfo.h
-        src/core/SegmentData.cpp
-        src/core/SegmentData.h
-#        src/core/Solid.h
-        src/core/Fluid.h
-        src/core/ElasticProperties.h
-        src/core_dev/SolidEvolution.h
 #        src/input/properties/loadSingleMaterial.cpp
 #        src/input/properties/loadSingleMaterial.h
         src/input/findUtilities.cpp
@@ -73,7 +74,6 @@ set(SOURCE_FILES
         il/io/toml/toml.cpp
         #        src/input/conditions/loadConditions.cpp
 #        src/input/conditions/loadConditions.h
-        src/core_dev/Sources.h
 #        src/input/Sources/loadSources.cpp
 #        src/input/Sources/loadSources.h
         src/FractureFluidFlow/ReynoldsP0.cpp

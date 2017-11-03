@@ -194,26 +194,26 @@ int TwoParallelHFs(int nelts, double dist) {
       ribbon_widths[i] = Soln1.openingDD()[ribbon[i]];
    }
 
-  tip::TipParameters tipstruct;
-  tipstruct.e_p = the_rock.ElasticProperties().Ep();
-  tipstruct.k1c= the_rock.KIc(0);
-  tipstruct.mu=water.fluidViscosity();
-  tipstruct.cl=the_rock.Cl(0);
-  tipstruct.ta = 1000.;
-  tipstruct.wa= ribbon_widths[0];
-  tipstruct.st=h/2.;
+//  tip::TipParameters tipstruct;
+//  tipstruct.e_p = the_rock.ElasticProperties().Ep();
+//  tipstruct.k1c= the_rock.KIc(0);
+//  tipstruct.mu=water.fluidViscosity();
+//  tipstruct.cl=the_rock.Cl(0);
+//  tipstruct.ta = 1000.;
+//  tipstruct.wa= ribbon_widths[0];
+//  tipstruct.st=h/2.;
 
-  bool prop=tip::isPropagating(tipstruct);
-  std::cout << " is propagating ? "<< prop << "\n";
+//  bool prop=tip::isPropagating(tipstruct);
+//  std::cout << " is propagating ? "<< prop << "\n";
+//
+//  tip::TAInParam tipstruct_a;
+//  tipstruct_a.taPrev=tipstruct;
+//  tipstruct_a.wa=ribbon_widths[0];
+//  tipstruct_a.dt=dt;
+//  std::cout << " old distance "<< tipstruct.st <<"\n";
+//  tip::TipParameters tipout = tip::propagateTip(tip::res_g_0_s,tipstruct_a,1.e-3,40,false);
 
-  tip::TAInParam tipstruct_a;
-  tipstruct_a.taPrev=tipstruct;
-  tipstruct_a.wa=ribbon_widths[0];
-  tipstruct_a.dt=dt;
-  std::cout << " old distance "<< tipstruct.st <<"\n";
-  tip::TipParameters tipout = tip::propagateTip(tip::res_g_0_s,tipstruct_a,1.e-3,40,false);
-
-  std::cout << " new distance "<< tipout.st <<"\n";
+//  std::cout << " new distance "<< tipout.st <<"\n";
 
   hfp2d::Mesh newmesh = mesh;
 
@@ -292,12 +292,12 @@ hfp2d::Solution FractureFrontLoop(hfp2d::Solution &Sol_n,
   il::int_t ntip_elt_k = tip_elt_k.size();
   il::Array<double> tip_width_k{tip_elt_k.size(),0.};
 
-  tip::TipParameters tipstruct;
-  tipstruct.e_p = rock.ElasticProperties().Ep();
-  tipstruct.k1c= rock.KIc(0);
-  tipstruct.mu=fluid.fluidViscosity();
-  tipstruct.cl=rock.Cl(0);
-  tipstruct.ta = 1000.;
+//  tip::TipParameters tipstruct;
+//  tipstruct.e_p = rock.ElasticProperties().Ep();
+//  tipstruct.k1c= rock.KIc(0);
+//  tipstruct.mu=fluid.fluidViscosity();
+//  tipstruct.cl=rock.Cl(0);
+//  tipstruct.ta = 1000.;
 
   il::int_t  k=0;
   double errorF=1.;
@@ -321,51 +321,51 @@ hfp2d::Solution FractureFrontLoop(hfp2d::Solution &Sol_n,
 
       ribbon_width = Soln1_k.openingDD()[ribbon_elt[i]];
       h_ribbon=mesh_n.elt_size(ribbon_elt[i]);
-      tipstruct.st=s_o[i];
-      tip::TAInParam tipstruct_a;
-      tipstruct_a.taPrev=tipstruct;
-      tipstruct_a.wa=ribbon_width;
-      tipstruct_a.dt=timestep;
-
-      // invert tip asymptote
-      tip::TipParameters tipout = tip::propagateTip(tip::res_g_0_s,tipstruct_a,1.e-5,40,true);
-
-      // add   element in tip regions if needed (always start from tip_elt_n)
-      il::int_t n_add=0; // a priori only 1 tip elt.
-      if ((tipout.st-h_ribbon/2.)>h_ribbon) {
-        n_add = std::round((tipout.st-h_ribbon/2.)/h_ribbon);
-        ntip_elt_k = tip_elt_k.size(); // store
-        tip_elt_k.resize(ntip_elt_k+n_add); // add space.
-        tip_width_k.resize(ntip_elt_k+n_add);
-        for (il::int_t et=0;et<n_add;et++){
-          tip_elt_k[ntip_elt_k+et]=n_elt_k+et;
-        };
-        // modify mesh accordingly, always restart from previous mesh
-        mesh_k.AddNTipElements(tip_elt_n[i],tip_nodes_n[i],n_add,0.);
-        n_elt_k=mesh_k.numberOfElements(); // don t forget to update.
-      };
-      // compute corresponding tip_volume to impose and thus tip_widths
-      il::Array<double> tipVol{n_add+1,0.},tipW{n_add+1,0.};
-      double sc;
-      for (il::int_t et=0;et<n_add+1;et++){
-         sc= (tipout.st-h_ribbon/2.)+h_ribbon*et;
-         tipVol[et]=tip::moment0(sc,tipout);
-      };
-      // be careful, do things in reverse from the new tip location...
-      for (il::int_t et=n_add;et>=0;et--){
-        if (et==n_add){
-          tipW[et]=tipVol[et]/h_ribbon;
-        } else
-        {
-          tipW[et]=(tipVol[et]-tipVol[et+1])/h_ribbon;
-        }
-      };
-      //create the proper tip_width_k contribution for that tip
-      tip_width_k[i]=tipW[0]; // the pre-existing tip-elt.
-      for (il::int_t et=0;et<n_add;et++){
-        tip_width_k[ntip_elt_k+et]=tipW[1+et];
-      }
-      // if n_add>=1 - modify Sol_n_k (append elt with zero dds, and pressure)
+////      tipstruct.st=s_o[i];
+////      tip::TAInParam tipstruct_a;
+////      tipstruct_a.taPrev=tipstruct;
+////      tipstruct_a.wa=ribbon_width;
+////      tipstruct_a.dt=timestep;
+////
+////      // invert tip asymptote
+////      tip::TipParameters tipout = tip::propagateTip(tip::res_g_0_s,tipstruct_a,1.e-5,40,true);
+////
+////      // add   element in tip regions if needed (always start from tip_elt_n)
+//      il::int_t n_add=0; // a priori only 1 tip elt.
+//      if ((tipout.st-h_ribbon/2.)>h_ribbon) {
+//        n_add = std::round((tipout.st-h_ribbon/2.)/h_ribbon);
+//        ntip_elt_k = tip_elt_k.size(); // store
+//        tip_elt_k.resize(ntip_elt_k+n_add); // add space.
+//        tip_width_k.resize(ntip_elt_k+n_add);
+//        for (il::int_t et=0;et<n_add;et++){
+//          tip_elt_k[ntip_elt_k+et]=n_elt_k+et;
+//        };
+//        // modify mesh accordingly, always restart from previous mesh
+//        mesh_k.AddNTipElements(tip_elt_n[i],tip_nodes_n[i],n_add,0.);
+//        n_elt_k=mesh_k.numberOfElements(); // don t forget to update.
+//      };
+//      // compute corresponding tip_volume to impose and thus tip_widths
+//      il::Array<double> tipVol{n_add+1,0.},tipW{n_add+1,0.};
+//      double sc;
+//      for (il::int_t et=0;et<n_add+1;et++){
+//         sc= (tipout.st-h_ribbon/2.)+h_ribbon*et;
+//         tipVol[et]=tip::moment0(sc,tipout);
+//      };
+//      // be careful, do things in reverse from the new tip location...
+//      for (il::int_t et=n_add;et>=0;et--){
+//        if (et==n_add){
+//          tipW[et]=tipVol[et]/h_ribbon;
+//        } else
+//        {
+//          tipW[et]=(tipVol[et]-tipVol[et+1])/h_ribbon;
+//        }
+//      };
+//      //create the proper tip_width_k contribution for that tip
+//      tip_width_k[i]=tipW[0]; // the pre-existing tip-elt.
+//      for (il::int_t et=0;et<n_add;et++){
+//        tip_width_k[ntip_elt_k+et]=tipW[1+et];
+//      }
+//      // if n_add>=1 - modify Sol_n_k (append elt with zero dds, and pressure)
 
     } // end of loops on all tips.
 

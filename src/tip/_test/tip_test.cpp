@@ -10,7 +10,7 @@
 #include <gtest/gtest.h>
 
 #include <src/tip/tipAsymptote.h>
-#include "../tipAsymptote.h"
+
 
 //  UNIT TESTS FOR TIP Asymptote Libary
 TEST(tip_inversion_1, t1) {
@@ -29,10 +29,8 @@ prevTipPar.vt = 0.0;
 double dt = 0.312799;
 double wa = 0.00026694;
 
-tip::TipParameters newTipPar = tip::tipStep
-        (tip::res_u_0_m, prevTipPar,
-         dt, wa, 1000,
-         1E-6, 50, mute);
+tip::TipParameters newTipPar = tip::tipStep(tip::res_u_0_m, prevTipPar,
+         dt, wa, 1000, 1E-6, 50, mute);
 
 double rm = tip::res_u_0_m(newTipPar.st, newTipPar);
 
