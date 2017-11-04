@@ -67,13 +67,13 @@ il::Array2D<double> basic_assembly(Mesh &mesh, il::Array2D<int> &id, int p,
 
   il::Array2D<double> xe{2, 2, 0}, xec{2, 2, 0};
 
-  hfp2d::SegmentData mysege, mysegc;
+//  hfp2d::SegmentData mysege, mysegc;
 
   il::StaticArray2D<double, 2, 2> R;
   il::Array<int> dofe{2 * (p + 1), 0}, dofc{2 * (p + 1), 0};
 
   il::StaticArray2D<double, 2, 4> stnl;
-  il::StaticArray<double, 2> sec, nec, xcol;
+  //il::StaticArray<double, 2> sec, nec, xcol;
 
   il::Array2D<double> Kmat{id.size(0) * id.size(1), id.size(0) * id.size(1)};
 
@@ -85,9 +85,10 @@ il::Array2D<double> basic_assembly(Mesh &mesh, il::Array2D<int> &id, int p,
   for (int e = 0; e < mesh.nelts(); ++e) { // loop on all  elements
 
     //   get characteristic of element # e
-    mysege = hfp2d::get_segment_DD_data(mesh, e, p);
+    hfp2d::SegmentData mysege = mesh.getElementData(e);
+    // instead of using hfp2d::get_segment_DD_data(mesh, e, p);
     // Rotation matrix of the element w.r. to x-axis.
-    R = hfp2d::rotation_matrix_2D(mysege.theta);
+    R = hfp2d::rotation_matrix_2D(mysege.theta());
 
     // vector of dof id of  element e
     for (int i = 0; i < 2 * (p + 1); ++i) {
@@ -97,7 +98,8 @@ il::Array2D<double> basic_assembly(Mesh &mesh, il::Array2D<int> &id, int p,
     // loop on all  elements - to compute the effect of e on all other elements
     for (int j = 0; j < mesh.nelts(); ++j) {
       //   get characteristic of element # j
-      mysegc = hfp2d::get_segment_DD_data(mesh, j, p);
+      hfp2d::SegmentData mysegc = mesh.getElementData(j);
+      // instead of hfp2d::get_segment_DD_data(mesh, j, p);
 
       for (int i = 0; i < 2 * (p + 1); ++i) {
         dofc[i] = id(j, i); // vector of dof id of the  element j
@@ -141,7 +143,7 @@ il::Array2D<double> basic_assembly_new(Mesh &mesh, ElasticProperties& elas,
 
   il::Array2D<double> xe{2, 2, 0}, xec{2, 2, 0};
 
-  hfp2d::SegmentData mysege, mysegc;
+//  hfp2d::SegmentData mysege, mysegc;
 
   il::StaticArray2D<double, 2, 2> R;
   il::Array<il::int_t> dofe{2 * (p + 1), 0}, dofc{2 * (p + 1), 0};
@@ -149,7 +151,7 @@ il::Array2D<double> basic_assembly_new(Mesh &mesh, ElasticProperties& elas,
   il::StaticArray2D<double, 2, 4> stnl;
   il::StaticArray<double, 2> sec, nec, xcol;
 
-  const il::int_t numDisplDofs = mesh.numDisplDofs();
+  const il::int_t numDisplDofs = mesh.numDDDofs();
   const il::int_t numPressDofs = mesh.numPressDofs();
   const il::int_t totalNumDofDispl = numDisplDofs + numPressDofs;
 
@@ -162,22 +164,24 @@ il::Array2D<double> basic_assembly_new(Mesh &mesh, ElasticProperties& elas,
   for (il::int_t e = 0; e < mesh.numElems(); ++e) { // loop on all  elements
 
     //   get characteristic of element # e
-    mysege = hfp2d::get_segment_DD_data(mesh, e, p);
+    hfp2d::SegmentData mysege = mesh.getElementData(e);
+    //mysege = hfp2d::get_segment_DD_data(mesh, e, p);
     // Rotation matrix of the element w.r. to x-axis.
-    R = hfp2d::rotation_matrix_2D(mysege.theta);
+    R = hfp2d::rotation_matrix_2D(mysege.theta());
 
     // vector of dof id of  element e
     for (il::int_t i = 0; i < 2 * (p + 1); ++i) {
-      dofe[i] = mesh.dofDispl(e, i);
+      dofe[i] = mesh.dofDD(e, i);
     };
 
     // loop on all  elements - to compute the effect of e on all other elements
     for (il::int_t j = 0; j < mesh.numElems(); ++j) {
       //   get characteristic of element # j
-      mysegc = hfp2d::get_segment_DD_data(mesh, j, p);
+      hfp2d::SegmentData  mysegc = mesh.getElementData( j);
+      //mysegc = hfp2d::get_segment_DD_data(mesh, j, p);
 
       for (il::int_t i = 0; i < 2 * (p + 1); ++i) {
-        dofc[i] = mesh.dofDispl(j, i); // vector of dof id of the  element j
+        dofc[i] = mesh.dofDD(j, i); // vector of dof id of the  element j
       };
 
       // loop on collocation points of the target element
@@ -203,5 +207,93 @@ il::Array2D<double> basic_assembly_new(Mesh &mesh, ElasticProperties& elas,
 
 
 //todo need to write a function similar to Assembly for the addition of new rows and columms corresponding to the addition of new elements in the mesh !
+// todo need to write a function similar to Assembly for the addition of new
+// rows and columms corresponding to the addition of new elements in the mesh !
+
+
+//  tip correction....
+void AddTipCorrectionP0(hfp2d::Mesh &mesh, const ElasticProperties &elas,
+                        il::int_t tipElt, il::Array2D<double> &Kmat ) {
+
+// getting the element size ;( -> cry for a method in mesh class !
+
+//  correction factor from Ryder & Napier 1985.
+
+  double correct =- elas.Ep()*(1. / 3.) / (4. * (mesh.elt_size(tipElt)));
+
+  Kmat(mesh.dofDD(tipElt, 0), mesh.dofDD(tipElt, 0))+=correct;
+
+  Kmat(mesh.dofDD(tipElt, 1), mesh.dofDD(tipElt, 1))+=correct;
+
+}
+
+// remove tip correction....
+void RemoveTipCorrectionP0(hfp2d::Mesh &mesh, const ElasticProperties &elas,
+                           il::int_t tipElt, il::Array2D<double> &Kmat ) {
+
+//// getting the element size ;( -> cry for a method in mesh class !
+//  il::StaticArray2D<double, 2, 2> Xs;
+//  Xs(0, 0) = mesh.coordinates(mesh.connectivity(tipElt, 0), 0);
+//  Xs(0, 1) = mesh.coordinates(mesh.connectivity(tipElt, 0), 1);
+//  Xs(1, 0) = mesh.coordinates(mesh.connectivity(tipElt, 1), 0);
+//  Xs(1, 1) = mesh.coordinates(mesh.connectivity(tipElt, 1), 1);
+//
+//  il::StaticArray<double, 2> xdiff;
+//  xdiff[0] = Xs(1, 0) - Xs(0, 0);
+//  xdiff[1] = Xs(1, 1) - Xs(0, 1);
+//  double hx = sqrt(pow(xdiff[0], 2) + pow(xdiff[1], 2));
+
+//  correction factor
+  double correct =- elas.Ep()*(1. / 3.) / (4. * (mesh.elt_size(tipElt)));
+
+  Kmat(mesh.dofDD(tipElt, 0), mesh.dofDD(tipElt, 0))-=correct;
+
+  Kmat(mesh.dofDD(tipElt, 1), mesh.dofDD(tipElt, 1))-=correct;
+
+}
+
+
+il::Array2D<double> ReArrangeKP0(const Mesh &mesh,il::Array2D<double> &Kmat) {
+  // reorder K in the following blocks type
+  //  Kss Ksn
+  //  Kns Knn
+  //
+  IL_EXPECT_FAST(Kmat.size(0) == Kmat.size(1));
+// test that it should even (/2)
+
+  il::Array2D<double> Knew{Kmat.size(0), Kmat.size(1)};
+
+  il::int_t k = 0; il::int_t l = 0;
+  k=0;
+  for (il::int_t i = 0; i < Kmat.size(0); i=i+2) {
+    l=0;
+    for (il::int_t j = 0; j < Kmat.size(1); j = j + 2){
+      Knew(k,l) = Kmat(i,j);
+      l++;
+    }
+    for (il::int_t j = 1; j < Kmat.size(1); j = j + 2){
+      Knew(k,l) = Kmat(i,j);
+      l++;
+    }
+    k++;
+  };
+
+  for (il::int_t i = 1; i < Kmat.size(0); i=i+2) {
+    l=0;
+    for (il::int_t j = 0; j < Kmat.size(1); j = j + 2){
+      Knew(k,l) = Kmat(i,j);
+      l++;
+    }
+    for (il::int_t j = 1; j < Kmat.size(1); j = j + 2){
+      Knew(k,l) = Kmat(i,j);
+      l++;
+    }
+    k++;
+  };
+
+  return Knew;
+
+
+};
 
 }

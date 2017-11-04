@@ -11,12 +11,16 @@
 // TODO: use the solution class
 // TODO: align with the mesh class of Brice
 // TODO: data from the files
+// TODO: homogenization/scaling of the matrices and vector to avoid bad precond.
 
 // TODO: other solvers
 // TODO: check the case of summing delta_w on w for the iterative solution?
 // TODO: quasi newton/newton method?
 // TODO: acceleration by "precomputing" the next time step?
-
+// TODO: acceleration by "precomputing" the new set based on inj. and last step?
+// TODO: save crack length as output
+// TODO: parallelization of loops (at least)
+// TODO: create solver with lagrangian multipliers for the positive opening
 
 namespace hfp2d
 {
@@ -29,7 +33,8 @@ ToughnessDominated(int nelts)
 {
 
     int p = 1;
-    double h = 2. / (nelts); //  element size
+    double totLength = 6.0;
+    double h = totLength / (nelts); //  element size
     il::Array2D<double> xy{nelts + 1, 2, 0.0};
     il::Array2D<il::int_t> myconn{nelts, 2, 0};
     il::Array2D<il::int_t> id_displ{nelts, 2 * (p + 1), 0};
@@ -41,7 +46,7 @@ ToughnessDominated(int nelts)
     // create a basic 1D mesh ....
     for (il::int_t i = 0; i < xy.size(0); ++i)
     {
-        xy(i, 0) = -1. + i * h;
+        xy(i, 0) = -totLength/2.0 + i * h;
         xy(i, 1) = 0.;
     };
 
@@ -67,8 +72,8 @@ ToughnessDominated(int nelts)
 
     // Mesh initialization
     hfp2d::Mesh mesh(p, xy, myconn, id_displ, id_press, fracID, matID, condID);
-    const il::int_t totalNumDD = mesh.numDisplDofs();
-    const il::int_t DDxElem = mesh.numDisplDofsPerElem(); // dof per element
+    const il::int_t totalNumDD = mesh.numDDDofs();
+    const il::int_t DDxElem = mesh.numDDDofsPerElem(); // dof per element
 
     ////////////////////////////////////////////////////////////
     // Elastic properties initialization
@@ -107,27 +112,27 @@ ToughnessDominated(int nelts)
     double epsiP0 = 0.00001;         // variation in pore pressure
 
     double sigmaS = 0.0;            // in situ stress, shear
-    double sigmaW = 1.0;          // in situ stress, opening
+    double sigmaW = 0.0;          // in situ stress, opening
 
     double initPress = 0.0 + epsiP0; // initial pressure
     double injectionRate = 0.0005; //0.0005
     double failStress = 2.0;
     double maxOpening = 0.002; //failStress/myelas.Ep(); //1.0;
 
-    il::int_t finalTimeStep = 50;
-    double deltaTime = 1; // secs
+    il::int_t finalTimeStep = 2000;
+    double deltaTime = 0.1; // secs
 
     const double tolX1 = 1.0e-4;
     const double tolX2 = 1.0e-8;
     const double tolFX = 1.0e-4;
-    const double relaxParam=1.0;
+    const double relaxParam=0.5;
 
     il::int_t NLiter = 0;
     il::int_t globalIter = 0;
     bool NLSolConv = false;
     bool actSetConv = false;
     const il::int_t NLiterMax = 100;
-    const il::int_t globalIterMax = 10;
+    const il::int_t globalIterMax = 100;
 
 
 
@@ -137,8 +142,8 @@ ToughnessDominated(int nelts)
 
     //  std::cout << "Number of elements : " << mesh.nelts() << "\n";
     //  std::cout << "------ Assembly: \t";
-    //  il::Timer timer{};
-    //  timer.start();
+      il::Timer timer{};
+      timer.start();
 
     //// CREATION OF DD MATRIX K
     il::Array2D<double> globalK_DD{totalNumDD, totalNumDD};
@@ -167,13 +172,13 @@ ToughnessDominated(int nelts)
     for (il::int_t i = 0; i < mesh.numElems(); i++)
     {
 
-        inSituStr[mesh.dofDispl(i, 0)] =
+        inSituStr[mesh.dofDD(i, 0)] =
             sigmaS; // 1st collocation pt. of elem. i, shear stress
-        inSituStr[mesh.dofDispl(i, 1)] =
+        inSituStr[mesh.dofDD(i, 1)] =
             sigmaW; // 1st collocation pt. of elem. i, opening stress
-        inSituStr[mesh.dofDispl(i, 2)] =
+        inSituStr[mesh.dofDD(i, 2)] =
             sigmaS; // 2nd collocation pt. of elem. i, shear stress
-        inSituStr[mesh.dofDispl(i, 3)] =
+        inSituStr[mesh.dofDD(i, 3)] =
             sigmaW; // 2nd collocation pt. of elem. i, opening stress
 
     }
@@ -260,8 +265,8 @@ ToughnessDominated(int nelts)
                 for (il::int_t l = 0; l < DDxElem; l++)
                 {
 
-                    il::int_t dof1 = mesh.dofDispl(activeList[i], k);
-                    il::int_t dof2 = mesh.dofDispl(activeList[j], l);
+                    il::int_t dof1 = mesh.dofDD(activeList[i], k);
+                    il::int_t dof2 = mesh.dofDD(activeList[j], l);
 
                     Kact(xStart + k, yStart + l) = globalK_DD(dof1, dof2);
                 }
@@ -269,12 +274,12 @@ ToughnessDominated(int nelts)
         }
 
         // save the values of inSituStr in Fact
-        Fact[xStart]     = + inSituStr[mesh.dofDispl(activeList[i], 0)];
+        Fact[xStart]     = + inSituStr[mesh.dofDD(activeList[i], 0)];
         Fact[xStart + 1] = - initPress
-                           + inSituStr[mesh.dofDispl(activeList[i], 1)];
-        Fact[xStart + 2] = + inSituStr[mesh.dofDispl(activeList[i], 2)];
+                           + inSituStr[mesh.dofDD(activeList[i], 1)];
+        Fact[xStart + 2] = + inSituStr[mesh.dofDD(activeList[i], 2)];
         Fact[xStart + 3] = - initPress
-                           + inSituStr[mesh.dofDispl(activeList[i], 3)];
+                           + inSituStr[mesh.dofDD(activeList[i], 3)];
 
     }
 
@@ -307,8 +312,8 @@ ToughnessDominated(int nelts)
     double initVolume = 0.0;
     for (il::int_t i = 0; i < numActElems; i++)
     {
-        initVolume = initVolume + (initialDDSol[mesh.dofDispl(i, 1)] +
-            initialDDSol[mesh.dofDispl(i, 3)]) * h / 2.0;
+        initVolume = initVolume + (initialDDSol[mesh.dofDD(i, 1)] +
+            initialDDSol[mesh.dofDD(i, 3)]) * h / 2.0;
     }
 
     double injectedVol = initVolume;
@@ -321,9 +326,9 @@ ToughnessDominated(int nelts)
         for (il::int_t j = 0; j < DDxElem; j++)
         {
 
-            globalSol[mesh.dofDispl(activeList[i], j)] =
+            globalSol[mesh.dofDD(activeList[i], j)] =
                 initialDDSol[i * DDxElem + j];
-            globalDDs[mesh.dofDispl(activeList[i], j)] =
+            globalDDs[mesh.dofDD(activeList[i], j)] =
                 initialDDSol[i * DDxElem + j];
 
         }
@@ -412,7 +417,7 @@ ToughnessDominated(int nelts)
     std::cout << horizontalLine << std::endl << std::endl;
 
     //// MULTIPLE TIME STEPS
-    for (il::int_t timeStep = 0; timeStep < finalTimeStep; timeStep++)
+    for (il::int_t timeStep = 1; timeStep <= finalTimeStep; timeStep++)
     {
 
         std::cout << "\n\n   Timestep: \t" << timeStep << std::endl;
@@ -450,7 +455,7 @@ ToughnessDominated(int nelts)
                     // Note: last converged solution vector values are copied,
                     // for those that were not activated a zero is copied.
                     actSol[xStart + j] =
-                        globalSol_old[mesh.dofDispl(activeList[i], j)];
+                        globalSol_old[mesh.dofDD(activeList[i], j)];
 
                     deltaActSol[xStart + j]=0.0;
                 }
@@ -483,9 +488,9 @@ ToughnessDominated(int nelts)
                         for (il::int_t l = 0; l < DDxElem; l++)
                         {
                             il::int_t
-                                dof1 = mesh.dofDispl(activeList[i], k);
+                                dof1 = mesh.dofDD(activeList[i], k);
                             il::int_t
-                                dof2 = mesh.dofDispl(activeList[j], l);
+                                dof2 = mesh.dofDD(activeList[j], l);
 
                             Kact(xStart + k, yStart + l) = globalK_DD(dof1, dof2);
                         }
@@ -521,8 +526,8 @@ ToughnessDominated(int nelts)
             for (il::int_t i = 0; i < numActElems; i++)
             {
 
-                il::int_t coll1 = mesh.dofDispl(activeList[i], 1);
-                il::int_t coll2 = mesh.dofDispl(activeList[i], 3);
+                il::int_t coll1 = mesh.dofDD(activeList[i], 1);
+                il::int_t coll2 = mesh.dofDD(activeList[i], 3);
 
                 double opening1 = DDatColl[coll1];
                 double opening2 = DDatColl[coll2];
@@ -536,13 +541,13 @@ ToughnessDominated(int nelts)
                 il::int_t xStart = i * DDxElem;
 
                 // save the values of inSituStr in Fact
-                Fact[xStart]     = + inSituStr[mesh.dofDispl(activeList[i], 0)];
+                Fact[xStart]     = + inSituStr[mesh.dofDD(activeList[i], 0)];
                 Fact[xStart + 1] = //- press_old
-                                   + inSituStr[mesh.dofDispl(activeList[i], 1)]
+                                   + inSituStr[mesh.dofDD(activeList[i], 1)]
                                    + cohStress1;
-                Fact[xStart + 2] = + inSituStr[mesh.dofDispl(activeList[i], 2)];
+                Fact[xStart + 2] = + inSituStr[mesh.dofDD(activeList[i], 2)];
                 Fact[xStart + 3] = //- press_old
-                                   + inSituStr[mesh.dofDispl(activeList[i], 3)]
+                                   + inSituStr[mesh.dofDD(activeList[i], 3)]
                                    + cohStress2;
 
             }
@@ -620,7 +625,7 @@ ToughnessDominated(int nelts)
                 status.ok();
 
                 // and update solution
-                for (il::int_t i = 0; i < numActDispl + 1; i++)
+                for (il::int_t i = 0; i < numActDispl+1; i++)
                 {
                     //actSol[i] = actSol_old[i] + deltaActSol[i];
                     actSol[i] = (relaxParam)*(actSol_old[i] + deltaActSol[i])
@@ -651,9 +656,9 @@ ToughnessDominated(int nelts)
 
                     for (il::int_t j = 0; j < DDxElem; j++)
                     {
-                        globalSol[mesh.dofDispl(ithElem, j)] =
+                        globalSol[mesh.dofDD(ithElem, j)] =
                             actSol[i * DDxElem + j];
-                        globalDDs[mesh.dofDispl(ithElem, j)] =
+                        globalDDs[mesh.dofDD(ithElem, j)] =
                             actSol[i * DDxElem + j];
                     }
                 }
@@ -677,7 +682,7 @@ ToughnessDominated(int nelts)
 //                    {
 //
 //                        actDDatColl[i * DDxElem + j] =
-//                            DDatColl[mesh.dofDispl(activeList[i], j)];
+//                            DDatColl[mesh.dofDD(activeList[i], j)];
 //
 //                    }
 //                }
@@ -689,8 +694,8 @@ ToughnessDominated(int nelts)
                 // computed from the collocation points opening
                 for (il::int_t i = 0; i < numActElems; i++)
                 {
-                    il::int_t coll1 = mesh.dofDispl(activeList[i], 1);
-                    il::int_t coll2 = mesh.dofDispl(activeList[i], 3);
+                    il::int_t coll1 = mesh.dofDD(activeList[i], 1);
+                    il::int_t coll2 = mesh.dofDD(activeList[i], 3);
 
                     double opening1 = DDatColl[coll1];
                     double opening2 = DDatColl[coll2];
@@ -705,16 +710,16 @@ ToughnessDominated(int nelts)
 
                     // save the values of inSituStr in Fact
                     Fact[xStart] =
-                        inSituStr[mesh.dofDispl(activeList[i], 0)];
+                        inSituStr[mesh.dofDD(activeList[i], 0)];
                     Fact[xStart + 1] =
                         //- press_old
-                        + inSituStr[mesh.dofDispl(activeList[i], 1)]
+                        + inSituStr[mesh.dofDD(activeList[i], 1)]
                         + cohStress1;
                     Fact[xStart + 2]=
-                        inSituStr[mesh.dofDispl(activeList[i],2)];
+                        inSituStr[mesh.dofDD(activeList[i], 2)];
                     Fact[xStart + 3] =
                         //- press_old
-                        + inSituStr[mesh.dofDispl(activeList[i], 3)]
+                        + inSituStr[mesh.dofDD(activeList[i], 3)]
                         + cohStress2;
 //                    if(cohStress1 > 0.0 || cohStress2 > 0.0){
 //                        std::cout << "ERROR: " << cohStress1 << "  "
@@ -861,9 +866,9 @@ ToughnessDominated(int nelts)
 
                 for (il::int_t j = 0; j < DDxElem; j++)
                 {
-                    globalSol[mesh.dofDispl(ithElem, j)] =
+                    globalSol[mesh.dofDD(ithElem, j)] =
                         actSol[i * DDxElem + j];
-                    globalDDs[mesh.dofDispl(ithElem, j)] =
+                    globalDDs[mesh.dofDD(ithElem, j)] =
                         actSol[i * DDxElem + j];
                 }
             }
@@ -895,14 +900,14 @@ ToughnessDominated(int nelts)
                     // here we should check that the STRESS AT BOTH COLLOCATION POINTS
                     // will activate the element/cohesive zone
                     // node 1, component x (sliding),          component y (opening)
-                    //         stressFull[mesh.dofDispl(i,0)] stressFull[mesh.dofDispl(i,1)]
+                    //         stressFull[mesh.dofDispl(i,0)] stressFull[mesh.dofDD(i,1)]
                     // node 2, component x (sliding),          component y (opening)
-                    //         stressFull[mesh.dofDispl(i,2)] stressFull[mesh.dofDispl(i,3)]
-                    if ((globalStressColl[mesh.dofDispl(i, 1)]
-                        -inSituStr[mesh.dofDispl(i, 1)]
+                    //         stressFull[mesh.dofDispl(i,2)] stressFull[mesh.dofDD(i,3)]
+                    if ((globalStressColl[mesh.dofDD(i, 1)]
+                        -inSituStr[mesh.dofDD(i, 1)]
                         > linearCZM.getMaxStress(i)) &&
-                        (globalStressColl[mesh.dofDispl(i, 3)]
-                            -inSituStr[mesh.dofDispl(i, 3)]
+                        (globalStressColl[mesh.dofDD(i, 3)]
+                            -inSituStr[mesh.dofDD(i, 3)]
                             > linearCZM.getMaxStress(i)))
                     {
 
@@ -951,8 +956,8 @@ ToughnessDominated(int nelts)
 
 //        for (il::int_t i = 0; i < numActElems; i++)
 //        {
-//            initVolume = initVolume + (initialDDSol[mesh.dofDispl(i, 1)] +
-//                initialDDSol[mesh.dofDispl(i, 3)]) * h / 2.0;
+//            initVolume = initVolume + (initialDDSol[mesh.dofDD(i, 1)] +
+//                initialDDSol[mesh.dofDD(i, 3)]) * h / 2.0;
 //        }
 
         globalDDs_old = globalDDs;
@@ -960,6 +965,9 @@ ToughnessDominated(int nelts)
         press_old = press;
 
         actSol_old=actSol;
+
+        // Computation of crack length
+
 
         //if()
         activeList_old.resize(numActElems);
@@ -1014,6 +1022,11 @@ ToughnessDominated(int nelts)
         }
 
         std::fprintf(of, "\n\n******* Stress YY *******\n");
+        for (int j = 1; j < totalNumDD; j=j+2) {
+            std::fprintf(of, format1, globalStressColl[j]);
+        }
+
+        std::fprintf(of, "\n\n******* Crack length *******\n");
         for (int j = 1; j < totalNumDD; j=j+2) {
             std::fprintf(of, format1, globalStressColl[j]);
         }
@@ -1080,6 +1093,9 @@ ToughnessDominated(int nelts)
     // the length of the crack (or tip position..)
 
 std::cout << "End of the analysis" << std::endl;
+
+      timer.stop();
+      std::cout << timer.elapsed() << " s" << "  \n";
 
 return maxAperture;
 }

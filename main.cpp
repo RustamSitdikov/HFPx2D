@@ -103,7 +103,7 @@ int main(int const argc, char const* const* argv) {
 //////////////////////// Prepare data for computation /////////////////////////////////
 
   // create the source vector for displacement+pressure dofs
-  //il::int_t totalNumDofs= theMesh.numDisplDofsPerElem()+ theMesh.numPressDofsPerElem();
+  //il::int_t totalNumDofs= theMesh.numDDDofsPerElem()+ theMesh.numPressDofsPerElem();
   // the source vector (or forcing vector) will be created after we checked for the position of the injection
   // there will be a method in the class to give that vector
 
@@ -120,7 +120,7 @@ int main(int const argc, char const* const* argv) {
 
   std::cout << "\n\n ----- Simple Griffith crack examples ----- \n\n" << std::endl;
 
-  int nelts = 400;
+  int nelts = 300;
 
   //double ret1 = hfp2d::SimpleGriffithExampleLinearElement(nelts);
   //double ret2 = hfp2d::SimpleGriffithExampleS3D_P0(nelts);
@@ -129,7 +129,8 @@ int main(int const argc, char const* const* argv) {
 
   //std::cout << "\n rel error L2 norm in Linear Elements: " << ret1 << "\n";
   //std::cout << "\n rel error L2 norm in Constant Elements: " << ret2 << "\n";
-  //std::cout << "\n pressure in Toughness Dominated case: " << ret3 << "\n";
+  //std::cout << "\n max aperture in Toughness Dominated case: " << ret3 <<
+  // "\n";
 
   std::cout << " end of code \n\n\n";
 

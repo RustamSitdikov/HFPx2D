@@ -79,8 +79,8 @@ il::Array2D<double> from_edge_to_col_dg_full2d_new(Mesh &mesh) {
   //  - Dofw -> DOFs handle for BOTH slip AND opening (size -> Neltsx4)
 
   // Note matrix on all the DDs dofs
-  const il::int_t DDxElem = mesh.numDisplDofsPerElem();
-  il::Array2D<double> Fetc{mesh.numDisplDofs(), mesh.numDisplDofs(), 0};
+  const il::int_t DDxElem = mesh.numDDDofsPerElem();
+  il::Array2D<double> Fetc{mesh.numDDDofs(), mesh.numDDDofs(), 0};
   il::StaticArray2D<double,4,4> ShapeFunction{0};
 
   // contribution to slip at collocation node 1
@@ -106,7 +106,7 @@ il::Array2D<double> from_edge_to_col_dg_full2d_new(Mesh &mesh) {
     {
       for (il::int_t k = 0; k < DDxElem; k++)
       {
-        Fetc(mesh.dofDispl(i, j), mesh.dofDispl(i, k)) = ShapeFunction(j, k);
+        Fetc(mesh.dofDD(i, j), mesh.dofDD(i, k)) = ShapeFunction(j, k);
       }
     }
   }
@@ -126,12 +126,12 @@ il::Array2D<double> from_edge_to_col_dg_full2d_new(Mesh &mesh) {
 //
 //  for (il::int_t i = 0; i < mesh.numElems(); ++i) {
 //
-//    for (il::int_t j = 0; j < mesh.numDisplDofsPerElem(); ++j) {
+//    for (il::int_t j = 0; j < mesh.numDDDofsPerElem(); ++j) {
 //
-//      Fetc(mesh.dofDispl(i, 0), mesh.dofDispl(i, j)) = ShapeFunction(0, j);
-//      Fetc(mesh.dofDispl(i, 1), mesh.dofDispl(i, j)) = ShapeFunction(0, j);
-//      Fetc(mesh.dofDispl(i, 2), mesh.dofDispl(i, j)) = ShapeFunction(1, j);
-//      Fetc(mesh.dofDispl(i, 3), mesh.dofDispl(i, j)) = ShapeFunction(1, j);
+//      Fetc(mesh.dofDispl(i, 0), mesh.dofDD(i, j)) = ShapeFunction(0, j);
+//      Fetc(mesh.dofDispl(i, 1), mesh.dofDD(i, j)) = ShapeFunction(0, j);
+//      Fetc(mesh.dofDispl(i, 2), mesh.dofDD(i, j)) = ShapeFunction(1, j);
+//      Fetc(mesh.dofDispl(i, 3), mesh.dofDD(i, j)) = ShapeFunction(1, j);
 //    }
 //  }
 
@@ -217,18 +217,18 @@ il::Array2D<double> from_edge_to_col_cg(int dof_dim,
 il::Array2D<double> from_edge_to_col_cg_new(Mesh &theMesh) {
 
   // From mesh
-  // Dof(i,j) = mesh.dofDispl(i,j)
+  // Dof(i,j) = mesh.dofDD(i,j)
   // Dofp(i,j) = mesh.dofPress(i,j)
   // dof_dim = 2 (number of dimensions of the problem)
   // Dof.size(0) = mesh.numNodes()
-  // 4 = mesh.numDisplDofsPerElem()
+  // 4 = mesh.numDDDofsPerElem()
 
   // Internal pressure contributes only to the opening degrees of freedom
   // so components 1 and 3
 
   // Note matrix on all the DDs dofs
   const il::int_t dim = 2; // 2 because the problem is 2D
-  il::Array2D<double> Fetc{theMesh.numDisplDofs(), theMesh.numPressDofs(), 0};
+  il::Array2D<double> Fetc{theMesh.numDDDofs(), theMesh.numPressDofs(), 0};
   il::StaticArray2D<double,2,2> ShapeFunction{0};
 
   ShapeFunction(0, 0) = (1 + (1 / sqrt(2))) / 2;
@@ -241,8 +241,8 @@ il::Array2D<double> from_edge_to_col_cg_new(Mesh &theMesh) {
 
     for (il::int_t j = 0; j < dim; ++j) {
 
-      Fetc(theMesh.dofDispl(i, 1), theMesh.dofPress(i, j)) = ShapeFunction(0, j);
-      Fetc(theMesh.dofDispl(i, 3), theMesh.dofPress(i, j)) = ShapeFunction(1, j);
+      Fetc(theMesh.dofDD(i, 1), theMesh.dofPress(i, j)) = ShapeFunction(0, j);
+      Fetc(theMesh.dofDD(i, 3), theMesh.dofPress(i, j)) = ShapeFunction(1, j);
     }
   }
 

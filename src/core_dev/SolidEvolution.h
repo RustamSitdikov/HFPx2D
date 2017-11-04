@@ -183,9 +183,9 @@ public:
 
         for(il::int_t i=0; i < crackElements.size(); i++){
 
-            for(il::int_t j=0; j < mesh.numDisplDofsPerElem(); j++){
+            for(il::int_t j=0; j < mesh.numDDDofsPerElem(); j++){
 
-                il::int_t dofLocation = mesh.dofDispl(crackElements[i],j);
+                il::int_t dofLocation = mesh.dofDD(crackElements[i], j);
 
                 max_hist_opening_[dofLocation]=maximum_opening_[dofLocation];
 

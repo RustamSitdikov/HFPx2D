@@ -10,6 +10,7 @@
 //
 
 // Inclusion from Inside Loop library
+#include <il/base.h>
 #include <il/math.h>
 #include <il/Array2D.h>
 #include <il/linear_algebra.h>
@@ -355,7 +356,7 @@ il::StaticArray2D<double, 2, 3> stresses_kernel_s3d_p0_dd(double a, double b,
 //------------------------------------------------------------------------------
 
 il::StaticArray2D<double, 2, 4> normal_shear_stress_kernel_s3d_dp0_dd(
-    SegmentData source_elt, SegmentData receiver_elt, int i_col,
+    const SegmentData source_elt, const SegmentData receiver_elt, int i_col,
     ElasticProperties Elas, double ker_options)
 {
 //  Function to get the normal and shear stress at a point on a surface
@@ -378,18 +379,18 @@ il::StaticArray2D<double, 2, 4> normal_shear_stress_kernel_s3d_dp0_dd(
 
 // switch to the frame of the source element....
   il::StaticArray2D<double, 2, 2> R =
-      hfp2d::rotation_matrix_2D(source_elt.theta);
+      hfp2d::rotation_matrix_2D(source_elt.theta());
 
   il::StaticArray<double, 2> xe;
   for (int i = 0; i < 2; ++i) {
-    xe[i] = receiver_elt.CollocationPoints(i_col, i) - source_elt.Xmid[i];
+    xe[i] = receiver_elt.CollocationPoints(i_col, i) - source_elt.Xmid(i);
   }
   xe = il::dot(R, xe);
 
-  il::StaticArray<double, 2> n = il::dot(R, receiver_elt.n);
-  il::StaticArray<double, 2> s = il::dot(R, receiver_elt.s);
+  il::StaticArray<double, 2> n = il::dot(R, receiver_elt.n());
+  il::StaticArray<double, 2> s = il::dot(R, receiver_elt.s());
 
-  double h = source_elt.size;
+  double h = source_elt.size();
 
 
   il::StaticArray2D<double, 2, 3> stress_l =

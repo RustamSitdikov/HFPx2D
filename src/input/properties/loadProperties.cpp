@@ -62,7 +62,7 @@ Properties loadProperties(const Mesh &theLoadedMesh,
   // The solid evolution is computed at each collocation point location, but the number of
   // historical variables and parameters are depending on the type of constitutive model.
 
-  il::int_t numDisplDofs = theLoadedMesh.numDisplDofs();
+  il::int_t numDisplDofs = theLoadedMesh.numDDDofs();
   il::int_t numPressDofs = theLoadedMesh.numPressDofs();
 
   il::Array<double> failureStresses(numDisplDofs);
@@ -75,9 +75,9 @@ Properties loadProperties(const Mesh &theLoadedMesh,
   std::cout << "Num. of Fractures " << theLoadedMesh.numFracs() << std::endl;
   std::cout << "Num. of Nodes " << theLoadedMesh.numNodes() << std::endl;
   std::cout << "Num. of Elements " << theLoadedMesh.numElems() << std::endl;
-  std::cout << "Displ. DOF per Element " << theLoadedMesh.numDisplDofsPerElem() << std::endl;
+  std::cout << "Displ. DOF per Element " << theLoadedMesh.numDDDofsPerElem() << std::endl;
   std::cout << "Press. DOF per Element " << theLoadedMesh.numPressDofsPerElem()  << std::endl;
-  std::cout << "Displ. DOF x Num. Elem." << theLoadedMesh.numDisplDofsPerElem()* theLoadedMesh.numElems() << std::endl;
+  std::cout << "Displ. DOF x Num. Elem." << theLoadedMesh.numDDDofsPerElem()* theLoadedMesh.numElems() << std::endl;
   std::cout << "Computed Num. of Displ. Dofs" << (theLoadedMesh.interpOrd()+1)* theLoadedMesh.numElems() << std::endl;
   std::cout << "Press. DOF x Num. Elem." << theLoadedMesh.numPressDofsPerElem()* theLoadedMesh.numElems() << std::endl;
   std::cout << "Computed Num. of Press. Dofs" << theLoadedMesh.numElems()* theLoadedMesh.interpOrd()+ theLoadedMesh.numFracs() << std::endl;
@@ -110,13 +110,13 @@ Properties loadProperties(const Mesh &theLoadedMesh,
           std::cout << "Element " << elmtK << " mesh matID " << theLoadedMesh.matID(elmtK) << "materialID" << materialID << std::endl;
 
           // this loop is for collocation point properties (e.g. CZMs)
-          for(il::int_t j=0; j< theLoadedMesh.numDisplDofsPerElem(); j++){
+          for(il::int_t j=0; j< theLoadedMesh.numDDDofsPerElem(); j++){
 
             // save the material parameters at the location indicated by the dof handle
-            failureStresses[theLoadedMesh.dofDispl(elmtK,j)] = singleFailureStress;
-            maxOpenings[theLoadedMesh.dofDispl(elmtK,j)] = singleMaxOpening;
+            failureStresses[theLoadedMesh.dofDD(elmtK, j)] = singleFailureStress;
+            maxOpenings[theLoadedMesh.dofDD(elmtK, j)] = singleMaxOpening;
 
-            //std::cout << j << " " << theLoadedMesh.dofDispl(elmtK,j) << " " ;
+            //std::cout << j << " " << theLoadedMesh.dofDD(elmtK,j) << " " ;
 
           }
           //std::cout << std::endl;

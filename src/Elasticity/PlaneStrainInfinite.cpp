@@ -152,7 +152,7 @@ il::StaticArray2D<double, 2, 4> stresses_kernel_dp1_dd(double h, double Ep,
 //------------------------------------------------------------------------------
 // new api - for general kernel call for DDs
 il::StaticArray2D<double, 2, 4> normal_shear_stress_kernel_dp1_dd(
-    SegmentData source_elt, SegmentData receiver_elt, int i_col,
+    const SegmentData source_elt, const SegmentData receiver_elt, int i_col,
     ElasticProperties Elas, double ker_options) {
   //   Function to get the normal and shear stress at a point on a surface
   // (with given normal and shear vector) induced by
@@ -171,18 +171,18 @@ il::StaticArray2D<double, 2, 4> normal_shear_stress_kernel_dp1_dd(
 
   // switch to the frame of the source element....
   il::StaticArray2D<double, 2, 2> R =
-      hfp2d::rotation_matrix_2D(source_elt.theta);
+      hfp2d::rotation_matrix_2D(source_elt.theta());
 
   il::StaticArray<double, 2> xe;
   for (int i = 0; i < 2; ++i) {
-    xe[i] = receiver_elt.CollocationPoints(i_col, i) - source_elt.Xmid[i];
+    xe[i] = receiver_elt.CollocationPoints(i_col, i) - source_elt.Xmid(i);
   }
   xe = il::dot(R, xe);
 
-  il::StaticArray<double, 2> n = il::dot(R, receiver_elt.n);
-  il::StaticArray<double, 2> s = il::dot(R, receiver_elt.s);
+  il::StaticArray<double, 2> n = il::dot(R, receiver_elt.n());
+  il::StaticArray<double, 2> s = il::dot(R, receiver_elt.s());
 
-  double h = source_elt.size;
+  double h = source_elt.size();
 
   double n1n1 = n[0] * n[0];
   double n2n2 = n[1] * n[1];

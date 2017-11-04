@@ -1,11 +1,11 @@
 cmake_minimum_required(VERSION 3.6)
 
 project(HFPx2D CXX)
-project(HFPx2DUnitTest CXX)
+#project(HFPx2DUnitTest CXX)
 
 
 set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -std=c++11")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 # If you want to run another compiler, such as clang
 if (APPLE)
@@ -23,7 +23,7 @@ endif()
 # set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 IF(CMAKE_BUILD_TYPE MATCHES Debug)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -pedantic -msse2")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Wall -Wextra -pedantic")
     #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Werror -Wall -Wextra
     #-Wstrict-aliasing -pedantic")
     #-fmax-errors=5 -Werror -Wunreachable-code -Wcast-align -Wcast-qual
@@ -37,7 +37,10 @@ IF(CMAKE_BUILD_TYPE MATCHES Debug)
 ENDIF(CMAKE_BUILD_TYPE MATCHES Debug)
 
 IF(CMAKE_BUILD_TYPE MATCHES Release)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m64 -march=native -o3")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -march=native -mfpmath=sse -malign-double -m64")
+#            -march=native -mfpmath=sse -malign-double -m64 -msse4.2 -mavx2 \
+#            -mfma")
+#                    -msse4.2 -mavx2 -mfma4 ")
 ENDIF(CMAKE_BUILD_TYPE MATCHES Release)
 
 set(SOURCE_FILES_DIR ${PROJECT_SOURCE_DIR}/src)
@@ -77,8 +80,8 @@ set(SOURCE_FILES
         #src/input/geometry/autoLineMeshInfo.h
         #src/devt/iterativeLoop.cpp
         #src/devt/iterativeLoop.h
-        src/core/segmentData.cpp
-        src/core/segmentData.h
+        src/core/SegmentData.cpp
+        src/core/SegmentData.h
         src/core/Fluid.h
         src/core_dev/SolidEvolution.h
         src/FluidFlow/PermeabilityEvolution.h

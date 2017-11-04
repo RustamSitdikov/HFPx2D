@@ -97,7 +97,7 @@ double SimpleGriffithExampleLinearElement(int nelts) {
 
   hfp2d::Mesh mesh(p,xy,myconn,id_displ,id_press,fracID,matID,condID);
 
-  il::int_t ndof = mesh.numDisplDofs();
+  il::int_t ndof = mesh.numDDDofs();
 
   hfp2d::ElasticProperties myelas(1, 0.);
 
@@ -115,7 +115,7 @@ double SimpleGriffithExampleLinearElement(int nelts) {
 
   std::cout << "Number of elements : " << mesh.nelts() << "\n";
   std::cout << "Number of dofs :" << id.size(0) * id.size(1) << "---"
-            << (nelts) * (p + 1) * 2 << "---" << mesh.numDisplDofs() << "\n";
+            << (nelts) * (p + 1) * 2 << "---" << mesh.numDDDofs() << "\n";
   std::cout << myconn.size(0) << "\n";
 ;
   std::cout << "------\n";
@@ -233,7 +233,7 @@ double SimpleGriffithExampleS3D_P0(int nelts) {
   //hfp2d::Mesh mesh(xy,myconn);
   hfp2d::Mesh mesh(p,xy,myconn,id_displ,id_press,fracID,matID,condID);
 
-  il::int_t ndof = mesh.numDisplDofs();
+  il::int_t ndof = mesh.numDDDofs();
 
   hfp2d::ElasticProperties myelas(1, 0.);
   //  myelas.ElasticProperties(1.,0.);
@@ -293,10 +293,11 @@ double SimpleGriffithExampleS3D_P0(int nelts) {
   il::Array<double> thex{ndof / 2, 0}, wsol{ndof / 2, 0};
 
   int i = 0;
-  SegmentData sege;
+  //SegmentData sege;
   for (int e = 0; e < nelts; ++e) {
-    sege=get_segment_DD_data(mesh,e,p);
-    thex[e] = sege.Xmid[0];
+    hfp2d::SegmentData sege = mesh.getElementData(e);
+    //sege=get_segment_DD_data(mesh,e,p);
+    thex[e] = sege.Xmid(0);
   }
 
   wsol = griffithcrack(thex, 1., 1., 1.);  // call to analytical solution
