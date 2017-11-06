@@ -63,7 +63,6 @@ class Mesh {  // class for 1D mesh of 1D segment elements ?
   // Material identifier - size: number of elements
   il::Array<il::int_t> material_id_;
 
-
   // a structure  with nodes and corresponding adjacent elements .....
   // row node #, columms element sharing that nodes, if  entry is -1 then
   // no more connected elt.  todo: switch to a sparse matrix and use
@@ -142,7 +141,7 @@ class Mesh {  // class for 1D mesh of 1D segment elements ?
     tipelts_ = BuildTipElts(node_adj_elt_, tipnodes_);
   };
 
-  // case where matid vector is provided
+  // case where the matid vector is provided
   // constructor with interpolation order and coordinates and connectivity array
   Mesh(const il::Array2D<double> &Coordinates,
        const il::Array2D<il::int_t> &Connectivity,
@@ -273,7 +272,6 @@ class Mesh {  // class for 1D mesh of 1D segment elements ?
     return (*std::max_element(material_id_.begin(), material_id_.end()) + 1);
   }
 
-
   // interpolation order
   il::int_t interpolationOrder() const { return interpolation_order_; }
 
@@ -297,7 +295,7 @@ class Mesh {  // class for 1D mesh of 1D segment elements ?
 
   il::int_t dofDD(il::int_t k, il::int_t i) const {
     // coordinates k, dof i -> return global equation iD
-    return dof_handle_dd_(k, i); // element , dof dim.
+    return dof_handle_dd_(k, i);  // element , dof dim.
   }
 
   ////////////////////////////////////////////////////////////////////////////////////////////
@@ -311,21 +309,21 @@ class Mesh {  // class for 1D mesh of 1D segment elements ?
 
   il::Array<double> All_elt_size();
 
-  // method to get nodes sharing 2 elts. (i.e. the nodal_connectivity for all nodes with 2 neighbours)
+  // method to get nodes sharing 2 elts. (i.e. the nodal_connectivity for all
+  // nodes with 2 neighbours)
   // todo rename
   il::Array2D<il::int_t> GetNodesSharing2Elts();
 
-  // method to get the ribbon elements  - of a given mesh.
-  il::Array<il::int_t>  getRibbonElements() ;
+  // method to get the ribbon elements  - of a given mesh. (elements nearest to
+  // a tip element)
+  il::Array<il::int_t> getRibbonElements();
 
-
-  // method to add N element ahead of a tip node of a tip element at a given kick angle
-   void AddNTipElements(const il::int_t t_e, const il::int_t the_tip_node,
+  // method to add N element ahead of a tip node of a tip element at a given
+  // kick angle
+  void AddNTipElements(const il::int_t t_e, const il::int_t the_tip_node,
                        const il::int_t n_add, double kink_angle);
 
-  // todo : do comments each methods better !
-
-};
+ };
 }
 
 #endif  // HFPX2D_MESH_H

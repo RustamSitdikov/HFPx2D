@@ -15,8 +15,8 @@
 #include "ReynoldsP0.h"
 
 #include <src/core/SolidProperties.h>
-#include <src/core/SolutionAtT.h>
-#include <src/core_dev/Sources.h>
+#include <src/core/Solution.h>
+#include <src/core/Sources.h>
 #include "src/core/Fluid.h"
 #include "src/core/Mesh.h"
 #include <src/core/SimulationParameters.h>
@@ -110,8 +110,8 @@ il::Array<double> P0VolumeCompressibility(hfp2d::Mesh &mesh,
   return volume;
 }
 ////////////////////////////////////////////////////////////////////////////////
-hfp2d::SolutionAtT ReynoldsSolverP0(
-    hfp2d::SolutionAtT &soln, il::Array2D<double> &ElasMat, hfp2d::Fluid &fluid,
+Solution ReynoldsSolverP0(
+    Solution &soln, il::Array2D<double> &ElasMat, hfp2d::Fluid &fluid,
     hfp2d::SolidProperties &rock, hfp2d::Sources &source, double timestep,
     bool imp_tip_width, il::Array<il::int_t> &tip_region_elt,
     il::Array<double> &tip_width, // will need to add leak-off volume...
@@ -369,7 +369,7 @@ hfp2d::SolutionAtT ReynoldsSolverP0(
     Pn[i] += DX_k[2*n_elts+i ];
   }
 
-  return hfp2d::SolutionAtT(
+  return hfp2d::Solution(
       meshn, soln.time() + timestep, timestep, Wn, Vn, Pn, sig0, tau0,
       soln.front_its(), k, soln.err_front(), il::norm(err_Dv, il::Norm::L2),
       il::norm(err_Dw, il::Norm::L2), il::norm(err_Dp, il::Norm::L2));

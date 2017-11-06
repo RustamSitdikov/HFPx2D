@@ -12,5 +12,18 @@
 // put here some utilites, especially the take of submatrix...
 // different version could be developed depending on efficiency.
 
+namespace hfp2d {
+
+void take_submatrix(il::Array2D<double> &sub, int i0, int i1, int j0, int j1,
+                    const il::Array2D<double> &A);
+
+void set_submatrix(il::Array2D<double> &A, int i0, int i1,
+                   const il::StaticArray2D<double, 2, 4> &B);
+
+
+//   Rotation Matrix
+il::StaticArray2D<double, 2, 2> rotation_matrix_2D(double theta);
+
+}
 
 #endif //HFPX2D_MATRIX_UTILITIES_H

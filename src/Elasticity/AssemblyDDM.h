@@ -29,12 +29,11 @@ typedef  il::StaticArray2D<double, 2, 4> (*vKernelCall)(
 il::Array2D<double> basic_assembly(Mesh &mesh, ElasticProperties &elas,
                                    vKernelCall KernelCall, double ker_options);
 
+void basic_assembly_add_elts(Mesh &new_mesh, il::int_t n_add,
+                             ElasticProperties &elas, vKernelCall KernelCall,
+                             double ker_options, il::io_t,
+                             il::Array2D<double> &K);
 
-void take_submatrix(il::Array2D<double> &sub, int i0, int i1, int j0, int j1,
-                    const il::Array2D<double> &A);
-
-void set_submatrix(il::Array2D<double> &A, int i0, int i1,
-                   const il::StaticArray2D<double, 2, 4> &B);
 
 void AddTipCorrectionP0(hfp2d::Mesh &mesh, const ElasticProperties &elas,
                         il::int_t tipElt, il::Array2D<double> &Kmat );

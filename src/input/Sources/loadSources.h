@@ -10,7 +10,7 @@
 #include "il/toml.h"
 #include <src/input/findUtilities.h>
 #include <src/core/Mesh.h>
-#include <src/core_dev/Sources.h>
+#include <src/core/Sources.h>
 
 namespace hfp2d{
 

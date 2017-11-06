@@ -1,0 +1,28 @@
+
+NOTES - Multi-HF-algo Development
+
+Goals:
+Full Algorithm should be working by year end
+First validations (plane-strain case  - fractures far-apart from each other) by early December to Total !
+
+
+tip asymptote package
+- simplify API
+- some oscillations when starting from a state where Ki=Kic and then pumping more fluid !
+- check the relaxation on tip velocity -> output velocity (factor 2 when oscillating at start )
+
+Development FracturesFrontLoop
+
+- we will have to pin-point the time at which the initiation criteria is first met ?
+   -> see  tip asymptote problems ?   can we avoid that ?
+
+- Elasticity Matrix add row and columns when adding elements ...
+    -> write a routine
+
+- Reynolds Multi-HF
+    - width constraints (case for example when starting pumping and the pressure is below sigma_n_o)
+        -> convergence on pressure increment only (if width constraint are active)
+
+- Coupling with wellbore-flow
+    - Shall we hard couple ?
+    -

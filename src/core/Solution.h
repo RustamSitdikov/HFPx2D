@@ -11,11 +11,12 @@
 #define HFPX2DUNITTEST_SOLUTIONATT_H
 
 #include <il/Array.h>
-
 #include <src/core/Mesh.h>
 
+
 namespace hfp2d {
-class SolutionAtT {
+
+class Solution {
   // base  class for solution of coupled fluid driven fracture problem
  private:
 
@@ -26,9 +27,9 @@ class SolutionAtT {
 
   hfp2d::Mesh currentmesh_;  // the associated mesh  // should be a reference
 
-  il::Array<double> openingDD_;  // opg DD (at nodes, with 2 values per coordinates)
+  il::Array<double> openingDD_;  // opg DD (at nodes if P1)
 
-  il::Array<double> shearDD_;
+  il::Array<double> shearDD_;   // shear DD (at nodes if P1)
 
   il::Array<double> pressure_;  // fluid pressure (at nodes)
 
@@ -41,6 +42,8 @@ class SolutionAtT {
   il::Array2D<double> tipsLocation_;  // 2D coordinate of the location of the
                                       // tips (i.e. may be inside one element in
                                       // the case of an ILSA scheme )
+
+  il::Array<double> ribbon_tip_s_;
 
   // note in the case where the solution vectors are only on sub-parts of the
   // currentmesh, which may happen for cohesive zone model
@@ -66,24 +69,23 @@ class SolutionAtT {
   double residuals_ehl_;
 
  public:
-  // constructor. 4 cases are only needed really
-  // 1. quick construction with mesh obj., width, shear and fluid pressure
-  // 2. quick construction with mesh obj., width, shear and fluid pressure,
+  // constructor. 3 cases are only needed really
+  // 1. quick construction with mesh obj., width, shear and fluid pressure,
   // sigma0 and tau0
-  // 3. complete construction with also errors etc.
-  // 4. complete construction from an input file (i.e. needed for a restart
+  // 2. complete construction with also errors etc.
+  // 3. complete construction from an input file (i.e. needed for a restart
   // simulation)
 
-  // for now, we implement #2 ans #3
-  SolutionAtT(){};
+  // for now, we implement #1 ans #2
+  Solution(){};
 
-  //#2.
-  SolutionAtT(hfp2d::Mesh &mesh, double t, const il::Array<double> &width,
+  //#1.
+  Solution(hfp2d::Mesh &mesh, double t, const il::Array<double> &width,
               const il::Array<double> &sheardd,
               const il::Array<double> &pressure,
               const il::Array<double> &sigma0, const il::Array<double> &tau0) {
 
-    // todo should have checks here on dimensions with mesh....
+    // todo should have checks here on dimensions with mesh etc.
     time_ = t;
     currentmesh_ = mesh;
     openingDD_ = width;
@@ -93,7 +95,8 @@ class SolutionAtT {
     pressure_=pressure;
   };
 
-  SolutionAtT(hfp2d::Mesh &mesh, double t, double dt,
+  //#2.
+  Solution(hfp2d::Mesh &mesh, double t, double dt,
               const il::Array<double> &width, const il::Array<double> &sheardd,
               const il::Array<double> &pressure,
               const il::Array<double> &sigma0, const il::Array<double> &tau0,
@@ -122,16 +125,33 @@ class SolutionAtT {
 
   };
 
+  // some set functions
+  void setRibbonDistances(const il::Array<double> &srt){
+    ribbon_tip_s_=srt;
+  };
+
+  void setTipsLocation(const il::Array2D<double> &tips_xy){
+    tipsLocation_=tips_xy;
+  };
+
+
+
   // get functions
   il::Array<double> openingDD() const { return openingDD_; };
   il::Array<double> shearDD() const { return shearDD_; };
   il::Array<double> pressure() const { return pressure_; };
-
   il::Array<double> sigma0() const { return sigma0_; };
   il::Array<double> tau0() const { return tau0_; };
 
+  il::Array2D<double> TipsLocation() const {return tipsLocation_;};
+  il::Array<double> RibbonsDistance() const { return ribbon_tip_s_;};
+
+  hfp2d::Mesh CurrentMesh() const { return currentmesh_;};
+
+
    double time() const { return time_;};
    double timestep() const { return timestep_;}
+
    double err_front() const { return err_front_;}
    double err_opening() const { return err_openingDD_;}
    double err_shear() const { return err_shearDD_;}
@@ -139,21 +159,18 @@ class SolutionAtT {
    il::int_t  front_its() const { return frontIts_;}
    il::int_t  ehl_its() const { return ehlIts_;}
 
-   hfp2d::Mesh CurrentMesh() const { return currentmesh_;};
 //////////////////////////////////////////////////////////////////////////////
 
   // methods:
-  // deep copy / clone  !
-  // use std::move
 
-  // write solution to file
+  // write solution to file  -> json format
 
- // read from file from restart.
+ // read from file for restart
 
 };
 
-
-
+//////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
 
 
 }

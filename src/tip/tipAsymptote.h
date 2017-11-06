@@ -1,10 +1,10 @@
 //
 // This file is part of HFPx2D
 //
-// Created by nikolski on 10/2/2017.
+// Created by D.Nikolski on 10/2/2017.
 // Copyright (c) ECOLE POLYTECHNIQUE FEDERALE DE LAUSANNE, Switzerland,
 // Geo-Energy Laboratory, 2016-2017.  All rights reserved.
-// See the LICENSE.TXT file for more details.
+// See the LICENSE.TXT file for more details. 
 //
 
 #ifndef HFPX2D_TIP_ASYMPTOTE_H
@@ -14,54 +14,48 @@
 // #include <il/math.h>
 #include <il/StaticArray.h>
 
-// fracture tip asymptote inversion
+// fracture tip asymptote(s) inversion
 namespace tip {
     // constants
-    const double beta_m = std::pow(2.0, 1.0 / 3.0) * std::pow(3.0, 5.0 / 6.0);
-    //
-    const double beta_m_3 = std::pow(beta_m, 3);
-    //
-    const double beta_c = 4.0 / std::pow(15.0 * (std::pow(2.0, 0.5) - 1.0), 0.25);
-    //
-    const double beta_c_4 = std::pow(beta_c, 4);
-    //
+    // const double beta_m = std::pow(2.0, 1.0 / 3.0) * std::pow(3.0, 5.0 / 6.0);
+    // = 3.1473451902649443;
+    const double beta_m_3 = 2.0 * std::pow(3.0, 2.5);
+    // = 31.176914536239792; // = std::pow(beta_m, 3);
+    // const double beta_c = 4.0 / std::pow(15.0 * (std::pow(2.0, 0.5) - 1.0), 0.25);
+    // = 2.5335594408265694;
+    const double beta_c_4 = 256.0 / 15.0 / (std::pow(2.0, 0.5) - 1.0);
+    // = 41.202578131167478; // = std::pow(beta_c, 4);
     const double con_m = beta_m_3 / 3.0;
-    // 10.392304845
+    // = 10.392304845413264; // = c_3(1.0 / 3.0);
+    // const double con_c = beta_c_4 / 4.0;
+    // = ; // c_2(0.25);
     const double con_mc = 0.75 * beta_c_4 / beta_m_3;
-    // 0.9911799823
+    // = 0.99117998230567206; // = con_c / con_m;
 
-    // tolerance, close to machine precision
+    // v tolerance (> machine precision)
     const double m_tol = 2.221e-016;
 
-    // fracture tip parameters
+    // critical Chi (misbehaving residual functions)
+    const double chi_c = 3000.0;
+
+    // fracture tip parameters (input & output)
     struct TipParameters {
         double k1c; // SIF // K' = 4.0 * std::pow(2.0 / il::pi, 0.5) * K1c
         double e_p; // Plane strain modulus = youngPS_ = E / (1.0 - nu*nu)
         double cl; // Carter leak-off coefficient; C' = 2.0 * Cl is used
         double mu; // Fluid viscosity
         double wa; // Opening at the ribbon cell
+        double s0; // Previous distance from the ribbon cell center to the tip
+        double dt; // Time step
         double st; // Distance from the ribbon cell center to the tip
         double vt; // Tip velocity
-        double m0; // 0th moment (volume of the tip)
-        double m1; // 1st moment (volume of the tip)
-        double ta; // Triggering time for tip leak-off
-        double cv; // Tip leak-off volume
     };
 
-    // input
-    struct TAInParam {
-        TipParameters taPrev; // Previous tip state
-        double wa; // New opening at the ribbon cell
-        double dt; // Time step
-    };
-
-    // scaling
+    // scaling (see Dontsov & Peirce 2015, 2017)
+    double k_P(double k1c);
     double k_H(double k1c, double e_p, double w, double s);
     double c_H(double cl, double v, double w, double s);
     double s_H(double mu, double e_p, double v, double w, double s);
-
-    // old scaling
-    double s_T(double mu, double k1c, double e_p, double v, double s);
 
     // auxiliary functions
     double c_1(double d);
@@ -71,62 +65,68 @@ namespace tip {
     // approximate solution of integral eqn (see Dontsov & Peirce 2015, 2017)
     double effe(double k_h, double b_h, double c1_h);
 
+    // various scaled tip asymptote approximations
     // approximations for k-m edge
     double g_km_0(double s_t); // zero-order approximation
     double g_km_1(double s_t); // 1st order delta-correction
 
     // approximations for k-m~ edge
-    double g_kc_0(double chi, double s_t); // zero-order approximation
-    double g_kc_1(double chi, double s_t); // 1st order delta-correction
+    double g_kc_0(double k_h, double c_h); // zero-order approximation
+    double g_kc_1(double k_h, double c_h); // 1st order delta-correction
 
     // approximations for universal tip asymptote (functions to minimize)
-    double g_0(double k_h, double c_h); // zero-order approximation
-    double g_1(double k_h, double c_h); // 1st order delta-correction
+    double g_un_0(double k_h, double c_h); // zero-order approximation
+    double g_un_1(double k_h, double c_h); // 1st order delta-correction
 
-    // moments
+    // criteria for unstable residual function behavior
+    bool isMisbehaving(double s, TipParameters &taParam);
+
+    // checking propagation criterion
+    bool isPropagating(TipParameters &taParam);
+    // overload just in case...
+    bool isPropagating(double s, TipParameters &taParam);
+
+    // (virtual) residual function of distance to minimize (set to zero)
+    typedef double (*ResidualFunction)(double s, TipParameters &taParam);
+
+    // particular residual functions to find the root (distance to the tip)
+    // (modified to overcome misbehavior at high chi values)
+    // zero-order approximation
+    double res_u_0_m(double s, TipParameters &taParam);
+    // 1st order delta-correction
+    double res_u_1_m(double s, TipParameters &taParam);
+
+    // bracketing the tip
+    // (works for modified residual function for high chi)
+    il::StaticArray<double, 2> bracket
+            (ResidualFunction resF,
+             TipParameters &taParam,
+             double up_bound,
+             int maxIter,
+             bool mute);
+
+    // Brent root finder
+    double brent
+            (tip::ResidualFunction fun,
+             tip::TipParameters &params,
+             double a0, double b0,
+             double epsilon, int maxIter);
+
+    // finding the distance to the tip & velocity after a time step dt
+    TipParameters tipStep
+            (ResidualFunction resF,
+             TipParameters &taIn,
+             double dt, double wa,
+             double up_bound,
+             double epsilon, int maxIter,
+             bool mute);
+
+    // moments (volume of the tip)
     double deltaP(double k_h, double c_h, double p);
     double moment0(TipParameters &taParam);
     double moment1(TipParameters &taParam);
     double moment0(double s, TipParameters &taParam);
     double moment1(double s, TipParameters &taParam);
-
-    // (virtual) residual function of distance to minimize (set to zero)
-    typedef double (*ResFun)(double s, TipParameters &taParam);
-
-    // possibly, viscosity & leak-off asymptotes to be added
-    // zero-order approximation
-    double res_g_0(double s, TipParameters &taParam);
-    double res_g_0_s(double s, TipParameters &taParam);
-    // 1st order delta-correction
-    double res_g_1(double s, TipParameters &taParam);
-    double res_g_1_s(double s, TipParameters &taParam);
-
-    // checking propagation criterion
-    bool isPropagating(TipParameters &taParam);
-    bool isPropagating(double s, TipParameters &taParam); // overload just in case...
-
-    // bracketing the tip
-    il::StaticArray<double, 2> bracket(ResFun resF,
-                                       TipParameters &taParam,
-                                       int maxIter);
-
-    // Brent root finder
-    double brent(tip::ResFun fun,
-                 tip::TipParameters &params,
-                 double a0, double b0,
-                 double epsilon, int maxIter);
-
-    // finding the distance to the tip, moments, etc.
-    TipParameters propagateTip(ResFun resF,
-                               TAInParam &taIn,
-                               double epsilonS, int maxIterS,
-                               double epsilonV, int maxIterV,
-                               bool mute);
-
-    TipParameters propagateTip(ResFun resF,
-                               TAInParam &taIn,
-                               double epsilon, int maxIter,
-                               bool mute);
 
 }
 
