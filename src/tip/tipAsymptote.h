@@ -4,7 +4,7 @@
 // Created by nikolski on 10/2/2017.
 // Copyright (c) ECOLE POLYTECHNIQUE FEDERALE DE LAUSANNE, Switzerland,
 // Geo-Energy Laboratory, 2016-2017.  All rights reserved.
-// See the LICENSE.TXT file for more details. 
+// See the LICENSE.TXT file for more details.
 //
 
 #ifndef HFPX2D_TIP_ASYMPTOTE_H
@@ -118,15 +118,15 @@ namespace tip {
 
     // finding the distance to the tip, moments, etc.
     TipParameters propagateTip(ResFun resF,
-                         TAInParam &taIn,
-                         double epsilonS, int maxIterS,
-                         double epsilonV, int maxIterV,
-                         bool mute);
+                               TAInParam &taIn,
+                               double epsilonS, int maxIterS,
+                               double epsilonV, int maxIterV,
+                               bool mute);
 
     TipParameters propagateTip(ResFun resF,
-                         TAInParam &taIn,
-                         double epsilon, int maxIter,
-                         bool mute);
+                               TAInParam &taIn,
+                               double epsilon, int maxIter,
+                               bool mute);
 
 }
 

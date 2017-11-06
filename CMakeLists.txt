@@ -1,6 +1,5 @@
 cmake_minimum_required(VERSION 3.6)
 
-
 project(HFPx2DUnitTest CXX)
 
 project(HFPx2D CXX)
@@ -55,10 +54,10 @@ set(SOURCE_FILES
 #        src/input/geometry/loadGeometry.h
 #        src/input/geometry/loadMeshFile.cpp
 #        src/input/geometry/loadMeshFile.h
-##        src/input/properties/loadProperties.cpp
+#        src/input/properties/loadProperties.cpp
 #        src/input/properties/loadProperties.h
-        #src/input/geometry/autoLineMeshInfo.cpp
-        #src/input/geometry/autoLineMeshInfo.h
+#        src/input/geometry/autoLineMeshInfo.cpp
+#        src/input/geometry/autoLineMeshInfo.h
         src/core/SegmentData.cpp
         src/core/SegmentData.h
 #        src/core/Solid.h
@@ -84,7 +83,9 @@ set(SOURCE_FILES
         src/core/SolutionAtT.h
         src/core/SolidProperties.h
         src/tip/tipAsymptote.cpp
-        src/tip/tipAsymptote.h)
+        src/tip/tipAsymptote.h
+        src/Problems/FluidInj_FricDilatFault.cpp
+        src/Problems/FluidInj_FricDilatFault.h)
 
 if(APPLE)
 link_directories($ENV{MKLROOT}/lib $ENV{MKLROOT}/../compiler/lib )
@@ -105,14 +106,6 @@ elseif(UNIX)
     target_include_directories(HFPx2D PRIVATE ${CMAKE_SOURCE_DIR} /opt/intel/mkl/include)
 endif()
 
-if(APPLE)
-# below for some under mac os sierra ;(
-add_custom_command(TARGET HFPx2D
-        POST_BUILD COMMAND
-        /usr/bin/install_name_tool -add_rpath /opt/intel/compilers_and_libraries_2017.0.102/mac/mkl/lib
-        $<TARGET_FILE:HFPx2D>)
-endif()
-
 
 ################################################################################
 # For Unit Tests  HFPx2DUnitTest
@@ -125,7 +118,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DIL_FOLDER='\"${SR_FOLDER}\"'")
 set(UNIT_TEST_FILES src/_test/elastic_test.cpp
         gtest/src/gtest-all.cc
         src/_test/mesh_test.cpp
-        src/tip/_test/tip_test.cpp)
+        src/tip/_test/tip_test.cpp src/tip/tipAsymptote.cpp src/tip/tipAsymptote.h src/tip/_test/tip_test.cpp src/Problems/FluidInj_FricDilatFault.cpp src/Problems/FluidInj_FricDilatFault.h)
 
 add_executable(HFPx2DUnitTest ${SOURCE_FILES} ${UNIT_TEST_FILES} test.cpp)
 
