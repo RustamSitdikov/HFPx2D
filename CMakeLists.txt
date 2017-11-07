@@ -23,7 +23,7 @@ endif()
 # set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 IF(CMAKE_BUILD_TYPE MATCHES Debug)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Wall -Wextra -pedantic")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Wall -Wextra -pedantic") #-Wall -Wextra -pedantic
     #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Werror -Wall -Wextra
     #-Wstrict-aliasing -pedantic")
     #-fmax-errors=5 -Werror -Wunreachable-code -Wcast-align -Wcast-qual
