@@ -33,7 +33,7 @@ ToughnessDominated(int nelts)
 {
 
     int p = 1;
-    double totLength = 6.0;
+    double totLength = 1.0;
     double h = totLength / (nelts); //  element size
     il::Array2D<double> xy{nelts + 1, 2, 0.0};
     il::Array2D<il::int_t> myconn{nelts, 2, 0};
@@ -119,13 +119,13 @@ ToughnessDominated(int nelts)
     double failStress = 2.0;
     double maxOpening = 0.002; //failStress/myelas.Ep(); //1.0;
 
-    il::int_t finalTimeStep = 2000;
+    il::int_t finalTimeStep = 50;
     double deltaTime = 0.1; // secs
 
     const double tolX1 = 1.0e-4;
     const double tolX2 = 1.0e-8;
     const double tolFX = 1.0e-4;
-    const double relaxParam=0.5;
+    const double relaxParam=1.0;
 
     il::int_t NLiter = 0;
     il::int_t globalIter = 0;
@@ -134,6 +134,8 @@ ToughnessDominated(int nelts)
     const il::int_t NLiterMax = 100;
     const il::int_t globalIterMax = 100;
 
+    std::string trg_dir{"/home/lorenzo/CLionProjects"
+                            "/HFPx2D_Master_refactor/resultsBenchmark/"};
 
 
     /////////////////////////////////////////////////////////////////////////////
@@ -628,8 +630,9 @@ ToughnessDominated(int nelts)
                 for (il::int_t i = 0; i < numActDispl+1; i++)
                 {
                     //actSol[i] = actSol_old[i] + deltaActSol[i];
-                    actSol[i] = (relaxParam)*(actSol_old[i] + deltaActSol[i])
-                        + (1.0-relaxParam)*actSol_old[i];
+                    actSol[i] = actSol_old[i] +  relaxParam* deltaActSol[i];
+//                        (relaxParam)*(actSol_old[i] + deltaActSol[i])
+//                        + (1.0-relaxParam)*actSol_old[i];
                 }
 
                 // check that widths are positive
@@ -967,7 +970,7 @@ ToughnessDominated(int nelts)
         actSol_old=actSol;
 
         // Computation of crack length
-
+        double crackLength = h * numActElems;
 
         //if()
         activeList_old.resize(numActElems);
@@ -976,9 +979,6 @@ ToughnessDominated(int nelts)
         numActDispl_old = numActDispl;
 
         //// OUTPUT
-        std::string trg_dir{"/home/lorenzo/CLionProjects"
-                                          "/HFPx2D_Master_refactor/results/"};
-
         std::string of_name; // = std::string{"Test"} + std::to_string
             //(timeStep*deltaTime) +
             //std::string{".txt"};
@@ -1027,14 +1027,18 @@ ToughnessDominated(int nelts)
         }
 
         std::fprintf(of, "\n\n******* Crack length *******\n");
-        for (int j = 1; j < totalNumDD; j=j+2) {
-            std::fprintf(of, format1, globalStressColl[j]);
-        }
+//        for (int j = 1; j < totalNumDD; j=j+2) {
+            std::fprintf(of, format1, crackLength);
+//        }
 
         std::fprintf(of, "\n\n######################################\n\n");
 
         std::fclose(of);
 
+        if(numActElems == nelts){
+            std::cerr << "no more elements!!" << std::endl;
+            abort();
+        }
 
 
 //        std::cout << "injected volume = " << injectedVol <<std::endl;

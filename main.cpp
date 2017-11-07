@@ -120,7 +120,7 @@ int main(int const argc, char const* const* argv) {
 
   std::cout << "\n\n ----- Simple Griffith crack examples ----- \n\n" << std::endl;
 
-  int nelts = 300;
+  int nelts = 500;
 
   //double ret1 = hfp2d::SimpleGriffithExampleLinearElement(nelts);
   //double ret2 = hfp2d::SimpleGriffithExampleS3D_P0(nelts);
