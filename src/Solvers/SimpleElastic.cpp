@@ -330,7 +330,7 @@ double SimpleGriffithExampleS3D_P0_AddMesh(int nelts) {
   il::int_t n1=mesh.tip_nodes(0),n2=mesh.tip_nodes(1);
 
   mesh.AddNTipElements(t1,n1,nelts/2,0.);
-  mesh.AddNTipElements(t2,n2,nelts/2,0.);
+  mesh.AddNTipElements(t2,n2,nelts/2,0.); 
 
   basic_assembly_add_elts(mesh,nelts,myelas,
                           hfp2d::normal_shear_stress_kernel_s3d_dp0_dd,
