@@ -429,6 +429,5 @@ il::StaticArray2D<double, 2, 4> normal_shear_stress_kernel_s3d_dp0_dd(
   return St;
 };
 
-// todo: Write function for Hmat call->    dof on collocatin points returning
 
 }

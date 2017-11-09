@@ -76,35 +76,12 @@ double SimpleGriffithExampleLinearElement(int nelts) {
   hfp2d::ElasticProperties myelas(1, 0.);
 
 
-//  // some definitions needed for matrix assembly
-//  il::Array2D<double> xe{2, 2, 0}, xec{2, 2, 0};
-//
-
-//  std::cout << "Number of elements : " << mesh.numberOfElements() << "\n";
-////  std::cout << "Number of dofs :" << id.size(0) * id.size(1) << "---"
-////            << (numberOfElements) * (p + 1) * 2 << "---" << mesh.numberOfDDDofs() << "\n";
-//  std::cout << myconn.size(0) << "\n";
-//;
-//  std::cout << "------\n";
-//  std::time_t result = std::time(nullptr);
-//  std::cout << std::asctime(std::localtime(&result));
-//
-//  il::Timer timer{};
-//  timer.start();
-
   il::Array2D<double> K = hfp2d::basic_assembly(mesh, myelas,
                             hfp2d::normal_shear_stress_kernel_dp1_dd,
                             0.);  // passing p could be avoided here
 
-//  timer.stop();
-//
-//  std::cout << "------ " << timer.elapsed() << "  \n";
-//  std::cout << "---#---\n";
-//  result = std::time(nullptr);
-//  std::cout << std::asctime(std::localtime(&result));
-
   // solve a constant pressurized crack problem...
-  il::Array<double> f{ndof, 1.};
+  il::Array<double> f{ndof, 1.}; // here we solve with +, so we get positive DD in opening
   // just opening dds - set shear loads to zero
   for (il::int_t i = 0; i < ndof / 2; ++i) {
     f[2 * i] = 0;
@@ -279,7 +256,7 @@ double SimpleGriffithExampleS3D_P0(int nelts) {
 
   il::int_t ndof = mesh.numberOfDDDofs();
   // solve a constant pressurized crack problem...
-  il::Array<double> f{ndof, 1.};  // be careful of sign
+  il::Array<double> f{ndof,1.};  // be careful of sign
   // just opening dds - set shear loads to zero
   for (int i = 0; i < ndof / 2; ++i) {
     f[2 * i] = 0;
@@ -308,9 +285,9 @@ double SimpleGriffithExampleS3D_P0(int nelts) {
   for (int j = 1; j < ndof / 2 - 1; ++j) {
     rel_err[j - 1] = sqrt(pow(dd[j * 2 + 1] - wsol[j], 2)) / wsol[j];
 
-//    std::cout << "x : " << thex[j] << "..w anal:" << wsol[j]
-//              << " w num: " << dd[j * 2 + 1] << " rel error: " << rel_err[j - 1]
-//              << "\n";
+    std::cout << "x : " << thex[j] << "..w anal:" << wsol[j]
+              << " w num: " << dd[j * 2 + 1] << " rel error: " << rel_err[j - 1]
+              << "\n";
   }
 
   std::cout << " end of Simple Griffith crack example P0 \n";
@@ -359,13 +336,12 @@ double SimpleGriffithExampleS3D_P0_AddMesh(int nelts) {
                           hfp2d::normal_shear_stress_kernel_s3d_dp0_dd,
                           1000.,il::io,K);
 
-
   AddTipCorrectionP0(mesh, myelas,mesh.tip_elts(0), K);
   AddTipCorrectionP0(mesh, myelas,mesh.tip_elts(1), K);
 
   il::int_t ndof = mesh.numberOfDDDofs();
   // solve a constant pressurized crack problem...
-  il::Array<double> f{ndof, -1.};  // be careful of sign
+  il::Array<double> f{ndof, 1.};  // be careful of sign
   // just opening dds - set shear loads to zero
   for (int i = 0; i < ndof / 2; ++i) {
     f[2 * i] = 0;
