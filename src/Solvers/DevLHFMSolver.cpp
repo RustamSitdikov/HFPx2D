@@ -118,7 +118,7 @@ int TwoParallelHFs(int nelts, double dist) {
   std::cout << "e !!!" << (Ntot + Ntot) << "\n";
   for (il::int_t i = 0; i < (Ntot + Ntot); i = i + 2) {
     fini[i] = tau_o[j];
-    fini[i + 1] = -(pf_o[j] - sig_o[j]);
+    fini[i + 1] = (pf_o[j] - sig_o[j]);
     j++;
   }
 
