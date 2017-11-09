@@ -202,7 +202,7 @@ void RemoveTipCorrectionP0(hfp2d::Mesh &mesh, const ElasticProperties &elas,
   //  double hx = sqrt(pow(xdiff[0], 2) + pow(xdiff[1], 2));
 
   //  correction factor
-  double correct = -elas.Ep() * (1. / 3.) / (4. * (mesh.elt_size(tipElt)));
+  double correct = elas.Ep() * (1. / 3.) / (4. * (mesh.elt_size(tipElt)));
 
   Kmat(mesh.dofDD(tipElt, 0), mesh.dofDD(tipElt, 0)) -= correct;
 
