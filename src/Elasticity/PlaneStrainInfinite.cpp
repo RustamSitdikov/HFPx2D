@@ -22,7 +22,11 @@
 // for fracture segment with linear variation of displacement discontinuities
 // (DD)
 // convention: Stress positive in tension
-//      Displacement discontinuity dd=u^+-u^-   >0  in opening
+//      Displacement discontinuity positive in overlap dd=u^- - u^+
+//  the equation to solve are schematically
+//    n (sigma^o + sigma^induced ) n = t_n = - p (p fluid pressure, the minus is because the normal is n=n^-)
+//    s (sigma^o + sigma^induced ) n = t_s
+//
 
 namespace hfp2d {
 

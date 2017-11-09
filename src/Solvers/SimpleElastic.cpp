@@ -69,13 +69,11 @@ double SimpleGriffithExampleLinearElement(int nelts) {
   };
 
 
-
   hfp2d::Mesh mesh(xy,myconn,p);
 
   il::int_t ndof = mesh.numberOfDDDofs();
 
   hfp2d::ElasticProperties myelas(1, 0.);
-
 
 
 //  // some definitions needed for matrix assembly
@@ -106,7 +104,7 @@ double SimpleGriffithExampleLinearElement(int nelts) {
 //  std::cout << std::asctime(std::localtime(&result));
 
   // solve a constant pressurized crack problem...
-  il::Array<double> f{ndof, -1.};
+  il::Array<double> f{ndof, -1.};  // the minus here is to have positive DDs in opening.
   // just opening dds - set shear loads to zero
   for (il::int_t i = 0; i < ndof / 2; ++i) {
     f[2 * i] = 0;
