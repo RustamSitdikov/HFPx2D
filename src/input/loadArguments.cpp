@@ -73,7 +73,7 @@ void loadArguments(const int argc, const char* const* argv, il::io_t,
         inputFileName = il::String(il::StringType::Bytes, argv[i + 1], il::size(argv[i+1]));
 
         // We add (to be sure) the initial "./" to the address
-        inputFileName = il::join("./" , inputFileName);
+        //inputFileName = il::join("./" , inputFileName);
 
         // Check for existence and readability of the file
         statusOfAccess = access(inputFileName.asCString(), F_OK | R_OK);
@@ -103,7 +103,7 @@ void loadArguments(const int argc, const char* const* argv, il::io_t,
 
         // We add (to be sure) the initial "./" to the address
         // inputFileName = "./" + inputFileName;
-        restartFileName=il::join("./",restartFileName);
+        //restartFileName=il::join("./",restartFileName);
 
         // Check for existence and readability of the file
         statusOfAccess = access(restartFileName.asCString(), F_OK | R_OK);
@@ -165,7 +165,7 @@ void loadArguments(const int argc, const char* const* argv, il::io_t,
 
     /// Creating the OUTPUT directory
     // Construct the directory path
-    outputDirectory = il::join("./", outputDirectory);
+    //outputDirectory = il::join("./", outputDirectory);
 
     if (checkOutput) { // if the output directory parameter has been passed
 

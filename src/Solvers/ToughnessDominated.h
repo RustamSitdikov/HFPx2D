@@ -45,13 +45,14 @@
 //#include "src/Elasticity/Simplified3D.h"
 #include "src/Elasticity/AssemblyDDM.h"
 #include "src/Elasticity/PlaneStrainInfinite.h"
-#include "src/core/Mesh.h"
 #include "src/core/DOF_Handles.h"
 #include "src/core/ElasticProperties.h"
-#include "src/devt/FromEdgeToCol.h"
+#include "src/core/Mesh.h"
 #include "src/core_dev/SolidEvolution.h"
+#include "src/devt/FromEdgeToCol.h"
+#include "src/core_dev/Simulation.h"
 
-namespace hfp2d{
+namespace hfp2d {
 
 double ToughnessDominated(int nelts);
 
@@ -59,13 +60,32 @@ bool isElemAlreadyActive(il::Array<il::int_t> activeList, il::int_t element);
 
 bool checkActOpening(double strShear, double strOpening);
 
-il::StaticArray<double ,2> tractionSeparation(il::int_t i,double u_x, double
-u_y);
+il::StaticArray<double, 2> tractionSeparation(il::int_t i, double u_x,
+                                              double u_y);
 
 double normDD(il::Array<double> R, il::int_t dd_dofs);
 
 double normSplit(il::Array<double> R, il::int_t begin, il::int_t end);
 
+il::Array2D<double> takeMatFromList(il::Array2D<double> const &fullMat,
+                                    il::Array<il::int_t> const &elemList,
+                                    Mesh const &mesh);
+
+il::Array<double> extractFfromList(il::Array<double> &inSituStr,
+                                   double pressure,
+                                   il::Array<il::int_t> &elemList,
+                                   Mesh &mesh);
+
+il::Array2D<double> extractKfromList(il::Array2D<double> &fullMat,
+                                     il::Array<il::int_t> &elemList,
+                                     Mesh &mesh);
+
+void prepareK_tough(il::Array2D<double> &Kact,
+                    il::io_t,
+                    il::Array<il::int_t> &activeList,
+                    il::Array2D<double> &globalK_DD,
+                    Mesh &mesh);
+
 }
 
-#endif //HFPX2D_TOUGHNESSDOMINATED_H
+#endif // HFPX2D_TOUGHNESSDOMINATED_H

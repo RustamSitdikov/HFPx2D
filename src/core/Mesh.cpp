@@ -700,7 +700,7 @@ SegmentData get_segment_DD_data(const Mesh &mesh, il::int_t ne,
 
 ////////////////////////////////////////////////////////////////////////////////
 // get size of an element
-double Mesh::elt_size(il::int_t &e) {
+double Mesh::elt_size(const il::int_t e) {
   il::StaticArray<double, 2> xdiff;
   xdiff[0] = coordinates_(connectivity_(e, 1), 0) -
       coordinates_(connectivity_(e, 0), 0);

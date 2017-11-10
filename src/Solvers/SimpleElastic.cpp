@@ -137,7 +137,7 @@ double SimpleGriffithExampleLinearElement(int nelts) {
   std::cout << std::asctime(std::localtime(&result));
 
   // solve a constant pressurized crack problem...
-  il::Array<double> f{ndof, -1.};
+  il::Array<double> f{ndof, 1.}; // here we solve with +, so we get positive DD in opening
   // just opening dds - set shear loads to zero
   for (il::int_t i = 0; i < ndof / 2; ++i) {
     f[2 * i] = 0;
@@ -279,7 +279,7 @@ double SimpleGriffithExampleS3D_P0(int nelts) {
   std::cout << std::asctime(std::localtime(&result));
 
   // solve a constant pressurized crack problem...
-  il::Array<double> f{ndof, -1.};  // be careful of sign
+  il::Array<double> f{ndof, 1.};  // be careful of sign
   // just opening dds - set shear loads to zero
   for (int i = 0; i < ndof / 2; ++i) {
     f[2 * i] = 0;

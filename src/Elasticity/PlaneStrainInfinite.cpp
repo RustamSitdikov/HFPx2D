@@ -46,7 +46,7 @@ il::StaticArray2D<double, 2, 4> stresses_kernel_dp1_dd(double h, double Ep,
 
   //  should have a check for h>0
   double overhalfh = 2. / h;
-  double Elascoef = Ep / (4. * il::pi);
+  double Elascoef = -1.0 * Ep / (4. * il::pi); // minus sign here for convention
 
   double xp = x * overhalfh;  // change of variable to perform the computation
   // for a unit segment [-1,1]
@@ -133,9 +133,8 @@ il::StaticArray2D<double, 2, 4> stresses_kernel_dp1_dd(double h, double Ep,
   il::StaticArray2D<double, 2, 4> Stress;
 
   // switch back to the segment [-h/2,h/2]
-
-  Stress(0, 0) = Elascoef * overhalfh *
-                 sxxs1;  //  we put directly here the constant E'/(4Pi)
+  // we put directly here the constant E'/(4Pi)
+  Stress(0, 0) = Elascoef * overhalfh * sxxs1;
   Stress(0, 1) = Elascoef * overhalfh * sxys1;
   Stress(0, 2) = Elascoef * overhalfh * syys1;
   Stress(0, 3) = Elascoef * overhalfh * syyn1;

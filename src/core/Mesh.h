@@ -383,21 +383,21 @@ public:
     il::Array<il::int_t>
     matid() const { return material_id_; };
 
-    double
-    eltsize(il::int_t e)
-    {
-        // NOTE: size of element only in the case of constant or linear elements
-
-        il::StaticArray<double, 2> xdiff;
-        xdiff[0] =
-            coordinates_(connectivity_(e, 1), 0) - coordinates_(connectivity_(e, 0), 0);
-        xdiff[1] =
-            coordinates_(connectivity_(e, 1), 1) - coordinates_(connectivity_(e, 0), 1);
-        double hx = sqrt(pow(xdiff[0], 2) + pow(xdiff[1], 2));
-
-        return hx;
-
-    };
+//    double
+//    eltsize(il::int_t e)
+//    {
+//        // NOTE: size of element only in the case of constant or linear elements
+//
+//        il::StaticArray<double, 2> xdiff;
+//        xdiff[0] =
+//            coordinates_(connectivity_(e, 1), 0) - coordinates_(connectivity_(e, 0), 0);
+//        xdiff[1] =
+//            coordinates_(connectivity_(e, 1), 1) - coordinates_(connectivity_(e, 0), 1);
+//        double hx = sqrt(pow(xdiff[0], 2) + pow(xdiff[1], 2));
+//
+//        return hx;
+//
+//    };
 
 
     // connectivity related
@@ -484,7 +484,7 @@ public:
     hfp2d::SegmentData getElementData(const il::int_t ne);
 
     // a method to get the size of a given element.
-    double elt_size(il::int_t &e);
+    double elt_size(const il::int_t e);
 
     il::Array<double> All_elt_size();
 

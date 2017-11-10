@@ -77,7 +77,7 @@ int main(int const argc, char const* const* argv) {
 ////                     simParameters);
 //
 //  } else if (checkRestart) {
-//    // hfp2d::loadRestart(resetFileName,il::io_t,Mesh,Properties,SimulationParam,Solution);
+//    // hfp2d::loadRestart(resetFileName,il::io_t,Mesh,Properties,SimulationParam,SolutionOLD);
 //  }
 //
 //  if (checkOutput) { // Eliminate this once a script for the output is done

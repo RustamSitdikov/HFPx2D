@@ -2,6 +2,7 @@
 // Created by lorenzo on 10/13/17.
 //
 
+#include <src/core_dev/SolutionClass.h>
 #include "ToughnessDominated.h"
 
 // TODO: check with active sets which can close or open (use activeList_old)
@@ -73,7 +74,7 @@ ToughnessDominated(int nelts)
     // Mesh initialization
     hfp2d::Mesh mesh(p, xy, myconn, id_displ, id_press, fracID, matID, condID);
     const il::int_t totalNumDD = mesh.numDDDofs();
-    const il::int_t DDxElem = mesh.numDDDofsPerElem(); // dof per element
+    const il::int_t DDperElem = mesh.numDDDofsPerElem(); // dof per element
 
     ////////////////////////////////////////////////////////////
     // Elastic properties initialization
@@ -134,11 +135,13 @@ ToughnessDominated(int nelts)
     const il::int_t NLiterMax = 100;
     const il::int_t globalIterMax = 100;
 
-    std::string trg_dir{"/Users/bricelecampion/ClionProjects/HFPx2D/Results/"};
+    std::string trg_dir{"/home/lorenzo/CLionProjects/HFPx2D_Master_refactor/resultsBenchmark"};
 
 
     /////////////////////////////////////////////////////////////////////////////
     SolidEvolution linearCZM(failStress, maxOpening, totalNumDD);
+    SolutionK SolutionAtN;  // solution at previous time step
+    SolutionK SolutionAtN1; //
 
 
     //  std::cout << "Number of elements : " << mesh.nelts() << "\n";
@@ -146,27 +149,12 @@ ToughnessDominated(int nelts)
       il::Timer timer{};
       timer.start();
 
-    //// CREATION OF DD MATRIX K
+    //// CREATION OF MATRIX K ON DDs
     il::Array2D<double> globalK_DD{totalNumDD, totalNumDD};
     globalK_DD = hfp2d::basic_assembly_new(
         mesh, myelas, hfp2d::normal_shear_stress_kernel_dp1_dd, 0.);
 
-//    il::Array2D<int> id1(id_displ.size(0), id_displ.size(1));
-//
-//    for(il::int_t i=0; i < id_displ.size(0); i++){
-//        for(il::int_t j=0; j < id_displ.size(1); j++){
-//            id1(i,j) = id_displ(i,j);
-//        }
-//    }
-//
-//    il::Array2D<double> globalK_DD_alt = hfp2d::basic_assembly(mesh,id1,p,
-//                                                               myelas,
-//                                       hfp2d::normal_shear_stress_kernel_dp1_dd, 0.);
-
-    //  timer.stop();
-    //  std::cout << timer.elapsed() << " s" << "  \n";
-
-    //// CREATION OF DD VECTOR F
+    //// CREATION OF VECTOR F ON DDs
     // Set initial distribution of stresses (constant) and initial pressure
     il::Array<double> inSituStr(totalNumDD);
 
@@ -186,7 +174,7 @@ ToughnessDominated(int nelts)
 
 
     //// CREATION OF GLOBAL SOLUTION VECTOR
-    il::Array<double> globalSol(totalNumDD + 1, 0.0); // full solution vector
+//    il::Array<double> globalSol(totalNumDD + 1, 0.0); // full solution vector
     il::Array<double> globalDDs(totalNumDD, 0.0);      // DD part of the solution
     double press = 0.0;   // pore pressure solution (both local and global)
 
@@ -211,8 +199,15 @@ ToughnessDominated(int nelts)
     Fact_k.reserve(totalNumDD + 1); // again similar as before, here we reserve all
     // but use the active part
 
+    //// SET VECTORS OF DD AT COLLOCATION POINT AND FROM NODE TO COLLOCATION MAT
+    // global vector of DD at collocation points
+    il::Array<double> DDatColl(totalNumDD,0.0);
 
-    //// SET INITIAL SOURCE POSITION AND INITIAL ACTIVATED ELEMENTS
+    // matrix to compute collocation values starting from nodal values
+    il::Array2D<double> fetc = from_edge_to_col_dg_full2d_new(mesh);
+
+    //// TIME STEP ZERO
+    /// SET INITIAL SOURCE POSITION AND INITIAL ACTIVATED ELEMENTS
     // Set the initial location of source (middle point, initial personal choice)
     il::int_t sourceElem = mesh.numElems() / 2;
     if (mesh.numElems() % 2 == 0)
@@ -234,87 +229,43 @@ ToughnessDominated(int nelts)
         activeList[2]=sourceElem+1;
 
     }
+    // TODO: generalize with function taking the coordinate of the source
+    // and/or inital list (or number) of active elements
 
     il::int_t numActElems = activeList.size();  // number of active elements
-    il::int_t numActDispl = numActElems * DDxElem; // # of active dofs
+    il::int_t numActDispl = numActElems * DDperElem; // # of active dofs
 
+    // Set max **HISTORICAL** DD in initial active elements to wc
+    // note: not current DD but only initial DD!
+    // it is done so the cohesive force is zero
+    linearCZM.setInitialCrack(activeList,mesh);
 
     //// EXTRACTION OF ACTIVE K MATRIX AND F VECTOR
-    //  std::cout << "------ Extract: \t";
-    //  timer.reset();
-    //  timer.start();
-
-    // Resize the matrix Kact and vector Fact to the active set of DD
+    // Resize the matrix Kact to the active set of DDs
     Kact.resize(numActDispl, numActDispl);
+    Kact = extractKfromList(globalK_DD, activeList, mesh);
+
+    // Resize the vector Fact to the active set of DDs
     Fact_k.resize(numActDispl);
-
-    // Fill the matrix with the values of active elements
-    for (il::int_t i = 0; i < numActElems; i++)
-    {
-        il::int_t xStart = i * DDxElem;
-
-        for (il::int_t j = 0; j < numActElems; j++)
-        {
-
-            // the block to copy starts from xStart,yStart
-            il::int_t yStart = j * DDxElem;
-
-            // save the dof values of the corresponding active element
-            // in the blocks of the counter
-            for (il::int_t k = 0; k < DDxElem; k++)
-            {
-                for (il::int_t l = 0; l < DDxElem; l++)
-                {
-
-                    il::int_t dof1 = mesh.dofDD(activeList[i], k);
-                    il::int_t dof2 = mesh.dofDD(activeList[j], l);
-
-                    Kact(xStart + k, yStart + l) = globalK_DD(dof1, dof2);
-                }
-            }
-        }
-
-        // save the values of inSituStr in Fact
-        Fact_k[xStart]     = + inSituStr[mesh.dofDD(activeList[i], 0)];
-        Fact_k[xStart + 1] = - initPress
-                           + inSituStr[mesh.dofDD(activeList[i], 1)];
-        Fact_k[xStart + 2] = + inSituStr[mesh.dofDD(activeList[i], 2)];
-        Fact_k[xStart + 3] = - initPress
-                           + inSituStr[mesh.dofDD(activeList[i], 3)];
-
-    }
-
-    // Pressure terms in Kact and Fact are not needed for THE INITIALIZATION STEP!
-    //  timer.stop();
-    //  std::cout << timer.elapsed() << " s" << "  \n";
-
-    //  il::LU<il::Array2D<double> > lu_decomposition(globalK_DD, il::io, status);
-    //  il::Array<double> initialDDSol= lu_decomposition.solve(std::move(inSituStr));
+    Fact_k = extractFfromList(inSituStr, initPress, activeList, mesh);
 
     //// SOLVE INITIAL OPENING PROFILE, PRESSURE AND VOLUME (active and global)
-    //  std::cout << "------ Solution:\t";
-    //  timer.reset();
-    //  timer.start();
 
     // initial opening
     il::Status status;
     const il::Array<double> initialDDSol =
         il::linearSolve(Kact, Fact_k, il::io, status);
     status.ok();
-    //  timer.stop();
-    //  std::cout << timer.elapsed() << " s \n";
-    //  std::cout << "---#---\n";
 
     // initial pore pressure
     press = initPress;
-    il::Array<double> forceCheck = il::dot(Kact, initialDDSol);
 
     // initial volume
     double initVolume = 0.0;
     for (il::int_t i = 0; i < numActElems; i++)
     {
         initVolume = initVolume + (initialDDSol[mesh.dofDD(i, 1)] +
-            initialDDSol[mesh.dofDD(i, 3)]) * h / 2.0;
+            initialDDSol[mesh.dofDD(i, 3)]) * mesh.elt_size(i) / 2.0;
     }
 
     double injectedVol = initVolume;
@@ -324,25 +275,33 @@ ToughnessDominated(int nelts)
     // Save the DDs
     for (il::int_t i = 0; i < numActElems; i++)
     {
-        for (il::int_t j = 0; j < DDxElem; j++)
+        for (il::int_t j = 0; j < DDperElem; j++)
         {
-
-            globalSol[mesh.dofDD(activeList[i], j)] =
-                initialDDSol[i * DDxElem + j];
+//
+//            globalSol[mesh.dofDD(activeList[i], j)] =
+//                initialDDSol[i * DDperElem + j];
             globalDDs[mesh.dofDD(activeList[i], j)] =
-                initialDDSol[i * DDxElem + j];
+                initialDDSol[i * DDperElem + j];
 
         }
     }
 
-    // Save the pressure
-    // globalSol has length totalNumDD+1 and the pressure is its last value
-    globalSol[totalNumDD] = initPress;
+    // Initialize parameters of the simulation
+    simulationParams simParams = initSimParams(0.0, deltaTime,
+                                               deltaTime, deltaTime,
+                                               0.0, 0.0,
+                                               0.0, 0.0,
+                                               1, globalIterMax,
+                                               1, NLiterMax);
 
-    // save "converged" values
-    globalSol_n = globalSol;
-    globalDDs_old = globalDDs;
-    press_n = press;
+    // Save initial solution as time step n and n+1
+    SolutionAtN.save(mesh, globalDDs, press, Fact_k, inSituStr,
+                     activeList, simParams);
+    SolutionAtN1=SolutionAtN;
+
+    // TODO: we should remove this
+//    globalDDs_old = globalDDs;
+//    press_n = press;
 
 
     ////////////////////////////////////////////////////////////////////////////
@@ -387,19 +346,6 @@ ToughnessDominated(int nelts)
     activeList_temp.reserve(mesh.numElems());
     activeList_temp = activeList;
 
-
-
-    // global vector of DD at collocation points
-    il::Array<double> DDatColl(totalNumDD,0.0);
-
-    //// INITIALIZATION OF ADDITIONAL MATRICES
-    // matrix to compute collocation values starting from nodal values
-    il::Array2D<double> fetc = from_edge_to_col_dg_full2d_new(mesh);
-
-    // Set max **HISTORICAL** DD in initial active elements to wc
-    // note: not current DD but only initial DD!
-    // it is done so the cohesive force is zero
-    linearCZM.setInitialCrack(activeList,mesh);
 
     double maxAperture;
 
@@ -450,8 +396,8 @@ ToughnessDominated(int nelts)
 
             for (il::int_t i = 0; i < numActElems; i++)
             {
-                il::int_t xStart = i * DDxElem;
-                for (il::int_t j = 0; j < DDxElem; j++)
+                il::int_t xStart = i * DDperElem;
+                for (il::int_t j = 0; j < DDperElem; j++)
                 {
                     // Note: last converged solution vector values are copied,
                     // for those that were not activated a zero is copied.
@@ -469,50 +415,52 @@ ToughnessDominated(int nelts)
 
             //// INITIALIZATION OF Kact AND Fact FOR THE SOLUTION at this
             /// time step
-            Kact.resize(numActDispl + 1, numActDispl + 1);
+            prepareK_tough(Kact, il::io, activeList, globalK_DD, mesh);
+//            Kact.resize(numActDispl + 1, numActDispl + 1);
+//
+//            // Fill the matrix with the values of active elements
+//            for (il::int_t i = 0; i < numActElems; i++)
+//            {
+//                // the block to copy starts from xStart,yStart
+//                il::int_t xStart = i * DDperElem;
+//
+//                for (il::int_t j = 0; j < numActElems; j++)
+//                {
+//                    il::int_t yStart = j * DDperElem;
+//
+//                    // save the dof values of the corresponding active element
+//                    // in the blocks of the counter
+//                    for (il::int_t k = 0; k < DDperElem; k++)
+//                    {
+//                        for (il::int_t l = 0; l < DDperElem; l++)
+//                        {
+//                            il::int_t
+//                                dof1 = mesh.dofDD(activeList[i], k);
+//                            il::int_t
+//                                dof2 = mesh.dofDD(activeList[j], l);
+//
+//                            Kact(xStart + k, yStart + l) = globalK_DD(dof1, dof2);
+//                        }
+//                    }
+//                }
+//            }
+//
+//            // filling last colum and row of Kact
+//            for (il::int_t i = 0; i < numActDispl; i = i + 2)
+//            {
+//                Kact(i, numActDispl) = 0.0;
+//                Kact(i + 1, numActDispl) = 1.0;
+//            }
+//
+//            for (il::int_t i = 0; i < numActDispl; i = i + 2)
+//            {
+//                Kact(numActDispl, i) = 0.0;
+//                Kact(numActDispl, i + 1) = h / 2.0; //mesh.eltsize(activeList[i]) / 2.0;
+//            }
+//            Kact(numActDispl, numActDispl) = 0.0;
+
+
             Fact_k.resize(numActDispl + 1);
-
-            // Fill the matrix with the values of active elements
-            for (il::int_t i = 0; i < numActElems; i++)
-            {
-                // the block to copy starts from xStart,yStart
-                il::int_t xStart = i * DDxElem;
-
-                for (il::int_t j = 0; j < numActElems; j++)
-                {
-                    il::int_t yStart = j * DDxElem;
-
-                    // save the dof values of the corresponding active element
-                    // in the blocks of the counter
-                    for (il::int_t k = 0; k < DDxElem; k++)
-                    {
-                        for (il::int_t l = 0; l < DDxElem; l++)
-                        {
-                            il::int_t
-                                dof1 = mesh.dofDD(activeList[i], k);
-                            il::int_t
-                                dof2 = mesh.dofDD(activeList[j], l);
-
-                            Kact(xStart + k, yStart + l) = globalK_DD(dof1, dof2);
-                        }
-                    }
-                }
-            }
-
-            // filling last colum and row of Kact
-            for (il::int_t i = 0; i < numActDispl; i = i + 2)
-            {
-                Kact(i, numActDispl) = 0.0;
-                Kact(i + 1, numActDispl) = 1.0;
-            }
-
-            for (il::int_t i = 0; i < numActDispl; i = i + 2)
-            {
-                Kact(numActDispl, i) = 0.0;
-                Kact(numActDispl, i + 1) = h / 2.0; //mesh.eltsize(activeList[i]) / 2.0;
-            }
-            Kact(numActDispl, numActDispl) = 0.0;
-
             // LOAD Fact
             // 1. Compute displacements at collocation points
             // Calculating DDs at **ALL** collocation points
@@ -539,7 +487,7 @@ ToughnessDominated(int nelts)
                     linearCZM.tractionSeparationLaw(opening2, coll2);
 
                 // starting location for element in active lists
-                il::int_t xStart = i * DDxElem;
+                il::int_t xStart = i * DDperElem;
 
                 // save the values of inSituStr in Fact
                 Fact_k[xStart]     = + inSituStr[mesh.dofDD(activeList[i], 0)];
@@ -574,7 +522,7 @@ ToughnessDominated(int nelts)
             if(numActElems != numActElems_old){
                 for(il::int_t i = numActElems_old; i<numActElems; i++){
 
-                    il::int_t xStart = i * DDxElem;
+                    il::int_t xStart = i * DDperElem;
 
                     // new elements does not have old pressure value
                     Fact_k[xStart + 1] = Fact_k[xStart + 1] + press_n;
@@ -655,16 +603,16 @@ ToughnessDominated(int nelts)
                 {
                     il::int_t ithElem = activeList[i];
 
-                    for (il::int_t j = 0; j < DDxElem; j++)
+                    for (il::int_t j = 0; j < DDperElem; j++)
                     {
-                        globalSol[mesh.dofDD(ithElem, j)] =
-                            actSol[i * DDxElem + j];
+//                        globalSol[mesh.dofDD(ithElem, j)] =
+//                            actSol[i * DDperElem + j];
                         globalDDs[mesh.dofDD(ithElem, j)] =
-                            actSol[i * DDxElem + j];
+                            actSol[i * DDperElem + j];
                     }
                 }
                 // save pressure
-                globalSol[totalNumDD] = actSol[numActDispl];
+//                globalSol[totalNumDD] = actSol[numActDispl];
                 press = actSol[numActDispl];
 
 
@@ -678,10 +626,10 @@ ToughnessDominated(int nelts)
 //                // reload the active displacement discontinuities
 //                for (il::int_t i = 0; i < numActElems; i++)
 //                {
-//                    for (il::int_t j = 0; j < DDxElem; j++)
+//                    for (il::int_t j = 0; j < DDperElem; j++)
 //                    {
 //
-//                        actDDatColl[i * DDxElem + j] =
+//                        actDDatColl[i * DDperElem + j] =
 //                            DDatColl[mesh.dofDD(activeList[i], j)];
 //
 //                    }
@@ -706,7 +654,7 @@ ToughnessDominated(int nelts)
                         linearCZM.tractionSeparationLaw(opening2, coll2);
 
                     // starting location for element in active lists
-                    il::int_t xStart = i * DDxElem;
+                    il::int_t xStart = i * DDperElem;
 
                     // save the values of inSituStr in Fact
                     Fact_k[xStart] =
@@ -732,7 +680,7 @@ ToughnessDominated(int nelts)
 //                if(numActElems != numActElems_old){
 //                    for(il::int_t i = numActElems_old; i<numActElems; i++){
 //
-//                        il::int_t xStart = i * DDxElem;
+//                        il::int_t xStart = i * DDperElem;
 //
 //                        // new elements does not have old pressure value
 //                        Fact[xStart + 1] = Fact[xStart + 1] + press_old;
@@ -776,7 +724,7 @@ ToughnessDominated(int nelts)
                 if(numActElems != numActElems_old){
                     for(il::int_t i = numActElems_old; i<numActElems; i++){
 
-                        il::int_t xStart = i * DDxElem;
+                        il::int_t xStart = i * DDperElem;
 
                         // new elements does not have old pressure value
                         Fact_k[xStart + 1] = Fact_k[xStart + 1] + press_n;
@@ -864,16 +812,16 @@ ToughnessDominated(int nelts)
             {
                 il::int_t ithElem = activeList[i];
 
-                for (il::int_t j = 0; j < DDxElem; j++)
+                for (il::int_t j = 0; j < DDperElem; j++)
                 {
-                    globalSol[mesh.dofDD(ithElem, j)] =
-                        actSol[i * DDxElem + j];
+//                    globalSol[mesh.dofDD(ithElem, j)] =
+//                        actSol[i * DDperElem + j];
                     globalDDs[mesh.dofDD(ithElem, j)] =
-                        actSol[i * DDxElem + j];
+                        actSol[i * DDperElem + j];
                 }
             }
             // save pressure
-            globalSol[totalNumDD] = actSol[numActDispl];
+//            globalSol[totalNumDD] = actSol[numActDispl];
             press = actSol[numActDispl];
 
             //// LOOP 2 - CHECK SET OF ACTIVE ELEMENTS
@@ -921,7 +869,7 @@ ToughnessDominated(int nelts)
             // new number of active elements
             numActElems_temp = activeList_temp.size();
             // new size of system of equation (for displacements)
-            numActDispl_temp = numActElems_temp * DDxElem;
+            numActDispl_temp = numActElems_temp * DDperElem;
 
             //// In the case we want to use the active set of previous time
             /// step, it is possible to run the following two comparisons:
@@ -961,7 +909,7 @@ ToughnessDominated(int nelts)
 //        }
 
         globalDDs_old = globalDDs;
-        globalSol_n = globalSol;
+//        globalSol_n = globalSol;
         press_n = press;
 
         actSol_n=actSol;
@@ -1027,6 +975,9 @@ ToughnessDominated(int nelts)
 //        for (int j = 1; j < totalNumDD; j=j+2) {
             std::fprintf(of, format1, crackLength);
 //        }
+
+
+        // TODO> add the volume computation
 
         std::fprintf(of, "\n\n######################################\n\n");
 
@@ -1158,9 +1109,299 @@ double normSplit(il::Array<double> R, il::int_t begin, il::int_t end){
     return theNorm;
 }
 
+il::Array<double> extractFfromList(il::Array<double> &inSituStr,
+                                   double pressure,
+                                   il::Array<il::int_t> &elemList,
+                                   Mesh &mesh)
+{
+
+    const il::int_t DDperElem = mesh.numDDDofsPerElem();
+    const il::int_t numActElem = elemList.size();
+
+    il::Array<double> F(numActElem);
+
+    for (il::int_t i = 0; i < numActElem; i++)
+    {
+        il::int_t xStart = i * DDperElem;
+
+        // RHS is pressure - inSituStr by convention
+
+        // save the values of inSituStr in Fact
+        F[xStart]     =          - inSituStr[mesh.dofDD(elemList[i], 0)];
+        F[xStart + 1] = pressure - inSituStr[mesh.dofDD(elemList[i], 1)];
+        F[xStart + 2] =          - inSituStr[mesh.dofDD(elemList[i], 2)];
+        F[xStart + 3] = pressure - inSituStr[mesh.dofDD(elemList[i], 3)];
+
+    }
+
+}
+
 //void gatherSolution(il::Array<double> globalSol, )
 
 
+il::Array2D<double> extractKfromList(const il::Array2D<double> &fullMat,
+                                     const il::Array<il::int_t> &elemList,
+                                     const Mesh &mesh)
+{
 
+    il::int_t numElem = elemList.size();
+    il::int_t DDperElem = mesh.numDDDofsPerElem();
+    il::int_t matSize = numElem * DDperElem;
+
+    il::Array2D<double> subMat{matSize, matSize};
+//
+    il::int_t xStart, yStart, dof1, dof2;
+
+    for (il::int_t i = 0; i < numElem; i++)
+    {
+        // the block to copy starts from xStart,yStart
+        xStart = i * DDperElem;
+
+        for (il::int_t j = 0; j < numElem; j++)
+        {
+            yStart = j * DDperElem;
+
+            // save the dof values of the corresponding active element
+            // in the blocks of the counter
+            for (il::int_t k = 0; k < DDperElem; k++)
+            {
+                for (il::int_t l = 0; l < DDperElem; l++)
+                {
+
+                    dof1 = mesh.dofDD(elemList[i], k);
+
+                    dof2 = mesh.dofDD(elemList[j], l);
+
+                    subMat(xStart + k, yStart + l) = fullMat(dof1, dof2);
+                }
+            }
+        }
+    }
+
+    return subMat;
+}
+
+il::Array<double> takeVecFromList(il::Array<double> const &fullVec,
+                                  il::Array<il::int_t> const &elemList,
+                                  Mesh const &mesh)
+{
+    il::int_t numElem = elemList.size();
+    il::int_t DDperElem = mesh.numDDDofsPerElem();
+    il::int_t matSize = numElem * DDperElem;
+
+    il::Array<double> subVec{matSize};
+
+// Fill the matrix with the values of active elements
+    for (il::int_t i = 0; i < numElem; i++)
+    {
+        il::int_t xStart = i * DDperElem;
+
+        // save the values of inSituStr in Fact
+        subVec[xStart]     = fullVec[mesh.dofDD(elemList[i], 0)];
+        subVec[xStart + 1] = fullVec[mesh.dofDD(elemList[i], 1)];
+        subVec[xStart + 2] = fullVec[mesh.dofDD(elemList[i], 2)];
+        subVec[xStart + 3] = fullVec[mesh.dofDD(elemList[i], 3)];
+
+    }
+
+    return subVec;
+
+}
+
+il::Array2D<double> takeMatFromOldToNewList(il::Array2D<double> const &fullMat,
+                                            il::Array<il::int_t> const &oldList,
+                                            il::Array<il::int_t> const &newList,
+                                            Mesh const &mesh)
+{
+    // TODO: check that the function works correctly
+
+    il::int_t oldNumElem = oldList.size();
+    il::int_t newNumElem = newList.size();
+    il::int_t DDperElem = mesh.numDDDofsPerElem();
+    il::int_t matSize = newNumElem * DDperElem;
+
+    il::Array2D<double> subMat{matSize, matSize};
+//
+    il::int_t xStart, yStart, dof1, dof2;
+
+    for (il::int_t i = oldNumElem; i < newNumElem; i++)
+    {
+        // the block to copy starts from xStart,yStart
+        xStart = i * DDperElem;
+
+        for (il::int_t j = 0; j < newNumElem; j++)
+        {
+            yStart = j * DDperElem;
+
+            // save the dof values of the corresponding active element
+            // in the blocks of the counter
+            for (il::int_t k = 0; k < DDperElem; k++)
+            {
+                for (il::int_t l = 0; l < DDperElem; l++)
+                {
+
+                    dof1 = mesh.dofDD(newList[i], k);
+
+                    dof2 = mesh.dofDD(newList[j], l);
+
+                    subMat(xStart + k, yStart + l) = fullMat(dof1, dof2);
+                }
+            }
+        }
+    }
+
+    return subMat;
+};
+
+
+il::Array<double> takeVecFromOldToNewList(il::Array<double> const &fullVec,
+                                          il::Array<il::int_t> const &oldList,
+                                          il::Array<il::int_t> const &newList,
+                                          Mesh const &mesh)
+{
+    // TODO: check that the function works correctly
+
+    il::int_t oldNumElem = oldList.size();
+    il::int_t newNumElem = newList.size();
+    il::int_t DDperElem = mesh.numDDDofsPerElem();
+    il::int_t matSize = newNumElem * DDperElem;
+
+    il::Array<double> subVec{matSize};
+
+// Fill the matrix with the values of active elements
+    for (il::int_t i = oldNumElem; i < newNumElem; i++)
+    {
+        il::int_t xStart = i * DDperElem;
+
+        // save the values of inSituStr in Fact
+        subVec[xStart]     = fullVec[mesh.dofDD(newList[i], 0)];
+        subVec[xStart + 1] = fullVec[mesh.dofDD(newList[i], 1)];
+        subVec[xStart + 2] = fullVec[mesh.dofDD(newList[i], 2)];
+        subVec[xStart + 3] = fullVec[mesh.dofDD(newList[i], 3)];
+
+    }
+
+    return subVec;
+};
+
+void prepareK_tough(il::Array2D<double> &Kact,
+                    il::io_t,
+                    il::Array<il::int_t> &activeList,
+                    il::Array2D<double> &globalK_DD,
+                    Mesh &mesh)
+{
+    il::int_t numActDispl = activeList.size() * mesh.numDDDofsPerElem();
+
+    Kact.resize(numActDispl, numActDispl);
+    Kact = extractKfromList(globalK_DD, activeList, mesh);
+
+    // filling last colum and row of Kact
+    Kact.resize(numActDispl + 1, numActDispl + 1);
+    for (il::int_t i = 0; i < numActDispl; i = i + 2)
+    {
+        Kact(i, numActDispl) = 0.0;
+        Kact(i + 1, numActDispl) = 1.0;
+    }
+    for (il::int_t i = 0; i < numActDispl; i = i + 2)
+    {
+        Kact(numActDispl, i) = 0.0;
+        Kact(numActDispl, i + 1) = mesh.elt_size(activeList[i]) / 2.0;
+    }
+    Kact(numActDispl, numActDispl) = 0.0;
+
+}
+
+void prepareF_tough(il::Array<double> &Fact_k,
+                    il::io_t,
+                    const double source,
+                    const SolutionK solutionAtN,
+                    const il::Array2D<double> &fetc,
+                    const il::Array2D<double> &globalK_DD,
+                    const il::Array<il::int_t> &activeList,
+                    const Mesh &mesh,
+                    SolidEvolution &CZM)
+{
+    const il::int_t numActElems = activeList.size();
+    const il::int_t DDperElem = mesh.numDDDofsPerElem();
+    const il::int_t numActDispl = numActElems * DDperElem;
+
+    Fact_k.resize(numActDispl);
+
+//    il::Array<double> DDvalues;
+//    const il::int_t DDValSize = globalSol.size()-1;
+//
+//    for (il::int_t i=0; i < DDValSize; i++)
+//    {
+//        DDvalues[i] = globalSol[i];
+//    }
+
+    // LOAD Fact
+    // 1. Compute displacements at collocation points
+    // Calculating DDs at **ALL** collocation points
+    il::Array<double> DDatColl = il::dot(fetc, solutionAtN.DDvalues()); // we
+    // use old
+    // values
+    // because we are still in the initialization of the timestep
+
+    // 2. computation of pressure at collocation points from nodes is
+    // not required since it is constant
+
+    // 3. update the force vector with the new cohesive stress values
+    // computed from the collocation points opening
+    for (il::int_t i = 0; i < numActElems; i++)
+    {
+
+        il::int_t coll1 = mesh.dofDD(activeList[i], 1);
+        il::int_t coll2 = mesh.dofDD(activeList[i], 3);
+
+        double opening1 = DDatColl[coll1];
+        double opening2 = DDatColl[coll2];
+
+        double cohStress1 =
+            CZM.tractionSeparationLaw(opening1, coll1);
+        double cohStress2 =
+            CZM.tractionSeparationLaw(opening2, coll2);
+
+        // starting location for element in active lists
+        il::int_t xStart = i * DDperElem;
+
+        // save the values of inSituStr in Fact
+        Fact_k[xStart]     = - solutionAtN.sigma0(mesh.dofDD(activeList[i], 0));
+
+        Fact_k[xStart + 1] = - solutionAtN.sigma0(mesh.dofDD(activeList[i], 1))
+                             - cohStress1;
+        Fact_k[xStart + 2] = - solutionAtN.sigma0(mesh.dofDD(activeList[i], 2));
+        Fact_k[xStart + 3] = - solutionAtN.sigma0(mesh.dofDD(activeList[i], 3))
+                             - cohStress2;
+
+    }
+
+    //// ERROR: modify this properly
+    // recover the elastic matrix with correct number of active elements from
+    // last step
+    //
+    // or
+    //
+    // compute the full vector of stresses K
+    il::Array2D K = extractKfromList(globalK_DD,activeList,mesh);
+
+    // subtract the contribution due to DD from previous solution,
+    // compute [-K] w_n and subtract it from Fact
+    il::blas(-1.0, K, solutionAtN.DDvalues(),1.0, il::io, Fact_k);
+
+    // also we have to remove pressure contribution in the active nodes
+    for(il::int_t i=0; i < solutionAtN.activeList().size(); i++)
+    {
+        il::int_t xStart = i * DDperElem;
+
+        Fact_k[xStart + 1] += solutionAtN.pressure();
+        Fact_k[xStart + 3] += solutionAtN.pressure();
+    }
+
+    // Source value is Q * DeltaT
+    Fact_k.resize(numActDispl + 1);
+    Fact_k[numActDispl] = source;
+}
+}
 
 }
