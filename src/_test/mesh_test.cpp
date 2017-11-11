@@ -10,7 +10,6 @@
 #include <iostream>
 
 #include <gtest/gtest.h>
-
 #include <il/Array2D.h>
 #include <il/Array.h>
 #include <il/base.h>
@@ -18,8 +17,13 @@
 #include <src/core/Mesh.h>
 
 
-hfp2d::Mesh simplemesh(il::int_t nelts){
+TEST(Mesh, test_ribbon){
+  //  a very simple mesh with 4 elements  (0,1,2,3)
+  // ensure the ribbon elements are 1 and 2
 
+  // create the mesh.
+
+  il::int_t nelts = 4;
   il::Array2D<double> xy(nelts, 0);
   il::Array2D<il::int_t> myconn(nelts,0);
 
@@ -35,19 +39,6 @@ hfp2d::Mesh simplemesh(il::int_t nelts){
   };
 
   hfp2d::Mesh mesh(xy, myconn, 0);
-
-  return mesh;
-}
-
-TEST(Mesh, test_ribbon){
-  //  a very simple mesh with 4 elements  (0,1,2,3)
-  // ensure the ribbon elements are 1 and 2
-
-  // create the mesh.
-
-  il::int_t nelts = 4;
-
-  hfp2d::Mesh mesh =simplemesh(nelts);
 
   il::Array<il::int_t> ribbon = mesh.getRibbonElements();
 
