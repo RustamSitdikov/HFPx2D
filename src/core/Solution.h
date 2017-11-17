@@ -47,7 +47,7 @@ class Solution {
 
   // state variable
   il::Array<double> state_1_;
-  
+
   // active set of elements -> e.g. satisfying a yield criteria
   il::Array<il::int_t> active_set_elements_;
 
