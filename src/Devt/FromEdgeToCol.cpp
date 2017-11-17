@@ -41,7 +41,7 @@ il::Array2D<double> from_edge_to_col_dg_full2d(Mesh &theMesh) {
   // Input:
   //  - theMesh -> object of type Mesh
 
-  il::Array2D<double> Fetc{theMesh.numberOfDDDofs(), theMesh.numberOfDDDofs(),
+  il::Array2D<double> Fetc{theMesh.numberDDDofs(), theMesh.numberDDDofs(),
                            0};
   il::StaticArray2D<double, 4, 4> ShapeFunction{0};
 
@@ -61,9 +61,9 @@ il::Array2D<double> from_edge_to_col_dg_full2d(Mesh &theMesh) {
   ShapeFunction(3, 1) = (1 - (1 / sqrt(2))) / 2;
   ShapeFunction(3, 3) = (1 + (1 / sqrt(2))) / 2;
 
-  for (il::int_t i = 0; i < theMesh.numberOfElements(); ++i) {
-    for (il::int_t j = 0; j < theMesh.DDDofsPerElement(); j++) {
-      for (il::int_t k = 0; k < theMesh.DDDofsPerElement(); k++) {
+  for (il::int_t i = 0; i < theMesh.numberOfElts(); ++i) {
+    for (il::int_t j = 0; j < theMesh.numberDDDofsPerElt(); j++) {
+      for (il::int_t k = 0; k < theMesh.numberDDDofsPerElt(); k++) {
         Fetc(theMesh.dofDD(i, j), theMesh.dofDD(i, k)) = ShapeFunction(j, k);
       }
     }
@@ -85,9 +85,9 @@ il::Array2D<double> from_edge_to_col_dg(Mesh &theMesh) {
   // Input:
   //  - theMesh -> object of type Mesh
 
-  il::Array2D<il::int_t> dof_single_dd{theMesh.numberOfElements(),
+  il::Array2D<il::int_t> dof_single_dd{theMesh.numberOfElts(),
                                        (theMesh.interpolationOrder() + 1), 0};
-  for (il::int_t i = 0; i < theMesh.numberOfElements(); i++) {
+  for (il::int_t i = 0; i < theMesh.numberOfElts(); i++) {
     for (il::int_t j = 0; j < 1 * (theMesh.interpolationOrder() + 1); j++) {
       dof_single_dd(i, j) = i * 1 * (theMesh.interpolationOrder() + 1) + j;
     }
@@ -105,7 +105,7 @@ il::Array2D<double> from_edge_to_col_dg(Mesh &theMesh) {
   ShapeFunction(1, 1) = (1 + (1 / sqrt(2))) / 2;
 
   for (il::int_t i = 0; i < dof_single_dd.size(0); ++i) {
-    for (il::int_t j = 0; j < theMesh.DDDofsPerElement() / 2; ++j) {
+    for (il::int_t j = 0; j < theMesh.numberDDDofsPerElt() / 2; ++j) {
       Fetc(dof_single_dd(i, 0), dof_single_dd(i, j)) = ShapeFunction(0, j);
       Fetc(dof_single_dd(i, 1), dof_single_dd(i, j)) = ShapeFunction(1, j);
     }
@@ -124,14 +124,14 @@ il::Array2D<double> from_edge_to_col_dg(Mesh &theMesh) {
 // collocation points
 /// Note that all the dofs are considered -> not optimal
 il::Array2D<double> from_edge_to_col_cg(Mesh &theMesh) {
-  il::Array2D<int> dofhandle_press{theMesh.numberOfElements(),
+  il::Array2D<int> dofhandle_press{theMesh.numberOfElts(),
                                    theMesh.interpolationOrder() + 1, 0};
   for (int i = 0; i < dofhandle_press.size(0); ++i) {
     dofhandle_press(i, 0) = i;
     dofhandle_press(i, 1) = i + 1;
   }
 
-  il::Array2D<double> Fetc{theMesh.numberOfDDDofs(), theMesh.numberOfNodes(),
+  il::Array2D<double> Fetc{theMesh.numberDDDofs(), theMesh.numberOfNodes(),
                            0};
   il::StaticArray2D<double, 2, 2> ShapeFunction{0};
 
@@ -141,7 +141,7 @@ il::Array2D<double> from_edge_to_col_cg(Mesh &theMesh) {
   ShapeFunction(1, 0) = (1 - (1 / sqrt(2))) / 2;
   ShapeFunction(1, 1) = (1 + (1 / sqrt(2))) / 2;
 
-  for (il::int_t i = 0; i < theMesh.numberOfElements(); ++i) {
+  for (il::int_t i = 0; i < theMesh.numberOfElts(); ++i) {
     for (il::int_t j = 0; j < (theMesh.interpolationOrder() + 1); ++j) {
       Fetc(theMesh.dofDD(i, 1), dofhandle_press(i, j)) = ShapeFunction(0, j);
       Fetc(theMesh.dofDD(i, 3), dofhandle_press(i, j)) = ShapeFunction(1, j);

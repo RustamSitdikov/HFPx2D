@@ -36,9 +36,9 @@ class Solution {
 
   hfp2d::Mesh currentmesh_;  // the associated mesh  // should be a reference
 
-  il::Array<double> opening_dd_;  // opg DD (at nodes if P1)
+  il::Array<double> openingDD_;  // opg DD (at nodes if P1)
 
-  il::Array<double> shear_dd_;  // shear DD (at nodes if P1)
+  il::Array<double> shearDD_;  // shear DD (at nodes if P1)
 
   il::Array<double> pressure_;  // fluid pressure (at nodes)
 
@@ -47,6 +47,16 @@ class Solution {
 
   il::Array<double> tau_;  // shear stress component (at collocation points)
 
+  // DD  vector
+  il::Array<double> dd_values_;
+
+  // traction  vector
+  il::Array<double> traction_values_;
+
+  // state variable
+  il::Array<double> state_1_;
+
+  // TODO: change type to il::int_t
   il::Array<int> active_set_elements_;  // active set of elements ->
                                         // Remember: an element is
                                         // 'active' if and only if both
@@ -54,20 +64,15 @@ class Solution {
                                         // M-C criterion
 
   il::Array2D<double> tipsLocation_;  // 2D coordinate of the location of the
-                                      // tips (i.e. may be inside one element in
-                                      // the case of an ILSA scheme )
+  // tips (i.e. may be inside one element in
+  // the case of an ILSA scheme )
 
-  il::Array<double> ribbon_tip_s_;
+  il::Array<double> tips_velocity_;
 
-  // note in the case where the solution vectors are only on sub-parts of the
-  // currentmesh, which may happen for cohesive zone model
-  // (or lefm thru a pre-existing mesh). 2 options: either pads with zero
-  // the different solution arrays, OR stored an array with active elements
-  // (both for mechanics and flow). In that last case, the proper way is most
-  // probably to create a derived class
+  il::Array<double> ribbon_tips_s_;
 
-  il::int_t front_its_;  // number of fracture front iterations
-  il::int_t ehl_its_;    // number of ElastoHydrodynamics iterations
+  il::int_t frontIts_;  // number of fracture front iterations
+  il::int_t ehlIts_;    // number of ElastoHydrodynamics iterations
 
   // relative difference on unknowns (between successive iteration) , ie.
   // (u^k+1-u^k)/u^k+1
@@ -100,43 +105,66 @@ class Solution {
   //#1.
   Solution(hfp2d::Mesh &mesh, double t, const il::Array<double> &width,
            const il::Array<double> &sheardd, const il::Array<double> &pressure,
-           const il::Array<double> &sigma0, const il::Array<double> &tau0,
-           il::Array<int> &act_set_elmnts) {
+           const il::Array<double> &sigma0, const il::Array<double> &tau0) {
     // todo should have checks here on dimensions with mesh etc.
 
     time_ = t;
     currentmesh_ = mesh;
-    opening_dd_ = width;
-    shear_dd_ = sheardd;
+    openingDD_ = width;
+    shearDD_ = sheardd;
     sigma_n_ = sigma0;
     tau_ = tau0;
     pressure_ = pressure;
-    active_set_elements_ = act_set_elmnts;
   };
 
-  //#2.
+  //#2.    constructor w.o active set
   Solution(hfp2d::Mesh &mesh, double t, double dt,
            const il::Array<double> &width, const il::Array<double> &sheardd,
            const il::Array<double> &pressure, const il::Array<double> &sigma0,
            const il::Array<double> &tau0, il::int_t itsFront, il::int_t itsEHL,
-           double err_front, double err_width, double err_shear, double err_p,
-           il::Array<int> &act_set_elmnts) {
+           double err_front, double err_width, double err_shear, double err_p) {
     // have checks here on dimensions with mesh....
 
     time_ = t;
     timestep_ = dt;
-
     currentmesh_ = mesh;
 
-    opening_dd_ = width;
-    shear_dd_ = sheardd;
+    openingDD_ = width;
+    shearDD_ = sheardd;
     sigma_n_ = sigma0;
     tau_ = tau0;
     pressure_ = pressure;
-    active_set_elements_ = act_set_elmnts;
 
-    front_its_ = itsFront;
-    ehl_its_ = itsEHL;
+    frontIts_ = itsFront;
+    ehlIts_ = itsEHL;
+    err_front_ = err_front;
+    err_openingDD_ = err_width;
+    err_shearDD_ = err_shear;
+    err_P_ = err_p;
+  };
+
+  //#3.    constructor w.  active set
+  Solution(hfp2d::Mesh &mesh, double t, double dt,
+           const il::Array<double> &width, const il::Array<double> &sheardd,
+           const il::Array<double> &pressure, const il::Array<double> &sigma0,
+           const il::Array<double> &tau0, il::Array<int> &act_set_elmnts,
+           il::int_t itsFront, il::int_t itsEHL, double err_front,
+           double err_width, double err_shear, double err_p) {
+    // have checks here on dimensions with mesh....
+
+    time_ = t;
+    timestep_ = dt;
+    currentmesh_ = mesh;
+
+    openingDD_ = width;
+    shearDD_ = sheardd;
+    sigma_n_ = sigma0;
+    tau_ = tau0;
+    pressure_ = pressure;
+
+    active_set_elements_ = act_set_elmnts;
+    frontIts_ = itsFront;
+    ehlIts_ = itsEHL;
     err_front_ = err_front;
     err_openingDD_ = err_width;
     err_shearDD_ = err_shear;
@@ -148,36 +176,34 @@ class Solution {
   //////////////////////////////////////////////////////////////////////////
 
   // get functions
-  inline il::Array<double> openingDD() const { return opening_dd_; };
-  inline il::Array<double> shearDD() const { return shear_dd_; };
+  inline il::Array<double> openingDD() const { return openingDD_; };
+  inline il::Array<double> shearDD() const { return shearDD_; };
   inline il::Array<double> pressure() const { return pressure_; };
   inline il::Array<double> sigmaN() const { return sigma_n_; };
   inline il::Array<double> tau() const { return tau_; };
 
-  inline double openingDD(il::int_t i) { return opening_dd_[i]; };
-  inline double shearDD(il::int_t i) { return shear_dd_[i]; };
+  inline double openingDD(il::int_t i) { return openingDD_[i]; };
+  inline double shearDD(il::int_t i) { return shearDD_[i]; };
   inline double pressure(il::int_t i) { return pressure_[i]; };
   inline double sigmaN(il::int_t i) { return sigma_n_[i]; };
   inline double tau(il::int_t i) { return tau_[i]; };
 
-  inline il::Array<int> activeSetElements() const {
-    return active_set_elements_;
-  };
+  inline il::Array<int> activeElts() const { return active_set_elements_; };
 
-  inline il::Array2D<double> TipsLocation() const { return tipsLocation_; };
-  inline il::Array<double> RibbonsDistance() const { return ribbon_tip_s_; };
+  inline il::Array2D<double> tipsLocation() const { return tipsLocation_; };
+  inline il::Array<double> ribbonsDistance() const { return ribbon_tips_s_; };
 
-  inline hfp2d::Mesh CurrentMesh() const { return currentmesh_; };
+  inline hfp2d::Mesh currentMesh() const { return currentmesh_; };
 
   inline double time() const { return time_; };
   inline double timestep() const { return timestep_; }
 
-  inline double err_front() const { return err_front_; }
-  inline double err_opening() const { return err_openingDD_; }
-  inline double err_shear() const { return err_shearDD_; }
-  inline double err_pressure() const { return err_P_; }
-  inline il::int_t front_its() const { return front_its_; }
-  inline il::int_t ehl_its() const { return ehl_its_; }
+  inline double errFront() const { return err_front_; }
+  inline double errOpening() const { return err_openingDD_; }
+  inline double errShear() const { return err_shearDD_; }
+  inline double errPressure() const { return err_P_; }
+  inline il::int_t frontIts() const { return frontIts_; }
+  inline il::int_t ehlIts() const { return ehlIts_; }
 
   //////////////////////////////////////////////////////////////////////////
   //        METHODS
@@ -185,12 +211,26 @@ class Solution {
 
   // some set functions
   void setRibbonDistances(const il::Array<double> &srt) {
-    ribbon_tip_s_ = srt;
+    ribbon_tips_s_ = srt;
   };
 
   void setTipsLocation(const il::Array2D<double> &tips_xy) {
     tipsLocation_ = tips_xy;
   };
+
+  void setErrorFront(const double errF) { err_front_ = errF; };
+
+  void setItsFront(const il::int_t its) { frontIts_ = its; };
+
+  void setTipsVelocity(const il::Array<double> &tips_vel) {
+    tips_velocity_ = tips_vel;
+  };
+
+  void setTimeStep(const double dt) { timestep_ = dt; };
+
+  void setActiveElts(const il::Array<int> &act_set_elmnts) {
+    active_set_elements_ = act_set_elmnts;
+  }
 
   il::Array<int> activeSetElements(
       Mesh &theMesh, Solution &SolutionAtTn, SolidEvolution &SolidEvolution,
@@ -198,7 +238,7 @@ class Solution {
     // Move pore pressure from nodal points to coll points because elasticity
     // is evaluated at collocation points (-> MC criterion is evaluated at
     // collocation points!)
-    il::Array<double> press_coll{2 * theMesh.numberOfElements(), 0};
+    il::Array<double> press_coll{2 * theMesh.numberOfElts(), 0};
     auto p_coll = il::dot(from_edge_to_coll_press, this->pressure_);
     for (il::int_t i = 0, k = 1; i < press_coll.size(); ++i, k = k + 2) {
       press_coll[i] = p_coll[k];
@@ -206,8 +246,8 @@ class Solution {
 
     // Get the set of 'failed' collocation points by checking the MC criterion
     il::Array<int> failed_set_collpoints{0};
-    failed_set_collpoints.reserve(2 * theMesh.numberOfElements());
-    for (int j = 0, k = 0; j < 2 * theMesh.numberOfElements(); ++j) {
+    failed_set_collpoints.reserve(2 * theMesh.numberOfElts());
+    for (int j = 0, k = 0; j < 2 * theMesh.numberOfElts(); ++j) {
       if (this->tau(j) >=
           SolidEvolution.getFricCoeff(j) * (this->sigmaN(j) - press_coll[j])) {
         failed_set_collpoints.resize(k + 1);
@@ -217,16 +257,16 @@ class Solution {
     }
 
     // Get active set of elements
-    il::Array2D<int> dof_single_dd{theMesh.numberOfElements(),
+    il::Array2D<int> dof_single_dd{theMesh.numberOfElts(),
                                    (theMesh.interpolationOrder() + 1), 0};
-    for (int i = 0; i < theMesh.numberOfElements(); i++) {
+    for (int i = 0; i < theMesh.numberOfElts(); i++) {
       for (int j = 0; j < 1 * (theMesh.interpolationOrder() + 1); j++) {
         dof_single_dd(i, j) = i * 1 * (theMesh.interpolationOrder() + 1) + j;
       }
     }
 
     il::Array<int> set_elements{0};
-    set_elements.reserve(2 * theMesh.numberOfElements());
+    set_elements.reserve(2 * theMesh.numberOfElts());
     for (int l = 0, k = 0; l < failed_set_collpoints.size(); ++l) {
       set_elements.resize(k + 1);
       set_elements[l] =

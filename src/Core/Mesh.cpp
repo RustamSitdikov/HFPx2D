@@ -224,14 +224,12 @@ Mesh::Mesh(const il::Array2D<double> &Coordinates,
   tipelts_ = BuildTipElts(node_adj_elt_, tipnodes_);
 };
 
-/* -------------------------------------------------------------------------- */
-
 ////////////////////////////////////////////////////////////////////////////////
 //          METHODS
 ////////////////////////////////////////////////////////////////////////////////
 
 // get size of an element
-double Mesh::elt_size(il::int_t &e) {
+double Mesh::eltSize(il::int_t &e) {
   il::StaticArray<double, 2> xdiff;
   xdiff[0] = coordinates_(connectivity_(e, 1), 0) -
              coordinates_(connectivity_(e, 0), 0);
@@ -244,16 +242,16 @@ double Mesh::elt_size(il::int_t &e) {
 
 ///
 // get size of a all elements - output is an array of double
-il::Array<double> Mesh::All_elt_size() {
+il::Array<double> Mesh::allEltSize() {
   il::Array<double> temp(connectivity_.size(0));
-  for (il::int_t i = 0; i < numberOfElements(); i++) {
-    temp[i] = elt_size(i);
+  for (il::int_t i = 0; i < numberOfElts(); i++) {
+    temp[i] = eltSize(i);
   };
   return temp;
 }
 
 ///
-il::Array2D<il::int_t> Mesh::GetNodesSharing2Elts() {
+il::Array2D<il::int_t> Mesh::getNodesSharing2Elts() {
   // case of only 2 nodes for now.....
   // needed for building FD matrix  without fracture intersection.....
   // ONLY WORK ON MESH where nodes have maximum of 2 adjacaent elements
@@ -268,9 +266,9 @@ il::Array2D<il::int_t> Mesh::GetNodesSharing2Elts() {
 
   il::int_t k = 0;
   for (il::int_t i = 0; i < coordinates_.size(0); i++) {
-    if (node_elt_connectivity(i, 1) > -1) {
-      temp(k, 0) = node_elt_connectivity(i, 0);
-      temp(k, 1) = node_elt_connectivity(i, 1);
+    if (nodeEltConnectivity(i, 1) > -1) {
+      temp(k, 0) = nodeEltConnectivity(i, 0);
+      temp(k, 1) = nodeEltConnectivity(i, 1);
       k++;
     }
   }
@@ -297,11 +295,11 @@ il::Array<il::int_t> Mesh::getRibbonElements() {
       }
     }
 
-    if (node_elt_connectivity(nt_1, 0) == tipelts_[e]) {
-      ribbon_elts[e] = node_elt_connectivity(nt_1, 1);
+    if (nodeEltConnectivity(nt_1, 0) == tipelts_[e]) {
+      ribbon_elts[e] = nodeEltConnectivity(nt_1, 1);
     } else {
-      if (node_elt_connectivity(nt_1, 1) == tipelts_[e]) {
-        ribbon_elts[e] = node_elt_connectivity(nt_1, 0);
+      if (nodeEltConnectivity(nt_1, 1) == tipelts_[e]) {
+        ribbon_elts[e] = nodeEltConnectivity(nt_1, 0);
       } else {
         il::abort();
       }
@@ -326,7 +324,7 @@ hfp2d::SegmentData Mesh::getElementData(const il::int_t ne) {
 
 ///
 // adding elements function...
-void Mesh::AddNTipElements(const il::int_t t_e, const il::int_t the_tip_node,
+void Mesh::addNTipElements(const il::int_t t_e, const il::int_t the_tip_node,
                            const il::int_t n_add, double kink_angle) {
   // add n_add elements in the Mesh object ahead of the nodes the_tip_node
   // (global numbering) of
@@ -394,8 +392,8 @@ void Mesh::AddNTipElements(const il::int_t t_e, const il::int_t the_tip_node,
   }
 
   // duplicating the old connectivity table....
-  il::Array2D<il::int_t> new_conn(numberOfElements() + n_add, 2);
-  for (il::int_t i = 0; i < numberOfElements(); i++) {
+  il::Array2D<il::int_t> new_conn(numberOfElts() + n_add, 2);
+  for (il::int_t i = 0; i < numberOfElts(); i++) {
     new_conn(i, 0) = connectivity(i, 0);
     new_conn(i, 1) = connectivity(i, 1);
   }
@@ -403,11 +401,11 @@ void Mesh::AddNTipElements(const il::int_t t_e, const il::int_t the_tip_node,
   // the same).
   for (il::int_t i = 0; i < n_add; i++) {
     if (i == 0) {
-      new_conn(i + numberOfElements(), 0) = connectivity(t_e, local_tip_node);
-      new_conn(i + numberOfElements(), 1) = numberOfNodes() + i;
+      new_conn(i + numberOfElts(), 0) = connectivity(t_e, local_tip_node);
+      new_conn(i + numberOfElts(), 1) = numberOfNodes() + i;
     } else {
-      new_conn(i + numberOfElements(), 0) = numberOfNodes() + i - 1;
-      new_conn(i + numberOfElements(), 1) = numberOfNodes() + i;
+      new_conn(i + numberOfElts(), 0) = numberOfNodes() + i - 1;
+      new_conn(i + numberOfElts(), 1) = numberOfNodes() + i;
     }
   };
 

@@ -45,12 +45,12 @@ namespace hfp2d {
 
       il::StaticArray2D<double, 2, 4> stnl;
 
-      il::Array2D<double> Kmat{mesh.numberOfDDDofs(), mesh.numberOfDDDofs()};
+      il::Array2D<double> Kmat{mesh.numberDDDofs(), mesh.numberDDDofs()};
 
       // Brute Force assembly
       // double loop on elements to create the stiffness matrix ...
 
-      for (il::int_t e = 0; e < mesh.numberOfElements();
+      for (il::int_t e = 0; e < mesh.numberOfElts();
            ++e) {  // loop on all  elements
 
         //   get characteristic of element # e
@@ -64,7 +64,7 @@ namespace hfp2d {
         };
 
         // loop on all  elements - to compute the effect of e on all other elements
-        for (il::int_t j = 0; j < mesh.numberOfElements(); ++j) {
+        for (il::int_t j = 0; j < mesh.numberOfElts(); ++j) {
           //   get characteristic of element # j
           hfp2d::SegmentData mysegc = mesh.getElementData(j);
 
@@ -106,9 +106,9 @@ namespace hfp2d {
       il::int_t p = new_mesh.interpolationOrder();
 
       il::int_t newtot_dof =
-              new_mesh.DDDofsPerElement() * new_mesh.numberOfElements();
+              new_mesh.numberDDDofsPerElt() * new_mesh.numberOfElts();
 
-      il::int_t old_nelts = new_mesh.numberOfElements() - n_add;
+      il::int_t old_nelts = new_mesh.numberOfElts() - n_add;
       il::StaticArray2D<double, 2, 2> R;
       il::Array<il::int_t> dofe{2 * (p + 1), 0}, dofc{2 * (p + 1), 0};
 
@@ -117,7 +117,7 @@ namespace hfp2d {
       // resize K
       K.resize(newtot_dof, newtot_dof);
 
-      for (il::int_t e = 0; e < new_mesh.numberOfElements();
+      for (il::int_t e = 0; e < new_mesh.numberOfElts();
            ++e) {  // loop on all  elements
 
         //   get characteristic of element # e
@@ -132,7 +132,7 @@ namespace hfp2d {
 
         // depending if the element is added or not
         // the inner loop is over all elements or only the added ones
-        il::int_t nl = new_mesh.numberOfElements();
+        il::int_t nl = new_mesh.numberOfElts();
         il::int_t j_off = 0;
 
         if (e < old_nelts) {  // case of already existing elements-
@@ -176,7 +176,7 @@ namespace hfp2d {
 
       //  correction factor from Ryder & Napier 1985.
 
-      double correct = elas.Ep() * (1. / 3.) / (4. * (mesh.elt_size(tipElt)));
+      double correct = elas.Ep() * (1. / 3.) / (4. * (mesh.eltSize(tipElt)));
 
       Kmat(mesh.dofDD(tipElt, 0), mesh.dofDD(tipElt, 0)) += correct;
 
@@ -201,7 +201,7 @@ namespace hfp2d {
       //  double hx = sqrt(pow(xdiff[0], 2) + pow(xdiff[1], 2));
 
       //  correction factor
-      double correct = elas.Ep() * (1. / 3.) / (4. * (mesh.elt_size(tipElt)));
+      double correct = elas.Ep() * (1. / 3.) / (4. * (mesh.eltSize(tipElt)));
 
       Kmat(mesh.dofDD(tipElt, 0), mesh.dofDD(tipElt, 0)) -= correct;
 

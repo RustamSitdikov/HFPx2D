@@ -43,7 +43,7 @@ void fluidInjFrictWeakDilatFault(int argc, char const *argv[]) {
   hfp2d::Mesh MyMesh;
   // Instantiate InSituStress object
   hfp2d::InSituStress BackgroundLoadingConditions;
-  // Instantiate ElasticProperties object
+  // Instantiate elasticProperties object
   hfp2d::ElasticProperties ElasticProperties;
   // Instantiate FluidProperties object
   hfp2d::FluidProperties FluidProperties;
@@ -78,12 +78,12 @@ void fluidInjFrictWeakDilatFault(int argc, char const *argv[]) {
   }
 
   // Matrix to switch from nodal points to collocation points for DDs
-  il::Array2D<double> from_edge_to_coll_dds{MyMesh.numberOfDDDofs(),
-                                            MyMesh.numberOfDDDofs(), 0};
+  il::Array2D<double> from_edge_to_coll_dds{MyMesh.numberDDDofs(),
+                                            MyMesh.numberDDDofs(), 0};
   from_edge_to_coll_dds = hfp2d::from_edge_to_col_dg_full2d(MyMesh);
 
   // Matrix to switch from nodal points to collocation points for pressure
-  il::Array2D<double> from_edge_to_coll_press{MyMesh.numberOfDDDofs(),
+  il::Array2D<double> from_edge_to_coll_press{MyMesh.numberDDDofs(),
                                               MyMesh.numberOfNodes(), 0};
   from_edge_to_coll_press = hfp2d::from_edge_to_col_cg(MyMesh);
 
@@ -91,18 +91,18 @@ void fluidInjFrictWeakDilatFault(int argc, char const *argv[]) {
   hfp2d::SimulationParameters SimulationParameters;
 
   // Get the elasticity/influence matrix
-  il::Array2D<double> kmat{MyMesh.numberOfDDDofs(), MyMesh.numberOfDDDofs(), 0};
+  il::Array2D<double> kmat{MyMesh.numberDDDofs(), MyMesh.numberDDDofs(), 0};
   hfp2d::basic_assembly(MyMesh, ElasticProperties,
                         hfp2d::normal_shear_stress_kernel_dp1_dd, 0.);
 
   // Set the source point, i.e the node in the mesh where the fluid is injected
-  il::int_t source_point = MyMesh.numberOfElements() / 2;
+  il::int_t source_point = MyMesh.numberOfElts() / 2;
   hfp2d::Sources Source(source_point);
 
   /// Call constructor of class Solution -> Initialization of SolutionAtTn
   /// object
-  il::Array<double> init_opening{2 * MyMesh.numberOfElements(), 0.};
-  il::Array<double> init_slip{2 * MyMesh.numberOfElements(), 0.};
+  il::Array<double> init_opening{2 * MyMesh.numberOfElts(), 0.};
+  il::Array<double> init_slip{2 * MyMesh.numberOfElts(), 0.};
   double err_frac_position = 2.;
   double err_opening_dd = 2.;
   double err_shear_dd = 2.;
@@ -110,7 +110,7 @@ void fluidInjFrictWeakDilatFault(int argc, char const *argv[]) {
   il::int_t init_iter_front_position = 0;
   il::int_t init_iter_ehls = 0;
 
-  il::Array<double> press_init_coll{2 * MyMesh.numberOfElements(), 0};
+  il::Array<double> press_init_coll{2 * MyMesh.numberOfElts(), 0};
   auto p_init_coll = il::dot(from_edge_to_coll_press, press_init_nodes);
   for (il::int_t i = 0, k = 1; i < press_init_coll.size(); ++i, k = k + 2) {
     press_init_coll[i] = p_init_coll[k];
@@ -118,8 +118,8 @@ void fluidInjFrictWeakDilatFault(int argc, char const *argv[]) {
 
   // Get the active set of collocation points by checking the MC criterion
   il::Array<int> init_failed_set_collpoints{0};
-  init_failed_set_collpoints.reserve(2 * MyMesh.numberOfElements());
-  for (int j = 0, k = 0; j < 2 * MyMesh.numberOfElements(); ++j) {
+  init_failed_set_collpoints.reserve(2 * MyMesh.numberOfElts());
+  for (int j = 0, k = 0; j < 2 * MyMesh.numberOfElts(); ++j) {
     if (BackgroundLoadingConditions.getBackgroundShearStress(j) >=
         SolidEvolution.getFricCoeff(j) *
             (BackgroundLoadingConditions.getBackgroundNormalStress(j) -
@@ -131,16 +131,16 @@ void fluidInjFrictWeakDilatFault(int argc, char const *argv[]) {
   }
 
   // Get initial active set of elements
-  il::Array2D<int> dof_single_dd{MyMesh.numberOfElements(),
+  il::Array2D<int> dof_single_dd{MyMesh.numberOfElts(),
                                  (MyMesh.interpolationOrder() + 1), 0};
-  for (int i = 0; i < MyMesh.numberOfElements(); i++) {
+  for (int i = 0; i < MyMesh.numberOfElts(); i++) {
     for (int j = 0; j < 1 * (MyMesh.interpolationOrder() + 1); j++) {
       dof_single_dd(i, j) = i * 1 * (MyMesh.interpolationOrder() + 1) + j;
     }
   }
 
   il::Array<int> init_set_elements{0};
-  init_set_elements.reserve(2 * MyMesh.numberOfElements());
+  init_set_elements.reserve(2 * MyMesh.numberOfElts());
   for (int l = 0, k = 0; l < init_failed_set_collpoints.size(); ++l, ++k) {
     init_set_elements.resize(k + 1);
     init_set_elements[l] =
@@ -179,9 +179,9 @@ void fluidInjFrictWeakDilatFault(int argc, char const *argv[]) {
   hfp2d::Solution SolutionAtTn(
       MyMesh, t_0plus, init_dt, init_opening, init_slip, press_init_nodes,
       BackgroundLoadingConditions.getBackgroundNormalStress(),
-      BackgroundLoadingConditions.getBackgroundShearStress(),
+      BackgroundLoadingConditions.getBackgroundShearStress(), init_active_set_elements,
       init_iter_front_position, init_iter_ehls, err_frac_position,
-      err_opening_dd, err_shear_dd, err_press, init_active_set_elements);
+      err_opening_dd, err_shear_dd, err_press);
 
   /// Loop in time
   double time = t_0plus;
@@ -191,7 +191,7 @@ void fluidInjFrictWeakDilatFault(int argc, char const *argv[]) {
                              MyMesh.coordinates(0, 0), 0,
                              MyMesh.coordinates(MyMesh.numberOfNodes() - 1, 0),
                              0) &&
-         SolutionAtTn.front_its() <= SimulationParameters.Frac_Front_max_its) {
+          SolutionAtTn.frontIts() <= SimulationParameters.frac_front_max_its) {
     std::cout << "******** Current time ******* "
               << "t = " << time << "\n";
 
@@ -222,19 +222,19 @@ void fractFrontPosition(il::Array2D<double> &elast_matrix,
   il::int_t cvg_front_posit = 0;
   il::int_t iter_front_posit = 1;
   il::Array<int> dof_active_elmnts{};
-  dof_active_elmnts.reserve(theMesh.numberOfDDDofs());
+  dof_active_elmnts.reserve(theMesh.numberDDDofs());
 
   while (cvg_front_posit != 1 &&
-         iter_front_posit <= SimulationParameters.Frac_Front_max_its) {
+         iter_front_posit <= SimulationParameters.frac_front_max_its) {
     std::cout << "Iter for fracture front position = " << iter_front_posit
               << "\n"
               << std::endl;
 
     // Find the corresponding DOFs of the active elements
     for (int elmnt_i = 0, k = 0;
-         elmnt_i < SolutionAtTn.activeSetElements().size(); ++elmnt_i) {
+         elmnt_i < SolutionAtTn.activeElts().size(); ++elmnt_i) {
       dof_active_elmnts.resize(k + 4);
-      for (int j = 0, l = k; j < theMesh.DDDofsPerElement(); ++j, ++l) {
+      for (int j = 0, l = k; j < theMesh.numberDDDofsPerElt(); ++j, ++l) {
         dof_active_elmnts[l] = theMesh.dofDD(elmnt_i, j);
       }
       k = k + 4;

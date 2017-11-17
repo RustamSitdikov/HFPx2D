@@ -42,7 +42,7 @@ namespace tip {
     struct TipParameters {
         double k1c; // SIF // K' = 4.0 * std::pow(2.0 / il::pi, 0.5) * K1c
         double e_p; // Plane strain modulus = youngPS_ = E / (1.0 - nu*nu)
-        double cl; // Carter leak-off coefficient; C' = 2.0 * Cl is used
+        double cl; // Carter leak-off coefficient; C' = 2.0 * cl is used
         double mu; // Fluid viscosity
         double wa; // Opening at the ribbon cell
         double s0; // Previous distance from the ribbon cell center to the Tip

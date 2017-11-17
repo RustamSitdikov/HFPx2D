@@ -19,21 +19,21 @@ InSituStress loadConditions(
 
   // creation of the array/vectors
   il::Array2D<double> insitu_stress_distribution(
-      2 * theLoadedMesh.numberOfElements(), 2);
+      2 * theLoadedMesh.numberOfElts(), 2);
   il::Array<double> amb_pore_pressure_distribution(
-      theLoadedMesh.numberOfPressDofs());
+          theLoadedMesh.numberPressDofs());
 
   il::Array2D<il::int_t> dof_single_dd{
-      theLoadedMesh.numberOfElements(),
+          theLoadedMesh.numberOfElts(),
       (theLoadedMesh.interpolationOrder() + 1), 0};
-  for (il::int_t i = 0; i < theLoadedMesh.numberOfElements(); i++) {
+  for (il::int_t i = 0; i < theLoadedMesh.numberOfElts(); i++) {
     for (il::int_t j = 0; j < 1 * (theLoadedMesh.interpolationOrder() + 1);
          j++) {
       dof_single_dd(i, j) = i * 1 * (theLoadedMesh.interpolationOrder() + 1) + j;
     }
   }
 
-  for (int elmt_k = 0; elmt_k < theLoadedMesh.numberOfElements(); ++elmt_k) {
+  for (int elmt_k = 0; elmt_k < theLoadedMesh.numberOfElts(); ++elmt_k) {
     hfp2d::SegmentData mysege = theLoadedMesh.getElementData(elmt_k);
 
     for (int coll_k = 0; coll_k < theLoadedMesh.interpolationOrder() + 1;

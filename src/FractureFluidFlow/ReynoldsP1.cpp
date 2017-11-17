@@ -51,13 +51,15 @@ Solution reynoldsP1(Mesh &theMesh, il::Array2D<double> &elast_submatrix,
   // Initialization of the while loop
   int j = 0;
 
-  while (j < SimulationParameters.EHL_max_its &&
-         (SolutionAtTn.err_opening() > SimulationParameters.EHL_tolerance ||
-          SolutionAtTn.err_shear() > SimulationParameters.EHL_tolerance ||
-          SolutionAtTn.err_pressure() > SimulationParameters.EHL_tolerance)) {
+  while (j < SimulationParameters.ehl_max_its &&
+         (SolutionAtTn.errOpening() > SimulationParameters.ehl_tolerance ||
+                 SolutionAtTn.errShear() > SimulationParameters.ehl_tolerance ||
+                 SolutionAtTn.errPressure() > SimulationParameters.ehl_tolerance)) {
       ++j;
 
 
   }
+
+    return SolutionAtTn;
 };
 }

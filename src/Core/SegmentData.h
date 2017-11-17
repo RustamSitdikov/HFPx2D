@@ -34,9 +34,9 @@ class SegmentData {
   // unit tangent to segment in global system of coordinates
   il::StaticArray<double, 2> s_;
   // segment mid points coordinates.
-  il::StaticArray<double, 2> Xmid_;
+  il::StaticArray<double, 2> x_mid_;
   // collocation points in global system of coordinates
-  il::Array2D<double> CollocationPoints_;
+  il::Array2D<double> collocation_points_;
 
   //////////////////////////////////////////////////////////////////////////
   //        CONSTRUCTORS/DESTRUCTORS
@@ -78,7 +78,7 @@ class SegmentData {
     // mid point of the element
     xmean[0] = (Xs(1, 0) + Xs(0, 0)) / 2.;
     xmean[1] = (Xs(1, 1) + Xs(0, 1)) / 2.;
-    Xmid_ = xmean;
+    x_mid_ = xmean;
 
     switch (p) {
       case 1: {  // linear DD
@@ -111,7 +111,7 @@ class SegmentData {
       Xcol(i, 1) = xaux[1] + xmean[1];
     }
 
-    CollocationPoints_ = Xcol;
+    collocation_points_ = Xcol;
   }
 
   //////////////////////////////////////////////////////////////////////////
@@ -119,17 +119,17 @@ class SegmentData {
   //////////////////////////////////////////////////////////////////////////
 
   // get functions
-  double size() const { return size_; };
-  double theta() const { return theta_; }
-  il::StaticArray<double, 2> n() const { return n_; };
-  il::StaticArray<double, 2> s() const { return s_; };
-  il::StaticArray<double, 2> Xmid() const { return Xmid_; };
-  il::Array2D<double> CollocationPoints() const { return CollocationPoints_; };
+  inline double size() const { return size_; };
+  inline double theta() const { return theta_; }
+  inline il::StaticArray<double, 2> n() const { return n_; };
+  inline il::StaticArray<double, 2> s() const { return s_; };
+  inline il::StaticArray<double, 2> Xmid() const { return x_mid_; };
+  inline il::Array2D<double> CollocationPoints() const { return collocation_points_; };
 
-  double CollocationPoints(il::int_t i, il::int_t j) const {
-    return CollocationPoints_(i, j);
+  inline double CollocationPoints(il::int_t i, il::int_t j) const {
+    return collocation_points_(i, j);
   };
-  double Xmid(il::int_t i) const { return Xmid_[i]; };
+  double Xmid(il::int_t i) const { return x_mid_[i]; };
 };
 }
 

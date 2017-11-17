@@ -16,19 +16,19 @@ namespace hfp2d {
 struct SimulationParameters {
   // placeholder for simulation parameters
 
-  il::int_t EHL_max_its =
+  il::int_t ehl_max_its =
       150;  // max number of iterations for elastic - fluid coupled problem
 
-  il::int_t Frac_Front_max_its =
+  il::int_t frac_front_max_its =
       50;  // max number of its for fracture front loop.
 
-  double EHL_relaxation =
+  double ehl_relaxation =
       1.;  //  ehl under-relaxation parameters. must be in [0,1]
 
-  double EHL_tolerance = 1.e-6;  // tolerance for stopping criteria for elastic
+  double ehl_tolerance = 1.e-6;  // tolerance for stopping criteria for elastic
   // - fluid coupled problem
 
-  double Frac_Front_tolerance =
+  double frac_front_tolerance =
       1.e-3;  // tolerance for stopping criteria on fracture front position
 
   // a string for an option to adapt the under-relaxation

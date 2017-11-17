@@ -28,6 +28,7 @@ void take_submatrix(il::Array2D<double> &sub, int i0, int i1, int j0, int j1,
     }
   }
 }
+
 ////////////////////////////////////////////////////////////////////////////////
 
 void set_submatrix(il::Array2D<double> &A, int i0, int i1,

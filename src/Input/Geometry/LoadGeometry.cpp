@@ -59,7 +59,7 @@ Mesh loadGeometry(
 
           std::cout << " Mesh number " << fractureID << " has "
                     << number_fractures << " fractures" << std::endl;
-          if (theGlobalMesh.numberOfElements() == 0) {
+          if (theGlobalMesh.numberOfElts() == 0) {
             theGlobalMesh = theSingleMesh;
 
           } else {

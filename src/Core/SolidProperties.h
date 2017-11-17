@@ -60,21 +60,21 @@ class SolidProperties {
   //////////////////////////////////////////////////////////////////////////
 
   // get functions
-  hfp2d::ElasticProperties ElasticProperties() const {
+  hfp2d::ElasticProperties elasticProperties() const {
     return elastic_properties_;
   };
 
-  il::Array<double> Wh_O() const { return wh_o_; };
+  il::Array<double> whO() const { return wh_o_; };
 
-  double Wh_O(il::int_t k) const { return wh_o_[k]; }
+  double whO(il::int_t k) const { return wh_o_[k]; }
 
-  il::Array<double> KIc() const { return fracture_toughness_; };
+  il::Array<double> kIc() const { return fracture_toughness_; };
 
-  double KIc(il::int_t k) const { return fracture_toughness_[k]; }
+  double kIc(il::int_t k) const { return fracture_toughness_[k]; }
 
-  il::Array<double> Cl() const { return carter_leakoff_coef_; };
+  il::Array<double> cl() const { return carter_leakoff_coef_; };
 
-  double Cl(il::int_t k) const { return carter_leakoff_coef_[k]; }
+  double cl(il::int_t k) const { return carter_leakoff_coef_[k]; }
 };
 }
 

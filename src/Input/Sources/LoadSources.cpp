@@ -17,8 +17,8 @@ namespace hfp2d{
 //
 //  // size of array/vectors
 ////  il::int_t numDisplDofs = theLoadedMesh.numberOfDisplDofs();
-//  il::int_t numDisplDofs = theLoadedMesh.numberOfDDDofs();
-//  il::int_t numPressDofs = theLoadedMesh.numberOfPressDofs();
+//  il::int_t numDisplDofs = theLoadedMesh.numberDDDofs();
+//  il::int_t numPressDofs = theLoadedMesh.numberPressDofs();
 //
 //  // creation of the array/vectors
 //  il::Array<double> injectionRateVector(numPressDofs,0.0);
