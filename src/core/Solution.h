@@ -56,13 +56,7 @@ class Solution {
   il::Array<double> tips_velocity_;
 
   il::Array<double> ribbon_tips_s_;
-
-  // note in the case where the solution vectors are only on sub-parts of the
-  // currentmesh, which may happen for cohesive zone model
-  // (or lefm thru a pre-existing mesh). 2 options: either pads with zero
-  // the different solution arrays, OR stored an array with active elements
-  // (both for mechanics and flow). In that last case, the proper way is most
-  // probably to create a derived class
+  
 
   il::int_t frontIts_;  // number of fracture front iterations
   il::int_t ehlIts_;    // number of ElastoHydrodynamics iterations
