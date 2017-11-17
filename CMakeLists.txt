@@ -20,7 +20,7 @@ set(CMAKE_CXX_COMPILER /usr/bin/g++)
 endif()
 
 #  FOR HFPx2D
- # set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+#  set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 IF(CMAKE_BUILD_TYPE MATCHES DEBUG)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror -Wall -Wextra -pedantic")
@@ -29,16 +29,15 @@ ENDIF(CMAKE_BUILD_TYPE MATCHES DEBUG)
 set(SOURCE_FILES_DIR ${PROJECT_SOURCE_DIR}/src)
 
 set(SOURCE_FILES
-        src/core/Mesh.cpp
-        src/core/Mesh.h
-        src/core/utilities.h
-        src/core/utilities.cpp
-        src/core/SegmentData.h
-        src/core/Fluid.h
-        src/core/ElasticProperties.h
-        src/core_dev/SolidEvolution.h
-        src/core/Sources.h
-
+        src/Core/Mesh.cpp
+        src/Core/Mesh.h
+        src/Core/Utilities.h
+        src/Core/Utilities.cpp
+        src/Core/SegmentData.h
+        src/Core/FluidProperties.h
+        src/Core/ElasticProperties.h
+        src/Core_dev/SolidEvolution.h
+        src/Core/Sources.h
         src/Elasticity/AssemblyDDM.cpp
         src/Elasticity/AssemblyDDM.h
         src/Elasticity/Simplified3D.cpp
@@ -47,43 +46,51 @@ set(SOURCE_FILES
         src/Elasticity/PlaneStrainInfinite.h
         src/Solvers/SimpleElastic.cpp
         src/Solvers/SimpleElastic.h
-        src/core/SimulationParameters.h
-#        src/input/loadArguments.cpp
-#        src/input/loadArguments.h
-#        src/input/loadInput.cpp
-#        src/input/loadInput.h
-#        src/input/loadInput.cpp
-#        src/input/loadInput.h
-#        src/input/geometry/autoLineMeshUtilities.cpp
-#        src/input/geometry/autoLineMeshUtilities.h
-#        src/input/geometry/autoLineMeshCreation.cpp
-#        src/input/geometry/autoLineMeshCreation.h
-#        src/input/geometry/loadGeometry.cpp
-#        src/input/geometry/loadGeometry.h
-#        src/input/geometry/loadMeshFile.cpp
-#        src/input/geometry/loadMeshFile.h
-##        src/input/properties/loadProperties.cpp
-#        src/input/properties/loadProperties.h
-        #src/input/geometry/autoLineMeshInfo.cpp
-        #src/input/geometry/autoLineMeshInfo.h
-#        src/input/properties/loadSingleMaterial.cpp
-#        src/input/properties/loadSingleMaterial.h
-        src/input/findUtilities.cpp
-        src/input/findUtilities.h
+        src/Core/SimulationParameters.h
+        src/Input/LoadArguments.cpp
+        src/Input/LoadArguments.h
+        src/Input/loadInput.cpp
+        src/Input/loadInput.h
+        src/Input/Geometry/AutoLineMeshUtilities.cpp
+        src/Input/Geometry/AutoLineMeshUtilities.h
+        src/Input/Geometry/AutoLineMeshCreation.cpp
+        src/Input/Geometry/AutoLineMeshCreation.h
+        src/Input/Geometry/LoadGeometry.cpp
+        src/Input/Geometry/LoadGeometry.h
+        src/Input/Geometry/LoadMeshFile.cpp
+        src/Input/Geometry/LoadMeshFile.h
+        src/Input/Properties/LoadProperties.cpp
+        src/Input/Properties/LoadProperties.h
+        src/Input/Geometry/AutoLineMeshInfo.cpp
+        src/Input/Geometry/AutoLineMeshInfo.h
+        src/Input/Properties/LoadSingleMaterial.cpp
+        src/Input/Properties/LoadSingleMaterial.h
+        src/Input/FindUtilities.cpp
+        src/Input/FindUtilities.h
         il/io/toml/toml.h
         il/io/toml/toml.cpp
-        #        src/input/conditions/loadConditions.cpp
-#        src/input/conditions/loadConditions.h
-#        src/input/Sources/loadSources.cpp
-#        src/input/Sources/loadSources.h
-        src/FractureFluidFlow/ReynoldsP0.cpp
-        src/FractureFluidFlow/ReynoldsP0.h
-        src/Solvers/DevLHFMSolver.cpp
-        src/Solvers/DevLHFMSolver.h
-        src/core/Solution.h
-        src/core/SolidProperties.h
-        src/tip/tipAsymptote.cpp
-        src/tip/tipAsymptote.h)
+        src/Input/Conditions/LoadConditions.cpp
+        src/Input/Conditions/LoadConditions.h
+        src/Input/Sources/LoadSources.cpp
+        src/Input/Sources/LoadSources.h
+        #src/FractureFluidFlow/ReynoldsP0.cpp
+        #src/FractureFluidFlow/ReynoldsP0.h
+        #src/Solvers/DevLHFMSolver.cpp
+        #src/Solvers/DevLHFMSolver.h
+        src/Core/Solution.h
+        src/Core/SolidProperties.h
+        src/Tip/TipAsymptote.cpp
+        src/Tip/TipAsymptote.h
+        src/Solvers/FluidInjFrictWeakDilatFault.cpp
+        src/Solvers/FluidInjFrictWeakDilatFault.h
+        src/Core_dev/FractureEvolution.h
+        src/Core/InSituStress.h
+        src/Devt/FromEdgeToCol.cpp
+        src/Devt/FromEdgeToCol.h
+        src/FractureFluidFlow/ReynoldsP1.cpp
+        src/FractureFluidFlow/ReynoldsP1.h
+        src/Devt/FiniteVolumeRoutines.cpp
+        src/Devt/FiniteVolumeRoutines.h)
 
 if(APPLE)
 link_directories($ENV{MKLROOT}/lib $ENV{MKLROOT}/../compiler/lib )
@@ -104,13 +111,13 @@ elseif(UNIX)
     target_include_directories(HFPx2D PRIVATE ${CMAKE_SOURCE_DIR} /opt/intel/mkl/include)
 endif()
 
-if(APPLE)
+#if(APPLE)
 # below for some under mac os sierra ;(
-add_custom_command(TARGET HFPx2D
-        POST_BUILD COMMAND
-        /usr/bin/install_name_tool -add_rpath /opt/intel/compilers_and_libraries_2017.0.102/mac/mkl/lib
-        $<TARGET_FILE:HFPx2D>)
-endif()
+#add_custom_command(TARGET HFPx2D
+        #POST_BUILD COMMAND
+        #/usr/bin/install_name_tool -add_rpath /opt/intel/compilers_and_libraries_2017.0.102/mac/mkl/lib
+        #$<TARGET_FILE:HFPx2D>)
+#endif()
 
 
 ################################################################################
@@ -124,7 +131,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DIL_FOLDER='\"${SR_FOLDER}\"'")
 set(UNIT_TEST_FILES src/_test/elastic_test.cpp
         gtest/src/gtest-all.cc
         src/_test/mesh_test.cpp
-        src/tip/_test/tip_test.cpp)
+        src/Tip/_test/tip_test.cpp)
 
 add_executable(HFPx2DUnitTest ${SOURCE_FILES} ${UNIT_TEST_FILES} test.cpp)
 

@@ -13,25 +13,25 @@
 
 #include "il/Array.h"
 
-#include <src/core/Fluid.h>
-#include <src/core/Mesh.h>
-#include <src/core/SimulationParameters.h>
-#include <src/core/SolidProperties.h>
-#include <src/core/Solution.h>
-#include <src/core/Sources.h>
+#include <src/Core/FluidProperties.h>
+#include <src/Core/Mesh.h>
+#include <src/Core/SimulationParameters.h>
+#include <src/Core/SolidProperties.h>
+#include <src/Core/Solution.h>
+#include <src/Core/Sources.h>
 
 namespace hfp2d {
 
 il::Array<double> EdgeConductivitiesP0Newtonian(il::Array2D<il::int_t> &edgeAdj,
                                                 il::Array<double> &width,
-                                                hfp2d::Fluid &fluid);
+                                                hfp2d::FluidProperties &fluid);
 
-il::Array2D<double> BuildFD_P0(hfp2d::Mesh &mesh, hfp2d::Fluid &fluid,
+il::Array2D<double> BuildFD_P0(hfp2d::Mesh &mesh, hfp2d::FluidProperties &fluid,
                                il::Array<double> &hydraulicwidth, double coef);
 
 Solution ReynoldsSolverP0(Solution &soln,
                           il::Array2D<double> &ElasMat,
-                          hfp2d::Fluid &fluid,
+                          hfp2d::FluidProperties &fluid,
                           hfp2d::SolidProperties &rock,
                           hfp2d::Sources &source, double timestep,
                           bool imp_tip_width,

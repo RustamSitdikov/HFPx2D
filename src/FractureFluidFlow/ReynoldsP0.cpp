@@ -14,20 +14,20 @@
 
 #include "ReynoldsP0.h"
 
-#include <src/core/SolidProperties.h>
-#include <src/core/Solution.h>
-#include <src/core/Sources.h>
-#include "src/core/Fluid.h"
-#include "src/core/Mesh.h"
-#include <src/core/SimulationParameters.h>
+#include <src/Core/SolidProperties.h>
+#include <src/Core/Solution.h>
+#include <src/Core/Sources.h>
+#include "src/Core/FluidProperties.h"
+#include "src/Core/Mesh.h"
+#include <src/Core/SimulationParameters.h>
 
 
 namespace hfp2d {
 
 il::Array<double> EdgeConductivitiesP0Newtonian(
     il::Array2D<il::int_t> &edgeAdj, il::Array<double> &hydraulic_width,
-    hfp2d::Fluid &fluid) {
-  // input should be an array of int : row edges, column the 2 adjacent elements
+    hfp2d::FluidProperties &fluid) {
+  // Input should be an array of int : row edges, column the 2 adjacent elements
   // . (and we assume that we element# = width(dof#) for simplicity
   //  hydraulic_width array with hydraulic width in each elements.
 
@@ -52,11 +52,11 @@ il::Array<double> EdgeConductivitiesP0Newtonian(
 // FV Matrix L
 // should return a sparse matrix....
 // for now , for quick debug assemble a dense ;(
-il::Array2D<double> BuildFD_P0(hfp2d::Mesh &mesh, hfp2d::Fluid &fluid,
+il::Array2D<double> BuildFD_P0(hfp2d::Mesh &mesh, hfp2d::FluidProperties &fluid,
                                il::Array<double> &hydraulicwidth, double coef) {
   //
   // mesh :: Mesh object
-  // fluid :: Fluid properties object
+  // fluid :: Fluid Properties object
   // hydraulicwidth:: array containing the hydraulic width of the different
   // cells
   // coef:: coefficient factor of all entries (typically the time-step)
@@ -98,7 +98,7 @@ il::Array2D<double> BuildFD_P0(hfp2d::Mesh &mesh, hfp2d::Fluid &fluid,
 ////////////////////////////////////////////////////////////////////////////////
 // function for current cell volume -> returning a vector
 il::Array<double> P0VolumeCompressibility(hfp2d::Mesh &mesh,
-                                          hfp2d::Fluid &fluid,
+                                          hfp2d::FluidProperties &fluid,
                                           il::Array<double> &hydraulic_width) {
   il::Array<double> volume{mesh.numberOfElements(), 0.};
 
@@ -111,7 +111,7 @@ il::Array<double> P0VolumeCompressibility(hfp2d::Mesh &mesh,
 }
 ////////////////////////////////////////////////////////////////////////////////
 Solution ReynoldsSolverP0(
-    Solution &soln, il::Array2D<double> &ElasMat, hfp2d::Fluid &fluid,
+    Solution &soln, il::Array2D<double> &ElasMat, hfp2d::FluidProperties &fluid,
     hfp2d::SolidProperties &rock, hfp2d::Sources &source, double timestep,
     bool imp_tip_width, il::Array<il::int_t> &tip_region_elt,
     il::Array<double> &tip_width, // will need to add leak-off volume...
@@ -126,19 +126,19 @@ Solution ReynoldsSolverP0(
   // soln:: solution object at time tn (converged solution) [contains the mesh]
   // ElasMat:: elasticity matrix  organized in [ all normal dofs   - all shear
   // dofs ]
-  // fluid    :: Fluid properties object
-  // rock     :: Solid properties object
+  // fluid    :: Fluid Properties object
+  // rock     :: Solid Properties object
   // source   :: Source / injection object
   // timestep :: double, current size of the times step
-  // imp_tip_width :: flag if width (at tn+1) in the tip region are imposed
-  // tip_region_elt :: vector of element # located in the tip region
-  // tip_width :: corresponding imposed tip width at tn+1
+  // imp_tip_width :: flag if width (at tn+1) in the Tip region are imposed
+  // tip_region_elt :: vector of element # located in the Tip region
+  // tip_width :: corresponding imposed Tip width at tn+1
   // return a Solution at tn+1 object
 
-  // todo: add the case of imposed tip width in tip elements as option ! ...
+  // todo: add the case of imposed Tip width in Tip elements as option ! ...
   // currently no inequality constraints on negative width are enforced....
 
-  // check consistency of tip region ct.
+  // check consistency of Tip region ct.
   IL_EXPECT_FAST(tip_region_elt.size() == tip_width.size());
 
   hfp2d::Mesh meshn = soln.CurrentMesh();
@@ -153,21 +153,21 @@ Solution ReynoldsSolverP0(
   il::Array<double> Vn = soln.shearDD();
   il::Array<double> Pn = soln.pressure();
 
-  il::Array<double> sig0 = soln.sigma0();
-  il::Array<double> tau0 = soln.tau0();
+  il::Array<double> sig0 = soln.sigmaN();
+  il::Array<double> tau0 = soln.tau();
 
   il::Array<il::int_t> alldof{tot_dofs,0};
   for (il::int_t i=0;i<tot_dofs;i++){
     alldof[i]=i;
   };
 
-  // imposed tip width increment if any (from imposed tip width at tn+1 and solution at tn)
+  // imposed Tip width increment if any (from imposed Tip width at tn+1 and solution at tn)
   il::Array<double> Dw_tip{tip_width.size(),0.};
   il::Array<il::int_t> tip_w_dof{tip_width.size()};
   if (imp_tip_width) {
     for (il::int_t i=0;i<tip_width.size();i++){
       tip_w_dof[i]=meshn.dofDD(tip_region_elt[i],1); // global dof number in the DD vectors
-      Dw_tip[i]=tip_width[i]-Wn[tip_region_elt[i]]; // imposed tip width increment over the time step.
+      Dw_tip[i]=tip_width[i]-Wn[tip_region_elt[i]]; // imposed Tip width increment over the time step.
     }
     };
 
@@ -288,8 +288,8 @@ Solution ReynoldsSolverP0(
     // Solve the tangent system
 
     if (imp_tip_width) {
-      //      std::cout <<"imposing tip width " << k <<  "\n";
-      // imposing tip width increment
+      //      std::cout <<"imposing Tip width " << k <<  "\n";
+      // imposing Tip width increment
 
       // take submatrix... brute force tbc
       for (il::int_t j1=0;j1<neq;j1++){
@@ -318,7 +318,7 @@ Solution ReynoldsSolverP0(
 
 
     }
-    else {  // no tip width imposed
+    else {  // no Tip width imposed
       il::Status status;
       // use a direct solver
       DX_k = il::linearSolve(Xi, Gamma, il::io, status);

@@ -15,9 +15,9 @@
 #include <il/Array2D.h>
 
 // Inclusion from the project
-#include <src/core/Mesh.h>
-#include <src/core/ElasticProperties.h>
-#include <src/core/SegmentData.h>
+#include <src/Core/Mesh.h>
+#include <src/Core/ElasticProperties.h>
+#include <src/Core/SegmentData.h>
 
 namespace hfp2d {
 

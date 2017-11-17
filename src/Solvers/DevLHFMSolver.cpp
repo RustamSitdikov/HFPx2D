@@ -13,15 +13,15 @@
 
 #include "DevLHFMSolver.h"
 
-#include <src/core/ElasticProperties.h>
-#include <src/core/Fluid.h>
-#include <src/core/Mesh.h>
+#include <src/Core/ElasticProperties.h>
+#include <src/Core/FluidProperties.h>
+#include <src/Core/Mesh.h>
 
 #include <src/Elasticity/AssemblyDDM.h>
 #include <src/Elasticity/Simplified3D.h>
 #include <src/FractureFluidFlow/ReynoldsP0.h>
-#include <src/core/SimulationParameters.h>
-#include <src/tip/tipAsymptote.h>
+#include <src/Core/SimulationParameters.h>
+#include <src/Tip/TipAsymptote.h>
 
 namespace hfp2d {
 
@@ -149,8 +149,8 @@ int TwoParallelHFs(int nelts, double dist) {
   hfp2d::Solution  Soln =
       hfp2d::Solution(mesh, 0., width, sheardd, pf_o, sig_o, tau_o);
 
-  // fluid properties.
-  hfp2d::Fluid water(1., 0.1, 1.e-10);
+  // fluid Properties.
+  hfp2d::FluidProperties water(1., 0.1, 1.e-10);
 
   // create source obj. - hardcoded for now....
   il::Array<il::int_t> elt_source{2, 0};
@@ -160,7 +160,7 @@ int TwoParallelHFs(int nelts, double dist) {
   hfp2d::Sources the_source = Sources(elt_source, Qo);
   //  std::cout << elt_source[0] << " " << Qo[0] << "\n";
 
-  // create rock properties obj
+  // create rock Properties obj
   il::Array<double> wh_o{1, 1.e-6}, toughness{1, 1.e6}, Carter{1, 0.};
   hfp2d::SolidProperties the_rock =
       SolidProperties(myelas, toughness, wh_o, Carter);
@@ -184,7 +184,7 @@ int TwoParallelHFs(int nelts, double dist) {
       ReynoldsSolverP0(Soln, K, water, the_rock, the_source, dt, imp_tip,
                        tip_elt, tip_width, SimulParam);
 
-  std::cout << " w tip est prop" <<  sqrt(32./il::pi)*sqrt(h/2.)*the_rock.KIc(0)/myelas.Ep() << "\n";
+  std::cout << " w Tip est prop" <<  sqrt(32./il::pi)*sqrt(h/2.)*the_rock.KIc(0)/myelas.Ep() << "\n";
   std::cout << "ribbon w n " << Soln.openingDD()[ribbon[0]] << "\n";
   std::cout << "ribbon w  n+1 " << Soln1.openingDD()[ribbon[0]] << "\n";
 
@@ -194,7 +194,7 @@ int TwoParallelHFs(int nelts, double dist) {
       ribbon_widths[i] = Soln1.openingDD()[ribbon[i]];
    }
 
-//  tip::TipParameters tipstruct;
+//  Tip::TipParameters tipstruct;
 //  tipstruct.e_p = the_rock.ElasticProperties().Ep();
 //  tipstruct.k1c= the_rock.KIc(0);
 //  tipstruct.mu=water.fluidViscosity();
@@ -203,15 +203,15 @@ int TwoParallelHFs(int nelts, double dist) {
 //  tipstruct.wa= ribbon_widths[0];
 //  tipstruct.st=h/2.;
 
-//  bool prop=tip::isPropagating(tipstruct);
+//  bool prop=Tip::isPropagating(tipstruct);
 //  std::cout << " is propagating ? "<< prop << "\n";
 //
-//  tip::TAInParam tipstruct_a;
+//  Tip::TAInParam tipstruct_a;
 //  tipstruct_a.taPrev=tipstruct;
 //  tipstruct_a.wa=ribbon_widths[0];
 //  tipstruct_a.dt=dt;
 //  std::cout << " old distance "<< tipstruct.st <<"\n";
-//  tip::TipParameters tipout = tip::propagateTip(tip::res_g_0_s,tipstruct_a,1.e-3,40,false);
+//  Tip::TipParameters tipout = Tip::propagateTip(Tip::res_g_0_s,tipstruct_a,1.e-3,40,false);
 
 //  std::cout << " new distance "<< tipout.st <<"\n";
 
@@ -223,19 +223,19 @@ int TwoParallelHFs(int nelts, double dist) {
 
   std::cout <<" old mesh " << mesh.numberOfElements() << "\n";
 
-  std::cout <<" old tip " << tip_elt[0] << " " << tip_elt[1] << "\n";
+  std::cout <<" old Tip " << tip_elt[0] << " " << tip_elt[1] << "\n";
 
   tip_elt.resize(tip_elt.size()+2);
-  std::cout <<" new tip " << tip_elt[0] << " " << tip_elt[1] << " " << tip_elt[5] << "\n";
+  std::cout <<" new Tip " << tip_elt[0] << " " << tip_elt[1] << " " << tip_elt[5] << "\n";
   tip_elt.resize(tip_elt.size()-2);
-  std::cout <<" back tip " << tip_elt[0] << " " << tip_elt[1]  << "\n";
+  std::cout <<" back Tip " << tip_elt[0] << " " << tip_elt[1]  << "\n";
 
 //  il::Array2D<double> tt=Soln1.TipsLocation();
 
   // loop on each tips
-  // invert tip asymptotics for each tip....
+  // invert Tip asymptotics for each Tip....
   // check if elements have to be added
-  // compute tip width at tn+1 according to asymptote for these tip elements.
+  // compute Tip width at tn+1 according to asymptote for these Tip elements.
 
   // if yes, new mesh
   // pad with zero the width and fluid pressure array of the previous time solution accordingly
@@ -256,7 +256,7 @@ int TwoParallelHFs(int nelts, double dist) {
 
 hfp2d::Solution FractureFrontLoop(hfp2d::Solution &Sol_n,
                                      il::Array2D<double> &ElasMat,
-                                     hfp2d::Fluid &fluid,
+                                     hfp2d::FluidProperties &fluid,
                                      hfp2d::SolidProperties &rock,
                                      hfp2d::Sources &source, double timestep,
                                      hfp2d::SimulationParameters &simulParams){
@@ -276,10 +276,10 @@ hfp2d::Solution FractureFrontLoop(hfp2d::Solution &Sol_n,
 
   hfp2d::Solution  Soln1_k; // Solution at time tn+1
 
-  // preparation for the LHFM tip inversion for propagation
+  // preparation for the LHFM Tip inversion for propagation
   il::Array<il::int_t> ribbon_elt=mesh_n.getRibbonElements(); // fix during this time step
   il::Array<double> s_o{ribbon_elt.size(),0.};
-// get initial distance ribbon-cell tip... s_o (should be stored in solution )
+// get initial distance ribbon-cell Tip... s_o (should be stored in solution )
   s_o=Sol_n.RibbonsDistance();
 
   double ribbon_width,h_ribbon; // for ribbon width and ribbon elt size.
@@ -292,7 +292,7 @@ hfp2d::Solution FractureFrontLoop(hfp2d::Solution &Sol_n,
   il::int_t ntip_elt_k = tip_elt_k.size();
   il::Array<double> tip_width_k{tip_elt_k.size(),0.};
 
-//  tip::TipParameters tipstruct;
+//  Tip::TipParameters tipstruct;
 //  tipstruct.e_p = rock.ElasticProperties().Ep();
 //  tipstruct.k1c= rock.KIc(0);
 //  tipstruct.mu=fluid.fluidViscosity();
@@ -308,9 +308,9 @@ hfp2d::Solution FractureFrontLoop(hfp2d::Solution &Sol_n,
     Soln1_k=ReynoldsSolverP0(Sol_n_k, ElasMat, fluid, rock, source, timestep, imp_tip,
                              tip_elt_k, tip_width_k, simulParams);
 
-    // Invert tip asymptotes, for all tips ...
+    // Invert Tip asymptotes, for all tips ...
     //
-    // tip-regions array, and corresponding tip width...
+    // Tip-regions array, and corresponding Tip width...
     tip_elt_k = mesh_n.tip_elts(); // restart from previous time step value always
     ntip_elt_k = tip_elt_k.size();
     tip_width_k.resize(ntip_elt_k);
@@ -331,7 +331,7 @@ hfp2d::Solution FractureFrontLoop(hfp2d::Solution &Sol_n,
 ////      tip::TipParameters tipout = tip::propagateTip(tip::res_g_0_s,tipstruct_a,1.e-5,40,true);
 ////
 ////      // add   element in tip regions if needed (always start from tip_elt_n)
-//      il::int_t n_add=0; // a priori only 1 tip elt.
+//      il::int_t n_add=0; // a priori only 1 Tip elt.
 //      if ((tipout.st-h_ribbon/2.)>h_ribbon) {
 //        n_add = std::round((tipout.st-h_ribbon/2.)/h_ribbon);
 //        ntip_elt_k = tip_elt_k.size(); // store
@@ -349,9 +349,9 @@ hfp2d::Solution FractureFrontLoop(hfp2d::Solution &Sol_n,
 //      double sc;
 //      for (il::int_t et=0;et<n_add+1;et++){
 //         sc= (tipout.st-h_ribbon/2.)+h_ribbon*et;
-//         tipVol[et]=tip::moment0(sc,tipout);
+//         tipVol[et]=Tip::moment0(sc,tipout);
 //      };
-//      // be careful, do things in reverse from the new tip location...
+//      // be careful, do things in reverse from the new Tip location...
 //      for (il::int_t et=n_add;et>=0;et--){
 //        if (et==n_add){
 //          tipW[et]=tipVol[et]/h_ribbon;
@@ -360,8 +360,8 @@ hfp2d::Solution FractureFrontLoop(hfp2d::Solution &Sol_n,
 //          tipW[et]=(tipVol[et]-tipVol[et+1])/h_ribbon;
 //        }
 //      };
-//      //create the proper tip_width_k contribution for that tip
-//      tip_width_k[i]=tipW[0]; // the pre-existing tip-elt.
+//      //create the proper tip_width_k contribution for that Tip
+//      tip_width_k[i]=tipW[0]; // the pre-existing Tip-elt.
 //      for (il::int_t et=0;et<n_add;et++){
 //        tip_width_k[ntip_elt_k+et]=tipW[1+et];
 //      }

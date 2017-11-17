@@ -24,10 +24,10 @@
 
 #include <src/Elasticity/PlaneStrainInfinite.h>
 #include <src/Elasticity/Simplified3D.h>
-#include <src/core/Mesh.h>
+#include <src/Core/Mesh.h>
 
 #include "SimpleElastic.h"
-#include "src/core/ElasticProperties.h"
+#include "src/Core/ElasticProperties.h"
 
 namespace hfp2d {
 
@@ -241,7 +241,7 @@ double SimpleGriffithExampleLinearElement_AddMesh(int nelts) {
   }
 
   std::cout << " end of Simple Griffith crack example P1 " << rel_err[ mesh.numberOfDDDofs() / 2 -4]<<" \n";
-// Note that due to the weird ordering... one tip is computed in the rel_err
+// Note that due to the weird ordering... one Tip is computed in the rel_err
 
   return rel_err[ mesh.numberOfDDDofs()/2- 4];
       il::norm(rel_err, il::Norm::L2);
