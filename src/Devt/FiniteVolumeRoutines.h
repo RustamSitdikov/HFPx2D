@@ -17,8 +17,6 @@
 #include <il/linear_algebra.h>
 
 // Inclusion from the project
-#include "Dilatancy.h"
-#include "Permeability.h"
 #include "src/Core/Mesh.h"
 
 namespace hfp2d {
@@ -35,16 +33,17 @@ struct Parameters_fluid {
 
 ///
 // This function calculates the average between two values for each element
-// Input: matrix of slip/opening for each element -> size Nelts x 2
+// Input: vector of slip/opening for each element -> size 2 x Nelts
 // Remember: piecewise linear variation over the element
-// Output: vector that contains the average values of each row (element)
-inline il::Array<double> average(const il::Array2D<double> &d) {
-  il::Array<double> Average{d.size(0), 0};
-  for (il::int_t i = 0; i < d.size(0); ++i) {
-    Average[i] = (d(i, 0) + d(i, 1)) / 2;
+// Output: vector that contains the average values for each element (size Nelts)
+inline il::Array<double> average(const il::Array<double> &d) {
+  il::Array<double> Average{d.size() / 2, 0};
+  for (il::int_t i = 0, k = 0; i < Average.size(); ++i, k = k + 2) {
+    Average[i] = (d[k] + d[k + 1]) / 2;
   }
   return Average;
 };
+
 ///
 // This function calculates the slip/opening at +/- 1/4 -> the control volume is
 // centered on the nodes!
@@ -52,11 +51,11 @@ inline il::Array<double> average(const il::Array2D<double> &d) {
 // Remember: piecewise linear variation over the element
 // Output: vector -> {slip_+1/4 , slip_+3/4}
 
-inline il::Array<double> quarter(const il::Array2D<double> &d) {
-  il::Array<double> Quarter(2 * d.size(0), 0);
-  for (il::int_t i = 0, j = 0; i < (d.size(0)); ++i, j = j + 2) {
-    Quarter[j] = ((3 * d(i, 0)) + d(i, 1)) / 4;
-    Quarter[j + 1] = (d(i, 0) + (3 * d(i, 1))) / 4;
+inline il::Array<double> quarter(const il::Array<double> &d) {
+  il::Array<double> Quarter(d.size(), 0);
+  for (il::int_t i = 0; i < d.size() / 2; ++i, i = i + 2) {
+    Quarter[i] = ((3 * d[i]) + d[i + 1]) / 4;
+    Quarter[i + 1] = (d[i] + (3 * d[i + 1])) / 4;
   }
   return Quarter;
 };
@@ -66,8 +65,9 @@ inline il::Array<double> quarter(const il::Array2D<double> &d) {
 // It returns 2x2 array with row&col of the seek value
 // It is completely general in a sense that the output can be a vector or a
 // matrix (2x2)
-inline il::Array2D<int> position_2d_array(const il::Array2D<int> &arr2D, int seek) {
-  il::Array2D<int> M{arr2D.size(1) * arr2D.size(0), 2, -1};
+inline il::Array2D<il::int_t> position_2d_array(
+    const il::Array2D<il::int_t> &arr2D, int seek) {
+  il::Array2D<il::int_t> M{arr2D.size(1) * arr2D.size(0), 2, -1};
   int k = 0;
 
   for (int i = 0; i < arr2D.size(0); ++i) {
@@ -81,7 +81,7 @@ inline il::Array2D<int> position_2d_array(const il::Array2D<int> &arr2D, int see
     }
   }
 
-  il::Array2D<int> outp{k, 2, 0};
+  il::Array2D<il::int_t> outp{k, 2, 0};
 
   for (int l = 0; l < k; ++l) {
     for (int j = 0; j < 2; ++j) {
@@ -95,37 +95,39 @@ inline il::Array2D<int> position_2d_array(const il::Array2D<int> &arr2D, int see
 ///
 // Auxiliary function for assembly process
 // It returns a given row (vector - specified by idx) of a 2D array
-inline il::Array<int> row_selection(const il::Array2D<int> &arr,
-                                    il::int_t idx) {
-  il::Array<int> vect{arr.size(1), 0};
+inline il::Array<il::int_t> row_selection(const il::Array2D<il::int_t> &arr,
+                                          il::int_t idx) {
+  il::Array<il::int_t> vect{arr.size(1), 0};
   for (il::int_t i = 0; i < vect.size(); ++i) {
     vect[i] = arr(idx, i);
   }
-
   return vect;
 };
 
-il::Array<double> shear_conductivities_newtonian(
-    Parameters_fluid &fluid_parameters, Mesh mesh, const il::Array2D<double> &d,
-    Parameters_dilatancy &dilat_parameters,
-    Parameters_permeability &permeab_parameters);
+il::Array<double> edgeConductivitiesP1Newtonian(
+    Mesh &theMesh, FluidProperties &FluidProperties,
+    il::Array<double> &permeab_middle, const il::Array<double> &dilat_middle,
+    const il::Array<double> &opening_middle);
 
-il::Array2D<double> build_l_matrix(Mesh mesh, const il::Array2D<double> &d,
-                                   Parameters_fluid &fluid_parameters,
-                                   Parameters_dilatancy &dilat_parameters,
-                                   const double &TimeStep,
-                                   Parameters_permeability &permeab_parameters);
+il::Array<double> shearConductivitiesP1Newtonian(
+    Mesh &theMesh, FluidProperties &FluidProperties,
+    FractureEvolution &FractureEvolution, const il::Array<double> &slip);
 
-il::Array2D<double> build_vp_matrix_p1(Mesh mesh,
-                                       Parameters_dilatancy &dilat_parameters,
-                                       Parameters_fluid &fluid_parameters,
-                                       const il::Array2D<double> &d, il::io_t);
+il::Array2D<double> buildLMatrix(Mesh &theMesh, const il::Array<double> &slip,
+                                 const il::Array<double> &opening,
+                                 FluidProperties &FluidProperties,
+                                 FractureEvolution &FractureEvolution,
+                                 const double TimeStep);
 
-il::Array2D<double> build_vd_matrix_p1(Mesh mesh,
-                                       Parameters_dilatancy &dilat_parameters,
-                                       il::Array2D<int> Dof,
-                                       Parameters_fluid &fluid_parameters,
-                                       const il::Array2D<double> &d);
+il::Array2D<double> buildVpMatrix(Mesh &theMesh,
+                                  FractureEvolution &FractureEvolution,
+                                  FluidProperties &FluidProperties,
+                                  il::Array<double> &slip);
+
+il::Array2D<double> buildVdMatrix(Mesh &theMesh,
+                                  FractureEvolution &FractureEvolution,
+                                  FluidProperties &FluidProperties,
+                                  il::Array<double> &slip);
 }
 
 #endif  // HFPX2D_FVM_H
