@@ -45,7 +45,9 @@ class Solution {
   // traction  vector
   il::Array<double> traction_values_ ;
 
-
+  // state variable
+  il::Array<double> state_1_;
+  
   // active set of elements -> e.g. satisfying a yield criteria
   il::Array<il::int_t> active_set_elements_;
 
@@ -56,7 +58,6 @@ class Solution {
   il::Array<double> tips_velocity_;
 
   il::Array<double> ribbon_tips_s_;
-
 
   il::int_t frontIts_;  // number of fracture front iterations
   il::int_t ehlIts_;    // number of ElastoHydrodynamics iterations
