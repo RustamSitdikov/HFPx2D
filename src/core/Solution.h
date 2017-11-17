@@ -56,7 +56,7 @@ class Solution {
   il::Array<double> tips_velocity_;
 
   il::Array<double> ribbon_tips_s_;
-  
+
 
   il::int_t frontIts_;  // number of fracture front iterations
   il::int_t ehlIts_;    // number of ElastoHydrodynamics iterations
