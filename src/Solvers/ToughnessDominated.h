@@ -51,6 +51,7 @@
 #include "src/core_dev/SolidEvolution.h"
 #include "src/devt/FromEdgeToCol.h"
 #include "src/core_dev/Simulation.h"
+#include "src/core_dev/SolutionClass.h"
 
 namespace hfp2d {
 
@@ -71,20 +72,59 @@ il::Array2D<double> takeMatFromList(il::Array2D<double> const &fullMat,
                                     il::Array<il::int_t> const &elemList,
                                     Mesh const &mesh);
 
+il::Array<double> extractVecFromList(const il::Array<double> &fullVec,
+                                     const il::Array<il::int_t> &elemList,
+                                     const Mesh &mesh);
+
 il::Array<double> extractFfromList(il::Array<double> &inSituStr,
                                    double pressure,
                                    il::Array<il::int_t> &elemList,
                                    Mesh &mesh);
 
-il::Array2D<double> extractKfromList(il::Array2D<double> &fullMat,
-                                     il::Array<il::int_t> &elemList,
-                                     Mesh &mesh);
+il::Array2D<double> extractMatFromList(const il::Array2D<double> &fullMat,
+                                       const il::Array<il::int_t> &elemList,
+                                       const Mesh &mesh);
 
-void prepareK_tough(il::Array2D<double> &Kact,
+void prepareK_tough(const il::Array<il::int_t> &activeList,
+                    const il::Array2D<double> &globalK_DD,
+                    Mesh &mesh,
                     il::io_t,
-                    il::Array<il::int_t> &activeList,
-                    il::Array2D<double> &globalK_DD,
-                    Mesh &mesh);
+                    il::Array2D<double> &Kact);
+
+void prepareF_tough(const double source,
+                    const SolutionK &solutionAtN,
+                    const il::Array2D<double> &fetc,
+                    const il::Array2D<double> &globalK_DD,
+                    const il::Array<il::int_t> &activeList,
+                    const Mesh &mesh,
+                    const il::Array<double> &inSituStress,
+                    il::io_t,
+                    il::Array<double> &Fact_k,
+                    SolidEvolution &CZM,
+                    il::Array<double> &globalDDs);
+
+simulationParams initSimParams(double minDeltaTime,
+                               double maxDeltaTime,
+                               il::int_t fracfrontMaxIter,
+                               il::int_t nonlinMaxIter,
+                               double tolX1,
+                               double tolX2,
+                               double relaxParam);
+
+il::Array<double> insertVecInList(const il::Array<double> &smallVec,
+                                  const il::Array<il::int_t> &elemList,
+                                  const Mesh &mesh);
+
+/*void initialSolution(Mesh &mesh,
+                     double &initPress,
+                     il::Array<double> &inSituStr,
+                     il::Array2D<double> &globalK_DD,
+                     il::io_t,
+                     SolidEvolution &linearCZM,
+                     il::Array<il::int_t> &activeList,
+                     il::Array2D<double> &Kact,
+                     il::Array<double> &Fact,
+                     il::Array<double> &initialDDSol);*/
 
 }
 

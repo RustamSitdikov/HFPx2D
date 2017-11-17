@@ -36,7 +36,7 @@ void loadInput(const il::String &inputFileName,
                Properties &theProperties,
                //InSituStress &theConditions,
                Sources &theSources,
-               Simulation &simParameters);
+               simulationParams &simParameters);
 
 }
 

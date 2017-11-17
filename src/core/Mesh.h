@@ -73,12 +73,12 @@ private:
     // row node #, columms element sharing that nodes, if  entry is -1 then
     // no more connected elt.  todo: switch to a sparse matrix and use
     // smallArrays?
-    il::Array2D<il::int_t> node_adj_elt_;
-
-    //  2 arrays containing the tipnodes and the corresponding tipelts (could be a
-    //  matrix)
-    il::Array<il::int_t> tipnodes_;
-    il::Array<il::int_t> tipelts_;
+//    il::Array2D<il::int_t> node_adj_elt_;
+//
+//    //  2 arrays containing the tipnodes and the corresponding tipelts (could be a
+//    //  matrix)
+//    il::Array<il::int_t> tipnodes_;
+//    il::Array<il::int_t> tipelts_;
 
 public:
     //////////////////////////////////////////////////////////////////////////
@@ -138,13 +138,13 @@ public:
                 dof_handle_pressure_ = connectivity_;  // 1 unknowns per nodes ....
         };
 
-        // build the nodal connected table...
-        node_adj_elt_ =
-            GetNodalEltConnectivity(coordinates_.size(0), connectivity_);
-
-        // built tip nodes table...
-        tipnodes_ = BuildTipNodes(node_adj_elt_);
-        tipelts_ = BuildTipElts(node_adj_elt_, tipnodes_);
+//        // build the nodal connected table...
+//        node_adj_elt_ =
+//            GetNodalEltConnectivity(coordinates_.size(0), connectivity_);
+//
+//        // built tip nodes table...
+//        tipnodes_ = BuildTipNodes(node_adj_elt_);
+//        tipelts_ = BuildTipElts(node_adj_elt_, tipnodes_);
     };
 
     // case where matid vector is provided
@@ -194,13 +194,13 @@ public:
                 dof_handle_pressure_ = connectivity_;
         };
 
-        // build the nodal connected table...
-        node_adj_elt_ =
-            GetNodalEltConnectivity(coordinates_.size(0), connectivity_);
-
-        // built tip nodes table...
-        tipnodes_ = BuildTipNodes(node_adj_elt_);
-        tipelts_ = BuildTipElts(node_adj_elt_, tipnodes_);
+//        // build the nodal connected table...
+//        node_adj_elt_ =
+//            GetNodalEltConnectivity(coordinates_.size(0), connectivity_);
+//
+//        // built tip nodes table...
+//        tipnodes_ = BuildTipNodes(node_adj_elt_);
+//        tipelts_ = BuildTipElts(node_adj_elt_, tipnodes_);
     };
 
 
@@ -229,13 +229,54 @@ public:
 //    };
 //
     Mesh(const il::int_t interpolationOrder,
-         const il::Array2D<double> &nodesCoordinates,
-         const il::Array2D<il::int_t> &elementsConnectivity,
-         const il::Array2D<il::int_t> &displ_dof_handle,
-         const il::Array2D<il::int_t> &press_dof_handle,
-         const il::Array<il::int_t> &fractureID,
-         const il::Array<il::int_t> &materialID,
-         const il::Array<il::int_t> &conditionID);
+               const il::Array2D<double> &nodesCoordinates,
+               const il::Array2D<il::int_t> &elementsConnectivity,
+               const il::Array2D<il::int_t> &displ_dof_handle,
+               const il::Array2D<il::int_t> &press_dof_handle,
+               const il::Array<il::int_t> &fractureID,
+               const il::Array<il::int_t> &materialID,
+               const il::Array<il::int_t> &conditionID) {
+
+        // Initial assertions to check data consistency
+        // Non-zero number of nodes and coordinates must be 2D
+        IL_EXPECT_FAST(nodesCoordinates.size(0) > 0 && nodesCoordinates.size(1) == 2);
+
+        // Non-zero number of elements and connectivity matrix shall have
+        // as many columns as the interpolation order +1
+        IL_EXPECT_FAST(elementsConnectivity.size(0) > 0);
+        IL_EXPECT_FAST((interpolationOrder==0 && elementsConnectivity.size(1)==2)
+                           || (interpolationOrder>0  && elementsConnectivity.size
+                               (1)==interpolationOrder + 1) );
+
+        // Check of dof handles sizes
+        // - same number of elements for pressure and displacements
+        IL_EXPECT_FAST(elementsConnectivity.size(0)==displ_dof_handle.size(0));
+        IL_EXPECT_FAST(elementsConnectivity.size(0)==press_dof_handle.size(0));
+        // - 2 displacement dofs per node x number of nodes in an element == dof handle per element
+        IL_EXPECT_FAST((interpolationOrder==0 && displ_dof_handle.size(1)==2) ||
+            elementsConnectivity.size(1)*2 == displ_dof_handle.size(1));
+        // - 1 pressure dof per node x number of nodes in an element == dof handle per element
+        IL_EXPECT_FAST((interpolationOrder==0 && press_dof_handle.size(1)==2) ||
+            (interpolationOrder + 1 == press_dof_handle.size(1)));
+
+        // Check of the size of fractureID and materialID
+        IL_EXPECT_FAST(elementsConnectivity.size(0) == fractureID.size());
+        IL_EXPECT_FAST(elementsConnectivity.size(0) == materialID.size());
+
+        // Assignment to the class members
+        coordinates_ = nodesCoordinates;
+        connectivity_ = elementsConnectivity;
+        dof_handle_dd_ = displ_dof_handle;
+        dof_handle_pressure_ = press_dof_handle;
+
+        fracture_id_=fractureID;
+        material_id_=materialID;
+        //condition_id_=conditionID;
+
+        interpolation_order_=interpolationOrder;
+
+    };
+
 
     ////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -244,21 +285,21 @@ public:
     appendMesh(const Mesh &newMesh,
                bool isJoined);
 
-    void
-    appendMesh(const il::Array2D<double> &newNodesCoordinates,
-               const il::Array2D<il::int_t> &newElementsConnectivity,
-               const il::Array<il::int_t> &newMaterialIdentifier);
-
-    void
-    appendMesh(const il::Array2D<double> &newNodesCoordinates,
-               const il::Array2D<il::int_t> &newElementsConnectivity,
-               const il::Array<il::int_t> &newMaterialIdentifier,
-               const il::Array<il::int_t> &newFractureIdentifier);
-
-    void
-    appendNodeToMeshTip(il::int_t mesh_node,
-                        double x_new,
-                        double y_new);
+//    void
+//    appendMesh(const il::Array2D<double> &newNodesCoordinates,
+//               const il::Array2D<il::int_t> &newElementsConnectivity,
+//               const il::Array<il::int_t> &newMaterialIdentifier);
+//
+//    void
+//    appendMesh(const il::Array2D<double> &newNodesCoordinates,
+//               const il::Array2D<il::int_t> &newElementsConnectivity,
+//               const il::Array<il::int_t> &newMaterialIdentifier,
+//               const il::Array<il::int_t> &newFractureIdentifier);
+//
+//    void
+//    appendNodeToMeshTip(il::int_t mesh_node,
+//                        double x_new,
+//                        double y_new);
 
     //////////////////////////////////////////////////////////////////////////
     //        get functions  - i.e. public interfaces
@@ -417,29 +458,29 @@ public:
 //        return connectivity_(e, i);
 //    }
 
-    // nodal connectivity related
-    il::Array2D<il::int_t> node_elt_connectivity() const {
-        return node_adj_elt_;
-    };
-    il::int_t node_elt_connectivity(il::int_t k, il::int_t l) const {
-        return node_adj_elt_(k, l);
-    };
-
-    il::Array<il::int_t> node_elt_connectivity(il::int_t k) const {
-        il::Array<il::int_t> temp(node_adj_elt_.size(1));
-        for (il::int_t i = 0; i < node_adj_elt_.size(1); i++) {
-            temp[i] = node_adj_elt_(k, i);
-        }
-        return temp;
-    };
-
-    // get tip nodes
-    il::Array<il::int_t> tip_nodes() const { return tipnodes_; };
-    il::int_t tip_nodes(il::int_t k) const { return tipnodes_[k]; };
-
-    // get tip elts
-    il::Array<il::int_t> tip_elts() const { return tipelts_; };
-    il::int_t tip_elts(il::int_t k) const { return tipelts_[k]; };
+//    // nodal connectivity related
+//    il::Array2D<il::int_t> node_elt_connectivity() const {
+//        return node_adj_elt_;
+//    };
+//    il::int_t node_elt_connectivity(il::int_t k, il::int_t l) const {
+//        return node_adj_elt_(k, l);
+//    };
+//
+//    il::Array<il::int_t> node_elt_connectivity(il::int_t k) const {
+//        il::Array<il::int_t> temp(node_adj_elt_.size(1));
+//        for (il::int_t i = 0; i < node_adj_elt_.size(1); i++) {
+//            temp[i] = node_adj_elt_(k, i);
+//        }
+//        return temp;
+//    };
+//
+//    // get tip nodes
+//    il::Array<il::int_t> tip_nodes() const { return tipnodes_; };
+//    il::int_t tip_nodes(il::int_t k) const { return tipnodes_[k]; };
+//
+//    // get tip elts
+//    il::Array<il::int_t> tip_elts() const { return tipelts_; };
+//    il::int_t tip_elts(il::int_t k) const { return tipelts_[k]; };
 
     // material ID related
 //    il::Array<il::int_t> matid() const { return material_id_; };
@@ -484,21 +525,30 @@ public:
     hfp2d::SegmentData getElementData(const il::int_t ne);
 
     // a method to get the size of a given element.
-    double elt_size(const il::int_t e);
+    double elt_size(const il::int_t e){
+        il::StaticArray<double, 2> xdiff;
+        xdiff[0] = coordinates_(connectivity_(e, 1), 0) -
+            coordinates_(connectivity_(e, 0), 0);
+        xdiff[1] = coordinates_(connectivity_(e, 1), 1) -
+            coordinates_(connectivity_(e, 0), 1);
+        double hx = sqrt(pow(xdiff[0], 2) + pow(xdiff[1], 2));
 
-    il::Array<double> All_elt_size();
+        return hx;
+    }
+
+//    il::Array<double> All_elt_size();
 
     // method to get nodes sharing 2 elts. (i.e. the nodal_connectivity for all nodes with 2 neighbours)
     // todo rename
-    il::Array2D<il::int_t> GetNodesSharing2Elts();
+//    il::Array2D<il::int_t> GetNodesSharing2Elts();
 
     // method to get the ribbon elements  - of a given mesh.
-    il::Array<il::int_t>  getRibbonElements() ;
+//    il::Array<il::int_t>  getRibbonElements() ;
 
 
     // method to add N element ahead of a tip node of a tip element at a given kick angle
-    void AddNTipElements(const il::int_t t_e, const il::int_t the_tip_node,
-                         const il::int_t n_add, double kink_angle);
+//    void AddNTipElements(const il::int_t t_e, const il::int_t the_tip_node,
+//                         const il::int_t n_add, double kink_angle);
 
     // todo : do comments each methods better !
 

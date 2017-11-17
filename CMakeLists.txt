@@ -15,7 +15,7 @@ if (APPLE)
 elseif (UNIX)
     set(CMAKE_C_COMPILER /usr/bin/gcc)
     set(CMAKE_CXX_COMPILER /usr/bin/g++)
-
+# flags for cmake -DCMAKE_C_COMPILER=clang  -DCMAKE_CXX_COMPILER=clang++
 elseif(WIN32) # to fill up here
 endif()
 
@@ -23,7 +23,9 @@ endif()
 # set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 IF(CMAKE_BUILD_TYPE MATCHES Debug)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Wall -Wextra -pedantic") #-Wall -Wextra -pedantic
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -Wall -Wextra -pedantic ")
+    #-fsanitize=address,undefined -fno-omit-frame-pointer
+    #-Wall -Wextra-pedantic
     #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -Werror -Wall -Wextra
     #-Wstrict-aliasing -pedantic")
     #-fmax-errors=5 -Werror -Wunreachable-code -Wcast-align -Wcast-qual
@@ -37,7 +39,8 @@ IF(CMAKE_BUILD_TYPE MATCHES Debug)
 ENDIF(CMAKE_BUILD_TYPE MATCHES Debug)
 
 IF(CMAKE_BUILD_TYPE MATCHES Release)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -march=native -mfpmath=sse -malign-double -m64")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
+        #-march=native -mfpmath=sse -malign-double -m64
 #            -march=native -mfpmath=sse -malign-double -m64 -msse4.2 -mavx2 \
 #            -mfma")
 #                    -msse4.2 -mavx2 -mfma4 ")

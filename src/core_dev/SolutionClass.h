@@ -28,31 +28,33 @@ class SolutionK {
 
 private:
 
+    // time and deltaTime
+    double time_;
+    double deltaTime_;
+
+    // saving the current mesh (required especially for adaptivity)
     hfp2d::Mesh currentmesh_;
 
+    // values of the dislocation discontinuities
     il::Array<double> DDvalues_;
+    // value of the pressure (remember, this is toughness dominated)
     double pressure_;
 
+    // stress at collocation points
     il::Array<double> stress_;  // current stress field
-    il::Array<double> stress0_; // initial far field stress
 
+    // list of active elements
     il::Array<il::int_t> activeList_;
 
-    double time_;
-    double timestep_;
+    // number of iterations for the fracture front and the non linear system
+    il::int_t fracFrontIter_;
+    il::int_t nonLinSysIter_;
 
-    double minDeltaT_;
-    double maxDeltaT_;
-
+    // error norms on DD, pressure and respective residuals
     double err_DDvalues_;
     double err_pressure_;
     double err_resDDval_;
     double err_resPress_;
-
-    il::int_t fracFrontIter_;
-    il::int_t nonLinSysIter_;
-    il::int_t fracFrontMaxIter_;
-    il::int_t nonLinSysMaxIter_;
 
 
 public:
@@ -60,100 +62,151 @@ public:
     SolutionK() {};
 
     //#1.
-    SolutionK(const hfp2d::Mesh &mesh,
+    SolutionK(const double time,
+              const double deltaTime,
+              hfp2d::Mesh &mesh,
+
               const il::Array<double> &DDsolution,
               const double pressure,
+
               const il::Array<double> &stressAtColl,
-              const il::Array<double> &sigma0,
+
               const il::Array<il::int_t> &actList,
-              const simulationParams &simParams
+
+              const il::int_t nonLinIter,
+              const il::int_t fracFrontIter,
+
+              const double errDDval,
+              const double errPress,
+              const double errResDD,
+              const double errResPr
     ) {
 
-      // todo should have checks here on dimensions with mesh etc.
+//        IL_EXPECT_FAST(time >= 0);
+//        IL_EXPECT_FAST(deltaTime >= 0);
+//
+//        IL_EXPECT_FAST(DDsolution.size() == mesh.numDDDofs());
+//
+//        // todo: check the size of the stresses at collocation points that
+//        // it should correspond to the number of collocation points times the
+//        // number of stress components (either vector or matrix9
+//
+//        IL_EXPECT_FAST(actList.size() <= mesh.numNodes());
+//        IL_EXPECT_FAST(nonLinIter > 0);
+//        IL_EXPECT_FAST(fracFrontIter > 0);
+//
+//        IL_EXPECT_FAST(errDDval > 0.0 && errPress > 0.0);
+//        IL_EXPECT_FAST(errResDD > 0.0 && errResPr > 0.0);
+
+      time_ = time;
+      deltaTime_ = deltaTime;
+
       currentmesh_ = mesh;
 
       DDvalues_ = DDsolution;
       pressure_ = pressure;
 
       stress_ = stressAtColl;
-      stress0_ = sigma0;
 
       activeList_ = actList;
 
-      time_ = simParams.t;
-      timestep_ = simParams.deltat;
-      minDeltaT_ = simParams.minDeltat;
-      maxDeltaT_ = simParams.maxDeltat;
+      nonLinSysIter_ = nonLinIter;
+      fracFrontIter_ = fracFrontIter;
 
-      err_DDvalues_ = simParams.errorOnDDs;
-      err_pressure_ = simParams.errorOnPress;
-      err_resDDval_ = simParams.errorOnResDDs;
-      err_resPress_ = simParams.errorOnResPress;
-
-      fracFrontIter_ = simParams.ffIter;
-      fracFrontMaxIter_ = simParams.ffMaxIter;
-      nonLinSysIter_ = simParams.nlIter;
-      nonLinSysMaxIter_ = simParams.nlMaxIter;
+      err_DDvalues_ = errDDval;
+      err_pressure_ = errPress;
+      err_resDDval_ = errResDD;
+      err_resPress_ = errResPr;
 
     };
+
+
+    ///// SETTER FUNCTION I.E. SAVE TIME STEP
+    void saveTimeStep(const double time,
+                           const double deltaTime,
+                           const hfp2d::Mesh &mesh,
+
+                           const il::Array<double> &DDsolution,
+                           const double pressure,
+
+                           const il::Array<double> &stressAtColl,
+
+                           const il::Array<il::int_t> &actList,
+
+                           const il::int_t nonLinIter,
+                           const il::int_t fracFrontIter,
+
+                           const double errDDval,
+                           const double errPress,
+                           const double errResDD,
+                           const double errResPr
+    ) {
+
+//        IL_EXPECT_FAST(time >= 0);
+//        IL_EXPECT_FAST(deltaTime > 0);
+//
+//        IL_EXPECT_FAST(DDsolution.size() == mesh.numDDDofs());
+//
+//        // todo: check the size of the stresses at collocation points that
+//        // it should correspond to the number of collocation points times the
+//        // number of stress components (either vector or matrix9
+//
+//        IL_EXPECT_FAST(actList.size() <= mesh.numNodes());
+//        IL_EXPECT_FAST(nonLinIter > 0);
+//        IL_EXPECT_FAST(fracFrontIter > 0);
+//
+//        IL_EXPECT_FAST(errDDval >= 0.0 && errPress >= 0.0);
+//        IL_EXPECT_FAST(errResDD >= 0.0 && errResPr >= 0.0);
+
+        time_ = time;
+        deltaTime_ = deltaTime;
+
+        currentmesh_ = mesh;
+
+        DDvalues_ = DDsolution;
+        pressure_ = pressure;
+
+        stress_ = stressAtColl;
+
+        activeList_ = actList;
+
+        nonLinSysIter_ = nonLinIter;
+        fracFrontIter_ = fracFrontIter;
+
+        err_DDvalues_ = errDDval;
+        err_pressure_ = errPress;
+        err_resDDval_ = errResDD;
+        err_resPress_ = errResPr;
+
+    };
+
+
+
+
+    /////// GETTER FUNCTIONS //////
+
+    double time() const { return time_;}
+    double timestep() const { return deltaTime_;}
+
+    hfp2d::Mesh mesh() const { return currentmesh_;}
 
     il::Array<double> DDvalues() const { return DDvalues_; }
     double DDvalues(il::int_t i) const { return DDvalues_[i]; }
     double pressure() const { return pressure_; }
 
-    il::Array<double> sigma0() const { return stress0_; }
-    double sigma0(il::int_t i) const { return stress0_[i]; }
-    il::Array<double> stress() const { return stress_; }
-    double stress(il::int_t i) const { return stress_[i]; }
-
-    hfp2d::Mesh CurrentMesh() const { return currentmesh_;}
-
-    double time() const { return time_;}
-    double timestep() const { return timestep_;}
-
-    double err_DDs() const { return err_DDvalues_;}
-    double err_press() const { return err_pressure_;}
+    il::Array<double> stressAtColl() const { return stress_; }
+    double stressAtColl(il::int_t i) const { return stress_[i]; }
 
     il::Array<il::int_t> activeList() const { return activeList_;}
     il::int_t activeList(il::int_t i) const { return activeList_[i];}
 
-    SolutionK save(const hfp2d::Mesh &mesh,
-              const il::Array<double> &DDsolution,
-              const double pressure,
-              const il::Array<double> &stressAtColl,
-              const il::Array<double> &sigma0,
-              const il::Array<il::int_t> &actList,
-              const simulationParams &simParams
-    ) {
+    il::int_t nlIter() { return nonLinSysIter_;}
+    il::int_t ffIter() { return fracFrontIter_;}
 
-      // todo should have checks here on dimensions with mesh etc.
-      currentmesh_ = mesh;
-
-      DDvalues_ = DDsolution;
-      pressure_ = pressure;
-
-      stress_ = stressAtColl;
-      stress0_ = sigma0;
-
-      activeList_ = actList;
-
-      time_ = simParams.t;
-      timestep_ = simParams.deltat;
-      minDeltaT_ = simParams.minDeltat;
-      maxDeltaT_ = simParams.maxDeltat;
-
-      err_DDvalues_ = simParams.errorOnDDs;
-      err_pressure_ = simParams.errorOnPress;
-      err_resDDval_ = simParams.errorOnResDDs;
-      err_resPress_ = simParams.errorOnResPress;
-
-      fracFrontIter_ = simParams.ffIter;
-      fracFrontMaxIter_ = simParams.ffMaxIter;
-      nonLinSysIter_ = simParams.nlIter;
-      nonLinSysMaxIter_ = simParams.nlMaxIter;
-
-    };
-
+    double err_DDs() const { return err_DDvalues_;}
+    double err_press() const { return err_pressure_;}
+    double err_ResDD() const { return err_resDDval_;}
+    double err_ResPr() const { return err_resPress_;}
 
 };
 
@@ -469,7 +522,8 @@ private:
   // update complete solution vector with displacement and pressures
   void updateSolution(il::Array<double> const &newDisplacement, il::Array<double> const &newPressure){
 
-    IL_EXPECT_FAST(newDisplacement.size()==sizeDisplacement_ && newPressure.size()==sizePressure_)
+    IL_EXPECT_FAST(newDisplacement.size()==sizeDisplacement_ && newPressure
+        .size()==sizePressure_);
     for(il::int_t i=0; i<sizeDisplacement_; i++)
     {
       globalVector_[i]=newDisplacement[i];
