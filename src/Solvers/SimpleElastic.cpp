@@ -71,7 +71,7 @@ double SimpleGriffithExampleLinearElement(int nelts) {
 
   hfp2d::Mesh mesh(xy,myconn,p);
 
-  il::int_t ndof = mesh.numberOfDDDofs();
+  il::int_t ndof = mesh.numberDDDofs();
 
   hfp2d::ElasticProperties myelas(1, 0.);
 
@@ -150,7 +150,7 @@ double SimpleGriffithExampleLinearElement_AddMesh(int nelts) {
 
   hfp2d::Mesh mesh(xy,myconn,p);
 
-  il::int_t ndof = mesh.numberOfDDDofs();
+  il::int_t ndof = mesh.numberDDDofs();
 
   hfp2d::ElasticProperties myelas(1, 0.);
 
@@ -159,24 +159,24 @@ double SimpleGriffithExampleLinearElement_AddMesh(int nelts) {
                                                 0.);  // passing p could be avoided here
 
   // add a nelts anpther element to mesh.
-  il::int_t t1=mesh.tip_elts(0),t2=mesh.tip_elts(1);
-  il::int_t n1=mesh.tip_nodes(0),n2=mesh.tip_nodes(1);
+  il::int_t t1= mesh.tipElts(0),t2= mesh.tipElts(1);
+  il::int_t n1= mesh.tipNodes(0),n2= mesh.tipNodes(1);
 
-  mesh.AddNTipElements(t1,n1,nelts/2,0.);
-  mesh.AddNTipElements(t2,n2,nelts/2,0.);
+  mesh.addNTipElts(t1, n1, nelts / 2, 0.);
+  mesh.addNTipElts(t2, n2, nelts / 2, 0.);
 
   basic_assembly_add_elts(mesh,nelts,myelas,
                           hfp2d::normal_shear_stress_kernel_dp1_dd,
                           0.,il::io,K);
 
   // check
-  std::cout << "Nelts" << mesh.numberOfElements() << "\n";
+  std::cout << "Nelts" << mesh.numberOfElts() << "\n";
 
 
   // solve a constant pressurized crack problem...
-  il::Array<double> f{mesh.numberOfDDDofs(), 1.};
+  il::Array<double> f{mesh.numberDDDofs(), 1.};
   // just opening dds - set shear loads to zero
-  for (il::int_t i = 0; i < mesh.numberOfDDDofs() / 2; ++i) {
+  for (il::int_t i = 0; i < mesh.numberDDDofs() / 2; ++i) {
     f[2 * i] = 0;
   }
 
@@ -186,14 +186,15 @@ double SimpleGriffithExampleLinearElement_AddMesh(int nelts) {
   status.ok();
 
   ////// Analytical solution at nodes
-  il::Array<double> thex{mesh.numberOfDDDofs() / 2, 0}, wsol{mesh.numberOfDDDofs() / 2, 0};
+  il::Array<double> thex{mesh.numberDDDofs() / 2, 0}, wsol{
+      mesh.numberDDDofs() / 2, 0};
 
 
   il::int_t i = 0;
 
   // this piece of codes gets 1D mesh of x doubling the nodes of
   // adjacent elements (for comparison with analytical solution)
-  for (il::int_t e = 0; e < mesh.numberOfElements(); ++e) {
+  for (il::int_t e = 0; e < mesh.numberOfElts(); ++e) {
     thex[i] = mesh.coordinates(mesh.connectivity(e, 0), 0);
     thex[i + 1] = mesh.coordinates(mesh.connectivity(e, 1), 0);
     i = i + 2;
@@ -203,11 +204,11 @@ double SimpleGriffithExampleLinearElement_AddMesh(int nelts) {
 
   // printing out the comparisons for each nodes (left and right values at each
   // nodes due to the piece-wise constant nature of the solution)...
-  il::Array<double> rel_err{mesh.numberOfDDDofs() / 2 - 2};
+  il::Array<double> rel_err{mesh.numberDDDofs() / 2 - 2};
 
   double rel_err_norm;
   // do not compute the relative error in x=\pm 1 as it will be infinite
-  for (int j = 1; j < mesh.numberOfDDDofs() / 2 - 1; ++j) {
+  for (int j = 1; j < mesh.numberDDDofs() / 2 - 1; ++j) {
     rel_err[j - 1] = sqrt(pow(dd[j * 2 + 1] - wsol[j], 2)) / wsol[j];
 
     std::cout << "x : " << thex[j] << "..w anal:" << wsol[j]
@@ -215,10 +216,11 @@ double SimpleGriffithExampleLinearElement_AddMesh(int nelts) {
               << "\n";
   }
 
-  std::cout << " end of Simple Griffith crack example P1 " << rel_err[ mesh.numberOfDDDofs() / 2 -4]<<" \n";
+  std::cout << " end of Simple Griffith crack example P1 " << rel_err[
+      mesh.numberDDDofs() / 2 -4]<<" \n";
 // Note that due to the weird ordering... one tip is computed in the rel_err
 
-  return rel_err[ mesh.numberOfDDDofs()/2- 4];
+  return rel_err[mesh.numberDDDofs()/2- 4];
       il::norm(rel_err, il::Norm::L2);
 }
 
@@ -254,7 +256,7 @@ double SimpleGriffithExampleS3D_P0(int nelts) {
   AddTipCorrectionP0(mesh, myelas,0, K);
   AddTipCorrectionP0(mesh, myelas,nelts-1, K);
 
-  il::int_t ndof = mesh.numberOfDDDofs();
+  il::int_t ndof = mesh.numberDDDofs();
   // solve a constant pressurized crack problem...
   il::Array<double> f{ndof,1.};  // be careful of sign
   // just opening dds - set shear loads to zero
@@ -326,20 +328,20 @@ double SimpleGriffithExampleS3D_P0_AddMesh(int nelts) {
                                                 1000.);  // large pseudo-heigth to reproduce plane-strain kernel
 
 // add a nelts anpther element to mesh.
-  il::int_t t1=mesh.tip_elts(0),t2=mesh.tip_elts(1);
-  il::int_t n1=mesh.tip_nodes(0),n2=mesh.tip_nodes(1);
+  il::int_t t1= mesh.tipElts(0),t2= mesh.tipElts(1);
+  il::int_t n1= mesh.tipNodes(0),n2= mesh.tipNodes(1);
 
-  mesh.AddNTipElements(t1,n1,nelts/2,0.);
-  mesh.AddNTipElements(t2,n2,nelts/2,0.); 
+  mesh.addNTipElts(t1, n1, nelts / 2, 0.);
+  mesh.addNTipElts(t2, n2, nelts / 2, 0.);
 
   basic_assembly_add_elts(mesh,nelts,myelas,
                           hfp2d::normal_shear_stress_kernel_s3d_dp0_dd,
                           1000.,il::io,K);
 
-  AddTipCorrectionP0(mesh, myelas,mesh.tip_elts(0), K);
-  AddTipCorrectionP0(mesh, myelas,mesh.tip_elts(1), K);
+  AddTipCorrectionP0(mesh, myelas, mesh.tipElts(0), K);
+  AddTipCorrectionP0(mesh, myelas, mesh.tipElts(1), K);
 
-  il::int_t ndof = mesh.numberOfDDDofs();
+  il::int_t ndof = mesh.numberDDDofs();
   // solve a constant pressurized crack problem...
   il::Array<double> f{ndof, 1.};  // be careful of sign
   // just opening dds - set shear loads to zero
@@ -354,7 +356,7 @@ double SimpleGriffithExampleS3D_P0_AddMesh(int nelts) {
   il::Array<double> thex{ndof / 2, 0}, wsol{ndof / 2, 0};
 
   int i = 0;
-  for (int e = 0; e < mesh.numberOfElements(); ++e) {
+  for (int e = 0; e < mesh.numberOfElts(); ++e) {
     hfp2d::SegmentData sege=mesh.getElementData(e);
     thex[e] = sege.Xmid(0);
   }

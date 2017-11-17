@@ -105,7 +105,7 @@
 //////////////////////// Prepare data for computation /////////////////////////////////
 
   // create the source vector for displacement+pressure dofs
-  //il::int_t totalNumDofs= theMesh.DDDofsPerElement()+ theMesh.PressDofsPerElement();
+  //il::int_t totalNumDofs= theMesh.numberDDDofsPerElt()+ theMesh.numberPressDofsPerElt();
   // the source vector (or forcing vector) will be created after we checked for the position of the injection
   // there will be a method in the class to give that vector
 

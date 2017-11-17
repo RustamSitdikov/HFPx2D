@@ -28,9 +28,9 @@ namespace hfp2d {
 int TwoParallelHFs(int nelts, double dist) {
   // Test for Reynolds solver
   // 2 fractures parallel separated by dist
-  // nelts per frac (numberOfElements should be odd for symmetry)
+  // nelts per frac (numberOfElts should be odd for symmetry)
 
-  // for now for debug we hardcode numberOfElements = 3  so injection is in elt
+  // for now for debug we hardcode numberOfElts = 3  so injection is in elt
   // 1 and elt
   // 4
 
@@ -38,7 +38,7 @@ int TwoParallelHFs(int nelts, double dist) {
   int p = 0;
   double h = 2. / (nelts);  //  element size
 
-  // il::Array<double> x{numberOfElements + 1}; // Not needed
+  // il::Array<double> x{numberOfElts + 1}; // Not needed
   int Ntot = 2 * nelts;
 
   il::Array2D<double> xy{Ntot + 2, 2, 0.0};
@@ -122,7 +122,7 @@ int TwoParallelHFs(int nelts, double dist) {
 
   il::int_t ea = 2;
 
-  std::cout << "elt size" << mesh.elt_size(ea) << "w " << h << "\n";
+  std::cout << "elt size" << mesh.eltSize(ea) << "w " << h << "\n";
 
   std::cout << " size of K" << K.size(0) << " by " << K.size(1) << "\n";
   std::cout << " size of f" << fini.size() << "\n";
@@ -136,9 +136,9 @@ int TwoParallelHFs(int nelts, double dist) {
     std::cout << " dd " << dd_ini[i] << "\n";
   }
 
-  il::Array<double> width{mesh.numberOfElements(), 0.},
-      sheardd{mesh.numberOfElements(), 0.};
-  for (il::int_t i = 0; i < mesh.numberOfElements(); i++) {
+  il::Array<double> width{mesh.numberOfElts(), 0.},
+      sheardd{mesh.numberOfElts(), 0.};
+  for (il::int_t i = 0; i < mesh.numberOfElts(); i++) {
     sheardd[i] = dd_ini[2 * i];
     width[i] = dd_ini[2 * i + 1];
   }
@@ -186,7 +186,7 @@ int TwoParallelHFs(int nelts, double dist) {
     Soln=Soln1;
     std::cout << " time  " << Soln.time() << "\n";
     std::cout << "size of K: " << K.size(0) << " by " << K.size(1) << "\n";
-    std::cout << "n elts " << Soln.CurrentMesh().numberOfElements()<< "\n" ;
+    std::cout << "n elts " << Soln.CurrentMesh().numberOfElts()<< "\n" ;
 
 
   }
@@ -195,7 +195,7 @@ int TwoParallelHFs(int nelts, double dist) {
 //  bool imp_tip = false;
 //  il::Array<il::int_t> tip_elt{4};
 //  il::Array<double> tip_width{4, 0.16};
-//  tip_elt = mesh.tip_elts();
+//  tip_elt = mesh.tipElts();
 //
 //  // create a function to get ribbon elements.
 //
@@ -236,16 +236,16 @@ int TwoParallelHFs(int nelts, double dist) {
 //
 //  hfp2d::Mesh newmesh = mesh;
 //
-//  newmesh.AddNTipElements(0, 0, 1, 0.);
+//  newmesh.addNTipElts(0, 0, 1, 0.);
 //
-//  std::cout << " new mesh " << newmesh.numberOfElements() << "\n";
-//  std::cout << " old mesh " << mesh.numberOfElements() << "\n";
+//  std::cout << " new mesh " << newmesh.numberOfElts() << "\n";
+//  std::cout << " old mesh " << mesh.numberOfElts() << "\n";
 //
 //  std::cout << " old tip " << tip_elt[0] << " " << tip_elt[1] << "\n";
-//  std::cout << " old tip " << mesh.tip_nodes(0) << " " <<  mesh.tip_nodes(1) << "\n";
+//  std::cout << " old tip " << mesh.tipNodes(0) << " " <<  mesh.tipNodes(1) << "\n";
 //
-//  std::cout << " new tip " << newmesh.tip_elts()[0] << " " << newmesh.tip_elts()[1] << " " << "\n";
-//  std::cout << " new tip " << newmesh.tip_nodes(0) << " " <<  newmesh.tip_nodes(1) << "\n";
+//  std::cout << " new tip " << newmesh.tipElts()[0] << " " << newmesh.tipElts()[1] << " " << "\n";
+//  std::cout << " new tip " << newmesh.tipNodes(0) << " " <<  newmesh.tipNodes(1) << "\n";
 
   //  il::Array2D<double> tt=Soln1.TipsLocation();
 
@@ -326,16 +326,16 @@ hfp2d::Solution FractureFrontLoop(
   il::Array<double> s_o_new = Sol_n.RibbonsDistance();
 
   il::Array<il::int_t> tip_nodes_n =
-      mesh_n.tip_nodes();  // previous time step tip nodes
-  il::Array<il::int_t> tip_elt_n = mesh_n.tip_elts();  // and element
+      mesh_n.tipNodes();  // previous time step tip nodes
+  il::Array<il::int_t> tip_elt_n = mesh_n.tipElts();  // and element
   // number of tips that can propagate during the time step
   il::int_t n_tips = tip_elt_n.size();
 
   // only the tip elements - fixed size, content may evolve during iterations
-  il::Array<il::int_t> tips_elt_k = mesh_n.tip_elts();
+  il::Array<il::int_t> tips_elt_k = mesh_n.tipElts();
 
   il::Array<il::int_t> tip_region_elt_k =
-      mesh_n.tip_elts();  // size might evolve during the iterative process.,
+      mesh_n.tipElts();  // size might evolve during the iterative process.,
   il::int_t ntip_r_elt_k = tip_region_elt_k.size();
   il::int_t ntip_r_elt_k_1 = tip_region_elt_k.size();
 
@@ -383,17 +383,17 @@ hfp2d::Solution FractureFrontLoop(
     // tip-regions array, and corresponding tip width array evllces...
     // always restart from previous time step mesh
     mesh_k = mesh_n;
-    tip_region_elt_k = mesh_n.tip_elts();
+    tip_region_elt_k = mesh_n.tipElts();
     ntip_r_elt_k = tip_region_elt_k.size();
     tip_region_width_k.resize(ntip_r_elt_k);
 
-    il::int_t n_elt_k = mesh_n.numberOfElements();  // this may increase
+    il::int_t n_elt_k = mesh_n.numberOfElts();  // this may increase
 
     // loop on the different tips / ribbon elts
     for (il::int_t i = 0; i < n_tips; i++) {
 
       ribbon_width = Soln_p_1_k.openingDD()[ribbon_elt[i]];
-      h_ribbon = mesh_n.elt_size(ribbon_elt[i]);
+      h_ribbon = mesh_n.eltSize(ribbon_elt[i]);
       tipstruct.s0 = s_o[i];
       tipstruct.wa = ribbon_width;
       std::cout << "ribbon opg " << i << " = " << ribbon_width << "is prop ? "<< tip::isPropagating(s_o[i], tipstruct) << "\n";
@@ -419,9 +419,9 @@ hfp2d::Solution FractureFrontLoop(
           tip_region_elt_k[ntip_r_elt_k + et] = n_elt_k + et;
         };
         // add these new elements in the mesh_k
-        mesh_k.AddNTipElements(tip_elt_n[i], tip_nodes_n[i], n_add_elt_tip[i],
-                               0.);
-        n_elt_k = mesh_k.numberOfElements();//  update the total size
+        mesh_k.addNTipElts(tip_elt_n[i], tip_nodes_n[i], n_add_elt_tip[i],
+                           0.);
+        n_elt_k = mesh_k.numberOfElts();//  update the total size
       };
 
       // compute corresponding tip_volume to impose tip_widths
@@ -456,16 +456,16 @@ hfp2d::Solution FractureFrontLoop(
 
       // compute  the location of the new current tip location estimate
       // (to store it when cvged directly)...
-      il::int_t ti_e = mesh_n.tip_elts(i);
-      il::int_t ti_b = mesh_n.tip_nodes(i);
+      il::int_t ti_e = mesh_n.tipElts(i);
+      il::int_t ti_b = mesh_n.tipNodes(i);
       s_o_new[i] = s_t_k[i] - h_ribbon / 2. - h_ribbon * n_add_elt_tip[i];
       double fill_f = s_o_new[i] / h_ribbon;
 
       if (n_add_elt_tip[i] > 0) {
         //  we know that the corresponding new tip element is just the last one
         // inserted in mesh_k, i.e. the one that has been just added
-         ti_e = mesh_k.tip_elts(n_tips-1);
-          ti_b = mesh_k.tip_nodes(n_tips-1);
+         ti_e = mesh_k.tipElts(n_tips - 1);
+          ti_b = mesh_k.tipNodes(n_tips - 1);
       }
 
       il::int_t ti_a;
@@ -494,7 +494,7 @@ hfp2d::Solution FractureFrontLoop(
     // we now re-compute part of the Elastic stiffness matrix (if necessary)
     // current number of elts in tip regions
     ntip_r_elt_k = tip_region_elt_k.size();
-    n_elt_k = mesh_k.numberOfElements(); // update this - effect of last tip reg.
+    n_elt_k = mesh_k.numberOfElts(); // update this - effect of last tip reg.
 
     if (ntip_r_elt_k_1 != ntip_r_elt_k) {  // if the number of element have
                                            // changed compared to the previous
@@ -511,9 +511,9 @@ hfp2d::Solution FractureFrontLoop(
       // note that this include also possibly recession between subsequent
       // iterations
 
-      if (mesh_k.numberOfElements() > mesh_n.numberOfElements()) {
-        for (il::int_t i = mesh_n.numberOfElements();
-             i < mesh_k.numberOfElements(); i++) {
+      if (mesh_k.numberOfElts() > mesh_n.numberOfElts()) {
+        for (il::int_t i = mesh_n.numberOfElts();
+             i < mesh_k.numberOfElts(); i++) {
           Wn[i] = 0.;
           Vn[i] = 0.;
           sig0[i] = sig0[0];  // constant only -> here would need to call the
@@ -523,10 +523,10 @@ hfp2d::Solution FractureFrontLoop(
         }
         // From initial mesh
         il::int_t ntot_add =
-            mesh_k.numberOfElements() - mesh_n.numberOfElements();
+            mesh_k.numberOfElts() - mesh_n.numberOfElts();
 
         // resize elasticity matrix to previous time-step dofs size
-        ElasMat.resize(mesh_n.numberOfDDDofs(), mesh_n.numberOfDDDofs());
+        ElasMat.resize(mesh_n.numberDDDofs(), mesh_n.numberDDDofs());
 
         // loop to remove tip correction ONLY  if it is the first time that
         // the elasticity matrix has to be modified.
@@ -546,8 +546,8 @@ hfp2d::Solution FractureFrontLoop(
       // case where the number of elements recede from the previous iteration
       // to the number of elements at the previous time step
       {
-        if (mesh_k.numberOfElements() == mesh_n.numberOfElements()) {
-          ElasMat.resize(mesh_n.numberOfDDDofs(), mesh_n.numberOfDDDofs());
+        if (mesh_k.numberOfElts() == mesh_n.numberOfElts()) {
+          ElasMat.resize(mesh_n.numberDDDofs(), mesh_n.numberDDDofs());
         } else {  // cannot have less element than in the mesh of the solution
                   // at the previous time step
           std::cout << "incorrect - back propagation ! ";
@@ -560,7 +560,7 @@ hfp2d::Solution FractureFrontLoop(
       Sol_n_k = hfp2d::Solution(mesh_k, Sol_n.time(), Wn, Vn, Pn, sig0, tau0);
 
       // loop on the actual tip element to add tip correction.
-      tips_elt_k = mesh_k.tip_elts();
+      tips_elt_k = mesh_k.tipElts();
       for (il::int_t i = 0; i < ribbon_elt.size(); i++) {
         hfp2d::AddTipCorrectionP0(mesh_k, elasrock, tips_elt_k[i], ElasMat);
       };
@@ -584,7 +584,7 @@ hfp2d::Solution FractureFrontLoop(
 
   // end of iteration of fracture front position
   std::cout << "end of fracture front loop iterations after " << k
-            << " its, errorF=" << errorF <<   " new number of elts " << mesh_k.numberOfElements() << "\n";
+            << " its, errorF=" << errorF <<   " new number of elts " << mesh_k.numberOfElts() << "\n";
 
   // update last pieces of the solution object
   Soln_p_1_k.setRibbonDistances(s_t_k);  //

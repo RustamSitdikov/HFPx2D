@@ -67,9 +67,9 @@ il::Array2D<double> BuildFD_P0(hfp2d::Mesh &mesh, hfp2d::Fluid &fluid,
   // loop on edges connecting 2 elements
 
   il::Array2D<il::int_t> edgecommon =
-      mesh.GetNodesSharing2Elts();  // this would be better outside the function
+      mesh.getNodesSharing2Elts();  // this would be better outside the function
 
-  il::Array2D<double> L{mesh.numberOfElements(), mesh.numberOfElements(),
+  il::Array2D<double> L{mesh.numberOfElts(), mesh.numberOfElts(),
                         0.};  // should be a sparse matrix..... ;(
 
   // compute conductivities.....
@@ -85,7 +85,7 @@ il::Array2D<double> BuildFD_P0(hfp2d::Mesh &mesh, hfp2d::Fluid &fluid,
     er = edgecommon(i, 0);
     el = edgecommon(i, 1);
 
-    hi = (mesh.elt_size(er) + mesh.elt_size(el)) / 2.;
+    hi = (mesh.eltSize(er) + mesh.eltSize(el)) / 2.;
 
     L(er, er) += coef * CurrentCond[i] / hi;
     L(el, el) += coef * CurrentCond[i] / hi;
@@ -100,11 +100,11 @@ il::Array2D<double> BuildFD_P0(hfp2d::Mesh &mesh, hfp2d::Fluid &fluid,
 il::Array<double> P0VolumeCompressibility(hfp2d::Mesh &mesh,
                                           hfp2d::Fluid &fluid,
                                           il::Array<double> &hydraulic_width) {
-  il::Array<double> volume{mesh.numberOfElements(), 0.};
+  il::Array<double> volume{mesh.numberOfElts(), 0.};
 
-  for (il::int_t e = 0; e < mesh.numberOfElements(); e++) {
+  for (il::int_t e = 0; e < mesh.numberOfElts(); e++) {
     volume[e] =
-        mesh.elt_size(e) * (hydraulic_width[e]) * fluid.fluidCompressibility();
+        mesh.eltSize(e) * (hydraulic_width[e]) * fluid.fluidCompressibility();
   }
 
   return volume;
@@ -142,7 +142,7 @@ Solution ReynoldsSolverP0(
   IL_EXPECT_FAST(tip_region_elt.size() == tip_width.size());
 
   hfp2d::Mesh meshn = soln.CurrentMesh();
-  il::int_t n_elts = soln.CurrentMesh().numberOfElements();
+  il::int_t n_elts = soln.CurrentMesh().numberOfElts();
   il::int_t tot_dofs = 3 * n_elts;
   //
   il::Array<double> DX_k{tot_dofs, 0.}, DX_k_1{tot_dofs, 0.},
@@ -194,7 +194,7 @@ Solution ReynoldsSolverP0(
   }
 
   //
-  il::Array<double> AllCellSizes = meshn.All_elt_size();
+  il::Array<double> AllCellSizes = meshn.allEltSize();
 
   for (il::int_t j = 0; j < n_elts; j++) {
     Xi( j+ 2*n_elts, 2*j+1) = AllCellSizes[j];
@@ -209,7 +209,7 @@ Solution ReynoldsSolverP0(
     Gamma[2*i + 1] = sig0[i] - Pn[i] +Fn_elas[2*i+1]  ;
   }
 
-  il::Array2D<il::int_t> sharedEdges = meshn.GetNodesSharing2Elts();
+  il::Array2D<il::int_t> sharedEdges = meshn.getNodesSharing2Elts();
 
   // hydraulic width, vectors of rel-errors
   il::Array<double> Wh{n_elts, 0.}, err_Dw{n_elts, 1.}, err_Dv{n_elts, 1.},

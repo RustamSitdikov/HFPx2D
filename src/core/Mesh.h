@@ -24,13 +24,13 @@
 
 namespace hfp2d {
 
-il::Array2D<il::int_t> GetNodalEltConnectivity(
+il::Array2D<il::int_t> getNodalEltConnectivity(
     const il::int_t nt_nodes, const il::Array2D<il::int_t> &connectivity);
 
-il::Array<il::int_t> BuildTipNodes(
+il::Array<il::int_t> buildTipNodes(
     const il::Array2D<il::int_t> &node_connectivity);
 
-il::Array<il::int_t> BuildTipElts(
+il::Array<il::int_t> buildTipElts(
     const il::Array2D<il::int_t> &node_connectivity,
     const il::Array<il::int_t> &tipnodes);
 
@@ -134,11 +134,11 @@ class Mesh {  // class for 1D mesh of 1D segment elements ?
 
     // build the nodal connected table...
     node_adj_elt_ =
-        GetNodalEltConnectivity(coordinates_.size(0), connectivity_);
+        getNodalEltConnectivity(coordinates_.size(0), connectivity_);
 
     // built tip nodes table...
-    tipnodes_ = BuildTipNodes(node_adj_elt_);
-    tipelts_ = BuildTipElts(node_adj_elt_, tipnodes_);
+    tipnodes_ = buildTipNodes(node_adj_elt_);
+    tipelts_ = buildTipElts(node_adj_elt_, tipnodes_);
   };
 
   // case where the matid vector is provided
@@ -190,18 +190,18 @@ class Mesh {  // class for 1D mesh of 1D segment elements ?
 
     // build the nodal connected table...
     node_adj_elt_ =
-        GetNodalEltConnectivity(coordinates_.size(0), connectivity_);
+        getNodalEltConnectivity(coordinates_.size(0), connectivity_);
 
     // built tip nodes table...
-    tipnodes_ = BuildTipNodes(node_adj_elt_);
-    tipelts_ = BuildTipElts(node_adj_elt_, tipnodes_);
+    tipnodes_ = buildTipNodes(node_adj_elt_);
+    tipelts_ = buildTipElts(node_adj_elt_, tipnodes_);
   };
 
   //////////////////////////////////////////////////////////////////////////
   //        get functions  - i.e. public interfaces
   //////////////////////////////////////////////////////////////////////////
 
-  il::int_t numberOfElements() const { return connectivity_.size(0); };
+  il::int_t numberOfElts() const { return connectivity_.size(0); };
 
   il::int_t numberOfNodes() const { return coordinates_.size(0); };
 
@@ -241,14 +241,14 @@ class Mesh {  // class for 1D mesh of 1D segment elements ?
   }
 
   // nodal connectivity related
-  il::Array2D<il::int_t> node_elt_connectivity() const {
+  il::Array2D<il::int_t> nodeEltConnectivity() const {
     return node_adj_elt_;
   };
-  il::int_t node_elt_connectivity(il::int_t k, il::int_t l) const {
+  il::int_t nodeEltConnectivity(il::int_t k, il::int_t l) const {
     return node_adj_elt_(k, l);
   };
 
-  il::Array<il::int_t> node_elt_connectivity(il::int_t k) const {
+  il::Array<il::int_t> nodeEltConnectivity(il::int_t k) const {
     il::Array<il::int_t> temp(node_adj_elt_.size(1));
     for (il::int_t i = 0; i < node_adj_elt_.size(1); i++) {
       temp[i] = node_adj_elt_(k, i);
@@ -257,12 +257,12 @@ class Mesh {  // class for 1D mesh of 1D segment elements ?
   };
 
   // get tip nodes
-  il::Array<il::int_t> tip_nodes() const { return tipnodes_; };
-  il::int_t tip_nodes(il::int_t k) const { return tipnodes_[k]; };
+  il::Array<il::int_t> tipNodes() const { return tipnodes_; };
+  il::int_t tipNodes(il::int_t k) const { return tipnodes_[k]; };
 
   // get tip elts
-  il::Array<il::int_t> tip_elts() const { return tipelts_; };
-  il::int_t tip_elts(il::int_t k) const { return tipelts_[k]; };
+  il::Array<il::int_t> tipElts() const { return tipelts_; };
+  il::int_t tipElts(il::int_t k) const { return tipelts_[k]; };
 
   // material ID related
   il::Array<il::int_t> matid() const { return material_id_; };
@@ -276,24 +276,24 @@ class Mesh {  // class for 1D mesh of 1D segment elements ?
   il::int_t interpolationOrder() const { return interpolation_order_; }
 
   // dofs related.....
-  il::int_t DDDofsPerElement() const { return dof_handle_dd_.size(1); }
+  il::int_t numberDDDofsPerElt() const { return dof_handle_dd_.size(1); }
 
-  il::int_t PressDofsPerElement() const { return dof_handle_pressure_.size(1); }
+  il::int_t numberPressDofsPerElt() const { return dof_handle_pressure_.size(1); }
 
-  il::int_t numberOfPressDofs(){
+  il::int_t numberPressDofs(){
     il::int_t aux;
     switch (interpolation_order_) {
       case 0: {
-        aux =  dof_handle_pressure_.size(0);
+        aux =  dof_handle_pressure_.size(0); // number of elts
       }
       case 1:{
-        aux=  coordinates_.size(0);
+        aux=  coordinates_.size(0); // number of nodes
       }}
     return aux ;
   }
 
-  il::int_t numberOfDDDofs() const {
-    return (numberOfElements() * (interpolation_order_ + 1) * 2);
+  il::int_t numberDDDofs() const {
+    return (numberOfElts() * (interpolation_order_ + 1) * 2);
   }
 
   il::int_t dofPress(il::int_t k, il::int_t i) const {
@@ -313,14 +313,14 @@ class Mesh {  // class for 1D mesh of 1D segment elements ?
   hfp2d::SegmentData getElementData(const il::int_t ne);
 
   // a method to get the size of a given element.
-  double elt_size(il::int_t &e);
+  double eltSize(il::int_t &e);
 
-  il::Array<double> All_elt_size();
+  il::Array<double> allEltSize();
 
   // method to get nodes sharing 2 elts. (i.e. the nodal_connectivity for all
   // nodes with 2 neighbours)
   // todo rename
-  il::Array2D<il::int_t> GetNodesSharing2Elts();
+  il::Array2D<il::int_t> getNodesSharing2Elts();
 
   // method to get the ribbon elements  - of a given mesh. (elements nearest to
   // a tip element)
@@ -328,8 +328,8 @@ class Mesh {  // class for 1D mesh of 1D segment elements ?
 
   // method to add N element ahead of a tip node of a tip element at a given
   // kick angle
-  void AddNTipElements(const il::int_t t_e, const il::int_t the_tip_node,
-                       const il::int_t n_add, double kink_angle);
+  void addNTipElts(const il::int_t t_e, const il::int_t the_tip_node,
+                   const il::int_t n_add, double kink_angle);
 
  };
 }
