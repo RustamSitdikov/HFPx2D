@@ -31,7 +31,7 @@ namespace hfp2d {
 // rows and columms corresponding to the addition of new elements in the mesh !
 
 ///////////////////////////////////////////////////////////////////////////////
-il::Array2D<double> basic_assembly(Mesh &mesh, ElasticProperties &elas,
+il::Array2D<double> basic_assembly(Mesh &mesh, hfp2d::ElasticProperties &elas,
                                    vKernelCall KernelCall, double ker_options) {
   // Kmat :: the stiffness matrix to assemble
   // mesh :: the Mesh object
@@ -94,7 +94,7 @@ il::Array2D<double> basic_assembly(Mesh &mesh, ElasticProperties &elas,
 // rows and columms corresponding to the addition of new elements in the mesh !
 ///////////////////////////////////////////////////////////////////////////////
 void basic_assembly_add_elts(Mesh &new_mesh, il::int_t n_add,
-                             ElasticProperties &elas, vKernelCall KernelCall,
+                             hfp2d::ElasticProperties &elas, vKernelCall KernelCall,
                              double ker_options, il::io_t,
                              il::Array2D<double> &K) {
   // here newmesh containing the mesh on which the whole elasticity matrix will
@@ -171,7 +171,7 @@ void basic_assembly_add_elts(Mesh &new_mesh, il::int_t n_add,
 
 ///////////////////////////////////////////////////////////////////////////////
 //  tip correction for PO elements
-void AddTipCorrectionP0(hfp2d::Mesh &mesh, const ElasticProperties &elas,
+void AddTipCorrectionP0(hfp2d::Mesh &mesh, const hfp2d::ElasticProperties &elas,
                         il::int_t tipElt, il::Array2D<double> &Kmat) {
   // getting the element size ;( -> cry for a method in mesh class !
 
@@ -187,7 +187,7 @@ void AddTipCorrectionP0(hfp2d::Mesh &mesh, const ElasticProperties &elas,
 
 ///////////////////////////////////////////////////////////////////////////////
 // remove tip correction for PO elements
-void RemoveTipCorrectionP0(hfp2d::Mesh &mesh, const ElasticProperties &elas,
+void RemoveTipCorrectionP0(hfp2d::Mesh &mesh, const hfp2d::ElasticProperties &elas,
                            il::int_t tipElt, il::Array2D<double> &Kmat) {
   //// getting the element size ;( -> cry for a method in mesh class !
   //  il::StaticArray2D<double, 2, 2> Xs;

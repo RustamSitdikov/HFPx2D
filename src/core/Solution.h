@@ -1,5 +1,5 @@
 //
-// This file is part of HFPx2DUnitTest.
+// This file is part of HFPx2D.
 //
 // Created by Brice Lecampion on 10.10.17.
 // Copyright (c) ECOLE POLYTECHNIQUE FEDERALE DE LAUSANNE, Switzerland,
@@ -43,7 +43,10 @@ class Solution {
                                       // tips (i.e. may be inside one element in
                                       // the case of an ILSA scheme )
 
-  il::Array<double> ribbon_tip_s_;
+  il::Array<double> tips_velocity_;
+
+  il::Array<double> ribbon_tips_s_;
+
 
   // note in the case where the solution vectors are only on sub-parts of the
   // currentmesh, which may happen for cohesive zone model
@@ -95,7 +98,7 @@ class Solution {
     pressure_=pressure;
   };
 
-  //#2.
+  //#2.  Complete constructor ...
   Solution(hfp2d::Mesh &mesh, double t, double dt,
               const il::Array<double> &width, const il::Array<double> &sheardd,
               const il::Array<double> &pressure,
@@ -127,14 +130,29 @@ class Solution {
 
   // some set functions
   void setRibbonDistances(const il::Array<double> &srt){
-    ribbon_tip_s_=srt;
+    ribbon_tips_s_=srt;
   };
 
   void setTipsLocation(const il::Array2D<double> &tips_xy){
     tipsLocation_=tips_xy;
   };
 
+  void setErrorFront(const double errF){
+    err_front_=errF;
+  };
 
+  void setItsFront(const il::int_t its){
+    frontIts_=its;
+  };
+
+
+  void setTipsVelocity(const il::Array<double> &tips_vel){
+    tips_velocity_=tips_vel;
+  };
+
+  void setTimeStep(const double dt){
+    timestep_=dt;
+  };
 
   // get functions
   il::Array<double> openingDD() const { return openingDD_; };
@@ -144,7 +162,9 @@ class Solution {
   il::Array<double> tau0() const { return tau0_; };
 
   il::Array2D<double> TipsLocation() const {return tipsLocation_;};
-  il::Array<double> RibbonsDistance() const { return ribbon_tip_s_;};
+  il::Array<double> RibbonsDistance() const { return ribbon_tips_s_;};
+  il::Array<double> TipsVelocity() const { return tips_velocity_;};
+
 
   hfp2d::Mesh CurrentMesh() const { return currentmesh_;};
 

@@ -34,9 +34,9 @@ public:
     compressibility_ = compressibility;
   }
 
-  double fluidDensity() { return density_; };
-  double fluidViscosity() { return viscosity_; };
-  double fluidCompressibility() { return compressibility_; };
+  double fluidDensity()  const { return density_; };
+  double fluidViscosity() const { return viscosity_; };
+  double fluidCompressibility() const { return compressibility_; };
 
 };
 

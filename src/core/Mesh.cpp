@@ -176,44 +176,34 @@ il::Array2D<il::int_t> Mesh::GetNodesSharing2Elts() {
 ////////////////////////////////////////////////////////////////////////////////
 // method to get next to tip elements - so-called ribbons element in an
 // ILSA-like scheme
+il::Array<il::int_t> Mesh::getRibbonElements() {
+  il::Array<il::int_t> ribbon_elts{tipelts_.size(), 0};
+  il::int_t nt_1;
 
-il::Array<il::int_t> Mesh::getRibbonElements(){
-
-
-  il::Array<il::int_t> ribbon_elts{tipelts_.size(),0};
-  il::int_t  nt_1;
-
-  for (il::int_t e=0; e< ribbon_elts.size(); e++){
-
-      // local connectivity of the tip elements
-      if( connectivity(tipelts_[e],0) == tipnodes_[e] ){
-          nt_1 = connectivity(tipelts_[e],1);
+  for (il::int_t e = 0; e < ribbon_elts.size(); e++) {
+    // local connectivity of the tip elements
+    if (connectivity(tipelts_[e], 0) == tipnodes_[e]) {
+      nt_1 = connectivity(tipelts_[e], 1);
+    } else {
+      if (connectivity(tipelts_[e], 1) == tipnodes_[e]) {
+        nt_1 = connectivity(tipelts_[e], 0);
       } else {
-        if (connectivity(tipelts_[e],1) == tipnodes_[e] ) {
-          nt_1 = connectivity(tipelts_[e],0);
-        } else
-        {
-          il::abort();
-        }
-      }
-
-    if (node_elt_connectivity(nt_1,0)== tipelts_[e]){
-        ribbon_elts[e]=node_elt_connectivity(nt_1,1);
-    }
-    else
-    {
-      if (node_elt_connectivity(nt_1,1)== tipelts_[e]) {
-        ribbon_elts[e]=node_elt_connectivity(nt_1,0);
-      } else
-      {il::abort();
+        il::abort();
       }
     }
 
-
+    if (node_elt_connectivity(nt_1, 0) == tipelts_[e]) {
+      ribbon_elts[e] = node_elt_connectivity(nt_1, 1);
+    } else {
+      if (node_elt_connectivity(nt_1, 1) == tipelts_[e]) {
+        ribbon_elts[e] = node_elt_connectivity(nt_1, 0);
+      } else {
+        il::abort();
+      }
+    }
   }
 
   return ribbon_elts;
-
 }
 
 ////////////////////////////////////////////////////////////////////////////////

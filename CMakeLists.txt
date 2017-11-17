@@ -16,7 +16,8 @@ elseif (UNIX)
 set(CMAKE_C_COMPILER /usr/bin/gcc)
 set(CMAKE_CXX_COMPILER /usr/bin/g++)
 
-    elseif(WIN32) # to fill up here
+    elseif(WIN32) # to fill up here ...
+
 endif()
 
 #  FOR HFPx2D

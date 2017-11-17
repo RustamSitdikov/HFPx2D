@@ -26,19 +26,19 @@ typedef  il::StaticArray2D<double, 2, 4> (*vKernelCall)(
     ElasticProperties Elas, double ker_options);
 
 
-il::Array2D<double> basic_assembly(Mesh &mesh, ElasticProperties &elas,
+il::Array2D<double> basic_assembly(Mesh &mesh, hfp2d::ElasticProperties &elas,
                                    vKernelCall KernelCall, double ker_options);
 
 void basic_assembly_add_elts(Mesh &new_mesh, il::int_t n_add,
-                             ElasticProperties &elas, vKernelCall KernelCall,
+                             hfp2d::ElasticProperties &elas, vKernelCall KernelCall,
                              double ker_options, il::io_t,
                              il::Array2D<double> &K);
 
 
-void AddTipCorrectionP0(hfp2d::Mesh &mesh, const ElasticProperties &elas,
+void AddTipCorrectionP0(hfp2d::Mesh &mesh, const hfp2d::ElasticProperties &elas,
                         il::int_t tipElt, il::Array2D<double> &Kmat );
 
-void RemoveTipCorrectionP0(hfp2d::Mesh &mesh, const ElasticProperties &elas,
+void RemoveTipCorrectionP0(hfp2d::Mesh &mesh, const hfp2d::ElasticProperties &elas,
                            il::int_t tipElt, il::Array2D<double> &Kmat );
 
 il::Array2D<double> ReArrangeKP0(const Mesh &mesh,il::Array2D<double> &Kmat);

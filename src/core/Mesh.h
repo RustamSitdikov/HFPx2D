@@ -292,7 +292,6 @@ class Mesh {  // class for 1D mesh of 1D segment elements ?
     return aux ;
   }
 
-
   il::int_t numberOfDDDofs() const {
     return (numberOfElements() * (interpolation_order_ + 1) * 2);
   }

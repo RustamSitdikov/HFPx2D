@@ -11,7 +11,11 @@
 #ifndef HFPX2D_SIMULATIONPARAMETERS_H
 #define HFPX2D_SIMULATIONPARAMETERS_H
 
+
+#include <il/math.h>
+
 namespace hfp2d {
+
 
 
 struct SimulationParameters {

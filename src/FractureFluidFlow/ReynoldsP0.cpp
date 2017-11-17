@@ -111,11 +111,11 @@ il::Array<double> P0VolumeCompressibility(hfp2d::Mesh &mesh,
 }
 ////////////////////////////////////////////////////////////////////////////////
 Solution ReynoldsSolverP0(
-    Solution &soln, il::Array2D<double> &ElasMat, hfp2d::Fluid &fluid,
-    hfp2d::SolidProperties &rock, hfp2d::Sources &source, double timestep,
+    hfp2d::Solution &soln, il::Array2D<double> &ElasMat, hfp2d::Fluid &fluid,
+    const hfp2d::SolidProperties &rock, const hfp2d::Sources &source, double timestep,
     bool imp_tip_width, il::Array<il::int_t> &tip_region_elt,
     il::Array<double> &tip_width, // will need to add leak-off volume...
-    hfp2d::SimulationParameters &simulParams) {
+    hfp2d::SimulationParameters &simulParams, bool mute) {
   // Solution of the Elasto-Hydrodynamics Lubrication over a time step / known
   // mesh
   // PICARD / Fixed Pt Iterations SCHEME
@@ -316,7 +316,6 @@ Solution ReynoldsSolverP0(
         DX_k[tip_w_dof[i1]]=Dw_tip[i1];
       };
 
-
     }
     else {  // no tip width imposed
       il::Status status;
@@ -341,7 +340,7 @@ Solution ReynoldsSolverP0(
 
     DX_k_1 = DX_k;  // old is new
 
-    // compute rel-error estimates ...
+    //  rel-error estimates splitted back in width, slip, and pressure...
     // & get back DW_k from DX
      for (il::int_t i = 0; i <  n_elts; i ++) {
       err_Dv[i] = errDX[2*i];
@@ -350,17 +349,23 @@ Solution ReynoldsSolverP0(
       DW_k[i] = DX_k[2*i + 1];
     }
 
-        std::cout << " its " << k
-                  <<    " rel. err. dw: "<< il::norm(err_Dw,il::Norm::L2) <<
-                  " rel. err dp: " << il::norm(err_Dp,il::Norm::L2)<< " rel.err. Dv:" <<
-                 il::norm(err_Dv,il::Norm::L2) << " rel. err. Dx:" <<
-                 il::norm(errDX,il::Norm::L2)  << "\n" ;
+    if (mute == false) {
+      std::cout << " its " << k
+                << " rel. err. dw: " << il::norm(err_Dw, il::Norm::L2) <<
+                " rel. err dp: " << il::norm(err_Dp, il::Norm::L2)
+                << " rel.err. Dv:" <<
+                il::norm(err_Dv, il::Norm::L2) << " rel. err. Dx:" <<
+                il::norm(errDX, il::Norm::L2) << "\n";
+    };
+
   }
 
-  std::cout << " end of Picard Scheme for Reynolds, after " << k << " its "
-            << " rel. err. dw: " << il::norm(err_Dw, il::Norm::L2)
-            << " rel. err dp: " << il::norm(err_Dp, il::Norm::L2)
-            << " norm of residuals: " << res_norm << "\n";
+  if (mute == false) {
+    std::cout << " end of Picard Scheme for Reynolds, after " << k << " its "
+              << " rel. err. dw: " << il::norm(err_Dw, il::Norm::L2)
+              << " rel. err dp: " << il::norm(err_Dp, il::Norm::L2)
+              << " norm of residuals: " << res_norm << "\n";
+  };
 
   // update total width, pressure and shear to the end values
    for (il::int_t i = 0; i < n_elts; i++) {

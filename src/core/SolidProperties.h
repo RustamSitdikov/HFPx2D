@@ -1,5 +1,5 @@
 //
-// This file is part of HFPx2DUnitTest.
+// This file is part of HFPx2D.
 //
 // Created by Brice Lecampion on 11.10.17.
 // Copyright (c) ECOLE POLYTECHNIQUE FEDERALE DE LAUSANNE, Switzerland,
@@ -24,7 +24,7 @@ class SolidProperties {
                                           // match the number of differents
                                           // material in the matid vector of the
                                           // mesh)
-// todo :: add fracture energy array....
+  // todo :: add fracture energy array....
 
   il::Array<double> wh_o_;  // residual hydraulic width when the mechanical
                             // width is zero (should match the number of
@@ -36,8 +36,6 @@ class SolidProperties {
                                            //  number of differents material in
                                            //  the matid vector of the mesh)
 
-  // add here a solid evolution object.
-
 
  public:
 
@@ -45,7 +43,7 @@ class SolidProperties {
 
   SolidProperties(hfp2d::ElasticProperties &elas,
                  const il::Array<double> &toughness,
-                 const il::Array<double> wh_0, const il::Array<double> &Cl){
+                 const il::Array<double> &wh_0, const il::Array<double> &Cl){
 
     elastic_properties_ = elas;
     fracture_toughness_ = toughness;
@@ -54,7 +52,9 @@ class SolidProperties {
 
   };
 
+  /////////////////////////////////////////////////////////////////////////////
   // get functions
+
   hfp2d::ElasticProperties ElasticProperties() const {
       return elastic_properties_;};
 
