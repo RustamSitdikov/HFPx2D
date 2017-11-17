@@ -171,7 +171,7 @@ int TwoParallelHFs(int nelts, double dist) {
 
 
   hfp2d::SimulationParameters SimulParam;
-  SimulParam.Frac_Front_max_its=20;
+  SimulParam.frac_front_max_its=20;
 
    double dt = 0.1;
    il::int_t  jt=0;
@@ -186,7 +186,7 @@ int TwoParallelHFs(int nelts, double dist) {
     Soln=Soln1;
     std::cout << " time  " << Soln.time() << "\n";
     std::cout << "size of K: " << K.size(0) << " by " << K.size(1) << "\n";
-    std::cout << "n elts " << Soln.CurrentMesh().numberOfElts()<< "\n" ;
+    std::cout << "n elts " << Soln.currentMesh().numberOfElts()<< "\n" ;
 
 
   }
@@ -247,7 +247,7 @@ int TwoParallelHFs(int nelts, double dist) {
 //  std::cout << " new tip " << newmesh.tipElts()[0] << " " << newmesh.tipElts()[1] << " " << "\n";
 //  std::cout << " new tip " << newmesh.tipNodes(0) << " " <<  newmesh.tipNodes(1) << "\n";
 
-  //  il::Array2D<double> tt=Soln1.TipsLocation();
+  //  il::Array2D<double> tt=Soln1.tipsLocation();
 
   // loop on each tips
   // invert tip asymptotics for each tip....
@@ -289,9 +289,9 @@ hfp2d::Solution FractureFrontLoop(
   // _k : current iteration
   // _k_1 : previous iteration
 
-  hfp2d::Mesh mesh_n = Sol_n.CurrentMesh();
+  hfp2d::Mesh mesh_n = Sol_n.currentMesh();
   // might evolve during the iterative process.
-  hfp2d::Mesh mesh_k = Sol_n.CurrentMesh();
+  hfp2d::Mesh mesh_k = Sol_n.currentMesh();
 
   hfp2d::Solution Sol_n_k = Sol_n;  // Solution at time tn
   // might evolve during the iterative process (just because of element number
@@ -312,18 +312,18 @@ hfp2d::Solution FractureFrontLoop(
       mesh_n.getRibbonElements();  // fix during this time step
 
   // get initial distance ribbon-cell tip... s_o
-  il::Array<double> s_o = Sol_n.RibbonsDistance();
+  il::Array<double> s_o = Sol_n.ribbonsDistance();
   //
   // array of ribbon tip distance will change during its
-  il::Array<double> s_t_k = Sol_n.RibbonsDistance();
+  il::Array<double> s_t_k = Sol_n.ribbonsDistance();
   // array of ribbon tip distance during its at previous its.
-  il::Array<double> s_t_k_1 = Sol_n.RibbonsDistance();
+  il::Array<double> s_t_k_1 = Sol_n.ribbonsDistance();
 
   // new tip velocity for all tips - // should be initialized at previous timestep
-  il::Array<double> v_tip_k = Sol_n.TipsVelocity();
+  il::Array<double> v_tip_k = Sol_n.tipsVelocity();
   // the new s_o for the new ribbon cell
   // will be stored for next time step
-  il::Array<double> s_o_new = Sol_n.RibbonsDistance();
+  il::Array<double> s_o_new = Sol_n.ribbonsDistance();
 
   il::Array<il::int_t> tip_nodes_n =
       mesh_n.tipNodes();  // previous time step tip nodes
@@ -367,8 +367,8 @@ hfp2d::Solution FractureFrontLoop(
   double errorF = 1.;
   bool firstime_elas_mod = true;
 
-  while ((errorF > simulParams.Frac_Front_tolerance) &&
-         (k < simulParams.Frac_Front_max_its)) {
+  while ((errorF > simulParams.frac_front_tolerance) &&
+         (k < simulParams.frac_front_max_its)) {
     k++;
 
 

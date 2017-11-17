@@ -13,13 +13,12 @@
 #include <il/Array2D.h>
 #include <il/linear_algebra.h>
 
-#include <src/core/utilities.h>
+#include <src/core/Utilities.h>
 
 
 namespace hfp2d{
 
 
-il::StaticArray2D<double, 2, 2> rotation_matrix_2D(double theta);
 
 
 class SegmentData {
@@ -96,7 +95,7 @@ class SegmentData {
 
 // Returning the collocation point in the global frame
 
-    R = hfp2d::rotation_matrix_2D(theta_);
+    R = hfp2d::rotationMatrix2D(theta_);
 
     for (int i = 0; i < p + 1; ++i) {
       xaux[0] = (size_) * Xcol(i, 0) / 2.;

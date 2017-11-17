@@ -11,13 +11,13 @@
 
 
 
-#include <src/core/utilities.h>
+#include <src/core/Utilities.h>
 
 namespace hfp2d{
 
 // Some utilities //
-void take_submatrix(il::Array2D<double> &sub, int i0, int i1, int j0, int j1,
-                    const il::Array2D<double> &A) {
+void takeSubMatrix(il::Array2D<double> &sub, int i0, int i1, int j0, int j1,
+                   const il::Array2D<double> &A) {
   IL_EXPECT_FAST((i1 - i0 + 1) == sub.size(0));
   IL_EXPECT_FAST((j1 - j0 + 1) == sub.size(1));
 
@@ -29,8 +29,8 @@ void take_submatrix(il::Array2D<double> &sub, int i0, int i1, int j0, int j1,
 }
 ////////////////////////////////////////////////////////////////////////////////
 
-void set_submatrix(il::Array2D<double> &A, int i0, int i1,
-                   const il::StaticArray2D<double, 2, 4> &B) {
+void setSubMatrix(il::Array2D<double> &A, int i0, int i1,
+                  const il::StaticArray2D<double, 2, 4> &B) {
   IL_EXPECT_FAST(i0 + B.size(0) <= A.size(0));
   IL_EXPECT_FAST(i1 + B.size(1) <= A.size(1));
 
@@ -43,7 +43,7 @@ void set_submatrix(il::Array2D<double> &A, int i0, int i1,
 
 
 //   Rotation Matrix
-il::StaticArray2D<double, 2, 2> rotation_matrix_2D(double theta) {
+il::StaticArray2D<double, 2, 2> rotationMatrix2D(double theta) {
   il::StaticArray2D<double, 2, 2> R;
 
   R(0, 0) = cos(1. * theta);

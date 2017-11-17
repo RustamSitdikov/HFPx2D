@@ -32,8 +32,8 @@ set(SOURCE_FILES_DIR ${PROJECT_SOURCE_DIR}/src)
 set(SOURCE_FILES
         src/core/Mesh.cpp
         src/core/Mesh.h
-        src/core/utilities.h
-        src/core/utilities.cpp
+        src/core/Utilities.h
+        src/core/Utilities.cpp
         src/core/SegmentData.h
         src/core/Fluid.h
         src/core/ElasticProperties.h

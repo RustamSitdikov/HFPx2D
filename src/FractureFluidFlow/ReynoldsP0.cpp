@@ -141,8 +141,8 @@ Solution ReynoldsSolverP0(
   // check consistency of tip region ct.
   IL_EXPECT_FAST(tip_region_elt.size() == tip_width.size());
 
-  hfp2d::Mesh meshn = soln.CurrentMesh();
-  il::int_t n_elts = soln.CurrentMesh().numberOfElts();
+  hfp2d::Mesh meshn = soln.currentMesh();
+  il::int_t n_elts = soln.currentMesh().numberOfElts();
   il::int_t tot_dofs = 3 * n_elts;
   //
   il::Array<double> DX_k{tot_dofs, 0.}, DX_k_1{tot_dofs, 0.},
@@ -219,7 +219,7 @@ Solution ReynoldsSolverP0(
 
   double res_norm = 0.;
 
-  double betarela = simulParams.EHL_relaxation;
+  double betarela = simulParams.ehl_relaxation;
   il::int_t k = 0;
 
   il::int_t neq = tot_dofs - tip_width.size();
@@ -245,10 +245,10 @@ Solution ReynoldsSolverP0(
 
   //-------------------------------------
   // Fixed Point Iteration Solver.
-  while ((k < simulParams.EHL_max_its) &&
-         (il::norm(err_Dp, il::Norm::L2) > simulParams.EHL_tolerance) &&
-         (il::norm(err_Dw, il::Norm::L2) > simulParams.EHL_tolerance) &&
-         (il::norm(err_Dv, il::Norm::L2) > simulParams.EHL_tolerance)) {
+  while ((k < simulParams.ehl_max_its) &&
+         (il::norm(err_Dp, il::Norm::L2) > simulParams.ehl_tolerance) &&
+         (il::norm(err_Dw, il::Norm::L2) > simulParams.ehl_tolerance) &&
+         (il::norm(err_Dv, il::Norm::L2) > simulParams.ehl_tolerance)) {
     k++;
 
     // update hydraulic width.... at tn+dt
@@ -376,7 +376,7 @@ Solution ReynoldsSolverP0(
 
   return hfp2d::Solution(
       meshn, soln.time() + timestep, timestep, Wn, Vn, Pn, sig0, tau0,
-      soln.front_its(), k, soln.err_front(), il::norm(err_Dv, il::Norm::L2),
+      soln.frontIts(), k, soln.errFront(), il::norm(err_Dv, il::Norm::L2),
       il::norm(err_Dw, il::Norm::L2), il::norm(err_Dp, il::Norm::L2));
 
 };

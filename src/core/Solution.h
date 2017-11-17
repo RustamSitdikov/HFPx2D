@@ -33,11 +33,21 @@ class Solution {
 
   il::Array<double> pressure_;  // fluid pressure (at nodes)
 
-  il::Array<double> sigma0_;  // initial normal stress component to element (at
-                              // collocation points)
+  // total normal traction component to element (at collocation points)
+  il::Array<double> sigma_n_;
 
-  il::Array<double>
-      tau0_;  // initial shear shear stress component (at collocation points)
+  //  total shear traction component (at collocation points)
+  il::Array<double> tau_;
+
+  // DD  vector
+  il::Array<double> dd_values_ ;
+
+  // traction  vector
+  il::Array<double> traction_values_ ;
+
+
+  // active set of elements -> e.g. satisfying a yield criteria
+  il::Array<il::int_t> active_set_elements_;
 
   il::Array2D<double> tipsLocation_;  // 2D coordinate of the location of the
                                       // tips (i.e. may be inside one element in
@@ -46,7 +56,6 @@ class Solution {
   il::Array<double> tips_velocity_;
 
   il::Array<double> ribbon_tips_s_;
-
 
   // note in the case where the solution vectors are only on sub-parts of the
   // currentmesh, which may happen for cohesive zone model
@@ -93,12 +102,13 @@ class Solution {
     currentmesh_ = mesh;
     openingDD_ = width;
     shearDD_ = sheardd;
-    sigma0_ = sigma0;
-    tau0_ = tau0;
+    sigma_n_ = sigma0;
+    tau_ = tau0;
     pressure_=pressure;
   };
 
-  //#2.  Complete constructor ...
+
+  //#2.    constructor w.o active set
   Solution(hfp2d::Mesh &mesh, double t, double dt,
               const il::Array<double> &width, const il::Array<double> &sheardd,
               const il::Array<double> &pressure,
@@ -110,15 +120,45 @@ class Solution {
 
     time_ = t;
     timestep_ = dt;
-
     currentmesh_ = mesh;
 
     openingDD_ = width;
     shearDD_ = sheardd;
-    sigma0_ = sigma0;
-    tau0_ = tau0;
+    sigma_n_ = sigma0;
+    tau_ = tau0;
     pressure_=pressure;
 
+    frontIts_ = itsFront;
+    ehlIts_ = itsEHL;
+    err_front_ = err_front;
+    err_openingDD_ = err_width;
+    err_shearDD_ = err_shear;
+    err_P_ = err_p;
+
+  };
+
+//#3.    constructor w.  active set
+  Solution(hfp2d::Mesh &mesh, double t, double dt,
+           const il::Array<double> &width, const il::Array<double> &sheardd,
+           const il::Array<double> &pressure,
+           const il::Array<double> &sigma0, const il::Array<double> &tau0,
+           il::Array<il::int_t> &act_set_elmnts,
+           il::int_t itsFront, il::int_t itsEHL, double err_front,
+           double err_width, double err_shear, double err_p) {
+
+    // have checks here on dimensions with mesh....
+
+    time_ = t;
+    timestep_ = dt;
+    currentmesh_ = mesh;
+
+    openingDD_ = width;
+    shearDD_ = sheardd;
+    sigma_n_ = sigma0;
+    tau_ = tau0;
+    pressure_=pressure;
+
+    active_set_elements_=act_set_elmnts;
     frontIts_ = itsFront;
     ehlIts_ = itsEHL;
     err_front_ = err_front;
@@ -145,7 +185,6 @@ class Solution {
     frontIts_=its;
   };
 
-
   void setTipsVelocity(const il::Array<double> &tips_vel){
     tips_velocity_=tips_vel;
   };
@@ -154,34 +193,43 @@ class Solution {
     timestep_=dt;
   };
 
+  void setActiveElts(const il::Array<il::int_t> &act_set_elmnts) {
+    active_set_elements_=act_set_elmnts;
+  }
+
+
+
+  /////////////////////////////////////////////////////////////////////////////
   // get functions
+
   il::Array<double> openingDD() const { return openingDD_; };
   il::Array<double> shearDD() const { return shearDD_; };
   il::Array<double> pressure() const { return pressure_; };
-  il::Array<double> sigma0() const { return sigma0_; };
-  il::Array<double> tau0() const { return tau0_; };
+  il::Array<double> sigma0() const { return sigma_n_; };
+  il::Array<double> tau0() const { return tau_; };
 
-  il::Array2D<double> TipsLocation() const {return tipsLocation_;};
-  il::Array<double> RibbonsDistance() const { return ribbon_tips_s_;};
-  il::Array<double> TipsVelocity() const { return tips_velocity_;};
+  il::Array<il::int_t> activeElts() const { return active_set_elements_;};
 
+  il::Array2D<double> tipsLocation() const {return tipsLocation_;};
+  il::Array<double> ribbonsDistance() const { return ribbon_tips_s_;};
+  il::Array<double> tipsVelocity() const { return tips_velocity_;};
 
-  hfp2d::Mesh CurrentMesh() const { return currentmesh_;};
-
+  hfp2d::Mesh currentMesh() const { return currentmesh_;};
 
    double time() const { return time_;};
    double timestep() const { return timestep_;}
 
-   double err_front() const { return err_front_;}
-   double err_opening() const { return err_openingDD_;}
-   double err_shear() const { return err_shearDD_;}
-   double err_pressure() const { return err_P_;}
-   il::int_t  front_its() const { return frontIts_;}
-   il::int_t  ehl_its() const { return ehlIts_;}
+   double errFront() const { return err_front_;}
+   double errOpening() const { return err_openingDD_;}
+   double errShear() const { return err_shearDD_;}
+   double errPressure() const { return err_P_;}
+
+   il::int_t  frontIts() const { return frontIts_;}
+   il::int_t  ehlIts() const { return ehlIts_;}
 
 //////////////////////////////////////////////////////////////////////////////
 
-  // methods:
+  // methods :
 
   // write solution to file  -> json format
 
