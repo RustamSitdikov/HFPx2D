@@ -77,10 +77,17 @@ void fluidInjFrictWeakDilatFault(int argc, char const *argv[]) {
          (erfc(fabs((MyMesh.coordinates(j, 0)) / sqrt(alpha * t_0plus)) / 2)));
   }
 
-  // Matrix to switch from nodal points to collocation points for DDs
+  // Matrix to switch from nodal points to collocation points for DDs (both
+  // opening and shear)
   il::Array2D<double> from_edge_to_coll_dds{MyMesh.numberDDDofs(),
                                             MyMesh.numberDDDofs(), 0};
   from_edge_to_coll_dds = hfp2d::from_edge_to_col_dg_full2d(MyMesh);
+
+  // Matrix to switch from nodal points to collocation points for one DD (either
+  // opening or shear)
+  il::Array2D<double> from_edge_to_coll_dd{MyMesh.numberDDDofs(),
+                                           MyMesh.numberDDDofs(), 0};
+  from_edge_to_coll_dd = hfp2d::from_edge_to_col_dg(MyMesh);
 
   // Matrix to switch from nodal points to collocation points for pressure
   il::Array2D<double> from_edge_to_coll_press{MyMesh.numberDDDofs(),
@@ -92,8 +99,8 @@ void fluidInjFrictWeakDilatFault(int argc, char const *argv[]) {
 
   // Get the elasticity/influence matrix
   il::Array2D<double> kmat{MyMesh.numberDDDofs(), MyMesh.numberDDDofs(), 0};
-  hfp2d::basic_assembly(MyMesh, ElasticProperties,
-                        hfp2d::normal_shear_stress_kernel_dp1_dd, 0.);
+  kmat = hfp2d::basic_assembly(MyMesh, ElasticProperties,
+                               hfp2d::normal_shear_stress_kernel_dp1_dd, 0.);
 
   // Set the source point, i.e the node in the mesh where the fluid is injected
   il::int_t source_point = MyMesh.numberOfElts() / 2;
@@ -146,18 +153,17 @@ void fluidInjFrictWeakDilatFault(int argc, char const *argv[]) {
     init_set_elements[l] =
         hfp2d::find_2d_integer(dof_single_dd, init_failed_set_collpoints[l])[0];
   }
-  auto init_active_set_elmnts =
-      hfp2d::delete_duplicates_integer(init_set_elements);
+  auto init_set_elmnts = hfp2d::delete_duplicates_integer(init_set_elements);
 
-  il::Array<int> init_active_set_elements{init_active_set_elmnts.size()};
+  il::Array<int> init_active_set_elements{init_set_elmnts.size()};
 
   if (init_failed_set_collpoints.size() ==
       2 * init_active_set_elements.size()) {
-    init_active_set_elements = init_active_set_elmnts;
+    init_active_set_elements = init_set_elmnts;
   } else {
-    init_active_set_elements.resize(init_active_set_elmnts.size() - 2);
+    init_active_set_elements.resize(init_set_elmnts.size() - 2);
     for (int i = 0, k = 1; i < init_active_set_elements.size(); ++i, ++k) {
-      init_active_set_elements[i] = init_active_set_elmnts[k];
+      init_active_set_elements[i] = init_set_elmnts[k];
     }
   }
 
@@ -179,9 +185,9 @@ void fluidInjFrictWeakDilatFault(int argc, char const *argv[]) {
   hfp2d::Solution SolutionAtTn(
       MyMesh, t_0plus, init_dt, init_opening, init_slip, press_init_nodes,
       BackgroundLoadingConditions.getBackgroundNormalStress(),
-      BackgroundLoadingConditions.getBackgroundShearStress(), init_active_set_elements,
-      init_iter_front_position, init_iter_ehls, err_frac_position,
-      err_opening_dd, err_shear_dd, err_press);
+      BackgroundLoadingConditions.getBackgroundShearStress(),
+      init_active_set_elements, init_iter_front_position, init_iter_ehls,
+      err_frac_position, err_opening_dd, err_shear_dd, err_press);
 
   /// Loop in time
   double time = t_0plus;
@@ -191,13 +197,14 @@ void fluidInjFrictWeakDilatFault(int argc, char const *argv[]) {
                              MyMesh.coordinates(0, 0), 0,
                              MyMesh.coordinates(MyMesh.numberOfNodes() - 1, 0),
                              0) &&
-          SolutionAtTn.frontIts() <= SimulationParameters.frac_front_max_its) {
+         SolutionAtTn.frontIts() <= SimulationParameters.frac_front_max_its) {
     std::cout << "******** Current time ******* "
               << "t = " << time << "\n";
 
-    fractFrontPosition(kmat, from_edge_to_coll_dds, from_edge_to_coll_press,
-                       MyMesh, FluidProperties, SimulationParameters,
-                       SolidEvolution, FractureEvolution, Source, SolutionAtTn);
+    fractFrontPosition(kmat, from_edge_to_coll_dds, from_edge_to_coll_dd,
+                       from_edge_to_coll_press, MyMesh, FluidProperties,
+                       SimulationParameters, SolidEvolution, FractureEvolution,
+                       Source, SolutionAtTn);
 
     time = time + SolutionAtTn.timestep();
   }
@@ -206,6 +213,7 @@ void fluidInjFrictWeakDilatFault(int argc, char const *argv[]) {
 ///////// FUNCTION FOR FRACTURE FRONT POSITION //////////
 void fractFrontPosition(il::Array2D<double> &elast_matrix,
                         il::Array2D<double> &fetc_dds,
+                        il::Array2D<double> &fetc_dd,
                         il::Array2D<double> &fetc_press, Mesh &theMesh,
                         FluidProperties &FluidProperties,
                         SimulationParameters &SimulationParameters,
@@ -231,11 +239,12 @@ void fractFrontPosition(il::Array2D<double> &elast_matrix,
               << std::endl;
 
     // Find the corresponding DOFs of the active elements
-    for (int elmnt_i = 0, k = 0;
-         elmnt_i < SolutionAtTn.activeElts().size(); ++elmnt_i) {
+    for (int elmnt_i = 0, k = 0; elmnt_i < SolutionAtTn.activeElts().size();
+         ++elmnt_i) {
       dof_active_elmnts.resize(k + 4);
       for (int j = 0, l = k; j < theMesh.numberDDDofsPerElt(); ++j, ++l) {
-        dof_active_elmnts[l] = theMesh.dofDD(elmnt_i, j);
+        dof_active_elmnts[l] =
+            theMesh.dofDD(SolutionAtTn.activeElts(elmnt_i), j);
       }
       k = k + 4;
     }
@@ -250,12 +259,23 @@ void fractFrontPosition(il::Array2D<double> &elast_matrix,
       }
     }
 
-    SolutionEhls =
-        hfp2d::reynoldsP1(theMesh, elast_submatrix, fetc_dds, fetc_press, SolutionAtTn,
-                          SimulationParameters, SolidEvolution,
-                          FractureEvolution, Source, dof_active_elmnts, status, norm);
+    // Select just the "active" part of the matrix to switch from nodal
+    // points to collocation points
+    il::Array2D<double> Fetc_active_dofs{dof_active_elmnts.size(),
+                                         SolutionAtTn.pressure().size(), 0.};
+    for (il::int_t l2 = 0; l2 < Fetc_active_dofs.size(0); ++l2) {
+      for (il::int_t i = 0; i < Fetc_active_dofs.size(1); ++i) {
+        Fetc_active_dofs(l2, i) = fetc_press(dof_active_elmnts[l2], i);
+      }
+    }
 
+    SolutionEhls = hfp2d::reynoldsP1(
+        theMesh, elast_submatrix, fetc_dds, fetc_dd, fetc_press,
+        Fetc_active_dofs, SolutionAtTn, SimulationParameters, FluidProperties,
+        SolidEvolution, FractureEvolution, Source, dof_active_elmnts, status,
+        norm);
 
+    ++iter_front_posit;
   }
 };
 }

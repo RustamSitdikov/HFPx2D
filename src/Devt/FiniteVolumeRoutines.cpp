@@ -47,7 +47,7 @@ il::Array<double> shearConductivitiesP1Newtonian(
   il::Array<double> wm_mid;  // mechanical opening
   il::Array<double> d_mid;
   il::Array<double> wh_mid;  // hydraulic opening or hydraulic width
-  il::Array<double> rho_mid;
+  il::Array<double> rho_mid{theMesh.numberOfElts(), 0.};
   il::Array<double> kf_mid;
 
   wm_mid = average(opening);
@@ -81,7 +81,7 @@ il::Array2D<double> buildLMatrix(Mesh &theMesh, const il::Array<double> &slip,
   il::int_t dofj;
   il::Array<il::int_t> t;
   il::Array2D<il::int_t> dofhandle_press{theMesh.numberOfElts(),
-                                   theMesh.interpolationOrder() + 1, 0};
+                                         theMesh.interpolationOrder() + 1, 0};
   for (il::int_t i = 0; i < dofhandle_press.size(0); ++i) {
     dofhandle_press(i, 0) = i;
     dofhandle_press(i, 1) = i + 1;
@@ -122,7 +122,7 @@ il::Array2D<double> buildLMatrix(Mesh &theMesh, const il::Array<double> &slip,
 il::Array2D<double> buildVpMatrix(Mesh &theMesh,
                                   FractureEvolution &FractureEvolution,
                                   FluidProperties &FluidProperties,
-                                  il::Array<double> &slip) {
+                                  const il::Array<double> &slip) {
   // Create an auxiliary vector for the assembling
   il::Array2D<il::int_t> h{2 * theMesh.numberOfElts() + 1, 2, 0};
   for (il::int_t i = 0; i < h.size(0); ++i) {
@@ -201,7 +201,7 @@ il::Array2D<double> buildVpMatrix(Mesh &theMesh,
 il::Array2D<double> buildVdMatrix(Mesh &theMesh,
                                   FractureEvolution &FractureEvolution,
                                   FluidProperties &FluidProperties,
-                                  il::Array<double> &slip) {
+                                  const il::Array<double> &slip) {
   // Create an auxiliary vector for the assembling
   il::Array2D<il::int_t> h{2 * theMesh.numberOfElts() + 1, 2, 0};
   for (int i = 0; i < h.size(0); ++i) {

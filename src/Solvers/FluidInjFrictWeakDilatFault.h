@@ -15,10 +15,10 @@
 #include <src/Core/FluidProperties.h>
 #include <src/Core/Mesh.h>
 #include <src/Core/SimulationParameters.h>
+#include <src/Core/Solution.h>
+#include <src/Core/Sources.h>
 #include <src/Core_dev/FractureEvolution.h>
 #include <src/Core_dev/SolidEvolution.h>
-#include <src/Core/Sources.h>
-#include <src/Core/Solution.h>
 
 namespace hfp2d {
 
@@ -26,12 +26,12 @@ void fluidInjFrictWeakDilatFault(int argc, char const *argv[]);
 
 void fractFrontPosition(il::Array2D<double> &elast_matrix,
                         il::Array2D<double> &fetc_dds,
+                        il::Array2D<double> &fetc_dd,
                         il::Array2D<double> &fetc_press, Mesh &theMesh,
                         FluidProperties &FluidProperties,
                         SimulationParameters &SimulationParameters,
                         SolidEvolution &SolidEvolution,
-                        FractureEvolution &FractureEvolution,
-                        Sources &Source,
+                        FractureEvolution &FractureEvolution, Sources &Source,
                         Solution &SolutionAtTn);
 }
 

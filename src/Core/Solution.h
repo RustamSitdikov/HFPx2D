@@ -189,6 +189,9 @@ class Solution {
   inline double tau(il::int_t i) { return tau_[i]; };
 
   inline il::Array<int> activeElts() const { return active_set_elements_; };
+  inline il::int_t activeElts(il::int_t i) const {
+    return active_set_elements_[i];
+  };
 
   inline il::Array2D<double> tipsLocation() const { return tipsLocation_; };
   inline il::Array<double> ribbonsDistance() const { return ribbon_tips_s_; };

@@ -57,8 +57,8 @@ Mesh loadGeometry(
           theSingleMesh = autoLineMesh(inputFileName, fractureID,
                                        autoCreationMap, interpOrder);
 
-          std::cout << " Mesh number " << fractureID << " has "
-                    << number_fractures << " fractures" << std::endl;
+//          std::cout << " Mesh number " << fractureID << " has "
+//                    << number_fractures << " fractures" << std::endl;
           if (theGlobalMesh.numberOfElts() == 0) {
             theGlobalMesh = theSingleMesh;
 

@@ -49,7 +49,7 @@
 [Properties]
 
     young_modulus=1.0
-    poisson_ratio=0.24
+    poisson_ratio=0.0
 
     # Properties of existing fluid in the fault
     fluid_law = "Newtonian"

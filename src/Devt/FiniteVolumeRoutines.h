@@ -17,20 +17,11 @@
 #include <il/linear_algebra.h>
 
 // Inclusion from the project
-#include "src/Core/Mesh.h"
+#include <src/Core/FluidProperties.h>
+#include <src/Core_dev/FractureEvolution.h>
+#include <src/Core/Mesh.h>
 
 namespace hfp2d {
-
-struct Parameters_fluid {
-  // Fluid viscosity
-  double viscosity;
-  // Fluid compressibility
-  double compressibility;
-  // Fluid density matrix
-  // {{rho_1left, rho_2right},{rho_2left, rho_2right}, ...} (size -> Nelts + 1)
-  il::Array2D<double> density;
-};
-
 ///
 // This function calculates the average between two values for each element
 // Input: vector of slip/opening for each element -> size 2 x Nelts
@@ -47,15 +38,17 @@ inline il::Array<double> average(const il::Array<double> &d) {
 ///
 // This function calculates the slip/opening at +/- 1/4 -> the control volume is
 // centered on the nodes!
-// Input: matrix of slip/opening for each element -> size Nelts x 2
+// Input: vector of slip/opening for each element -> size 2* Nelts
 // Remember: piecewise linear variation over the element
 // Output: vector -> {slip_+1/4 , slip_+3/4}
 
 inline il::Array<double> quarter(const il::Array<double> &d) {
+
   il::Array<double> Quarter(d.size(), 0);
-  for (il::int_t i = 0; i < d.size() / 2; ++i, i = i + 2) {
+  for (il::int_t i = 0; i < d.size(); i = i + 2) {
     Quarter[i] = ((3 * d[i]) + d[i + 1]) / 4;
     Quarter[i + 1] = (d[i] + (3 * d[i + 1])) / 4;
+
   }
   return Quarter;
 };
@@ -111,7 +104,8 @@ il::Array<double> edgeConductivitiesP1Newtonian(
 
 il::Array<double> shearConductivitiesP1Newtonian(
     Mesh &theMesh, FluidProperties &FluidProperties,
-    FractureEvolution &FractureEvolution, const il::Array<double> &slip);
+    FractureEvolution &FractureEvolution, const il::Array<double> &slip,
+    const il::Array<double> &opening);
 
 il::Array2D<double> buildLMatrix(Mesh &theMesh, const il::Array<double> &slip,
                                  const il::Array<double> &opening,
@@ -122,12 +116,12 @@ il::Array2D<double> buildLMatrix(Mesh &theMesh, const il::Array<double> &slip,
 il::Array2D<double> buildVpMatrix(Mesh &theMesh,
                                   FractureEvolution &FractureEvolution,
                                   FluidProperties &FluidProperties,
-                                  il::Array<double> &slip);
+                                  const il::Array<double> &slip);
 
 il::Array2D<double> buildVdMatrix(Mesh &theMesh,
                                   FractureEvolution &FractureEvolution,
                                   FluidProperties &FluidProperties,
-                                  il::Array<double> &slip);
+                                  const il::Array<double> &slip);
 }
 
 #endif  // HFPX2D_FVM_H
