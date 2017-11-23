@@ -147,7 +147,7 @@ class Solution {
   Solution(hfp2d::Mesh &mesh, double t, double dt,
            const il::Array<double> &width, const il::Array<double> &sheardd,
            const il::Array<double> &pressure, const il::Array<double> &sigma0,
-           const il::Array<double> &tau0, il::Array<int> &act_set_elmnts,
+           const il::Array<double> &tau0, const il::Array<int> &act_set_elmnts,
            il::int_t itsFront, il::int_t itsEHL, double err_front,
            double err_width, double err_shear, double err_p) {
     // have checks here on dimensions with mesh....
@@ -213,36 +213,41 @@ class Solution {
   //////////////////////////////////////////////////////////////////////////
 
   // some set functions
-  void setRibbonDistances(const il::Array<double> &srt) {
+  inline void setRibbonDistances(const il::Array<double> &srt) {
     ribbon_tips_s_ = srt;
   };
 
-  void setTipsLocation(const il::Array2D<double> &tips_xy) {
+  inline void setTipsLocation(const il::Array2D<double> &tips_xy) {
     tipsLocation_ = tips_xy;
   };
 
-  void setErrorFront(const double errF) { err_front_ = errF; };
+  inline void setErrorFront(const double errF) { err_front_ = errF; };
 
-  void setItsFront(const il::int_t its) { frontIts_ = its; };
+  inline void setItsFront(const il::int_t its) { frontIts_ = its; };
 
-  void setTipsVelocity(const il::Array<double> &tips_vel) {
+  inline void setTipsVelocity(const il::Array<double> &tips_vel) {
     tips_velocity_ = tips_vel;
   };
 
-  void setTimeStep(const double dt) { timestep_ = dt; };
+  inline void setTimeStep(const double dt) { timestep_ = dt; };
 
-  void setActiveElts(const il::Array<int> &act_set_elmnts) {
+  inline void setActiveElts(const il::Array<int> &act_set_elmnts) {
     active_set_elements_ = act_set_elmnts;
-  }
+  };
 
-  il::Array<int> activeSetElements(
-      Mesh &theMesh, Solution &SolutionAtTn, SolidEvolution &SolidEvolution,
-      il::Array2D<double> &from_edge_to_coll_press) {
+  inline void setFrontPositIters(const il::int_t iters_fract_posit) {
+    frontIts_ = iters_fract_posit;
+  };
+
+  il::Array<int> activeSetElements(Mesh &theMesh, Solution &SolutionAtTn,
+                                   SolidEvolution &SolidEvolution,
+                                   il::Array2D<double> &from_edge_to_coll_press,
+                                   il::Array<double> &press_old) {
     // Move pore pressure from nodal points to coll points because elasticity
     // is evaluated at collocation points (-> MC criterion is evaluated at
     // collocation points!)
     il::Array<double> press_coll{2 * theMesh.numberOfElts(), 0};
-    auto p_coll = il::dot(from_edge_to_coll_press, this->pressure_);
+    auto p_coll = il::dot(from_edge_to_coll_press, press_old);
     for (il::int_t i = 0, k = 1; i < press_coll.size(); ++i, k = k + 2) {
       press_coll[i] = p_coll[k];
     }
@@ -251,13 +256,20 @@ class Solution {
     il::Array<int> failed_set_collpoints{0};
     failed_set_collpoints.reserve(2 * theMesh.numberOfElts());
     for (int j = 0, k = 0; j < 2 * theMesh.numberOfElts(); ++j) {
-      if (this->tau(j) >=
-          SolidEvolution.getFricCoeff(j) * (this->sigmaN(j) - press_coll[j])) {
+      if (SolutionAtTn.tau(j) > SolidEvolution.getFricCoeff(j) *
+                                    (SolutionAtTn.sigmaN(j) - press_coll[j])) {
         failed_set_collpoints.resize(k + 1);
         failed_set_collpoints[k] = j;
         k = k + 1;
       }
     }
+
+//    for (il::int_t m = 0; m < SolutionAtTn.tau().size(); ++m) {
+//      std::cout << SolutionAtTn.tau(m) -
+//                       SolidEvolution.getFricCoeff(m) *
+//                           (SolutionAtTn.sigmaN(m) - press_coll[m])
+//                << std::endl;
+//    }
 
     // Get active set of elements
     il::Array2D<int> dof_single_dd{theMesh.numberOfElts(),

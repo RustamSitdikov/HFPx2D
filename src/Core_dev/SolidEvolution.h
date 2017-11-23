@@ -78,12 +78,12 @@ class SolidEvolution {
   //        METHODS
   //////////////////////////////////////////////////////////////////////////
 
-  void setSolidEvolution(il::Array<double> &current_fric_coeff,
-                         il::Array<double> &peak_fric_coeff,
-                         il::Array<double> &res_fric_coeff,
-                         il::Array<double> &res_slip,
-                         il::Array<double> &fail_stress,
-                         il::Array<double> &max_openings) {
+  inline void setSolidEvolution(const il::Array<double> &current_fric_coeff,
+                         const il::Array<double> &peak_fric_coeff,
+                         const il::Array<double> &res_fric_coeff,
+                         const il::Array<double> &res_slip,
+                         const il::Array<double> &fail_stress,
+                         const il::Array<double> &max_openings) {
     friction_coefficients_ = current_fric_coeff;
     peak_friction_coefficients_ = peak_fric_coeff;
     residual_friction_coefficients_ = res_fric_coeff;
@@ -92,8 +92,13 @@ class SolidEvolution {
     maximum_openings_ = max_openings;
   }
 
+    inline void setFrictionCoefficient(const il::Array<double> &fric_coeff){
+      friction_coefficients_ = fric_coeff;
+    };
+
+
   il::Array<double> linearFricWeakLaw(
-      il::Array<double> &slip, const SolidEvolution &InitSolidEvolution) {
+      const il::Array<double> &slip, const SolidEvolution &InitSolidEvolution) {
     IL_EXPECT_FAST(InitSolidEvolution.peak_friction_coefficients_.size() ==
                    slip.size());
     IL_EXPECT_FAST(InitSolidEvolution.residual_friction_coefficients_.size() ==
@@ -117,7 +122,7 @@ class SolidEvolution {
   };
 
   il::Array<double> exponentialFricWeakLaw(
-      il::Array<double> &slip, const SolidEvolution &InitSolidEvolution) {
+      const il::Array<double> &slip, const SolidEvolution &InitSolidEvolution) {
     IL_EXPECT_FAST(InitSolidEvolution.peak_friction_coefficients_.size() ==
                    slip.size());
     IL_EXPECT_FAST(InitSolidEvolution.residual_friction_coefficients_.size() ==

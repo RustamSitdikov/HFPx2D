@@ -24,7 +24,7 @@ namespace hfp2d {
 
 void fluidInjFrictWeakDilatFault(int argc, char const *argv[]);
 
-void fractFrontPosition(il::Array2D<double> &elast_matrix,
+Solution fractFrontPosition(il::Array2D<double> &elast_matrix,
                         il::Array2D<double> &fetc_dds,
                         il::Array2D<double> &fetc_dd,
                         il::Array2D<double> &fetc_press, Mesh &theMesh,

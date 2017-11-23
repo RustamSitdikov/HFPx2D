@@ -7,6 +7,9 @@
 // See the LICENSE.TXT file for more details.
 //
 
+// Inclusion from standard library
+#include <algorithm>
+
 // Inclusion from Inside Loop library
 #include <il/Array.h>
 #include <il/Array2D.h>
@@ -21,7 +24,6 @@
 #include <src/FractureFluidFlow/ReynoldsP1.h>
 #include <src/Input/LoadArguments.h>
 #include <src/Input/LoadInput.h>
-#include <src/Solvers/FluidInjFrictWeakDilatFault.h>
 
 namespace hfp2d {
 
@@ -68,7 +70,7 @@ void fluidInjFrictWeakDilatFault(int argc, char const *argv[]) {
   double Dp = 0.5;
   double t_0plus = 0.00003;
   double init_dt = 0.00003;
-  double time_max = 0.625;
+  double time_max = 0.001;
   il::Array<double> press_init_nodes{MyMesh.numberOfNodes(), 0};
   for (il::int_t j = 0; j < press_init_nodes.size(); ++j) {
     press_init_nodes[j] =
@@ -190,47 +192,83 @@ void fluidInjFrictWeakDilatFault(int argc, char const *argv[]) {
       err_frac_position, err_opening_dd, err_shear_dd, err_press);
 
   /// Loop in time
-  double time = t_0plus;
 
-  while (time <= time_max &&
+  while (SolutionAtTn.time() <= time_max &&
          slipp_length <= euclidean_distance(
                              MyMesh.coordinates(0, 0), 0,
                              MyMesh.coordinates(MyMesh.numberOfNodes() - 1, 0),
                              0) &&
          SolutionAtTn.frontIts() <= SimulationParameters.frac_front_max_its) {
     std::cout << "******** Current time ******* "
-              << "t = " << time << "\n";
+              << "t = " << SolutionAtTn.time() << "\n";
 
-    fractFrontPosition(kmat, from_edge_to_coll_dds, from_edge_to_coll_dd,
-                       from_edge_to_coll_press, MyMesh, FluidProperties,
-                       SimulationParameters, SolidEvolution, FractureEvolution,
-                       Source, SolutionAtTn);
+    SolutionAtTn = fractFrontPosition(
+        kmat, from_edge_to_coll_dds, from_edge_to_coll_dd,
+        from_edge_to_coll_press, MyMesh, FluidProperties, SimulationParameters,
+        SolidEvolution, FractureEvolution, Source, SolutionAtTn);
 
-    time = time + SolutionAtTn.timestep();
+    if (SolutionAtTn.activeElts().size() == 0) {
+      slipp_length = 0.;
+    } else {
+      slipp_length = hfp2d::euclidean_distance(
+          MyMesh.coordinates(SolutionAtTn.activeElts(0), 0), 0,
+          MyMesh.coordinates(
+              SolutionAtTn.activeElts(init_active_set_elements.size() - 1) + 1,
+              0),
+          0);
+    }
   }
 };
 
 ///////// FUNCTION FOR FRACTURE FRONT POSITION //////////
-void fractFrontPosition(il::Array2D<double> &elast_matrix,
-                        il::Array2D<double> &fetc_dds,
-                        il::Array2D<double> &fetc_dd,
-                        il::Array2D<double> &fetc_press, Mesh &theMesh,
-                        FluidProperties &FluidProperties,
-                        SimulationParameters &SimulationParameters,
-                        SolidEvolution &SolidEvolution,
-                        FractureEvolution &FractureEvolution, Sources &Source,
-                        Solution &SolutionAtTn) {
+Solution fractFrontPosition(il::Array2D<double> &elast_matrix,
+                            il::Array2D<double> &fetc_dds,
+                            il::Array2D<double> &fetc_dd,
+                            il::Array2D<double> &fetc_press, Mesh &theMesh,
+                            FluidProperties &FluidProperties,
+                            SimulationParameters &SimulationParameters,
+                            SolidEvolution &SolidEvolution,
+                            FractureEvolution &FractureEvolution,
+                            Sources &Source, Solution &SolutionAtTn) {
   // TODO: insert il_io in the input!
 
   // Initialization of fracture front loop
   il::Status status;
   il::Norm norm;
   norm = il::Norm::L1;
-  Solution SolutionEhls;
+  //  Solution SolutionAtnPlusOne;
   il::int_t cvg_front_posit = 0;
   il::int_t iter_front_posit = 1;
   il::Array<int> dof_active_elmnts{};
   dof_active_elmnts.reserve(theMesh.numberDDDofs());
+
+  il::Array<double> tau_old{2 * theMesh.numberOfElts(), 0.};
+  for (il::int_t n = 0; n < tau_old.size(); ++n) {
+    tau_old[n] = SolutionAtTn.tau(n);
+  }
+
+  il::Array<double> sigmaN_old{2 * theMesh.numberOfElts(), 0.};
+  for (il::int_t n = 0; n < tau_old.size(); ++n) {
+    sigmaN_old[n] = SolutionAtTn.sigmaN(n);
+  }
+
+  il::Array<double> shearDD_old{2 * theMesh.numberOfElts(), 0.};
+  for (il::int_t n = 0; n < shearDD_old.size(); ++n) {
+    shearDD_old[n] = SolutionAtTn.shearDD(n);
+  }
+
+  il::Array<double> openingDD_old{2 * theMesh.numberOfElts(), 0.};
+  for (il::int_t n = 0; n < openingDD_old.size(); ++n) {
+    openingDD_old[n] = SolutionAtTn.openingDD(n);
+  }
+
+  il::Array<double> press_old{theMesh.numberOfNodes(), 0.};
+  for (il::int_t i = 0; i < press_old.size(); ++i) {
+    press_old[i] = SolutionAtTn.pressure(i);
+  }
+
+  il::Array<double> incrm_shearDD{2 * theMesh.numberOfElts(), 0.};
+  il::Array<double> incrm_openingDD{2 * theMesh.numberOfElts(), 0.};
 
   while (cvg_front_posit != 1 &&
          iter_front_posit <= SimulationParameters.frac_front_max_its) {
@@ -249,33 +287,38 @@ void fractFrontPosition(il::Array2D<double> &elast_matrix,
       k = k + 4;
     }
 
-    // Select the elasticity matrix for shear and opening DDs of slipping DOFs
-    il::Array2D<double> elast_submatrix{dof_active_elmnts.size(),
-                                        dof_active_elmnts.size(), 0};
-    for (il::int_t m = 0; m < elast_submatrix.size(0); ++m) {
-      for (il::int_t i = 0; i < elast_submatrix.size(1); ++i) {
-        elast_submatrix(m, i) =
-            elast_matrix(dof_active_elmnts[m], dof_active_elmnts[i]);
-      }
-    }
-
-    // Select just the "active" part of the matrix to switch from nodal
-    // points to collocation points
-    il::Array2D<double> Fetc_active_dofs{dof_active_elmnts.size(),
-                                         SolutionAtTn.pressure().size(), 0.};
-    for (il::int_t l2 = 0; l2 < Fetc_active_dofs.size(0); ++l2) {
-      for (il::int_t i = 0; i < Fetc_active_dofs.size(1); ++i) {
-        Fetc_active_dofs(l2, i) = fetc_press(dof_active_elmnts[l2], i);
-      }
-    }
-
-    SolutionEhls = hfp2d::reynoldsP1(
-        theMesh, elast_submatrix, fetc_dds, fetc_dd, fetc_press,
-        Fetc_active_dofs, SolutionAtTn, SimulationParameters, FluidProperties,
+    SolutionAtTn = hfp2d::reynoldsP1(
+        theMesh, elast_matrix, fetc_dds, fetc_dd, fetc_press, SolutionAtTn,
+        tau_old, sigmaN_old, shearDD_old, openingDD_old, press_old,
+        incrm_shearDD, incrm_openingDD, SimulationParameters, FluidProperties,
         SolidEvolution, FractureEvolution, Source, dof_active_elmnts, status,
         norm);
 
+    // Update active set of elements
+    il::Array<int> new_active_set_elements{};
+    new_active_set_elements.reserve(theMesh.numberOfElts());
+    new_active_set_elements = SolutionAtTn.activeSetElements(
+        theMesh, SolutionAtTn, SolidEvolution, fetc_press, press_old);
+
+    auto old_active_set_elements = SolutionAtTn.activeElts();
+
+    if (new_active_set_elements.size() == 0) {
+      cvg_front_posit = 1;
+
+    } else {
+      for (il::int_t i = 0; i < new_active_set_elements.size(); ++i) {
+        old_active_set_elements.append(new_active_set_elements[i]);
+      }
+
+      std::sort(old_active_set_elements.begin(), old_active_set_elements.end());
+      SolutionAtTn.setActiveElts(old_active_set_elements);
+    }
+
     ++iter_front_posit;
   }
+
+  SolutionAtTn.setFrontPositIters(iter_front_posit - 1);
+
+  return SolutionAtTn;
 };
 }
