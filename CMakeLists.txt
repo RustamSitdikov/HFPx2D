@@ -90,7 +90,8 @@ set(SOURCE_FILES
         src/FractureFluidFlow/ReynoldsP1.cpp
         src/FractureFluidFlow/ReynoldsP1.h
         src/Devt/FiniteVolumeRoutines.cpp
-        src/Devt/FiniteVolumeRoutines.h)
+        src/Devt/FiniteVolumeRoutines.h
+        json.hpp)
 
 if(APPLE)
 link_directories($ENV{MKLROOT}/lib $ENV{MKLROOT}/../compiler/lib )

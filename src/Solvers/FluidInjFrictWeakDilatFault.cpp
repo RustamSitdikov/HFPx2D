@@ -24,8 +24,12 @@
 #include <src/FractureFluidFlow/ReynoldsP1.h>
 #include <src/Input/LoadArguments.h>
 #include <src/Input/LoadInput.h>
+#include <json.hpp>
 
 namespace hfp2d {
+
+// for convenience
+using json = nlohmann::json;
 
 void fluidInjFrictWeakDilatFault(int argc, char const *argv[]) {
   // Initialization
@@ -217,6 +221,75 @@ void fluidInjFrictWeakDilatFault(int argc, char const *argv[]) {
               0),
           0);
     }
+
+    /////////  Write Json file  /////////
+    json json_x_coord = json::array();
+    for (il::int_t m = 0; m < MyMesh.coordinates().size(0); ++m) {
+      json_x_coord[m] = MyMesh.coordinates(m, 0);
+    }
+
+    json json_y_coord = json::array();
+    for (il::int_t m = 0; m < MyMesh.coordinates().size(0); ++m) {
+      json_y_coord[m] = MyMesh.coordinates(m, 0);
+    }
+
+    json json_connectivity = json::array();
+    for (il::int_t m = 0; m < MyMesh.connectivity().size(0); ++m) {
+      for (il::int_t i = 0; i < MyMesh.connectivity().size(1); ++i) {
+        json_connectivity[m * MyMesh.connectivity().size(1) + i] =
+            MyMesh.connectivity(m, i);
+      }
+    }
+
+    json json_dof_handle_dd = json::array();
+    for (il::int_t m = 0; m < MyMesh.numberOfElts(); ++m) {
+      for (il::int_t i = 0; i < MyMesh.numberDDDofsPerElt(); ++i) {
+        json_dof_handle_dd[m * MyMesh.numberDDDofsPerElt() + i] =
+            MyMesh.dofDD(m, i);
+      }
+    }
+
+    json json_shearDD = json::array();
+    for (il::int_t m = 0; m < SolutionAtTn.shearDD().size(); ++m) {
+      json_shearDD[m] = SolutionAtTn.shearDD(m);
+    }
+
+    json json_openingDD = json::array();
+    for (il::int_t m = 0; m < SolutionAtTn.openingDD().size(); ++m) {
+      json_openingDD[m] = SolutionAtTn.openingDD(m);
+    }
+
+    json json_pressure = json::array();
+    for (il::int_t m = 0; m < SolutionAtTn.pressure().size(); ++m) {
+      json_pressure[m] = SolutionAtTn.pressure(m);
+    }
+
+    json json_shear_stress = json::array();
+    for (il::int_t m = 0; m < SolutionAtTn.tau().size(); ++m) {
+      json_shear_stress[m] = SolutionAtTn.tau(m);
+    }
+
+    json json_normal_stress = json::array();
+    for (il::int_t m = 0; m < SolutionAtTn.sigmaN().size(); ++m) {
+      json_normal_stress[m] = SolutionAtTn.sigmaN(m);
+    }
+
+    json j_obj = {{"SolutionAtTn",
+                   {{"X coordinates mesh", json_x_coord},
+                    {"Y coordinates mesh", json_y_coord},
+                    {"Connettivity Mesh", json_connectivity},
+                    {"Dof handle DD", json_dof_handle_dd},
+                    {"Time", SolutionAtTn.time()},
+                    {"Time step", SolutionAtTn.timestep()},
+                    {"Shear DD", json_shearDD},
+                    {"Opening DD", json_openingDD},
+                    {"Pressure", json_pressure},
+                    {"Shear stress", json_shear_stress},
+                    {"Normal stress", json_normal_stress}}}};
+    // write prettified JSON to another file
+    std::ofstream output("Example.json");
+    output << std::setw(4) << j_obj << std::endl;
+      
   }
 };
 
