@@ -132,9 +132,9 @@ int TwoParallelHFs(int nelts, double dist) {
   il::Array<double> dd_ini = il::linearSolve(K, fini, il::io, status);
   status.ok();
   std::cout << "solved \n";
-  for (il::int_t i = 0; i < 2 * Ntot; i++) {
-    std::cout << " dd " << dd_ini[i] << "\n";
-  }
+//  for (il::int_t i = 0; i < 2 * Ntot; i++) {
+//    std::cout << " dd " << dd_ini[i] << "\n";
+//  }
 
   il::Array<double> width{mesh.numberOfElts(), 0.},
       sheardd{mesh.numberOfElts(), 0.};
@@ -154,113 +154,58 @@ int TwoParallelHFs(int nelts, double dist) {
   Soln.setRibbonDistances(s0);
 
   // fluid properties.
-  hfp2d::Fluid water(1., 0.1, 1.e-10);
+  hfp2d::Fluid water(1., 0.1, 5.e-10);
 
   // create source obj. - hardcoded for now....
   il::Array<il::int_t> elt_source{2, 0};
-  elt_source[0] = 1;
-  elt_source[1] = 4;
-  il::Array<double> Qo{2, 0.001};
+  elt_source[0] = (nelts -1)/2 ;
+
+  elt_source[1] = nelts+ (nelts -1)/2;
+
+  il::Array<double> Qo{2, 0.0001};
   hfp2d::Sources the_source = Sources(elt_source, Qo);
   //  std::cout << elt_source[0] << " " << Qo[0] << "\n";
 
   // create rock properties obj
-  il::Array<double> wh_o{1, 1.e-6}, toughness{1, 1.e6}, Carter{1, 0.};
+  il::Array<double> wh_o{1, 1.e-5}, toughness{1, 2.e6}, Carter{1, 0.};
   hfp2d::SolidProperties the_rock =
       SolidProperties(myelas, toughness, wh_o, Carter);
 
 
   hfp2d::SimulationParameters SimulParam;
-  SimulParam.frac_front_max_its=20;
+  SimulParam.frac_front_max_its=30;
+  SimulParam.frac_front_tolerance=1.e-3;
+  SimulParam.ehl_relaxation=0.9;
 
-   double dt = 0.1;
+   double dt = 0.02;
    il::int_t  jt=0;
-  il::int_t nsteps=1;
+  il::int_t nsteps=500;
+
+  il::Array<il::int_t> tip_region_elt_k=mesh.tipElts();
+  il::Array<double>    tip_region_width_k{4,0.};
 
   while (jt<nsteps){
     jt++;
+
+//    Solution Soln1=hfp2d::ReynoldsSolverP0(Soln, K, water, the_rock, the_source,
+//                                         dt, false, tip_region_elt_k,
+//                                         tip_region_width_k, SimulParam,true);
 
     Solution Soln1=hfp2d::FractureFrontLoop(Soln, K, water, the_rock,the_source,
                                           1000.,dt,  SimulParam,true);
 
     Soln=Soln1;
-    std::cout << " time  " << Soln.time() << "\n";
+    std::cout <<   " steps # " << jt << " time  " << Soln.time() << "\n";
+    std::cout << " P at source " << Soln.pressure()[the_source.SourceElt(0)]  << "\n";
+    std::cout << " w at source " << Soln.openingDD()[the_source.SourceElt(0)]  << "\n";
+
     std::cout << "size of K: " << K.size(0) << " by " << K.size(1) << "\n";
+
     std::cout << "n elts " << Soln.currentMesh().numberOfElts()<< "\n" ;
+    std::cout <<   " ---------\n";
 
 
   }
-
-//
-//  bool imp_tip = false;
-//  il::Array<il::int_t> tip_elt{4};
-//  il::Array<double> tip_width{4, 0.16};
-//  tip_elt = mesh.tipElts();
-//
-//  // create a function to get ribbon elements.
-//
-//  il::Array<il::int_t> ribbon = mesh.getRibbonElements();
-//  il::Array<double> ribbon_widths{ribbon.size(), 0.};
-//
-//  hfp2d::Solution Soln1 =
-//      ReynoldsSolverP0(Soln, K, water, the_rock, the_source, dt, imp_tip,
-//                       tip_elt, tip_width, SimulParam,true);
-//
-//  std::cout << " w tip est prop"
-//            << sqrt(32. / il::pi) * sqrt(h / 2.) * the_rock.KIc(0) / myelas.Ep()
-//            << "\n";
-//  std::cout << "ribbon w n " << Soln.openingDD()[ribbon[0]] << "\n";
-//  std::cout << "ribbon w  n+1 " << Soln1.openingDD()[ribbon[0]] << "\n";
-//
-//  // get ribbon cell width
-//  for (il::int_t i = 0; i < ribbon.size(); i++) {
-//    ribbon_widths[i] = Soln1.openingDD()[ribbon[i]];
-//  }
-//
-//  tip::TipParameters tipstruct;
-//  tipstruct.e_p = the_rock.ElasticProperties().Ep();
-//  tipstruct.k1c = the_rock.KIc(0);
-//  tipstruct.mu = water.fluidViscosity();
-//  tipstruct.cl = the_rock.Cl(0);
-//  tipstruct.wa = ribbon_widths[0];
-//  tipstruct.s0 = h / 2.;
-//  tipstruct.dt = dt;
-//
-//  bool prop = tip::isPropagating(tipstruct);
-//  std::cout << " is propagating ? " << prop << "\n";
-//
-//  tip::tipInversion(tip::res_u_0_m, tipstruct, 100 * h, 1.e-3, 40, false);
-//  std::cout << " old distance " << tipstruct.s0 << "\n";
-//  std::cout << " new distance " << tipstruct.st << "\n";
-//  std::cout << " vel " << tipstruct.vt << "\n";
-//
-//  hfp2d::Mesh newmesh = mesh;
-//
-//  newmesh.addNTipElts(0, 0, 1, 0.);
-//
-//  std::cout << " new mesh " << newmesh.numberOfElts() << "\n";
-//  std::cout << " old mesh " << mesh.numberOfElts() << "\n";
-//
-//  std::cout << " old tip " << tip_elt[0] << " " << tip_elt[1] << "\n";
-//  std::cout << " old tip " << mesh.tipNodes(0) << " " <<  mesh.tipNodes(1) << "\n";
-//
-//  std::cout << " new tip " << newmesh.tipElts()[0] << " " << newmesh.tipElts()[1] << " " << "\n";
-//  std::cout << " new tip " << newmesh.tipNodes(0) << " " <<  newmesh.tipNodes(1) << "\n";
-
-  //  il::Array2D<double> tt=Soln1.tipsLocation();
-
-  // loop on each tips
-  // invert tip asymptotics for each tip....
-  // check if elements have to be added
-  // compute tip width at tn+1 according to asymptote for these tip elements.
-
-  // if yes, new mesh
-  // pad with zero the width and fluid pressure array of the previous time
-  // solution accordingly
-  // adapt elasticity matrix
-
-  //  Soln=std::move(Soln1);
-  //  std::cout << "  size tt" << tt.size(1) << "\n";
 
   std::cout << "now out of  "
             << "\n";
@@ -323,7 +268,7 @@ hfp2d::Solution FractureFrontLoop(
   il::Array<double> v_tip_k = Sol_n.tipsVelocity();
   // the new s_o for the new ribbon cell
   // will be stored for next time step
-  il::Array<double> s_o_new = Sol_n.ribbonsDistance();
+  il::Array<double> s_o_new = s_o;
 
   il::Array<il::int_t> tip_nodes_n =
       mesh_n.tipNodes();  // previous time step tip nodes
@@ -367,10 +312,9 @@ hfp2d::Solution FractureFrontLoop(
   double errorF = 1.;
   bool firstime_elas_mod = true;
 
-  while ((errorF > simulParams.frac_front_tolerance) &&
-         (k < simulParams.frac_front_max_its)) {
+  while ( ((errorF > simulParams.frac_front_tolerance) ) &&
+         (k < simulParams.frac_front_max_its)  ) {
     k++;
-
 
     // solution of ELH at fixed fracture front
     Soln_p_1_k = hfp2d::ReynoldsSolverP0(Sol_n_k, ElasMat, fluid, rock, source,
@@ -396,7 +340,7 @@ hfp2d::Solution FractureFrontLoop(
       h_ribbon = mesh_n.eltSize(ribbon_elt[i]);
       tipstruct.s0 = s_o[i];
       tipstruct.wa = ribbon_width;
-      std::cout << "ribbon opg " << i << " = " << ribbon_width << "is prop ? "<< tip::isPropagating(s_o[i], tipstruct) << "\n";
+//      std::cout << "ribbon opg " << i << " = " << ribbon_width << "is prop ? "<< tip::isPropagating(s_o[i], tipstruct) << "\n";
       // invert tip asymptote for that ribbon elt
       tip::tipInversion(tip::res_u_0_m, tipstruct, 100 * h_ribbon, 1e-4, 100,
                         false);
@@ -458,7 +402,7 @@ hfp2d::Solution FractureFrontLoop(
       // (to store it when cvged directly)...
       il::int_t ti_e = mesh_n.tipElts(i);
       il::int_t ti_b = mesh_n.tipNodes(i);
-      s_o_new[i] = s_t_k[i] - h_ribbon / 2. - h_ribbon * n_add_elt_tip[i];
+      s_o_new[i] = s_t_k[i]   - h_ribbon * n_add_elt_tip[i];
       double fill_f = s_o_new[i] / h_ribbon;
 
       if (n_add_elt_tip[i] > 0) {
@@ -576,18 +520,33 @@ hfp2d::Solution FractureFrontLoop(
     // for each tip
     errorF = 0.;
     for (il::int_t i = 0; i < n_tips; i++) {
-      errorF += std::abs(1. - s_t_k_1[i] / s_t_k[i]);  // use L1 norm
+      errorF += std::abs(1. - (s_t_k_1[i]) / (s_t_k[i]));  // use L2 norm
     }
+//    errorF=std::sqrt(errorF);
     s_t_k_1 = s_t_k;  // switch new estimate into previous estimate for the next iterations
 
   };
+
+  // last call to Reynolds with the converged position of the front...
+  // if it has changed !
+  if (errorF!=0){
+//    std::cout << "last reynolds call \n";
+  Soln_p_1_k = hfp2d::ReynoldsSolverP0(Sol_n_k, ElasMat, fluid, rock, source,
+                                       timestep, imp_tip, tip_region_elt_k,
+                                       tip_region_width_k, simulParams,mute);
+  };
+
+
 
   // end of iteration of fracture front position
   std::cout << "end of fracture front loop iterations after " << k
             << " its, errorF=" << errorF <<   " new number of elts " << mesh_k.numberOfElts() << "\n";
 
-  // update last pieces of the solution object
-  Soln_p_1_k.setRibbonDistances(s_t_k);  //
+  std::cout << " n elts" << Sol_n_k.currentMesh().numberOfElts() << "\n";
+
+  // update last pieces of the solution object...
+
+  Soln_p_1_k.setRibbonDistances(s_o_new);  //
 
   Soln_p_1_k.setTipsVelocity(v_tip_k);
 

@@ -404,35 +404,59 @@ double deltaP(double k_h, double c_h, double p) {
   return (1.0 - p + p * g_un_0(k_h, c_h)) * delta;
 }
 
+
+
 double moment0(TipParameters &taParam) {
   double k_h = k_H(taParam.k1c, taParam.e_p, taParam.wa, taParam.st);
   double c_h = c_H(taParam.cl, taParam.vt, taParam.wa, taParam.st);
   double delta_p = deltaP(k_h, c_h, 0.377);
-  return (2.0 * taParam.wa * taParam.st) / (3.0 + delta_p);
+   return (2.0 * taParam.wa * taParam.st) / (3.0 + delta_p);
 }
+
 
 double moment1(TipParameters &taParam) {
   double k_h = k_H(taParam.k1c, taParam.e_p, taParam.wa, taParam.st);
   double c_h = c_H(taParam.cl, taParam.vt, taParam.wa, taParam.st);
   double delta_p = deltaP(k_h, c_h, 0.26);
+
   return (2.0 * taParam.wa * taParam.st * taParam.st) / (5.0 + delta_p);
+
+
 }
 
 // overload for s as an independent parameter
 double moment0(double s, TipParameters &taParam) {
-  double k_h = k_H(taParam.k1c, taParam.e_p, taParam.wa, s);
-  double c_h = c_H(taParam.cl, taParam.vt, taParam.wa, s);
-  double delta_p = deltaP(k_h, c_h, 0.377);
-  return (2.0 * taParam.wa * s) / (3.0 + delta_p);
+
+  if (isPropagating(taParam)) {
+    double k_h = k_H(taParam.k1c, taParam.e_p, taParam.wa, s);
+    double c_h = c_H(taParam.cl, taParam.vt, taParam.wa, s);
+    double delta_p = deltaP(k_h, c_h, 0.377);
+    return (2.0 * taParam.wa * s) / (3.0 + delta_p);
+  } else {
+    double K1prime = taParam.e_p*taParam.wa/std::pow(taParam.s0,0.5);
+
+    return (2./3.)*K1prime/taParam.e_p*std::pow(s,1.5);
+
+  }
+
 }
 
 double moment1(double s, TipParameters &taParam) {
-  double k_h = k_H(taParam.k1c, taParam.e_p, taParam.wa, s);
-  double c_h = c_H(taParam.cl, taParam.vt, taParam.wa, s);
-  double delta_p = deltaP(k_h, c_h, 0.26);
-  return (2.0 * taParam.wa * s * s) / (5.0 + delta_p);
+  if (isPropagating(taParam)) {
+    double k_h = k_H(taParam.k1c, taParam.e_p, taParam.wa, s);
+    double c_h = c_H(taParam.cl, taParam.vt, taParam.wa, s);
+    double delta_p = deltaP(k_h, c_h, 0.26);
+    return (2.0 * taParam.wa * s * s) / (5.0 + delta_p);
+  } else
+  {
+    double K1prime = taParam.e_p*taParam.wa/std::pow(taParam.s0,0.5);
+    return (2./5.)*K1prime/taParam.e_p*std::pow(s,2.5);
+  }
+
 }
+
 ////////////////////////////////////////////////////////////////////////////////
 
 // todo: Carter tip leak-off
+
 }

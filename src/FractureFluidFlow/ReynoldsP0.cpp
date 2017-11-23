@@ -190,7 +190,7 @@ Solution ReynoldsSolverP0(
   }
   // effect of net pressure increment on elasticity eq.
   for (il::int_t j = 0; j < n_elts; j++) {
-    Xi(2*j+1, j + 2*n_elts) = 1.;
+    Xi(2*j+1, j + 2*n_elts) = -1.;
   }
 
   //
@@ -205,8 +205,8 @@ Solution ReynoldsSolverP0(
   il::Array<double> Gamma{tot_dofs,0.};  // tangent rhs add
 
    for (il::int_t i = 0; i < n_elts; i++) {
-    Gamma[2*i] = tau0[i] + Fn_elas[2*i];
-    Gamma[2*i + 1] = sig0[i] - Pn[i] +Fn_elas[2*i+1]  ;
+    Gamma[2*i] = -tau0[i] - Fn_elas[2*i];
+    Gamma[2*i + 1] = -sig0[i] + Pn[i] -Fn_elas[2*i+1]  ;
   }
 
   il::Array2D<il::int_t> sharedEdges = meshn.getNodesSharing2Elts();
