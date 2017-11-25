@@ -336,16 +336,15 @@ void Mesh::addNTipElts(const il::int_t t_e, const il::int_t the_tip_node,
   /// //    dof(element, local nnodes number)
   // actually this is the connectivity_ array for  p =1 and
   // a simple elt number of P0
-  switch (interpolation_order_) {
-    case 0: {
-      il::Array2D<il::int_t> id_press{nelts, 1, 0};
-      for (il::int_t e = 0; e < nelts; e++) {
-        id_press(e, 0) = e;
-      };
-      dof_handle_pressure_ = id_press;
-    }
-    case 1:
-      dof_handle_pressure_ = connectivity_;  // 1 unknowns per nodes ....
+  if (interpolation_order_==0){
+    il::Array2D<il::int_t> id_press{nelts,1};
+    for (il::int_t e = 0; e < nelts; e++) {
+      id_press(e, 0) = e;
+    };
+    dof_handle_pressure_ = id_press;
+  }
+  else { // case 1
+    dof_handle_pressure_ = connectivity_;
   };
 
   // rebuild the nodal connected table...
