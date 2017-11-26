@@ -110,7 +110,7 @@ int TwoParallelHFs(int nelts, double dist) {
 
   // initial fluid pressure
   il::Array<double> pf_o{
-      Ntot, 0.1e6 + 0.4597e6};  // slightly above sig_o to have initial width
+      Ntot, 1.2e6};  // slightly above sig_o to have initial width
 
   // solve the initial elastic system
   il::Array<double> fini{2 * Ntot, 0.};
@@ -155,37 +155,38 @@ int TwoParallelHFs(int nelts, double dist) {
   Soln.setTipsVelocity(vel0);
   Soln.setRibbonDistances(s0);
 
-  // fluid properties.
-  hfp2d::Fluid water(1., 0.1, 5.e-10);
 
   // create source obj. - hardcoded for now....
+  il::Array<double> Qo{2, 0.0001};
+
   il::Array<il::int_t> elt_source{2, 0};
   elt_source[0] = (nelts -1)/2 ;
-
   elt_source[1] = nelts+ (nelts -1)/2;
 
-  il::Array<double> Qo{2, 0.0001};
   hfp2d::Sources the_source = Sources(elt_source, Qo);
   //  std::cout << elt_source[0] << " " << Qo[0] << "\n";
 
+  // fluid properties.
+  double mu = 0.01;
+  hfp2d::Fluid water(1., mu, 5.e-10);
   // create rock properties obj
-  il::Array<double> wh_o{1, 1.e-5}, toughness{1, 2.e6}, Carter{1, 0.};
+  double k1c=2.e6;
+  il::Array<double> wh_o{1, 1.e-9}, toughness{1,2.e6}, Carter{1, 0.};
   hfp2d::SolidProperties the_rock =
       SolidProperties(myelas, toughness, wh_o, Carter);
 
-
   hfp2d::SimulationParameters SimulParam;
-  SimulParam.frac_front_max_its=30;
+  SimulParam.frac_front_max_its=40;
   SimulParam.frac_front_tolerance=1.e-3;
-  SimulParam.ehl_relaxation=0.9;
+  SimulParam.ehl_relaxation=0.95;
+  SimulParam.ehl_tolerance=1.e-6;
 
-   double dt = 0.02;
+   double dt = 0.01;
    il::int_t  jt=0;
-  il::int_t nsteps=400;
+   il::int_t nsteps=130;
 
 //  il::Array<il::int_t> tip_region_elt_k=mesh.tipElts();
 //  il::Array<double>    tip_region_width_k{4,0.};
-//
 
   std::string dir = "../Results/";
   std::string basefilename="debug-";
@@ -193,6 +194,10 @@ int TwoParallelHFs(int nelts, double dist) {
 
 //
   double mean_tip_v;
+  double Mbar=std::pow(myelas.Ep(),3.)*(12*mu)*Qo[1]/(std::pow((std::sqrt(32./il::pi)*k1c),4.));
+
+  std::cout << "Dimensionless Viscosity " << Mbar <<"\n";
+
 
   while (jt<nsteps){
     jt++;
@@ -216,12 +221,17 @@ int TwoParallelHFs(int nelts, double dist) {
     filename= dir + basefilename +std::to_string(jt)+".json";
     Soln.WriteToFile(filename);
 
-    // adjust time step
+    // adjust time step  -> but only after a few prop. steps...
+
     mean_tip_v=il::norm(Soln.tipsVelocity(),il::Norm::L2);
-    if (mean_tip_v>0.001){
+    if (mean_tip_v>0.0  ){
 
-      dt=0.5*h/mean_tip_v;
-
+      double  dt_new=0.5*h/mean_tip_v;
+// modify to more clever ...
+      if (dt_new>3.*dt)
+      { dt=1.2*dt;}
+      else
+      {dt=dt_new;};
     }
   }
 
@@ -360,7 +370,7 @@ hfp2d::Solution FractureFrontLoop(
       tipstruct.wa = ribbon_width;
 //      std::cout << "ribbon opg " << i << " = " << ribbon_width << "is prop ? "<< tip::isPropagating(s_o[i], tipstruct) << "\n";
       // invert tip asymptote for that ribbon elt
-      tip::tipInversion(tip::res_u_0_m, tipstruct, 100 * h_ribbon, 1e-4, 100,
+      tip::tipInversion(tip::res_u_0_m, tipstruct, 100 * h_ribbon, 1e-6, 200,
                         true);
 
       s_t_k[i] = tipstruct.st;

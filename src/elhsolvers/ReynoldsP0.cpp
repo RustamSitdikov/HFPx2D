@@ -41,8 +41,12 @@ il::Array<double> EdgeConductivitiesP0Newtonian(
   for (il::int_t i = 0; i < edgeAdj.size(0); i++) {
     cl = pow(hydraulic_width[edgeAdj(i, 0)], 3.);
     cr = pow(hydraulic_width[edgeAdj(i, 1)], 3.);
-
     Cond[i] = poiseuille_ct * 2. * (cr * cl) / (cr + cl);
+
+//    cl = hydraulic_width[edgeAdj(i, 0)];
+//    cr=hydraulic_width[edgeAdj(i, 1)];
+//    Cond[i] = poiseuille_ct * pow((cl+cr)*0.5,3.);
+
   }
   return Cond;
 };
@@ -246,9 +250,10 @@ Solution ReynoldsSolverP0(
   //-------------------------------------
   // Fixed Point Iteration Solver.
   while ((k < simulParams.ehl_max_its) &&
-         (il::norm(err_Dp, il::Norm::L2) > simulParams.ehl_tolerance) &&
-         (il::norm(err_Dw, il::Norm::L2) > simulParams.ehl_tolerance) &&
-         (il::norm(err_Dv, il::Norm::L2) > simulParams.ehl_tolerance)) {
+      ( (il::norm(err_Dp, il::Norm::L2) > simulParams.ehl_tolerance) ||
+         (il::norm(err_Dw, il::Norm::L2) > simulParams.ehl_tolerance) ) ) {
+//      &&
+//         (il::norm(err_Dv, il::Norm::L2) > simulParams.ehl_tolerance)) {
     k++;
 
     // update hydraulic width.... at tn+dt

@@ -9,6 +9,8 @@
 
 #include <gtest/gtest.h>
 
+#include <il/math.h>
+
 #include <src/tip/tipAsymptote.h>
 
 //  UNIT TESTS FOR TIP Asymptote Libary
@@ -37,3 +39,35 @@ ASSERT_NEAR(0.84508554222845511, tipPar.st, 0.001);
 ASSERT_NEAR(0.0, rm, 0.001);
 
 }
+
+
+TEST(tip_inversion_2, t1) {
+
+//   check inversion of toughness asymptote
+  bool mute = false;
+  tip::TipParameters tipPar;
+
+  tipPar.k1c = 2.E6;
+  tipPar.e_p = 3.2E10;
+  tipPar.cl = 3.0E-5;
+  tipPar.mu = 1.0e-8;
+
+  tipPar.s0 = 0.5;
+  tipPar.vt = 0.0;
+
+  double mys =0.8;
+
+  tipPar.wa = std::sqrt(32./il::pi)*(tipPar.k1c)/(tipPar.e_p)*std::sqrt(mys) ;
+  tipPar.dt = 0.1;
+
+  tip::tipInversion(tip::res_u_0_m, tipPar, 1000, 1E-6, 50, mute);
+// the new tip distance is now tipPar.st and the new velocity is tipPar.vt
+
+  double rm = tip::res_u_0_m(tipPar.st, tipPar);
+
+  ASSERT_NEAR(mys, tipPar.st, 0.001);
+
+  //ASSERT_NEAR(0.0, rm, 0.001);
+}
+
+// todo :: write test for inversion of the m-asymptote
