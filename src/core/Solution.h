@@ -216,7 +216,7 @@ class Solution {
   // for convenience
   using json = nlohmann::json;
 
-  int WriteToFile(std::string &filename) {
+  int writeToFile(std::string &filename) {
 
     // we output the mesh
     json json_coord = json::array();

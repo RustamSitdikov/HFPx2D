@@ -219,7 +219,7 @@ int TwoParallelHFs(int nelts, double dist) {
     std::cout << "n elts " << Soln.currentMesh().numberOfElts()<< "\n" ;
     std::cout <<   " ---------\n";
     filename= dir + basefilename +std::to_string(jt)+".json";
-    Soln.WriteToFile(filename);
+    Soln.writeToFile(filename);
 
     // adjust time step  -> but only after a few prop. steps...
 
