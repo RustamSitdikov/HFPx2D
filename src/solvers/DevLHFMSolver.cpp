@@ -8,20 +8,22 @@
 //
 
 #include <il/Array.h>
-
 #include <il/Array2D.h>
+#include <il/linear_algebra/dense/norm.h>
 
-#include "DevLHFMSolver.h"
+
 
 #include <src/core/ElasticProperties.h>
 #include <src/core/Fluid.h>
 #include <src/core/Mesh.h>
 
-#include <src/Elasticity/AssemblyDDM.h>
-#include <src/Elasticity/Simplified3D.h>
-#include <src/FractureFluidFlow/ReynoldsP0.h>
+#include <src/elasticity/AssemblyDDM.h>
+#include <src/elasticity/Simplified3D.h>
+#include <src/elhsolvers/ReynoldsP0.h>
 #include <src/core/SimulationParameters.h>
 #include <src/tip/tipAsymptote.h>
+#include <src/solvers/DevLHFMSolver.h>
+
 
 namespace hfp2d {
 
@@ -179,10 +181,18 @@ int TwoParallelHFs(int nelts, double dist) {
 
    double dt = 0.02;
    il::int_t  jt=0;
-  il::int_t nsteps=500;
+  il::int_t nsteps=400;
 
-  il::Array<il::int_t> tip_region_elt_k=mesh.tipElts();
-  il::Array<double>    tip_region_width_k{4,0.};
+//  il::Array<il::int_t> tip_region_elt_k=mesh.tipElts();
+//  il::Array<double>    tip_region_width_k{4,0.};
+//
+
+  std::string dir = "../Results/";
+  std::string basefilename="debug-";
+  std::string filename;
+
+//
+  double mean_tip_v;
 
   while (jt<nsteps){
     jt++;
@@ -199,12 +209,20 @@ int TwoParallelHFs(int nelts, double dist) {
     std::cout << " P at source " << Soln.pressure()[the_source.SourceElt(0)]  << "\n";
     std::cout << " w at source " << Soln.openingDD()[the_source.SourceElt(0)]  << "\n";
 
-    std::cout << "size of K: " << K.size(0) << " by " << K.size(1) << "\n";
+//    std::cout << "size of K: " << K.size(0) << " by " << K.size(1) << "\n";
 
     std::cout << "n elts " << Soln.currentMesh().numberOfElts()<< "\n" ;
     std::cout <<   " ---------\n";
+    filename= dir + basefilename +std::to_string(jt)+".json";
+    Soln.WriteToFile(filename);
 
+    // adjust time step
+    mean_tip_v=il::norm(Soln.tipsVelocity(),il::Norm::L2);
+    if (mean_tip_v>0.001){
 
+      dt=0.5*h/mean_tip_v;
+
+    }
   }
 
   std::cout << "now out of  "
@@ -221,7 +239,7 @@ hfp2d::Solution FractureFrontLoop(
     double timestep, hfp2d::SimulationParameters &simulParams, bool mute) {
   // INPUTS
   // Sol_n :: solution object containing the solution at time tn
-  // ElasMat :: Elasticity matrix on the current mesh  (might be modified)
+  // ElasMat :: elasticity matrix on the current mesh  (might be modified)
   // fluid :: fluid object containing the fluid properties
   // rock :: solid properties object
   // source :: injection object
@@ -343,7 +361,7 @@ hfp2d::Solution FractureFrontLoop(
 //      std::cout << "ribbon opg " << i << " = " << ribbon_width << "is prop ? "<< tip::isPropagating(s_o[i], tipstruct) << "\n";
       // invert tip asymptote for that ribbon elt
       tip::tipInversion(tip::res_u_0_m, tipstruct, 100 * h_ribbon, 1e-4, 100,
-                        false);
+                        true);
 
       s_t_k[i] = tipstruct.st;
       v_tip_k[i] = tipstruct.vt;

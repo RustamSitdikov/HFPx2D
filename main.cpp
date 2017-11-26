@@ -14,11 +14,11 @@
 
 
 //#include "src/input/loadInput.h"
-#include "src/Solvers/SimpleElastic.h"
+#include "src/solvers/SimpleElastic.h"
 //#include "src/core_dev/OldSolutionClass.h"
 //#include "src/input/loadArguments.h"
 
-#include "src/Solvers/DevLHFMSolver.h"
+#include "src/solvers/DevLHFMSolver.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 

@@ -40,14 +40,14 @@ set(SOURCE_FILES
         src/core_dev/SolidEvolution.h
         src/core/Sources.h
 
-        src/Elasticity/AssemblyDDM.cpp
-        src/Elasticity/AssemblyDDM.h
-        src/Elasticity/Simplified3D.cpp
-        src/Elasticity/Simplified3D.h
-        src/Elasticity/PlaneStrainInfinite.cpp
-        src/Elasticity/PlaneStrainInfinite.h
-        src/Solvers/SimpleElastic.cpp
-        src/Solvers/SimpleElastic.h
+        src/elasticity/AssemblyDDM.cpp
+        src/elasticity/AssemblyDDM.h
+        src/elasticity/Simplified3D.cpp
+        src/elasticity/Simplified3D.h
+        src/elasticity/PlaneStrainInfinite.cpp
+        src/elasticity/PlaneStrainInfinite.h
+        src/solvers/SimpleElastic.cpp
+        src/solvers/SimpleElastic.h
         src/core/SimulationParameters.h
 #        src/input/loadArguments.cpp
 #        src/input/loadArguments.h
@@ -77,14 +77,16 @@ set(SOURCE_FILES
 #        src/input/conditions/loadConditions.h
 #        src/input/Sources/loadSources.cpp
 #        src/input/Sources/loadSources.h
-        src/FractureFluidFlow/ReynoldsP0.cpp
-        src/FractureFluidFlow/ReynoldsP0.h
-        src/Solvers/DevLHFMSolver.cpp
-        src/Solvers/DevLHFMSolver.h
+        src/elhsolvers/ReynoldsP0.cpp
+        src/elhsolvers/ReynoldsP0.h
+        src/solvers/DevLHFMSolver.cpp
+        src/solvers/DevLHFMSolver.h
         src/core/Solution.h
         src/core/SolidProperties.h
         src/tip/tipAsymptote.cpp
-        src/tip/tipAsymptote.h)
+        src/tip/tipAsymptote.h
+        src/util/json.hpp
+        )
 
 if(APPLE)
 link_directories($ENV{MKLROOT}/lib $ENV{MKLROOT}/../compiler/lib )

@@ -41,16 +41,15 @@ class Mesh {  // class for 1D mesh of 1D segment elements ?
   // Coordinates of the nodes - size: number of nodes x problem dimension (2D)
   il::Array2D<double> coordinates_;
 
-  // Connectivity matrix - size: number of elements x (order interpolation + 1)
+  // Connectivity matrix - size: number of elements x  2
   il::Array2D<il::int_t> connectivity_;
 
   // Interpolation order
   il::int_t interpolation_order_;
 
   // Dof handle matrices
-  // for displacements  Discontinuities - size: number of elements x 2dofs per
-  // coordinates x (order
-  // interpolation + 1)
+  // for displacements  Discontinuities - size: number of elements x 2 dofs per
+  // coordinates x (order interpolation + 1)
   il::Array2D<il::int_t> dof_handle_dd_;
 
   // for pressure - size: number of nodes x 1dof per coordinates x (order
@@ -120,16 +119,15 @@ class Mesh {  // class for 1D mesh of 1D segment elements ?
     /// //    dof(element, local nnodes number)
     // actually this is the connectivity_ array for  p =1 and
     // a simple elt number of P0
-    switch (interpolation_order_) {
-      case 0: {
-        il::Array2D<il::int_t> id_press{nelts, 1, 0};
-        for (il::int_t e = 0; e < nelts; e++) {
-          id_press(e, 0) = e;
-        };
-        dof_handle_pressure_ = id_press;
-      }
-      case 1:
-        dof_handle_pressure_ = connectivity_;  // 1 unknowns per nodes ....
+    if (interpolation_order_==0){
+      il::Array2D<il::int_t> id_press{nelts,1};
+      for (il::int_t e = 0; e < nelts; e++) {
+        id_press(e, 0) = e;
+      };
+      dof_handle_pressure_ = id_press;
+    }
+    else { // case 1
+      dof_handle_pressure_ = connectivity_;
     };
 
     // build the nodal connected table...
@@ -176,15 +174,14 @@ class Mesh {  // class for 1D mesh of 1D segment elements ?
     /// //    dof(element, local nnodes number)
     // actually this is the connectivity_ array for  p =1 and
     // a simple elt number of P0
-    switch (interpolation_order_) {
-      case 0: {
-        il::Array2D<il::int_t> id_press{nelts, 1, 0};
+    if (interpolation_order_==0){
+        il::Array2D<il::int_t> id_press{nelts,1};
         for (il::int_t e = 0; e < nelts; e++) {
           id_press(e, 0) = e;
         };
         dof_handle_pressure_ = id_press;
       }
-      case 1:
+    else { // case 1
         dof_handle_pressure_ = connectivity_;
     };
 
@@ -310,7 +307,7 @@ class Mesh {  // class for 1D mesh of 1D segment elements ?
   //   Methods
   ////////////////////////////////////////////////////////////////////////////////////////////
 
-  hfp2d::SegmentData getElementData(const il::int_t ne);
+  hfp2d::SegmentData getElementData(il::int_t ne);
 
   // a method to get the size of a given element.
   double eltSize(il::int_t &e);
@@ -328,8 +325,8 @@ class Mesh {  // class for 1D mesh of 1D segment elements ?
 
   // method to add N element ahead of a tip node of a tip element at a given
   // kick angle
-  void addNTipElts(const il::int_t t_e, const il::int_t the_tip_node,
-                   const il::int_t n_add, double kink_angle);
+  void addNTipElts(il::int_t t_e, il::int_t the_tip_node,
+                    il::int_t n_add, double kink_angle);
 
  };
 }
