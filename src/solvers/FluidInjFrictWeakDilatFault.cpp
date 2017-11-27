@@ -116,7 +116,11 @@ void fluidInjFrictWeakDilatFault(int argc, char const *argv[]) {
   double err_opening_dd = 2.;
   double err_shear_dd = 2.;
   double err_press = 2.;
-  bool expl_impl = true;
+  bool expl_impl = false;  // Set true for explicit/implicit integration scheme
+  bool damping_term = false; // Set true for QD simulation
+  double shear_modulus = 1.;
+  double shear_wave_vel = 1.;
+  double damping_coeff = shear_modulus / (2 * shear_wave_vel);
   il::int_t init_iter_front_position = 0;
   il::int_t init_iter_ehls = 0;
 
@@ -207,7 +211,8 @@ void fluidInjFrictWeakDilatFault(int argc, char const *argv[]) {
     SolutionAtTn = fractFrontPosition(
         kmat, from_edge_to_coll_dds, from_edge_to_coll_dd,
         from_edge_to_coll_press, MyMesh, FluidProperties, SimulationParameters,
-        SolidEvolution, FractureEvolution, Source, SolutionAtTn, expl_impl);
+        SolidEvolution, FractureEvolution, Source, SolutionAtTn, expl_impl,
+        damping_term, damping_coeff);
 
     if (SolutionAtTn.activeElts().size() == 0) {
       slipp_length = 0.;
@@ -236,7 +241,8 @@ Solution fractFrontPosition(
     Mesh &theMesh, FluidProperties &FluidProperties,
     SimulationParameters &SimulationParameters, SolidEvolution &SolidEvolution,
     FractureEvolution &FractureEvolution, Sources &Source,
-    Solution &SolutionAtTn, bool expl_impl) {
+    Solution &SolutionAtTn, bool expl_impl, bool damping_term,
+    double damping_coeff) {
   // TODO: insert il_io in the input!
 
   // Initialization of fracture front loop
@@ -299,7 +305,7 @@ Solution fractFrontPosition(
         tau_old, sigmaN_old, shearDD_old, openingDD_old, press_old,
         incrm_shearDD, incrm_openingDD, SimulationParameters, FluidProperties,
         SolidEvolution, FractureEvolution, Source, dof_active_elmnts, status,
-        norm);
+        norm, damping_term, damping_coeff);
 
     // Update active set of elements
     il::Array<int> new_active_set_elements{};

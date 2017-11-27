@@ -24,15 +24,13 @@ namespace hfp2d {
 
 void fluidInjFrictWeakDilatFault(int argc, char const *argv[]);
 
-Solution fractFrontPosition(il::Array2D<double> &elast_matrix,
-                        il::Array2D<double> &fetc_dds,
-                        il::Array2D<double> &fetc_dd,
-                        il::Array2D<double> &fetc_press, Mesh &theMesh,
-                        FluidProperties &FluidProperties,
-                        SimulationParameters &SimulationParameters,
-                        SolidEvolution &SolidEvolution,
-                        FractureEvolution &FractureEvolution, Sources &Source,
-                        Solution &SolutionAtTn, bool expl_impl);
+Solution fractFrontPosition(
+    il::Array2D<double> &elast_matrix, il::Array2D<double> &fetc_dds,
+    il::Array2D<double> &fetc_dd, il::Array2D<double> &fetc_press,
+    Mesh &theMesh, FluidProperties &FluidProperties,
+    SimulationParameters &SimulationParameters, SolidEvolution &SolidEvolution,
+    FractureEvolution &FractureEvolution, Sources &Source,
+    Solution &SolutionAtTn, bool expl_impl, bool damping_term);
 }
 
 #endif  // HFPX2D_FLUIDINJFRICTWEAKDILATFAULT_H

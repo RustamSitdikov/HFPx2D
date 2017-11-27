@@ -20,19 +20,21 @@
 
 namespace hfp2d {
 
-Solution reynoldsP1(
-    Mesh &theMesh, il::Array2D<double> &elast_matrix,
-    il::Array2D<double> &fetc_dds, il::Array2D<double> &fetc_dd,
-    il::Array2D<double> &fetc_press, Solution &SolutionAtTn,
-    il::Array<double> &tau_old, il::Array<double> &sigmaN_old,
-    il::Array<double> &shearDD_old, il::Array<double> &openingDD_old,
-    il::Array<double> &press_old, il::Array<double> &incrm_shearDD,
-    il::Array<double> &incrm_openingDD,
-    SimulationParameters &SimulationParameters,
-    FluidProperties &FluidProperties, SolidEvolution &SolidEvolution,
-    FractureEvolution &FractureEvolution, Sources &Source,
-    il::Array<int> &dof_active_elmnts, il::Status &status, il::Norm &norm) {
-
+Solution reynoldsP1(Mesh &theMesh, il::Array2D<double> &elast_matrix,
+                    il::Array2D<double> &fetc_dds, il::Array2D<double> &fetc_dd,
+                    il::Array2D<double> &fetc_press, Solution &SolutionAtTn,
+                    il::Array<double> &tau_old, il::Array<double> &sigmaN_old,
+                    il::Array<double> &shearDD_old,
+                    il::Array<double> &openingDD_old,
+                    il::Array<double> &press_old,
+                    il::Array<double> &incrm_shearDD,
+                    il::Array<double> &incrm_openingDD,
+                    SimulationParameters &SimulationParameters,
+                    FluidProperties &FluidProperties,
+                    SolidEvolution &SolidEvolution,
+                    FractureEvolution &FractureEvolution, Sources &Source,
+                    il::Array<int> &dof_active_elmnts, il::Status &status,
+                    il::Norm &norm, bool damping_term, double damping_coeff) {
   //// IMPLICIT SOLUTION OF THE COUPLED PROBLEM ////
   // Initialization of the system BigA*BigX = BigB
   il::Array2D<double> BigA{dof_active_elmnts.size() + theMesh.numberOfNodes(),
@@ -48,6 +50,13 @@ Solution reynoldsP1(
     for (il::int_t i = 0; i < elast_submatrix.size(1); ++i) {
       elast_submatrix(m, i) =
           elast_matrix(dof_active_elmnts[m], dof_active_elmnts[i]);
+    }
+  }
+
+  if (damping_term == true) {
+    for (il::int_t i = 0; i < elast_submatrix.size(0); ++i) {
+      elast_submatrix(i, i) =
+          elast_submatrix(i, i) - (damping_coeff / SolutionAtTn.timestep());
     }
   }
 
@@ -294,6 +303,13 @@ Solution reynoldsP1(
     }
   }
 
+  if (damping_term == true) {
+    for (il::int_t i = 0; i < elast_matrix_shear.size(0); ++i) {
+      elast_matrix_shear(i, i) =
+          elast_matrix_shear(i, i) - (damping_coeff / SolutionAtTn.timestep());
+    }
+  }
+
   il::Array2D<double> elast_matrix_sigmaN{2 * theMesh.numberOfElts(),
                                           2 * theMesh.numberOfElts(), 0.};
   for (il::int_t m1 = 0, n1 = 1; m1 < elast_matrix_sigmaN.size(0);
@@ -320,7 +336,7 @@ Solution reynoldsP1(
   }
 
   // Force M-C criterion
-  for (il::int_t j3 = 0; j3 < dof_active_elmnts.size(); j3=j3+2) {
+  for (il::int_t j3 = 0; j3 < dof_active_elmnts.size(); j3 = j3 + 2) {
     tau_new[dof_active_elmnts[j3] / 2] =
         fric_coeff_k[dof_active_elmnts[j3] / 2] *
         (SolutionAtTn.sigmaN(dof_active_elmnts[j3] / 2) -
@@ -354,11 +370,10 @@ Solution reynoldsP1(
   // New friction coefficient
   SolidEvolution.setFrictionCoefficient(fric_coeff_k);
 
-  return hfp2d::Solution(theMesh, SolutionAtTn.time(),
-                         SolutionAtTn.timestep(), openingDD_new, shearDD_new,
-                         pore_press_new, sigmaN_new, tau_new,
-                         SolutionAtTn.activeElts(), SolutionAtTn.frontIts(),
-                         SolutionAtTn.ehlIts(), SolutionAtTn.errFront(),
-                         err_openingDD, err_shearDD, err_press);
+  return hfp2d::Solution(
+      theMesh, SolutionAtTn.time(), SolutionAtTn.timestep(), openingDD_new,
+      shearDD_new, pore_press_new, sigmaN_new, tau_new,
+      SolutionAtTn.activeElts(), SolutionAtTn.frontIts(), SolutionAtTn.ehlIts(),
+      SolutionAtTn.errFront(), err_openingDD, err_shearDD, err_press);
 };
 }
