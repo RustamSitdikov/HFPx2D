@@ -11,7 +11,7 @@
 #include <iostream>
 
 // Inclusion from the project
-#include "src/Solvers/FluidInjFrictWeakDilatFault.h"
+#include "src/solvers/FluidInjFrictWeakDilatFault.h"
 
 //////////////////////// Numerical code /////////////////////////////////
 
