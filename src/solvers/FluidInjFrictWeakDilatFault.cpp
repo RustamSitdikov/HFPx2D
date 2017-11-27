@@ -116,6 +116,7 @@ void fluidInjFrictWeakDilatFault(int argc, char const *argv[]) {
   double err_opening_dd = 2.;
   double err_shear_dd = 2.;
   double err_press = 2.;
+  bool expl_impl = true;
   il::int_t init_iter_front_position = 0;
   il::int_t init_iter_ehls = 0;
 
@@ -206,7 +207,7 @@ void fluidInjFrictWeakDilatFault(int argc, char const *argv[]) {
     SolutionAtTn = fractFrontPosition(
         kmat, from_edge_to_coll_dds, from_edge_to_coll_dd,
         from_edge_to_coll_press, MyMesh, FluidProperties, SimulationParameters,
-        SolidEvolution, FractureEvolution, Source, SolutionAtTn);
+        SolidEvolution, FractureEvolution, Source, SolutionAtTn, expl_impl);
 
     if (SolutionAtTn.activeElts().size() == 0) {
       slipp_length = 0.;
@@ -220,8 +221,8 @@ void fluidInjFrictWeakDilatFault(int argc, char const *argv[]) {
     }
 
     filename = path_output_directory.asCString() +
-               std::string{"/Solution_at_time_"} +
-               std::to_string(SolutionAtTn.time()) + std::string{".json"};
+               std::string{"/Solution_at_time_"} + std::to_string(t) +
+               std::string{".json"};
     SolutionAtTn.writeToFile(filename);
 
     t = t + SolutionAtTn.timestep();
@@ -229,15 +230,13 @@ void fluidInjFrictWeakDilatFault(int argc, char const *argv[]) {
 };
 
 ///////// FUNCTION FOR FRACTURE FRONT POSITION //////////
-Solution fractFrontPosition(il::Array2D<double> &elast_matrix,
-                            il::Array2D<double> &fetc_dds,
-                            il::Array2D<double> &fetc_dd,
-                            il::Array2D<double> &fetc_press, Mesh &theMesh,
-                            FluidProperties &FluidProperties,
-                            SimulationParameters &SimulationParameters,
-                            SolidEvolution &SolidEvolution,
-                            FractureEvolution &FractureEvolution,
-                            Sources &Source, Solution &SolutionAtTn) {
+Solution fractFrontPosition(
+    il::Array2D<double> &elast_matrix, il::Array2D<double> &fetc_dds,
+    il::Array2D<double> &fetc_dd, il::Array2D<double> &fetc_press,
+    Mesh &theMesh, FluidProperties &FluidProperties,
+    SimulationParameters &SimulationParameters, SolidEvolution &SolidEvolution,
+    FractureEvolution &FractureEvolution, Sources &Source,
+    Solution &SolutionAtTn, bool expl_impl) {
   // TODO: insert il_io in the input!
 
   // Initialization of fracture front loop
@@ -320,6 +319,10 @@ Solution fractFrontPosition(il::Array2D<double> &elast_matrix,
 
       std::sort(old_active_set_elements.begin(), old_active_set_elements.end());
       SolutionAtTn.setActiveElts(old_active_set_elements);
+    }
+
+    if (expl_impl == true) {
+      cvg_front_posit = 1;
     }
 
     ++iter_front_posit;

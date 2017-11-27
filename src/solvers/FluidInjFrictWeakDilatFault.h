@@ -32,7 +32,7 @@ Solution fractFrontPosition(il::Array2D<double> &elast_matrix,
                         SimulationParameters &SimulationParameters,
                         SolidEvolution &SolidEvolution,
                         FractureEvolution &FractureEvolution, Sources &Source,
-                        Solution &SolutionAtTn);
+                        Solution &SolutionAtTn, bool expl_impl);
 }
 
 #endif  // HFPX2D_FLUIDINJFRICTWEAKDILATFAULT_H
