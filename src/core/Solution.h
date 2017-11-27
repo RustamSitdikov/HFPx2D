@@ -22,7 +22,6 @@
 #include <src/core_dev/SolidEvolution.h>
 #include <src/util/json.hpp>
 
-
 namespace hfp2d {
 
 class Solution {
@@ -308,7 +307,6 @@ class Solution {
   using json = nlohmann::json;
 
   int writeToFile(std::string &filename) {
-
     // we output the mesh
     json json_coord = json::array();
     for (il::int_t m = 0; m < currentmesh_.coordinates().size(0); ++m) {
@@ -363,6 +361,11 @@ class Solution {
       json_normal_stress[m] = sigma_n_[m];
     }
 
+    json json_active_set_elmts = json::array();
+    for (il::int_t m = 0; m < active_set_elements_.size(); ++m) {
+      json_active_set_elmts[m] = active_set_elements_[m];
+    }
+
     // tips
     json json_tip_pos = json::array();
     json json_tip_vel = json::array();
@@ -401,7 +404,8 @@ class Solution {
                   {"Opening DD", json_openingDD},
                   {"Fluid Pressure", json_pressure},
                   {"Shear traction", json_shear_stress},
-                  {"Normal traction", json_normal_stress}};
+                  {"Normal traction", json_normal_stress},
+                  {"Active set elements", json_active_set_elmts}};
 
     // write prettified JSON to file
     std::ofstream output(filename);

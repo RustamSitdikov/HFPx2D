@@ -69,8 +69,8 @@ void fluidInjFrictWeakDilatFault(int argc, char const *argv[]) {
   double alpha = 10;
   double Dp = 0.5;
   double t_0plus = 0.00003;
-  double init_dt = 0.00003;
-  double time_max = 0.001;
+  double init_dt = 1.47e-5;
+  double time_max = 0.0015;
   il::Array<double> press_init_nodes{MyMesh.numberOfNodes(), 0};
   for (il::int_t j = 0; j < press_init_nodes.size(); ++j) {
     press_init_nodes[j] =
@@ -117,7 +117,7 @@ void fluidInjFrictWeakDilatFault(int argc, char const *argv[]) {
   double err_shear_dd = 2.;
   double err_press = 2.;
   bool expl_impl = false;  // Set true for explicit/implicit integration scheme
-  bool damping_term = false; // Set true for QD simulation
+  bool damping_term = false;  // Set true for QD simulation
   double shear_modulus = 1.;
   double shear_wave_vel = 1.;
   double damping_coeff = shear_modulus / (2 * shear_wave_vel);

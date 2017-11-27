@@ -30,7 +30,8 @@ Solution fractFrontPosition(
     Mesh &theMesh, FluidProperties &FluidProperties,
     SimulationParameters &SimulationParameters, SolidEvolution &SolidEvolution,
     FractureEvolution &FractureEvolution, Sources &Source,
-    Solution &SolutionAtTn, bool expl_impl, bool damping_term);
+    Solution &SolutionAtTn, bool expl_impl, bool damping_term,
+    double damping_coeff);
 }
 
 #endif  // HFPX2D_FLUIDINJFRICTWEAKDILATFAULT_H
