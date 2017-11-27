@@ -32,6 +32,7 @@ Solution reynoldsP1(
     FluidProperties &FluidProperties, SolidEvolution &SolidEvolution,
     FractureEvolution &FractureEvolution, Sources &Source,
     il::Array<int> &dof_active_elmnts, il::Status &status, il::Norm &norm) {
+
   //// IMPLICIT SOLUTION OF THE COUPLED PROBLEM ////
   // Initialization of the system BigA*BigX = BigB
   il::Array2D<double> BigA{dof_active_elmnts.size() + theMesh.numberOfNodes(),
@@ -353,7 +354,7 @@ Solution reynoldsP1(
   // New friction coefficient
   SolidEvolution.setFrictionCoefficient(fric_coeff_k);
 
-  return hfp2d::Solution(theMesh, SolutionAtTn.time() + SolutionAtTn.timestep(),
+  return hfp2d::Solution(theMesh, SolutionAtTn.time(),
                          SolutionAtTn.timestep(), openingDD_new, shearDD_new,
                          pore_press_new, sigmaN_new, tau_new,
                          SolutionAtTn.activeElts(), SolutionAtTn.frontIts(),

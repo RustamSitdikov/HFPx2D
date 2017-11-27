@@ -193,14 +193,15 @@ void fluidInjFrictWeakDilatFault(int argc, char const *argv[]) {
 
   /// Loop in time
   std::string filename;
-  while (SolutionAtTn.time() <= time_max &&
+  double t = SolutionAtTn.time();
+  while (t <= time_max &&
          slipp_length <= euclidean_distance(
                              MyMesh.coordinates(0, 0), 0,
                              MyMesh.coordinates(MyMesh.numberOfNodes() - 1, 0),
                              0) &&
          SolutionAtTn.frontIts() <= SimulationParameters.frac_front_max_its) {
     std::cout << "******** Current time ******* "
-              << "t = " << SolutionAtTn.time() << "\n";
+              << "t = " << t << "\n";
 
     SolutionAtTn = fractFrontPosition(
         kmat, from_edge_to_coll_dds, from_edge_to_coll_dd,
@@ -218,9 +219,12 @@ void fluidInjFrictWeakDilatFault(int argc, char const *argv[]) {
           0);
     }
 
-    filename = std::string{"/Users/federicociardo/Desktop/Solution_at_time_"} +
+    filename = path_output_directory.asCString() +
+               std::string{"/Solution_at_time_"} +
                std::to_string(SolutionAtTn.time()) + std::string{".json"};
     SolutionAtTn.writeToFile(filename);
+
+    t = t + SolutionAtTn.timestep();
   }
 };
 
