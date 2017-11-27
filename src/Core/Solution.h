@@ -10,6 +10,9 @@
 #ifndef HFPX2DUNITTEST_SOLUTIONATT_H
 #define HFPX2DUNITTEST_SOLUTIONATT_H
 
+// Inclusion from standard library
+#include <fstream>
+
 // Inclusion from Inside Loop library
 #include <il/Array.h>
 
@@ -17,6 +20,8 @@
 #include <src/Core/Mesh.h>
 #include <src/Core/Utilities.h>
 #include <src/Core_dev/SolidEvolution.h>
+#include <json.hpp>
+
 
 namespace hfp2d {
 
@@ -264,13 +269,6 @@ class Solution {
       }
     }
 
-//    for (il::int_t m = 0; m < SolutionAtTn.tau().size(); ++m) {
-//      std::cout << SolutionAtTn.tau(m) -
-//                       SolidEvolution.getFricCoeff(m) *
-//                           (SolutionAtTn.sigmaN(m) - press_coll[m])
-//                << std::endl;
-//    }
-
     // Get active set of elements
     il::Array2D<int> dof_single_dd{theMesh.numberOfElts(),
                                    (theMesh.interpolationOrder() + 1), 0};
@@ -305,7 +303,112 @@ class Solution {
     return active_set_elements;
   };
 
-  // TODO: write solution to file  -> json format
+  /// write solution to file  -> json format
+  // for convenience
+  using json = nlohmann::json;
+
+  int writeToFile(std::string &filename) {
+
+    // we output the mesh
+    json json_coord = json::array();
+    for (il::int_t m = 0; m < currentmesh_.coordinates().size(0); ++m) {
+      json_coord[m] = {currentmesh_.coordinates(m, 0),
+                       currentmesh_.coordinates(m, 1)};
+    }
+
+    //  connectivity, and dofs array
+    json json_connectivity = json::array();
+    json json_dof_handle_dd = json::array();
+    json json_dof_handle_pres = json::array();
+
+    for (il::int_t m = 0; m < currentmesh_.numberOfElts(); ++m) {
+      json_connectivity[m] = {currentmesh_.connectivity(m, 0),
+                              currentmesh_.connectivity(m, 1)};
+      if (currentmesh_.interpolationOrder() == 0) {
+        json_dof_handle_dd[m] = {currentmesh_.dofDD(m, 0),
+                                 currentmesh_.dofDD(m, 1)};
+        json_dof_handle_pres[m] = currentmesh_.dofPress(m, 0);
+      } else if (currentmesh_.interpolationOrder() == 1) {
+        json_dof_handle_dd[m] = {
+            currentmesh_.dofDD(m, 0), currentmesh_.dofDD(m, 1),
+            currentmesh_.dofDD(m, 2), currentmesh_.dofDD(m, 3)};
+        json_dof_handle_pres[m] = {currentmesh_.dofPress(m, 0),
+                                   currentmesh_.dofPress(m, 1)};
+      }
+    }
+
+    // note all the loop below should be collapsed into 1
+    json json_shearDD = json::array();
+    for (il::int_t m = 0; m < shearDD_.size(); ++m) {
+      json_shearDD[m] = shearDD_[m];
+    }
+
+    json json_openingDD = json::array();
+    for (il::int_t m = 0; m < openingDD_.size(); ++m) {
+      json_openingDD[m] = openingDD_[m];
+    }
+
+    json json_pressure = json::array();
+    for (il::int_t m = 0; m < pressure_.size(); ++m) {
+      json_pressure[m] = pressure_[m];
+    }
+
+    json json_shear_stress = json::array();
+    for (il::int_t m = 0; m < tau_.size(); ++m) {
+      json_shear_stress[m] = tau_[m];
+    }
+
+    json json_normal_stress = json::array();
+    for (il::int_t m = 0; m < sigma_n_.size(); ++m) {
+      json_normal_stress[m] = sigma_n_[m];
+    }
+
+    // tips
+    json json_tip_pos = json::array();
+    json json_tip_vel = json::array();
+    json json_ribbon_s = json::array();
+    json json_tip_elt = json::array();
+
+    for (il::int_t m = 0; m < tips_velocity_.size(); ++m) {
+      json_tip_pos[m] = {tipsLocation_(m, 0), tipsLocation_(m, 1)};
+      json_tip_vel[m] = tips_velocity_[m];
+      json_ribbon_s[m] = ribbon_tips_s_[m];
+      json_tip_elt[m] = currentmesh_.tipElts(m);
+    }
+
+    json j_mesh = {{"Interpolation order", currentmesh_.interpolationOrder()},
+                   {"Node Coordinates", json_coord},
+                   {"Connectivity", json_connectivity},
+                   {"Dof handle DD", json_dof_handle_dd},
+                   {"Dof handle P", json_dof_handle_pres}};
+
+    json j_tips = {{"Tip coordinates", json_tip_pos},
+                   {"Tip velocity", json_tip_vel},
+                   {"Ribbon-tip distance", json_ribbon_s},
+                   {"Tip elts", json_tip_elt}};
+
+    json j_obj = {{"Time", time_},
+                  {"Time step", timestep_},
+                  {"Its frac. front ", frontIts_},
+                  {"Error Fracture front", err_front_},
+                  {"Its EHL", ehlIts_},
+                  {"Error EHL pressure", err_P_},
+                  {"Error EHL opening", err_openingDD_},
+                  {"Error EHL opening", err_shearDD_},
+                  {"Mesh", j_mesh},
+                  {"Tips", j_tips},
+                  {"Shear DD", json_shearDD},
+                  {"Opening DD", json_openingDD},
+                  {"Fluid Pressure", json_pressure},
+                  {"Shear traction", json_shear_stress},
+                  {"Normal traction", json_normal_stress}};
+
+    // write prettified JSON to file
+    std::ofstream output(filename);
+    output << std::setw(4) << j_obj << std::endl;
+
+    return 0;
+  };
 
   // TODO: read from file for restart
 };

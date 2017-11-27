@@ -147,7 +147,7 @@ class Mesh {  // class for 1D mesh of 1D segment elements ?
 
   // get Tip elts
   inline il::Array<il::int_t> tipElts() const { return tipelts_; };
-  inline il::int_t tip_elts(il::int_t k) const { return tipelts_[k]; };
+  inline il::int_t tipElts(il::int_t k) const { return tipelts_[k]; };
 
   // material ID related
   inline il::Array<int> matid() const { return material_id_; };
