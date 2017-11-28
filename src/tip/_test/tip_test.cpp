@@ -49,8 +49,8 @@ TEST(tip_inversion_2, t1) {
 
   tipPar.k1c = 2.E6;
   tipPar.e_p = 3.2E10;
-  tipPar.cl = 3.0E-5;
-  tipPar.mu = 1.0e-8;
+  tipPar.cl = 0.;
+  tipPar.mu = 0.01e-10;
 
   tipPar.s0 = 0.5;
   tipPar.vt = 0.0;
@@ -67,7 +67,6 @@ TEST(tip_inversion_2, t1) {
 
   ASSERT_NEAR(mys, tipPar.st, 0.001);
 
-  //ASSERT_NEAR(0.0, rm, 0.001);
-}
+ }
 
 // todo :: write test for inversion of the m-asymptote

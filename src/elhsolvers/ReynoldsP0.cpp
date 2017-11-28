@@ -37,12 +37,14 @@ il::Array<double> EdgeConductivitiesP0Newtonian(
   il::Array<double> Cond{edgeAdj.size(0), 0};
   // loop on the inner edges
 
-  // harmonic mean   2*w_l^3*w_r^3/(w_l^3 + w_r^3)
+
   for (il::int_t i = 0; i < edgeAdj.size(0); i++) {
+  // harmonic mean   2*w_l^3*w_r^3/(w_l^3 + w_r^3)
     cl = pow(hydraulic_width[edgeAdj(i, 0)], 3.);
     cr = pow(hydraulic_width[edgeAdj(i, 1)], 3.);
     Cond[i] = poiseuille_ct * 2. * (cr * cl) / (cr + cl);
 
+    // arithmetic mean
 //    cl = hydraulic_width[edgeAdj(i, 0)];
 //    cr=hydraulic_width[edgeAdj(i, 1)];
 //    Cond[i] = poiseuille_ct * pow((cl+cr)*0.5,3.);
@@ -222,10 +224,10 @@ Solution ReynoldsSolverP0(
   il::Array<double> Residuals{tot_dofs, 1.};
 
   double res_norm = 0.;
-
   double betarela = simulParams.ehl_relaxation;
   il::int_t k = 0;
 
+  // case where width are imposed in tip regions
   il::int_t neq = tot_dofs - tip_width.size();
   il::Array2D<double> Xi_aux{neq,neq};
   il::Array<double> G_aux{neq};

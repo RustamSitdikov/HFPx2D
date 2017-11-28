@@ -73,7 +73,7 @@ double SimpleGriffithExampleLinearElement(int nelts) {
 
   il::int_t ndof = mesh.numberDDDofs();
 
-  hfp2d::ElasticProperties myelas(1, 0.);
+  hfp2d::ElasticProperties myelas(1, 0.3);
 
 
   il::Array2D<double> K = hfp2d::basic_assembly(mesh, myelas,
@@ -105,7 +105,7 @@ double SimpleGriffithExampleLinearElement(int nelts) {
     i = i + 2;
   }
 
-  wsol = griffithcrack(thex, 1., 1., 1.);  // call to analytical solution
+  wsol = griffithcrack(thex, 1., myelas.Ep(), 1.);  // call to analytical solution
 
   // printing out the comparisons for each nodes (left and right values at each
   // nodes due to the piece-wise constant nature of the solution)...
@@ -247,7 +247,7 @@ double SimpleGriffithExampleS3D_P0(int nelts) {
   // create mesh object
   hfp2d::Mesh mesh( xy,myconn,p);
 
-  hfp2d::ElasticProperties myelas(1, 0.);
+  hfp2d::ElasticProperties myelas(1, 0.3);
 
   il::Array2D<double> K = hfp2d::basic_assembly(mesh, myelas,
                                                 hfp2d::normal_shear_stress_kernel_s3d_dp0_dd,
@@ -276,7 +276,7 @@ double SimpleGriffithExampleS3D_P0(int nelts) {
     thex[e] = sege.Xmid(0);
   }
 
-  wsol = griffithcrack(thex, 1., 1., 1.);  // call to analytical solution
+  wsol = griffithcrack(thex, 1., myelas.Ep(), 1.);  // call to analytical solution
 
   // printing out the comparisons for each nodes (left and right values at each
   // nodes due to the piece-wise constant nature of the solution)...
@@ -321,7 +321,7 @@ double SimpleGriffithExampleS3D_P0_AddMesh(int nelts) {
   // create mesh object
   hfp2d::Mesh mesh( xy,myconn,p);
 
-  hfp2d::ElasticProperties myelas(1, 0.);
+  hfp2d::ElasticProperties myelas(1, 0.3);
 
   il::Array2D<double> K = hfp2d::basic_assembly(mesh, myelas,
                                                 hfp2d::normal_shear_stress_kernel_s3d_dp0_dd,
@@ -361,7 +361,7 @@ double SimpleGriffithExampleS3D_P0_AddMesh(int nelts) {
     thex[e] = sege.Xmid(0);
   }
 
-  wsol = griffithcrack(thex, 2., 1., 1.);  // call to analytical solution
+  wsol = griffithcrack(thex, 2., myelas.Ep(), 1.);  // call to analytical solution
 
   // printing out the comparisons for each nodes (left and right values at each
   // nodes due to the piece-wise constant nature of the solution)...

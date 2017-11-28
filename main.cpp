@@ -125,7 +125,7 @@ int main(){
 //  std::cout << "\n\n ----- Simple Griffith crack examples ----- \n\n" << std::endl;
 
   int nelts = 11;
-  double dist= 1e4;
+  double dist= 1e8;
 //
 //
   int ret = hfp2d::TwoParallelHFs(nelts,dist);
