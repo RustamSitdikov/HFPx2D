@@ -198,22 +198,22 @@ class Mesh {  // class for 1D mesh of 1D segment elements ?
   //        get functions  - i.e. public interfaces
   //////////////////////////////////////////////////////////////////////////
 
-  il::int_t numberOfElts() const { return connectivity_.size(0); };
+  inline il::int_t numberOfElts() const { return connectivity_.size(0); };
 
-  il::int_t numberOfNodes() const { return coordinates_.size(0); };
+  inline il::int_t numberOfNodes() const { return coordinates_.size(0); };
 
   // nodal coordinates related.
-  il::Array2D<double> coordinates() const { return coordinates_; };
+  inline il::Array2D<double> coordinates() const { return coordinates_; };
   // Read a particular element of the coordinates coordinates
-  double coordinates(il::int_t k, il::int_t i) const {
+  inline double coordinates(il::int_t k, il::int_t i) const {
     return coordinates_(k, i);
   }
   // Read the X coordinate of a coordinates
-  double X(il::int_t k) const { return coordinates_(k, 0); }
+  inline double X(il::int_t k) const { return coordinates_(k, 0); }
   // Read the Y coordinate of a coordinates
-  double Y(il::int_t k) const { return coordinates_(k, 1); }
+  inline  double Y(il::int_t k) const { return coordinates_(k, 1); }
 
-  il::StaticArray<double, 2> coordinates(il::int_t k) const {
+  inline il::StaticArray<double, 2> coordinates(il::int_t k) const {
     il::StaticArray<double, 2> temp;
     temp[0] = coordinates_(k, 0);
     temp[1] = coordinates_(k, 1);
@@ -221,9 +221,9 @@ class Mesh {  // class for 1D mesh of 1D segment elements ?
   };
 
   // connectivity related
-  il::Array2D<il::int_t> connectivity() const { return connectivity_; };
+  inline il::Array2D<il::int_t> connectivity() const { return connectivity_; };
   // get the connectivity of an element -> A StaticArray of size 2 here !
-  il::StaticArray<il::int_t, 2> connectivity(il::int_t k) const {
+  inline il::StaticArray<il::int_t, 2> connectivity(il::int_t k) const {
     il::StaticArray<il::int_t, 2> temp;
     for (il::int_t i = 0; i < connectivity_.size(1); i++) {
       temp[i] = connectivity_(k, i);
@@ -232,20 +232,20 @@ class Mesh {  // class for 1D mesh of 1D segment elements ?
   };
 
   //
-  il::int_t connectivity(il::int_t e, il::int_t i) const {
+  inline il::int_t connectivity(il::int_t e, il::int_t i) const {
     // element e, local coordinates i - return global nodes
     return connectivity_(e, i);
   }
 
   // nodal connectivity related
-  il::Array2D<il::int_t> nodeEltConnectivity() const {
+  inline il::Array2D<il::int_t> nodeEltConnectivity() const {
     return node_adj_elt_;
   };
   il::int_t nodeEltConnectivity(il::int_t k, il::int_t l) const {
     return node_adj_elt_(k, l);
   };
 
-  il::Array<il::int_t> nodeEltConnectivity(il::int_t k) const {
+  inline il::Array<il::int_t> nodeEltConnectivity(il::int_t k) const {
     il::Array<il::int_t> temp(node_adj_elt_.size(1));
     for (il::int_t i = 0; i < node_adj_elt_.size(1); i++) {
       temp[i] = node_adj_elt_(k, i);
@@ -254,30 +254,30 @@ class Mesh {  // class for 1D mesh of 1D segment elements ?
   };
 
   // get tip nodes
-  il::Array<il::int_t> tipNodes() const { return tipnodes_; };
-  il::int_t tipNodes(il::int_t k) const { return tipnodes_[k]; };
+  inline il::Array<il::int_t> tipNodes() const { return tipnodes_; };
+  inline il::int_t tipNodes(il::int_t k) const { return tipnodes_[k]; };
 
   // get tip elts
-  il::Array<il::int_t> tipElts() const { return tipelts_; };
-  il::int_t tipElts(il::int_t k) const { return tipelts_[k]; };
+  inline il::Array<il::int_t> tipElts() const { return tipelts_; };
+  inline il::int_t tipElts(il::int_t k) const { return tipelts_[k]; };
 
   // material ID related
-  il::Array<il::int_t> matid() const { return material_id_; };
-  il::int_t matid(il::int_t k) const { return material_id_[k]; }
+  inline il::Array<il::int_t> matid() const { return material_id_; };
+  inline il::int_t matid(il::int_t k) const { return material_id_[k]; }
 
-  il::int_t numberOfMaterials() const {
+  inline il::int_t numberOfMaterials() const {
     return (*std::max_element(material_id_.begin(), material_id_.end()) + 1);
   }
 
   // interpolation order
-  il::int_t interpolationOrder() const { return interpolation_order_; }
+  inline il::int_t interpolationOrder() const { return interpolation_order_; }
 
   // dofs related.....
-  il::int_t numberDDDofsPerElt() const { return dof_handle_dd_.size(1); }
+  inline il::int_t numberDDDofsPerElt() const { return dof_handle_dd_.size(1); }
 
-  il::int_t numberPressDofsPerElt() const { return dof_handle_pressure_.size(1); }
+  inline il::int_t numberPressDofsPerElt() const { return dof_handle_pressure_.size(1); }
 
-  il::int_t numberPressDofs(){
+  inline il::int_t numberPressDofs(){
     il::int_t aux;
     switch (interpolation_order_) {
       case 0: {
@@ -289,16 +289,16 @@ class Mesh {  // class for 1D mesh of 1D segment elements ?
     return aux ;
   }
 
-  il::int_t numberDDDofs() const {
+  inline il::int_t numberDDDofs() const {
     return (numberOfElts() * (interpolation_order_ + 1) * 2);
   }
 
-  il::int_t dofPress(il::int_t k, il::int_t i) const {
+  inline il::int_t dofPress(il::int_t k, il::int_t i) const {
     // coordinates k, dof i -> return global equation iD
     return dof_handle_pressure_(k, i);
   }
 
-  il::int_t dofDD(il::int_t k, il::int_t i) const {
+  inline il::int_t dofDD(il::int_t k, il::int_t i) const {
     // coordinates k, dof i -> return global equation iD
     return dof_handle_dd_(k, i);  // element , dof dim.
   }

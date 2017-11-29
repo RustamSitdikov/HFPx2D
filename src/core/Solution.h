@@ -158,55 +158,55 @@ class Solution {
   };
 
   // some set functions
-  void setRibbonDistances(const il::Array<double> &srt) {
+ inline void setRibbonDistances(const il::Array<double> &srt) {
     ribbon_tips_s_ = srt;
   };
 
-  void setTipsLocation(const il::Array2D<double> &tips_xy) {
+ inline void setTipsLocation(const il::Array2D<double> &tips_xy) {
     tipsLocation_ = tips_xy;
   };
 
-  void setErrorFront(const double errF) { err_front_ = errF; };
+  inline void setErrorFront(const double errF) { err_front_ = errF; };
 
-  void setItsFront(const il::int_t its) { frontIts_ = its; };
+  inline void setItsFront(const il::int_t its) { frontIts_ = its; };
 
-  void setTipsVelocity(const il::Array<double> &tips_vel) {
+  inline void setTipsVelocity(const il::Array<double> &tips_vel) {
     tips_velocity_ = tips_vel;
   };
 
-  void setTimeStep(const double dt) { timestep_ = dt; };
+  inline void setTimeStep(const double dt) { timestep_ = dt; };
 
-  void setActiveElts(const il::Array<il::int_t> &act_set_elmnts) {
+  inline void setActiveElts(const il::Array<il::int_t> &act_set_elmnts) {
     active_set_elements_ = act_set_elmnts;
   }
 
   /////////////////////////////////////////////////////////////////////////////
   // get functions
 
-  il::Array<double> openingDD() const { return openingDD_; };
-  il::Array<double> shearDD() const { return shearDD_; };
-  il::Array<double> pressure() const { return pressure_; };
-  il::Array<double> sigma0() const { return sigma_n_; };
-  il::Array<double> tau0() const { return tau_; };
+  inline il::Array<double> openingDD() const { return openingDD_; };
+  inline il::Array<double> shearDD() const { return shearDD_; };
+  inline il::Array<double> pressure() const { return pressure_; };
+  inline il::Array<double> sigma0() const { return sigma_n_; };
+  inline il::Array<double> tau0() const { return tau_; };
 
-  il::Array<il::int_t> activeElts() const { return active_set_elements_; };
+  inline il::Array<il::int_t> activeElts() const { return active_set_elements_; };
 
-  il::Array2D<double> tipsLocation() const { return tipsLocation_; };
-  il::Array<double> ribbonsDistance() const { return ribbon_tips_s_; };
-  il::Array<double> tipsVelocity() const { return tips_velocity_; };
+  inline il::Array2D<double> tipsLocation() const { return tipsLocation_; };
+  inline il::Array<double> ribbonsDistance() const { return ribbon_tips_s_; };
+  inline il::Array<double> tipsVelocity() const { return tips_velocity_; };
 
-  hfp2d::Mesh currentMesh() const { return currentmesh_; };
+  inline hfp2d::Mesh currentMesh() const { return currentmesh_; };
 
-  double time() const { return time_; };
-  double timestep() const { return timestep_; }
+  inline double time() const { return time_; };
+  inline double timestep() const { return timestep_; }
 
-  double errFront() const { return err_front_; }
-  double errOpening() const { return err_openingDD_; }
-  double errShear() const { return err_shearDD_; }
-  double errPressure() const { return err_P_; }
+  inline double errFront() const { return err_front_; }
+  inline double errOpening() const { return err_openingDD_; }
+  inline double errShear() const { return err_shearDD_; }
+  inline double errPressure() const { return err_P_; }
 
-  il::int_t frontIts() const { return frontIts_; }
-  il::int_t ehlIts() const { return ehlIts_; }
+  inline il::int_t frontIts() const { return frontIts_; }
+  inline il::int_t ehlIts() const { return ehlIts_; }
 
   //////////////////////////////////////////////////////////////////////////////
 

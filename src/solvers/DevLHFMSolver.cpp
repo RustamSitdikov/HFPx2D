@@ -229,8 +229,6 @@ int TwoParallelHFs(int nelts, double dist) {
       filename = dir + basefilename + std::to_string(jt) + ".json";
       Soln.writeToFile(filename);
 
-      //
-
       mean_tip_v = il::norm(Soln.tipsVelocity(), il::Norm::L2);
       if ( (mean_tip_v > 0.0) ) { //&& (Soln.tipsLocation()(1,0)>1.5)
         double dt_new = 1.25  * h / mean_tip_v;
@@ -367,6 +365,7 @@ hfp2d::Solution FractureFrontLoop(
 
   while (((errorF > simulParams.frac_front_tolerance)) &&
          (k < simulParams.frac_front_max_its)) {
+
     k++;
 
     // solution of ELH at fixed fracture front

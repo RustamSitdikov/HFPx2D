@@ -24,6 +24,7 @@ void setSubMatrix(il::Array2D<double> &A, int i0, int i1,
 //   Rotation Matrix
 il::StaticArray2D<double, 2, 2> rotationMatrix2D(double theta);
 
+
 }
 
 #endif //HFPX2D_MATRIX_UTILITIES_H
