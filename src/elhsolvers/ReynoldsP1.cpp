@@ -16,6 +16,7 @@
 
 // Inclusion from the project
 #include <src/devt/FiniteVolumeRoutines.h>
+#include <src/devt/IterativeSolvers.h>
 #include <src/elhsolvers/ReynoldsP1.h>
 
 namespace hfp2d {
@@ -93,6 +94,8 @@ Solution reynoldsP1(
   double err_openingDD = 2.;
   double err_press = 2.;
   il::Array<double> BigX{BigA.size(0), 0};
+//  il::Array<double> Try{BigA.size(0), 0};
+//  il::Array<double> TryInitSolution{BigA.size(0), 0};
   il::Array<double> incrm_shearDD_k{2 * theMesh.numberOfElts(), 0.};
   il::Array<double> incrm_shearDD_k_old{2 * theMesh.numberOfElts(), 0.};
   il::Array<double> diff_incrm_shearDD_k{2 * theMesh.numberOfElts(), 0.};
@@ -194,9 +197,9 @@ Solution reynoldsP1(
       BigA(dof_active_elmnts.size() + Source.getSourcePoint(), k1) = 0;
     }
 
-//    for (il::int_t l1 = 0; l1 < BigA.size(0); ++l1) {
-//      BigA(l1, dof_active_elmnts.size() + Source.getSourcePoint()) = 0;
-//    }
+    //    for (il::int_t l1 = 0; l1 < BigA.size(0); ++l1) {
+    //      BigA(l1, dof_active_elmnts.size() + Source.getSourcePoint()) = 0;
+    //    }
 
     BigA(dof_active_elmnts.size() + Source.getSourcePoint(),
          dof_active_elmnts.size() + Source.getSourcePoint()) = 1;
@@ -207,6 +210,15 @@ Solution reynoldsP1(
 
     BigX = il::linearSolve(BigA, BigB, il::io, status);
     status.abortOnError();
+
+//    for (il::int_t l = 0; l < dof_active_elmnts.size(); ++l) {
+//      TryInitSolution[l] = shearDD_k[dof_active_elmnts[l] / 2];
+//    }
+//    for (il::int_t l1 = 0; l1 < theMesh.numberOfNodes(); ++l1) {
+//      TryInitSolution[dof_active_elmnts.size() + l1] = press_old[l1];
+//    }
+//    Try = hfp2d::jacobiIterativeSolver(BigA, BigB, TryInitSolution, theMesh, 1,100);
+//    Try = hfp2d::gaussSeidelIterativeSolver(BigA, BigB, TryInitSolution, theMesh, 1,100);
 
     ///  Under relaxation technique & updating ///
 
@@ -273,9 +285,9 @@ Solution reynoldsP1(
           (il::norm(diff_incrm_press_k, norm) / il::norm(incrm_press_k, norm));
     }
 
-//    std::cout << "error on shearDD : " << err_shearDD
-//              << "  error on openingDD: " << err_openingDD
-//              << "  error on pressure: " << err_press << "\n";
+    //    std::cout << "error on shearDD : " << err_shearDD
+    //              << "  error on openingDD: " << err_openingDD
+    //              << "  error on pressure: " << err_press << "\n";
 
     // Update
     incrm_openingDD_k_old = incrm_openingDD_k;
@@ -368,11 +380,10 @@ Solution reynoldsP1(
   // New friction coefficient
   SolidEvolution.setFrictionCoefficient(fric_coeff_k);
 
-  return hfp2d::Solution(theMesh, previous_time,
-                         SolutionAtTn.timestep(), openingDD_new, shearDD_new,
-                         pore_press_new, sigmaN_new, tau_new,
-                         SolutionAtTn.activeElts(), SolutionAtTn.frontIts(),
-                         k, SolutionAtTn.errFront(),
+  return hfp2d::Solution(theMesh, previous_time, SolutionAtTn.timestep(),
+                         openingDD_new, shearDD_new, pore_press_new, sigmaN_new,
+                         tau_new, SolutionAtTn.activeElts(),
+                         SolutionAtTn.frontIts(), k, SolutionAtTn.errFront(),
                          err_openingDD, err_shearDD, err_press);
 };
 }

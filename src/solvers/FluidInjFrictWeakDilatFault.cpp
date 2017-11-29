@@ -229,18 +229,17 @@ void fluidInjFrictWeakDilatFault(int argc, char const *argv[]) {
 
     if (slipp_length_new - slipp_length_old == 0) {
       crack_velocity = 0.;
-      std::cout << crack_velocity << std::endl;
     } else {
       crack_velocity =
           (slipp_length_new - slipp_length_old) / SolutionAtTn.timestep();
-      std::cout << crack_velocity << std::endl;
     }
 
     if ((crack_velocity > ((2 * 0.02) / SolutionAtTn.timestep())) &&
         (SolutionAtTn.ehlIts() > SimulationParameters.ehl_max_its / 4)) {
-      std::cout << "*** Turn into Explicit/Implicit scheme ***"
-                << "\n"
-                << std::endl;
+      std::cout
+          << "############# Turn into Explicit/Implicit scheme #############"
+          << "\n"
+          << std::endl;
       expl_impl = true;
     }
 
