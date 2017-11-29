@@ -20,21 +20,19 @@
 
 namespace hfp2d {
 
-Solution reynoldsP1(Mesh &theMesh, il::Array2D<double> &elast_matrix,
-                    il::Array2D<double> &fetc_dds, il::Array2D<double> &fetc_dd,
-                    il::Array2D<double> &fetc_press, Solution &SolutionAtTn,
-                    il::Array<double> &tau_old, il::Array<double> &sigmaN_old,
-                    il::Array<double> &shearDD_old,
-                    il::Array<double> &openingDD_old,
-                    il::Array<double> &press_old,
-                    il::Array<double> &incrm_shearDD,
-                    il::Array<double> &incrm_openingDD,
-                    SimulationParameters &SimulationParameters,
-                    FluidProperties &FluidProperties,
-                    SolidEvolution &SolidEvolution,
-                    FractureEvolution &FractureEvolution, Sources &Source,
-                    il::Array<int> &dof_active_elmnts, il::Status &status,
-                    il::Norm &norm, bool damping_term, double damping_coeff) {
+Solution reynoldsP1(
+    Mesh &theMesh, il::Array2D<double> &elast_matrix,
+    il::Array2D<double> &fetc_dds, il::Array2D<double> &fetc_dd,
+    il::Array2D<double> &fetc_press, Solution &SolutionAtTn,
+    il::Array<double> &tau_old, il::Array<double> &sigmaN_old,
+    il::Array<double> &shearDD_old, il::Array<double> &openingDD_old,
+    il::Array<double> &press_old, il::Array<double> &incrm_shearDD,
+    il::Array<double> &incrm_openingDD,
+    SimulationParameters &SimulationParameters,
+    FluidProperties &FluidProperties, SolidEvolution &SolidEvolution,
+    FractureEvolution &FractureEvolution, Sources &Source,
+    il::Array<int> &dof_active_elmnts, il::Status &status, il::Norm &norm,
+    bool damping_term, double damping_coeff, double previous_time) {
   //// IMPLICIT SOLUTION OF THE COUPLED PROBLEM ////
   // Initialization of the system BigA*BigX = BigB
   il::Array2D<double> BigA{dof_active_elmnts.size() + theMesh.numberOfNodes(),
@@ -112,7 +110,7 @@ Solution reynoldsP1(Mesh &theMesh, il::Array2D<double> &elast_matrix,
   il::Array2D<double> Nf{dof_active_elmnts.size(), dof_active_elmnts.size(),
                          0.};
 
-  while (k < SimulationParameters.ehl_max_its &&
+  while ((k < SimulationParameters.ehl_max_its) &&
          (err_shearDD > SimulationParameters.ehl_tolerance ||
           err_openingDD > SimulationParameters.ehl_tolerance ||
           err_press > SimulationParameters.ehl_tolerance)) {
@@ -196,9 +194,9 @@ Solution reynoldsP1(Mesh &theMesh, il::Array2D<double> &elast_matrix,
       BigA(dof_active_elmnts.size() + Source.getSourcePoint(), k1) = 0;
     }
 
-    for (il::int_t l1 = 0; l1 < BigA.size(0); ++l1) {
-      BigA(l1, dof_active_elmnts.size() + Source.getSourcePoint()) = 0;
-    }
+//    for (il::int_t l1 = 0; l1 < BigA.size(0); ++l1) {
+//      BigA(l1, dof_active_elmnts.size() + Source.getSourcePoint()) = 0;
+//    }
 
     BigA(dof_active_elmnts.size() + Source.getSourcePoint(),
          dof_active_elmnts.size() + Source.getSourcePoint()) = 1;
@@ -275,9 +273,9 @@ Solution reynoldsP1(Mesh &theMesh, il::Array2D<double> &elast_matrix,
           (il::norm(diff_incrm_press_k, norm) / il::norm(incrm_press_k, norm));
     }
 
-    std::cout << "error on shearDD : " << err_shearDD
-              << "  error on openingDD: " << err_openingDD
-              << "  error on pressure: " << err_press << "\n";
+//    std::cout << "error on shearDD : " << err_shearDD
+//              << "  error on openingDD: " << err_openingDD
+//              << "  error on pressure: " << err_press << "\n";
 
     // Update
     incrm_openingDD_k_old = incrm_openingDD_k;
@@ -370,10 +368,11 @@ Solution reynoldsP1(Mesh &theMesh, il::Array2D<double> &elast_matrix,
   // New friction coefficient
   SolidEvolution.setFrictionCoefficient(fric_coeff_k);
 
-  return hfp2d::Solution(
-      theMesh, SolutionAtTn.time(), SolutionAtTn.timestep(), openingDD_new,
-      shearDD_new, pore_press_new, sigmaN_new, tau_new,
-      SolutionAtTn.activeElts(), SolutionAtTn.frontIts(), SolutionAtTn.ehlIts(),
-      SolutionAtTn.errFront(), err_openingDD, err_shearDD, err_press);
+  return hfp2d::Solution(theMesh, previous_time,
+                         SolutionAtTn.timestep(), openingDD_new, shearDD_new,
+                         pore_press_new, sigmaN_new, tau_new,
+                         SolutionAtTn.activeElts(), SolutionAtTn.frontIts(),
+                         k, SolutionAtTn.errFront(),
+                         err_openingDD, err_shearDD, err_press);
 };
 }

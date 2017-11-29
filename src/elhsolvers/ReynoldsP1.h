@@ -20,21 +20,19 @@
 
 namespace hfp2d {
 
-Solution reynoldsP1(Mesh &theMesh, il::Array2D<double> &elast_matrix,
-                    il::Array2D<double> &fetc_dds, il::Array2D<double> &fetc_dd,
-                    il::Array2D<double> &fetc_press, Solution &SolutionAtTn,
-                    il::Array<double> &tau_old, il::Array<double> &sigmaN_old,
-                    il::Array<double> &shearDD_old,
-                    il::Array<double> &openingDD_old,
-                    il::Array<double> &press_old,
-                    il::Array<double> &incrm_shearDD,
-                    il::Array<double> &incrm_openingDD,
-                    SimulationParameters &SimulationParameters,
-                    FluidProperties &FluidProperties,
-                    SolidEvolution &SolidEvolution,
-                    FractureEvolution &FractureEvolution, Sources &Source,
-                    il::Array<int> &dof_active_elmnts, il::Status &status,
-                    il::Norm &norm, bool damping_term, double damping_coeff);
+Solution reynoldsP1(
+    Mesh &theMesh, il::Array2D<double> &elast_matrix,
+    il::Array2D<double> &fetc_dds, il::Array2D<double> &fetc_dd,
+    il::Array2D<double> &fetc_press, Solution &SolutionAtTn,
+    il::Array<double> &tau_old, il::Array<double> &sigmaN_old,
+    il::Array<double> &shearDD_old, il::Array<double> &openingDD_old,
+    il::Array<double> &press_old, il::Array<double> &incrm_shearDD,
+    il::Array<double> &incrm_openingDD,
+    SimulationParameters &SimulationParameters,
+    FluidProperties &FluidProperties, SolidEvolution &SolidEvolution,
+    FractureEvolution &FractureEvolution, Sources &Source,
+    il::Array<int> &dof_active_elmnts, il::Status &status, il::Norm &norm,
+    bool damping_term, double damping_coeff, double previous_time);
 }
 
 #endif  // HFPX2D_REYNOLDSP1_H

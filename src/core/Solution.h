@@ -221,6 +221,8 @@ class Solution {
     ribbon_tips_s_ = srt;
   };
 
+  inline void setTime(const double &time) { time_ = time; };
+
   inline void setTipsLocation(const il::Array2D<double> &tips_xy) {
     tipsLocation_ = tips_xy;
   };
@@ -259,7 +261,7 @@ class Solution {
     // Get the set of 'failed' collocation points by checking the MC criterion
     il::Array<int> failed_set_collpoints{0};
     failed_set_collpoints.reserve(2 * theMesh.numberOfElts());
-    for (int j = 0, k = 0; j < 2 * theMesh.numberOfElts(); ++j) {
+    for (il::int_t j = 0, k = 0; j < 2 * theMesh.numberOfElts(); ++j) {
       if (SolutionAtTn.tau(j) > SolidEvolution.getFricCoeff(j) *
                                     (SolutionAtTn.sigmaN(j) - press_coll[j])) {
         failed_set_collpoints.resize(k + 1);
@@ -397,7 +399,7 @@ class Solution {
                   {"Its EHL", ehlIts_},
                   {"Error EHL pressure", err_P_},
                   {"Error EHL opening", err_openingDD_},
-                  {"Error EHL opening", err_shearDD_},
+                  {"Error EHL shear", err_shearDD_},
                   {"Mesh", j_mesh},
                   {"Tips", j_tips},
                   {"Shear DD", json_shearDD},

@@ -17,7 +17,7 @@ struct SimulationParameters {
   // placeholder for simulation parameters
 
   il::int_t ehl_max_its =
-      150;  // max number of iterations for elastic - fluid coupled problem
+      200;  // max number of iterations for elastic - fluid coupled problem
 
   il::int_t frac_front_max_its =
       50;  // max number of its for fracture front loop.

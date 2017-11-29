@@ -69,8 +69,8 @@ void fluidInjFrictWeakDilatFault(int argc, char const *argv[]) {
   double alpha = 10;
   double Dp = 0.5;
   double t_0plus = 0.00003;
-  double init_dt = 1.47e-5;
-  double time_max = 0.0015;
+  double init_dt = 0.00001;
+  double time_max = 0.4;
   il::Array<double> press_init_nodes{MyMesh.numberOfNodes(), 0};
   for (il::int_t j = 0; j < press_init_nodes.size(); ++j) {
     press_init_nodes[j] =
@@ -134,7 +134,7 @@ void fluidInjFrictWeakDilatFault(int argc, char const *argv[]) {
   il::Array<int> init_failed_set_collpoints{0};
   init_failed_set_collpoints.reserve(2 * MyMesh.numberOfElts());
   for (int j = 0, k = 0; j < 2 * MyMesh.numberOfElts(); ++j) {
-    if (BackgroundLoadingConditions.getBackgroundShearStress(j) >=
+    if (BackgroundLoadingConditions.getBackgroundShearStress(j) >
         SolidEvolution.getFricCoeff(j) *
             (BackgroundLoadingConditions.getBackgroundNormalStress(j) -
              press_init_coll[j])) {
@@ -175,12 +175,12 @@ void fluidInjFrictWeakDilatFault(int argc, char const *argv[]) {
   }
 
   // Initialization of slippage length
-  double slipp_length;
+  double slipp_length_old;
   if (init_active_set_elements.size() == 0) {
-    slipp_length = 0.;
+    slipp_length_old = 0.;
 
   } else {
-    slipp_length = hfp2d::euclidean_distance(
+    slipp_length_old = hfp2d::euclidean_distance(
         MyMesh.coordinates(init_active_set_elements[0], 0), 0,
         MyMesh.coordinates(
             init_active_set_elements[init_active_set_elements.size() - 1] + 1,
@@ -198,15 +198,17 @@ void fluidInjFrictWeakDilatFault(int argc, char const *argv[]) {
 
   /// Loop in time
   std::string filename;
-  double t = SolutionAtTn.time();
-  while (t <= time_max &&
-         slipp_length <= euclidean_distance(
-                             MyMesh.coordinates(0, 0), 0,
+  double slipp_length_new;
+  double crack_velocity = 0.;
+
+  while ((SolutionAtTn.time() < time_max) &&
+         (slipp_length_old <
+          euclidean_distance(MyMesh.coordinates(0, 0), 0,
                              MyMesh.coordinates(MyMesh.numberOfNodes() - 1, 0),
-                             0) &&
-         SolutionAtTn.frontIts() <= SimulationParameters.frac_front_max_its) {
+                             0)) &&
+         (SolutionAtTn.frontIts() < SimulationParameters.frac_front_max_its)) {
     std::cout << "******** Current time ******* "
-              << "t = " << t << "\n";
+              << "t = " << SolutionAtTn.time() << "\n";
 
     SolutionAtTn = fractFrontPosition(
         kmat, from_edge_to_coll_dds, from_edge_to_coll_dd,
@@ -215,22 +217,42 @@ void fluidInjFrictWeakDilatFault(int argc, char const *argv[]) {
         damping_term, damping_coeff);
 
     if (SolutionAtTn.activeElts().size() == 0) {
-      slipp_length = 0.;
+      slipp_length_new = 0.;
     } else {
-      slipp_length = hfp2d::euclidean_distance(
+      slipp_length_new = hfp2d::euclidean_distance(
           MyMesh.coordinates(SolutionAtTn.activeElts(0), 0), 0,
           MyMesh.coordinates(
-              SolutionAtTn.activeElts(init_active_set_elements.size() - 1) + 1,
+              SolutionAtTn.activeElts(SolutionAtTn.activeElts().size() - 1) + 1,
               0),
           0);
     }
 
+    if (slipp_length_new - slipp_length_old == 0) {
+      crack_velocity = 0.;
+      std::cout << crack_velocity << std::endl;
+    } else {
+      crack_velocity =
+          (slipp_length_new - slipp_length_old) / SolutionAtTn.timestep();
+      std::cout << crack_velocity << std::endl;
+    }
+
+    if ((crack_velocity > ((2 * 0.02) / SolutionAtTn.timestep())) &&
+        (SolutionAtTn.ehlIts() > SimulationParameters.ehl_max_its / 4)) {
+      std::cout << "*** Turn into Explicit/Implicit scheme ***"
+                << "\n"
+                << std::endl;
+      expl_impl = true;
+    }
+
     filename = path_output_directory.asCString() +
-               std::string{"/Solution_at_time_"} + std::to_string(t) +
-               std::string{".json"};
+               std::string{"/Solution_at_time_"} +
+               std::to_string(SolutionAtTn.time()) + std::string{".json"};
     SolutionAtTn.writeToFile(filename);
 
-    t = t + SolutionAtTn.timestep();
+    SolutionAtTn.setTime(SolutionAtTn.time() + SolutionAtTn.timestep());
+
+    // Old is new
+    slipp_length_old = slipp_length_new;
   }
 };
 
@@ -254,6 +276,7 @@ Solution fractFrontPosition(
   il::int_t iter_front_posit = 1;
   il::Array<int> dof_active_elmnts{};
   dof_active_elmnts.reserve(theMesh.numberDDDofs());
+  double previous_time = SolutionAtTn.time();
 
   il::Array<double> tau_old{2 * theMesh.numberOfElts(), 0.};
   for (il::int_t n = 0; n < tau_old.size(); ++n) {
@@ -305,7 +328,7 @@ Solution fractFrontPosition(
         tau_old, sigmaN_old, shearDD_old, openingDD_old, press_old,
         incrm_shearDD, incrm_openingDD, SimulationParameters, FluidProperties,
         SolidEvolution, FractureEvolution, Source, dof_active_elmnts, status,
-        norm, damping_term, damping_coeff);
+        norm, damping_term, damping_coeff, previous_time);
 
     // Update active set of elements
     il::Array<int> new_active_set_elements{};
