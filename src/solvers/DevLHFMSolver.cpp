@@ -104,10 +104,10 @@ int TwoParallelHFs(int nelts, double dist) {
   //  std::cout << elt_source[0] << " " << Qo[0] << "\n";
 
   // fluid properties.
-  double mu = 0.01;
+  double mu = 0.1;
   hfp2d::Fluid water(1., mu, 5.e-10);
   // create rock properties obj
-  double k1c = 2.e6;
+  double k1c = 0.5e6;
   il::Array<double> wh_o{1, 1.e-9}, toughness{1, k1c}, Carter{1, 0.};
   hfp2d::SolidProperties the_rock =
       SolidProperties(myelas, toughness, wh_o, Carter);
@@ -180,17 +180,18 @@ int TwoParallelHFs(int nelts, double dist) {
   SimulParam.ehl_tolerance = 1.e-6;
 
   double dt = 0.05;
+  double dt_min = 0.0001;
+
   il::int_t jt = 0;
-  il::int_t nsteps = 250;
+  il::int_t nsteps = 300;
 
   //  il::Array<il::int_t> tip_region_elt_k=mesh.tipElts();
   //  il::Array<double>    tip_region_width_k{4,0.};
 
   std::string dir = "../Results/";
-  std::string basefilename = "debug-";
+  std::string basefilename = "KGD-2HF-M-18.5-";
   std::string filename;
 
-  //
   double mean_tip_v;
   double Mbar = std::pow(myelas.Ep(), 3.) * (12 * mu) * Qo[1] /
                 (std::pow((std::sqrt(32. / il::pi) * k1c), 4.));
@@ -199,7 +200,7 @@ int TwoParallelHFs(int nelts, double dist) {
 
   while (jt < nsteps) {
     jt++;
-
+    //
     //    Solution Soln1=hfp2d::ReynoldsSolverP0(Soln, K, water, the_rock,
     //    the_source,
     //                                         dt, false, tip_region_elt_k,
@@ -209,40 +210,57 @@ int TwoParallelHFs(int nelts, double dist) {
     Solution Soln1 = hfp2d::FractureFrontLoop(
         Soln, K, water, the_rock, the_source, frac_heigth, dt, SimulParam, true);
 
-    Soln = Soln1;
-    std::cout << " steps # " << jt << " time  " << Soln.time() << "\n";
-    std::cout << " P at source " << Soln.pressure()[the_source.SourceElt(0)]
-              << "\n";
-    std::cout << " w at source " << Soln.openingDD()[the_source.SourceElt(0)]
-              << "\n";
+    // accept time steps ?
 
-    //    std::cout << "size of K: " << K.size(0) << " by " << K.size(1) <<
-    //    "\n";
+    if (Soln1.errFront()<0.01)
+    {
+      Soln = Soln1;
+      std::cout << " steps # " << jt << " time  " << Soln.time() << "\n";
+      std::cout << " P at source " << Soln.pressure()[the_source.SourceElt(0)]
+                << "\n";
+      std::cout << " w at source " << Soln.openingDD()[the_source.SourceElt(0)]
+                << "\n";
 
-    std::cout << "n elts " << Soln.currentMesh().numberOfElts() << "\n";
-    std::cout << " ---------\n";
-    filename = dir + basefilename + std::to_string(jt) + ".json";
-    Soln.writeToFile(filename);
+      //    std::cout << "size of K: " << K.size(0) << " by " << K.size(1) <<
+      //    "\n";
 
-    // adjust time step  -> but only after a few prop. steps...
+      std::cout << "n elts " << Soln.currentMesh().numberOfElts() << "\n";
+      std::cout << " ---------\n";
+      filename = dir + basefilename + std::to_string(jt) + ".json";
+      Soln.writeToFile(filename);
 
-    mean_tip_v = il::norm(Soln.tipsVelocity(), il::Norm::L2);
-    if ( (mean_tip_v > 0.0) ) { //&& (Soln.tipsLocation()(1,0)>1.5)
-      double dt_new = 1.25 * h / mean_tip_v;
-      // modify to more clever ?
-      if (dt_new > 3. * dt) {
-        dt = 3. * dt;
-      } else {
-        if (dt_new < dt * 0.9) {
-          dt = 0.9 * dt;
+      //
+
+      mean_tip_v = il::norm(Soln.tipsVelocity(), il::Norm::L2);
+      if ( (mean_tip_v > 0.0) ) { //&& (Soln.tipsLocation()(1,0)>1.5)
+        double dt_new = 1.25  * h / mean_tip_v;
+        // modify to more clever ?
+        if (dt_new > 3. * dt) {
+          dt = 3. * dt;
         } else {
-          dt = dt_new;
-        };
+          if (dt_new < dt * 0.9) {
+            dt = 0.9 * dt;
+          } else {
+            dt = dt_new;
+          };
+        }
       }
+    } else {  // reject time step
+      std::cout << "Reject time step - non-convergence on fracture fronts \n";
+        if (dt/2.>= dt_min){
+        dt=dt/2.;
+          std::cout << "Reduce time steps. ";
+        jt--;
+        }else
+        {
+          std::cout << "Error on frac. front too large with small time steps. - stop simulation \n";
+          break;
+        }
     }
+
   }
 
-  std::cout << "now out of  " << "\n";
+  std::cout << "now out of Time step loop " << "\n";
 
   return 0;
 };
