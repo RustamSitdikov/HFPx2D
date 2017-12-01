@@ -124,11 +124,7 @@ void fluidInjFrictWeakDilatFault(int argc, char const *argv[]) {
   il::int_t init_iter_front_position = 0;
   il::int_t init_iter_ehls = 0;
 
-  il::Array<double> press_init_coll{2 * MyMesh.numberOfElts(), 0};
-  auto p_init_coll = il::dot(from_edge_to_coll_press, press_init_nodes);
-  for (il::int_t i = 0, k = 1; i < press_init_coll.size(); ++i, k = k + 2) {
-    press_init_coll[i] = p_init_coll[k];
-  }
+  auto press_init_coll = il::dot(from_edge_to_coll_press, press_init_nodes);
 
   // Get the active set of collocation points by checking the MC criterion
   il::Array<int> init_failed_set_collpoints{0};

@@ -33,6 +33,5 @@ struct SimulationParameters {
 
   // a string for an option to adapt the under-relaxation
 };
-
 }
 #endif  // HFPX2_SIMULATIONPARAMETERS_H

@@ -22,13 +22,13 @@ namespace hfp2d {
 il::Array<double> jacobiIterativeSolver(il::Array2D<double> &matrix_of_coeff,
                                         il::Array<double> &right_hand_side,
                                         il::Array<double> &initial_solution,
-                                        Mesh &theMesh, double relax_parameter,
-                                        il::int_t Niterations);
+                                        double relax_parameter,
+                                        il::int_t numb_iterations);
 
 il::Array<double> gaussSeidelIterativeSolver(
     il::Array2D<double> &matrix_of_coeff, il::Array<double> &right_hand_side,
-    il::Array<double> &initial_solution, Mesh &theMesh, double relax_parameter,
-    il::int_t Niterations);
+    il::Array<double> &initial_solution, double relax_parameter,
+    il::int_t numb_iterations);
 }
 
 #endif  // HFPX2D_ITERATIVESOLVERS_H

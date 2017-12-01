@@ -41,8 +41,7 @@ il::Array2D<double> from_edge_to_col_dg_full2d(Mesh &theMesh) {
   // input:
   //  - theMesh -> object of type Mesh
 
-  il::Array2D<double> Fetc{theMesh.numberDDDofs(), theMesh.numberDDDofs(),
-                           0};
+  il::Array2D<double> Fetc{theMesh.numberDDDofs(), theMesh.numberDDDofs(), 0};
   il::StaticArray2D<double, 4, 4> ShapeFunction{0};
 
   // contribution to slip at collocation node 1
@@ -131,7 +130,15 @@ il::Array2D<double> from_edge_to_col_cg(Mesh &theMesh) {
     dofhandle_press(i, 1) = i + 1;
   }
 
-  il::Array2D<double> Fetc{theMesh.numberDDDofs(), theMesh.numberOfNodes(),
+  il::Array2D<il::int_t> dof_single_dd{theMesh.numberOfElts(),
+                                       (theMesh.interpolationOrder() + 1), 0};
+  for (il::int_t i = 0; i < theMesh.numberOfElts(); i++) {
+    for (il::int_t j = 0; j < 1 * (theMesh.interpolationOrder() + 1); j++) {
+      dof_single_dd(i, j) = i * 1 * (theMesh.interpolationOrder() + 1) + j;
+    }
+  }
+
+  il::Array2D<double> Fetc{theMesh.numberDDDofs()/2, theMesh.numberOfNodes(),
                            0};
   il::StaticArray2D<double, 2, 2> ShapeFunction{0};
 
@@ -143,8 +150,8 @@ il::Array2D<double> from_edge_to_col_cg(Mesh &theMesh) {
 
   for (il::int_t i = 0; i < theMesh.numberOfElts(); ++i) {
     for (il::int_t j = 0; j < (theMesh.interpolationOrder() + 1); ++j) {
-      Fetc(theMesh.dofDD(i, 1), dofhandle_press(i, j)) = ShapeFunction(0, j);
-      Fetc(theMesh.dofDD(i, 3), dofhandle_press(i, j)) = ShapeFunction(1, j);
+      Fetc(dof_single_dd(i, 0), dofhandle_press(i, j)) = ShapeFunction(0, j);
+      Fetc(dof_single_dd(i, 1), dofhandle_press(i, j)) = ShapeFunction(1, j);
     }
   }
 

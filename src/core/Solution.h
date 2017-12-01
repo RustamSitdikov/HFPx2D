@@ -252,11 +252,7 @@ class Solution {
     // Move pore pressure from nodal points to coll points because elasticity
     // is evaluated at collocation points (-> MC criterion is evaluated at
     // collocation points!)
-    il::Array<double> press_coll{2 * theMesh.numberOfElts(), 0};
-    auto p_coll = il::dot(from_edge_to_coll_press, press_old);
-    for (il::int_t i = 0, k = 1; i < press_coll.size(); ++i, k = k + 2) {
-      press_coll[i] = p_coll[k];
-    }
+    auto press_coll = il::dot(from_edge_to_coll_press, press_old);
 
     // Get the set of 'failed' collocation points by checking the MC criterion
     il::Array<int> failed_set_collpoints{0};

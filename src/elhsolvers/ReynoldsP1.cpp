@@ -67,19 +67,15 @@ Solution reynoldsP1(
   }
 
   // Current pore-pressure at collocation point
-  il::Array<double> press_coll{2 * theMesh.numberOfElts(), 0};
-  auto p_coll = il::dot(fetc_press, press_old);
-  for (il::int_t i = 0, k = 1; i < press_coll.size(); ++i, k = k + 2) {
-    press_coll[i] = p_coll[k];
-  }
+  auto press_coll = il::dot(fetc_press, press_old);
 
   // Select just the "active" part of the matrix to switch from nodal
   // points to collocation points
   il::Array2D<double> Fetc_active_dofs{dof_active_elmnts.size(),
                                        SolutionAtTn.pressure().size(), 0.};
-  for (il::int_t l2 = 0; l2 < Fetc_active_dofs.size(0); ++l2) {
+  for (il::int_t l2 = 0; l2 < Fetc_active_dofs.size(0); l2 = l2 + 2) {
     for (il::int_t i = 0; i < Fetc_active_dofs.size(1); ++i) {
-      Fetc_active_dofs(l2, i) = fetc_press(dof_active_elmnts[l2], i);
+      Fetc_active_dofs(l2 + 1, i) = fetc_press(dof_active_elmnts[l2] / 2, i);
     }
   }
 
@@ -94,8 +90,6 @@ Solution reynoldsP1(
   double err_openingDD = 2.;
   double err_press = 2.;
   il::Array<double> BigX{BigA.size(0), 0};
-//  il::Array<double> Try{BigA.size(0), 0};
-//  il::Array<double> TryInitSolution{BigA.size(0), 0};
   il::Array<double> incrm_shearDD_k{2 * theMesh.numberOfElts(), 0.};
   il::Array<double> incrm_shearDD_k_old{2 * theMesh.numberOfElts(), 0.};
   il::Array<double> diff_incrm_shearDD_k{2 * theMesh.numberOfElts(), 0.};
@@ -210,15 +204,6 @@ Solution reynoldsP1(
 
     BigX = il::linearSolve(BigA, BigB, il::io, status);
     status.abortOnError();
-
-//    for (il::int_t l = 0; l < dof_active_elmnts.size(); ++l) {
-//      TryInitSolution[l] = shearDD_k[dof_active_elmnts[l] / 2];
-//    }
-//    for (il::int_t l1 = 0; l1 < theMesh.numberOfNodes(); ++l1) {
-//      TryInitSolution[dof_active_elmnts.size() + l1] = press_old[l1];
-//    }
-//    Try = hfp2d::jacobiIterativeSolver(BigA, BigB, TryInitSolution, theMesh, 1,100);
-//    Try = hfp2d::gaussSeidelIterativeSolver(BigA, BigB, TryInitSolution, theMesh, 1,100);
 
     ///  Under relaxation technique & updating ///
 
