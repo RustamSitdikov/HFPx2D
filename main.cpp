@@ -15,13 +15,18 @@
 
 //////////////////////// Numerical code /////////////////////////////////
 
-int main(int argc, char const *argv[]){
+int main(int argc, char const *argv[]) {
 
+  std::cout << "\n";
+  std::cout << " ->    Begin of simulation    <-";
+    std::cout << "\n\n";
+
+  // Call the solver of the problem of fluid injection into a frictional
+  // weakening dilatant fault
   hfp2d::fluidInjFrictWeakDilatFault(argc - 1, argv + 1);
 
-  std::cout << " End of code \n\n\n";
+  std::cout << " ->    End of simulation    <-";
 
   return 0;
 }
 ////////////////////////////////////////////////////////////////////////////////
-

@@ -186,11 +186,11 @@ class Solution {
   inline il::Array<double> sigmaN() const { return sigma_n_; };
   inline il::Array<double> tau() const { return tau_; };
 
-  inline double openingDD(il::int_t i) { return openingDD_[i]; };
-  inline double shearDD(il::int_t i) { return shearDD_[i]; };
-  inline double pressure(il::int_t i) { return pressure_[i]; };
-  inline double sigmaN(il::int_t i) { return sigma_n_[i]; };
-  inline double tau(il::int_t i) { return tau_[i]; };
+  inline double openingDD(il::int_t i) const { return openingDD_[i]; };
+  inline double shearDD(il::int_t i) const { return shearDD_[i]; };
+  inline double pressure(il::int_t i) const { return pressure_[i]; };
+  inline double sigmaN(il::int_t i) const { return sigma_n_[i]; };
+  inline double tau(il::int_t i) const { return tau_[i]; };
 
   inline il::Array<int> activeElts() const { return active_set_elements_; };
   inline il::int_t activeElts(il::int_t i) const {
@@ -248,7 +248,7 @@ class Solution {
   il::Array<int> activeSetElements(Mesh &theMesh, Solution &SolutionAtTn,
                                    SolidEvolution &SolidEvolution,
                                    il::Array2D<double> &from_edge_to_coll_press,
-                                   il::Array<double> &press_old) {
+                                   il::Array<double> press_old) {
     // Move pore pressure from nodal points to coll points because elasticity
     // is evaluated at collocation points (-> MC criterion is evaluated at
     // collocation points!)

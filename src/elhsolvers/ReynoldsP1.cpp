@@ -21,19 +21,17 @@
 
 namespace hfp2d {
 
-Solution reynoldsP1(
-    Mesh &theMesh, il::Array2D<double> &elast_matrix,
-    il::Array2D<double> &fetc_dds, il::Array2D<double> &fetc_dd,
-    il::Array2D<double> &fetc_press, Solution &SolutionAtTn,
-    il::Array<double> &tau_old, il::Array<double> &sigmaN_old,
-    il::Array<double> &shearDD_old, il::Array<double> &openingDD_old,
-    il::Array<double> &press_old, il::Array<double> &incrm_shearDD,
-    il::Array<double> &incrm_openingDD,
-    SimulationParameters &SimulationParameters,
-    FluidProperties &FluidProperties, SolidEvolution &SolidEvolution,
-    FractureEvolution &FractureEvolution, Sources &Source,
-    il::Array<int> &dof_active_elmnts, il::Status &status, il::Norm &norm,
-    bool damping_term, double damping_coeff, double previous_time) {
+Solution reynoldsP1(Mesh &theMesh, il::Array2D<double> &elast_matrix,
+                    il::Array2D<double> &fetc_dds, il::Array2D<double> &fetc_dd,
+                    il::Array2D<double> &fetc_press, Solution &SolutionAtTn,
+                    Solution &SolutionAtTn_k, il::Array<double> &incrm_shearDD,
+                    il::Array<double> &incrm_openingDD,
+                    SimulationParameters &SimulationParameters,
+                    FluidProperties &FluidProperties,
+                    SolidEvolution &SolidEvolution,
+                    FractureEvolution &FractureEvolution, Sources &Source,
+                    il::Array<int> &dof_active_elmnts, il::Status &status,
+                    il::Norm &norm, bool damping_term, double damping_coeff) {
   //// IMPLICIT SOLUTION OF THE COUPLED PROBLEM ////
   // Initialization of the system BigA*BigX = BigB
   il::Array2D<double> BigA{dof_active_elmnts.size() + theMesh.numberOfNodes(),
@@ -52,7 +50,9 @@ Solution reynoldsP1(
     }
   }
 
-  if (damping_term == true) {
+  // For Quasi-Dynamic formulation of elasticity, add damping term to the
+  // diagonal -> "Spatio-Temporal Complexity of Slip on a Fault" - J.Rice (1993)
+  if (damping_term) {
     for (il::int_t i = 0; i < elast_submatrix.size(0); ++i) {
       elast_submatrix(i, i) =
           elast_submatrix(i, i) - (damping_coeff / SolutionAtTn.timestep());
@@ -67,7 +67,7 @@ Solution reynoldsP1(
   }
 
   // Current pore-pressure at collocation point
-  auto press_coll = il::dot(fetc_press, press_old);
+  auto press_coll = il::dot(fetc_press, SolutionAtTn.pressure());
 
   // Select just the "active" part of the matrix to switch from nodal
   // points to collocation points
@@ -115,14 +115,14 @@ Solution reynoldsP1(
 
     // Current nodal slip
     for (il::int_t i = 0; i < incrm_shearDD_k.size(); ++i) {
-      shearDD_k[i] = shearDD_old[i] + incrm_shearDD_k[i];
+      shearDD_k[i] = SolutionAtTn.shearDD(i) + incrm_shearDD_k[i];
     }
     // Current slip at collocation points
     shearDD_coll_k = il::dot(fetc_dd, shearDD_k);
 
     // Current opening
     for (il::int_t i = 0; i < incrm_openingDD_k.size(); ++i) {
-      openingDD_k[i] = openingDD_old[i] + incrm_openingDD_k[i];
+      openingDD_k[i] = SolutionAtTn.openingDD(i) + incrm_openingDD_k[i];
     }
     // Current opening at collocation points
     openingDD_coll_k = il::dot(fetc_dd, openingDD_k);
@@ -173,12 +173,12 @@ Solution reynoldsP1(
 
     for (il::int_t n = 0; n < dof_active_elmnts.size(); n = n + 2) {
       BigB[n] = -((fric_coeff_k[dof_active_elmnts[n] / 2] *
-                   (SolutionAtTn.sigmaN(dof_active_elmnts[n] / 2) -
+                   (SolutionAtTn_k.sigmaN(dof_active_elmnts[n] / 2) -
                     press_coll[dof_active_elmnts[n] / 2])) -
-                  SolutionAtTn.tau(dof_active_elmnts[n] / 2));
+                  SolutionAtTn_k.tau(dof_active_elmnts[n] / 2));
     }
 
-    auto Lp = il::dot(L, press_old);
+    auto Lp = il::dot(L, SolutionAtTn.pressure());
     for (il::int_t i1 = 0; i1 < L.size(0); ++i1) {
       BigB[dof_active_elmnts.size() + i1] =
           Lp[i1];  // No source term!! add here source term for injection rate
@@ -270,24 +270,29 @@ Solution reynoldsP1(
           (il::norm(diff_incrm_press_k, norm) / il::norm(incrm_press_k, norm));
     }
 
-    //    std::cout << "error on shearDD : " << err_shearDD
-    //              << "  error on openingDD: " << err_openingDD
-    //              << "  error on pressure: " << err_press << "\n";
+//    std::cout << "  error on shearDD : " << err_shearDD
+//              << "  error on openingDD: " << err_openingDD
+//              << "  error on pressure: " << err_press << "\n";
 
-    // Update
+    // Update -> old is new
     incrm_openingDD_k_old = incrm_openingDD_k;
     incrm_shearDD_k_old = incrm_shearDD_k;
     incrm_press_k_old = incrm_press_k;
   }
 
+  std::cout<<"\n"<<std::endl;
+
+  // Cumulative increment of slip
   for (il::int_t l = 0; l < incrm_shearDD.size(); ++l) {
     incrm_shearDD[l] = (incrm_shearDD[l] + incrm_shearDD_k[l]);
   }
 
+  // Cumulative increment of opening
   for (il::int_t l = 0; l < incrm_openingDD.size(); ++l) {
     incrm_openingDD[l] = (incrm_openingDD[l] + incrm_openingDD_k[l]);
   }
 
+  // Elasticity matrix for just shear DD
   il::Array2D<double> elast_matrix_shear{2 * theMesh.numberOfElts(),
                                          2 * theMesh.numberOfElts(), 0.};
   for (il::int_t m1 = 0, n1 = 0; m1 < elast_matrix_shear.size(0);
@@ -298,13 +303,15 @@ Solution reynoldsP1(
     }
   }
 
-  if (damping_term == true) {
+  // Elasticity matrix for just shear DD with damping term
+  if (damping_term) {
     for (il::int_t i = 0; i < elast_matrix_shear.size(0); ++i) {
       elast_matrix_shear(i, i) =
           elast_matrix_shear(i, i) - (damping_coeff / SolutionAtTn.timestep());
     }
   }
 
+  // Elasticity matrix for just opening DD
   il::Array2D<double> elast_matrix_sigmaN{2 * theMesh.numberOfElts(),
                                           2 * theMesh.numberOfElts(), 0.};
   for (il::int_t m1 = 0, n1 = 1; m1 < elast_matrix_sigmaN.size(0);
@@ -315,60 +322,59 @@ Solution reynoldsP1(
     }
   }
 
+  // Calculate increment of shear stress due to increment of shear DD
   il::Array<double> incrm_shear_stress{2 * theMesh.numberOfElts(), 0.};
   incrm_shear_stress = il::dot(elast_matrix_shear, incrm_shearDD);
 
+  // Calculate increment of normal stress due to increment of opening DD
   il::Array<double> incrm_normal_stress{2 * theMesh.numberOfElts(), 0.};
   incrm_normal_stress = il::dot(elast_matrix_sigmaN, incrm_openingDD);
 
-  /// Calculate new stress state, new pore pressure new cumulative DDs and new
-  /// friction
-
-  // New shear stress
+  // Calculate new shear stress (due to increment of shear stress)
   il::Array<double> tau_new{2 * theMesh.numberOfElts(), 0.};
   for (il::int_t j2 = 0; j2 < tau_new.size(); ++j2) {
-    tau_new[j2] = tau_old[j2] + incrm_shear_stress[j2];
+    tau_new[j2] = SolutionAtTn.tau(j2) + incrm_shear_stress[j2];
   }
 
   // Force M-C criterion
   for (il::int_t j3 = 0; j3 < dof_active_elmnts.size(); j3 = j3 + 2) {
     tau_new[dof_active_elmnts[j3] / 2] =
         fric_coeff_k[dof_active_elmnts[j3] / 2] *
-        (SolutionAtTn.sigmaN(dof_active_elmnts[j3] / 2) -
+        (SolutionAtTn_k.sigmaN(dof_active_elmnts[j3] / 2) -
          press_coll[dof_active_elmnts[j3] / 2]);
   }
 
-  // New normal stress
+  // Calculate new normal stress (due to increment of normal stress)
   il::Array<double> sigmaN_new{2 * theMesh.numberOfElts(), 0.};
   for (il::int_t j2 = 0; j2 < sigmaN_new.size(); ++j2) {
-    sigmaN_new[j2] = sigmaN_old[j2] + incrm_normal_stress[j2];
+    sigmaN_new[j2] = SolutionAtTn.sigmaN(j2) + incrm_normal_stress[j2];
   }
 
   // New pore pressure profile
   il::Array<double> pore_press_new{theMesh.numberOfNodes(), 0.};
   for (il::int_t m2 = 0; m2 < pore_press_new.size(); ++m2) {
-    pore_press_new[m2] = press_old[m2] + incrm_press_k[m2];
+    pore_press_new[m2] = SolutionAtTn.pressure(m2) + incrm_press_k[m2];
   }
 
   // New slip vector (shear DD)
   il::Array<double> shearDD_new{2 * theMesh.numberOfElts(), 0.};
   for (il::int_t n2 = 0; n2 < shearDD_new.size(); ++n2) {
-    shearDD_new[n2] = shearDD_old[n2] + incrm_shearDD[n2];
+    shearDD_new[n2] = SolutionAtTn.shearDD(n2) + incrm_shearDD[n2];
   }
 
   // New opening vector
   il::Array<double> openingDD_new{2 * theMesh.numberOfElts(), 0.};
   for (il::int_t i3 = 0; i3 < openingDD_new.size(); ++i3) {
-    openingDD_new[i3] = openingDD_old[i3] + incrm_openingDD[i3];
+    openingDD_new[i3] = SolutionAtTn.openingDD(i3) + incrm_openingDD[i3];
   }
 
-  // New friction coefficient
+  // Set wew friction coefficient in the SolidEvolution object
   SolidEvolution.setFrictionCoefficient(fric_coeff_k);
 
-  return hfp2d::Solution(theMesh, previous_time, SolutionAtTn.timestep(),
-                         openingDD_new, shearDD_new, pore_press_new, sigmaN_new,
-                         tau_new, SolutionAtTn.activeElts(),
-                         SolutionAtTn.frontIts(), k, SolutionAtTn.errFront(),
-                         err_openingDD, err_shearDD, err_press);
+  return hfp2d::Solution(
+      theMesh, SolutionAtTn.time(), SolutionAtTn.timestep(), openingDD_new,
+      shearDD_new, pore_press_new, sigmaN_new, tau_new,
+      SolutionAtTn_k.activeElts(), SolutionAtTn_k.frontIts(), k,
+      SolutionAtTn_k.errFront(), err_openingDD, err_shearDD, err_press);
 };
 }

@@ -91,7 +91,8 @@ set(SOURCE_FILES
         src/elhsolvers/ReynoldsP1.h
         src/devt/FiniteVolumeRoutines.cpp
         src/devt/FiniteVolumeRoutines.h
-        src/util/json.hpp)
+        src/util/json.hpp src/devt/IterativeSolvers.cpp
+        src/devt/IterativeSolvers.h)
 
 if(APPLE)
 link_directories($ENV{MKLROOT}/lib $ENV{MKLROOT}/../compiler/lib )
