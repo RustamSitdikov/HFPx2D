@@ -1,96 +1,77 @@
-#
-# HFPx2D project.
-#
-# Created by Lorenzo Benedetti on 06.09.17.
-# Copyright (c) ECOLE POLYTECHNIQUE FEDERALE DE LAUSANNE, Switzerland,
-# Geo-Energy Laboratory, 2016-2017.  All rights reserved.
-# See the LICENSE.TXT file for more details.
-#
-#
-
-###########   GEOMETRY   ###########
-
+############  GEOMETRY  ############
+ 
 [Geometry]
-    #### Automatic mesh generation: FOR 1D MESHES ONLY ####
-
-    # type of mesh generation
+ 
     mesh_generation = "automatic"
-
-    # number of fractures (must coincide with following data
+ 
     number_of_fractures = 1
-
-    # interpolation order of the elements (the same for every fracture)
+ 
     interpolation_order = 1
-
-    # start the description of the fracture creation
-
-[Geometry.fracture1] # linear mesh in the vertical direction
-
-    # name of the meshed fracture
+ 
+[Geometry.fracture1]
+ 
     name_of_fracture = "A first fracture"
-
-    # start of the mesh
+ 
     x_1 = -10.0
     y_1 = 0.0
-
-    # end of the mesh
+ 
     x_2 = 10.0
     y_2 = 0.0
-
-    # number of elements
-    number_of_elements=1000
-
-    # material Properties are independent
-    material_ID=1
-
-
-###########   PROPERTIES   ###########
-
+ 
+    number_of_elements = 1000
+ 
+    material_ID = 1
+ 
+############  PROPERTIES  ############
+ 
 [Properties]
-
-    young_modulus=1.0
-    poisson_ratio=0.0
-
-    # Properties of existing fluid in the fault
+ 
+    young_modulus = 1.0
+    poisson_ratio = 0.0
+ 
     fluid_law = "Newtonian"
     fluid_density = 1.0
     fluid_compressibility = 1.0
     fluid_viscosity = 3.0e-3
-
+ 
     number_of_materials = 1
-
+ 
 [Properties.material1]
-
+ 
     solid_evolution_type = "Cohesive Zone Model"
-
+ 
     cohesive_zone_type = "Pure Shear"
-
+ 
     peak_friction_coefficient = 1.0
-
+ 
     residual_friction_coefficient = 0.6
-
+ 
     fracture_evolution_type = "Pure Shear"
-
+ 
     initial_permeability = 0.36
-
+ 
     increment_permeability = 0.0
-
+ 
     residual_slip = 0.4
-
+ 
     initial_hydraulic_width = 0.6
-
+ 
     increment_hydraulic_width = 0.0
-
+ 
 [Loading_Conditions]
-
+ 
     far_field_vertical_stress = 1.0
-
+ 
     far_field_horizontal_stress = 0.75
-
+ 
     ambient_pore_pressure = 0.0
 
+[Simulation_Parameters]
 
+    constant_overpressure = 0.5
 
+    initial_time = 0.00003
 
+    time_step = 0.00001
 
-
+    final_time = 0.4

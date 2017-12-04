@@ -24,6 +24,7 @@
 #include <src/elhsolvers/ReynoldsP1.h>
 #include <src/input/LoadArguments.h>
 #include <src/input/LoadInput.h>
+#include "src/input/Geometry/LoadGeometry.h"
 
 namespace hfp2d {
 
@@ -69,10 +70,40 @@ void fluidInjFrictWeakDilatFault(int argc, char const *argv[]) {
   // t_0plus1 -> starting time
   // Dp -> constant overpressure at the middle of the fault
   double alpha = 10;
-  double Dp = 0.5;
-  double t_0plus1 = 0.00003;
-  double time_step = 0.00001;
-  double final_time = 0.4;
+  double Dp;
+  double t_0plus1;
+  double time_step;
+  double final_time;
+  // Import Simulation_Parameters from configuration file (*.toml)
+  il::Status status{};
+  auto config = il::load<il::MapArray<il::String, il::Dynamic>>(input_filename,
+                                                                il::io, status);
+  status.abortOnError();
+  il::int_t keyFound;
+  keyFound = config.search("Simulation_Parameters");
+
+  if (config.found(keyFound) && config.value(keyFound).isMapArray()) {
+    const il::MapArray<il::String, il::Dynamic> &SimulationParametersMap =
+        config.value(keyFound).asMapArray();
+
+    Dp = findDouble("constant_overpressure", SimulationParametersMap,
+                    input_filename);
+
+    t_0plus1 =
+        findDouble("initial_time", SimulationParametersMap, input_filename);
+
+    time_step =
+        findDouble("time_step", SimulationParametersMap, input_filename);
+
+    final_time =
+        findDouble("final_time", SimulationParametersMap, input_filename);
+
+  } else {
+    std::cerr << "ERROR: 'Simulation_Parameters' not found in input file "
+              << input_filename << std::endl;
+    exit(EXIT_FAILURE);
+  }
+
   il::Array<double> press_init_nodes{MyMesh.numberOfNodes(), 0};
   for (il::int_t j = 0; j < press_init_nodes.size(); ++j) {
     press_init_nodes[j] =
@@ -237,8 +268,8 @@ void fluidInjFrictWeakDilatFault(int argc, char const *argv[]) {
     if (slipp_length_at_Tn_plus1 - slipp_length_at_Tn == 0) {
       current_crack_velocity = 0.;
     } else {
-      current_crack_velocity =
-          (slipp_length_at_Tn_plus1 - slipp_length_at_Tn) / SolutionAtTn.timestep();
+      current_crack_velocity = (slipp_length_at_Tn_plus1 - slipp_length_at_Tn) /
+                               SolutionAtTn.timestep();
     }
 
     if ((current_crack_velocity > ((2 * 0.02) / SolutionAtTn.timestep())) &&
