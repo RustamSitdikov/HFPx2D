@@ -36,6 +36,10 @@ class Solution {
 
   il::Array<double> pressure_;  // fluid pressure (at nodes)
 
+  il::Array<double> sigma_n_o_;  // in-situ normal stress at collocation points
+  il::Array<double> tau_o_;     // in-situ  shear stress at collocation points
+
+
   // total normal traction component to element (at collocation points)
   il::Array<double> sigma_n_;
 
@@ -89,7 +93,8 @@ class Solution {
   // for now, we implement #1 ans #2
   Solution(){};
 
-  //#1.
+  // todo : do also the cae where current stress are also stored....
+  //#1. constructor w.o active set and without current stress at collocation points
   Solution(hfp2d::Mesh &mesh, double t, const il::Array<double> &width,
            const il::Array<double> &sheardd, const il::Array<double> &pressure,
            const il::Array<double> &sigma0, const il::Array<double> &tau0) {
@@ -98,12 +103,15 @@ class Solution {
     currentmesh_ = mesh;
     openingDD_ = width;
     shearDD_ = sheardd;
-    sigma_n_ = sigma0;
-    tau_ = tau0;
+//    sigma_n_ = sigma0;
+    sigma_n_o_ = sigma0;
+
+//    tau_ = tau0;
+    tau_o_=tau0;
     pressure_ = pressure;
   };
 
-  //#2.    constructor w.o active set
+  //#2.    constructor w.o active set and without current stress at collocation points
   Solution(hfp2d::Mesh &mesh, double t, double dt,
            const il::Array<double> &width, const il::Array<double> &sheardd,
            const il::Array<double> &pressure, const il::Array<double> &sigma0,
@@ -117,8 +125,11 @@ class Solution {
 
     openingDD_ = width;
     shearDD_ = sheardd;
-    sigma_n_ = sigma0;
-    tau_ = tau0;
+//    sigma_n_ = sigma0;
+//    tau_ = tau0;
+    sigma_n_o_ = sigma0;
+    tau_o_ = tau0;
+
     pressure_ = pressure;
 
     frontIts_ = itsFront;
@@ -132,8 +143,11 @@ class Solution {
   //#3.    constructor w.  active set
   Solution(hfp2d::Mesh &mesh, double t, double dt,
            const il::Array<double> &width, const il::Array<double> &sheardd,
-           const il::Array<double> &pressure, const il::Array<double> &sigma0,
-           const il::Array<double> &tau0, il::Array<il::int_t> &act_set_elmnts,
+           const il::Array<double> &pressure, const il::Array<double> &sigmaC,
+           const il::Array<double> &tauC,
+           const il::Array<double> &sigma0,
+           const il::Array<double> &tau0,
+           il::Array<il::int_t> &act_set_elmnts,
            il::int_t itsFront, il::int_t itsEHL, double err_front,
            double err_width, double err_shear, double err_p) {
     // have checks here on dimensions with mesh....
@@ -144,8 +158,12 @@ class Solution {
 
     openingDD_ = width;
     shearDD_ = sheardd;
-    sigma_n_ = sigma0;
-    tau_ = tau0;
+    sigma_n_ = sigmaC;
+    tau_ = tauC;
+
+    sigma_n_o_ = sigma0;
+    tau_o_ = tau0;
+
     pressure_ = pressure;
 
     active_set_elements_ = act_set_elmnts;
@@ -186,8 +204,9 @@ class Solution {
   inline il::Array<double> openingDD() const { return openingDD_; };
   inline il::Array<double> shearDD() const { return shearDD_; };
   inline il::Array<double> pressure() const { return pressure_; };
-  inline il::Array<double> sigma0() const { return sigma_n_; };
-  inline il::Array<double> tau0() const { return tau_; };
+  inline il::Array<double> sigma0() const { return sigma_n_o_; };
+  inline il::Array<double> tau0() const { return tau_o_; };
+
 
   inline il::Array<il::int_t> activeElts() const { return active_set_elements_; };
 
@@ -258,15 +277,27 @@ class Solution {
       json_pressure[m] = pressure_[m];
     }
 
+
     json json_shear_stress = json::array();
     for (il::int_t m = 0; m < tau_.size(); ++m) {
       json_shear_stress[m] = tau_[m];
+    }
+
+    json json_shear_stress_o = json::array();
+    for (il::int_t m = 0; m < tau_o_.size(); ++m) {
+      json_shear_stress_o[m] = tau_o_[m];
+    }
+
+    json json_normal_stress_o = json::array();
+    for (il::int_t m = 0; m < sigma_n_o_.size(); ++m) {
+      json_normal_stress_o[m] = sigma_n_o_[m];
     }
 
     json json_normal_stress = json::array();
     for (il::int_t m = 0; m < sigma_n_.size(); ++m) {
       json_normal_stress[m] = sigma_n_[m];
     }
+
 
     //tips
     json json_tip_pos = json::array();
@@ -305,6 +336,8 @@ class Solution {
                   {"Shear DD", json_shearDD},
                    {"Opening DD", json_openingDD},
                    {"Fluid Pressure", json_pressure},
+                  {"Initial Shear traction", json_shear_stress_o},
+                  {"Initial Normal traction", json_normal_stress_o},
                    {"Shear traction", json_shear_stress},
                    {"Normal traction", json_normal_stress}};
 

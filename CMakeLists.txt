@@ -39,7 +39,7 @@ set(SOURCE_FILES
         src/core/ElasticProperties.h
         src/core_dev/SolidEvolution.h
         src/core/Sources.h
-
+        src/core/DomainMesh.h
         src/elasticity/AssemblyDDM.cpp
         src/elasticity/AssemblyDDM.h
         src/elasticity/Simplified3D.cpp
@@ -127,7 +127,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DIL_FOLDER='\"${SR_FOLDER}\"'")
 set(UNIT_TEST_FILES src/_test/elastic_test.cpp
         gtest/src/gtest-all.cc
         src/_test/mesh_test.cpp
-        src/tip/_test/tip_test.cpp)
+        src/tip/_test/tip_test.cpp src/_test/domain_mesh_test.cpp)
 
 add_executable(HFPx2DUnitTest ${SOURCE_FILES} ${UNIT_TEST_FILES} test.cpp)
 

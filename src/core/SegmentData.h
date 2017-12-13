@@ -19,8 +19,6 @@
 namespace hfp2d{
 
 
-
-
 class SegmentData {
 
  private:

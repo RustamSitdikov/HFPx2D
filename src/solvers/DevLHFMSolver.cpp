@@ -14,13 +14,16 @@
 #include <src/core/ElasticProperties.h>
 #include <src/core/Fluid.h>
 #include <src/core/Mesh.h>
+#include <src/core/DomainMesh.h>
 
 #include <src/core/SimulationParameters.h>
 #include <src/elasticity/AssemblyDDM.h>
 #include <src/elasticity/Simplified3D.h>
 #include <src/elhsolvers/ReynoldsP0.h>
 #include <src/solvers/DevLHFMSolver.h>
+
 #include <src/tip/tipAsymptote.h>
+
 
 namespace hfp2d {
 
@@ -84,6 +87,40 @@ int TwoParallelHFs(int nelts, double dist) {
   }
 
   hfp2d::Mesh mesh(xy, myconn, p);
+
+  // background mesh 2 Quads
+   il::Array2D<double> nodesB{6,2,0.};
+    nodesB(0,0)=-100.;
+    nodesB(0,1)=-100.;
+    nodesB(1,0)=-100.;
+    nodesB(1,1)=100.;
+    nodesB(2,0)=0.;
+    nodesB(2,1)=100.;
+    nodesB(3,0)=0.;
+    nodesB(3,1)=-100.;
+    nodesB(4,0)=100.;
+    nodesB(4,1)=-100.;
+    nodesB(5,0)=100.;
+    nodesB(5,1)=100.;
+  il::Array2D<il::int_t> connB{2,4,0};
+  connB(0,0)=0;
+  connB(0,1)=1;
+  connB(0,2)=2;
+  connB(0,3)=3;
+  connB(1,0)=2;
+  connB(1,1)=3;
+  connB(1,2)=4;
+  connB(1,3)=5;
+
+  il::Array<il::int_t> matidB{2,0};
+  matidB[1]=1;
+
+  hfp2d::DomainMesh bckmesh(nodesB,connB,matidB);
+
+  il::Array<double> myxt(2,0.);
+  myxt[0]=1.;myxt[1]=0.;
+
+  il::int_t kk = bckmesh.locate(myxt);
 
   // Parameters
 

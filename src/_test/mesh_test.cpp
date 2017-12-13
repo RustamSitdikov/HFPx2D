@@ -12,7 +12,6 @@
 #include <gtest/gtest.h>
 #include <il/Array2D.h>
 #include <il/Array.h>
-#include <il/base.h>
 
 #include <src/core/Mesh.h>
 
@@ -42,7 +41,7 @@ TEST(Mesh, test_ribbon){
 
   il::Array<il::int_t> ribbon = mesh.getRibbonElements();
 
-  std::cout << "ribbon size: " << ribbon.size() << " "<<ribbon[0] << " " << ribbon[1];
+  //std::cout << "ribbon size: " << ribbon.size() << " "<<ribbon[0] << " " << ribbon[1];
 
  ASSERT_TRUE((ribbon[0]==1)  );//&& (ribbon[1]==2)
 

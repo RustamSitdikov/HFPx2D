@@ -374,6 +374,7 @@ Solution ReynoldsSolverP0(
               << " norm of residuals: " << res_norm << "\n";
   };
 
+
   // update total width, pressure and shear to the end values
    for (il::int_t i = 0; i < n_elts; i++) {
     Vn[i]+= DX_k[2*i];
