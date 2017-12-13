@@ -21,28 +21,28 @@ TEST(Mesh, test_ribbon){
   // ensure the ribbon elements are 1 and 2
 
   // create the mesh.
+   il::int_t nelts = 4;
 
-  il::int_t nelts = 4;
-  il::Array2D<double> xy(nelts, 0);
-  il::Array2D<il::int_t> myconn(nelts,0);
+   il::Array2D<double> xy{nelts+1,2,0.};
 
-  // create a basic 1D mesh .... first fracture
-  for (il::int_t i = 0; i < nelts + 1; ++i) {
-    xy(i, 0) = -1.0 + i  ;
-    xy(i, 1) = 0.;
-  };
+//  // create a basic 1D mesh .... first fracture
+   for (il::int_t i = 0; i < nelts + 1; ++i) {
+      xy(i, 0) = -1.0 + 1.*i  ;
+      xy(i, 1) = 0.;
+   };
 
+  il::Array2D<il::int_t> myconn{nelts,2,0};
   for (il::int_t i = 0; i < nelts; ++i) {
     myconn(i, 0) = i;
     myconn(i, 1) = i + 1;
   };
 
   hfp2d::Mesh mesh(xy, myconn, 0);
-
-  il::Array<il::int_t> ribbon = mesh.getRibbonElements();
-
-  //std::cout << "ribbon size: " << ribbon.size() << " "<<ribbon[0] << " " << ribbon[1];
-
- ASSERT_TRUE((ribbon[0]==1)  );//&& (ribbon[1]==2)
+//
+  auto ribbon = mesh.getRibbonElements();
+//
+//  std::cout << "ribbon size: " << ribbon.size() << " "<<ribbon[0] << " " << ribbon[1];
+//
+  ASSERT_TRUE((ribbon[0]==1)&& (ribbon[1]==2)  );//&& (ribbon[1]==2)
 
 }
