@@ -13,7 +13,7 @@
 #include <il/Array.h>
 #include <il/Array2D.h>
 
-namespace hfp2d{
+namespace hfp2d {
 
 class DomainMesh {
  private:
@@ -48,12 +48,17 @@ class DomainMesh {
   // returning the matid corresponding to an element.
   inline il::int_t getmatid(il::int_t k) const { return matid_[k]; };
 
+  inline il::int_t numberOfElts() const { return connectivity_.size(0); };
+
+  /////////////////
   // Methods
+  /////////////////
+
   il::Array<double> elementCentroid(il::int_t k) {
     // compute the xy coor of  element k centroid.
     il::Array<double> centroid(2, 0.);
-    centroid[0]=0.;
-    centroid[1]=0.;
+    centroid[0] = 0.;
+    centroid[1] = 0.;
 
     for (il::int_t i = 0; i < nodes_per_elt_; i++) {
       centroid[0] += nodes_(connectivity_(k, i), 0) / nodes_per_elt_;
@@ -66,9 +71,9 @@ class DomainMesh {
     // compute the xy coor of  element k centroid.
     il::Array2D<double> allcentroids{connectivity_.size(0), 2, 0.};
     for (il::int_t k = 0; k < connectivity_.size(0); k++) {
-      allcentroids(k, 0)=0.;
-      allcentroids(k, 1)=0.;
-       for (il::int_t i = 0; i < nodes_per_elt_; i++) {
+      allcentroids(k, 0) = 0.;
+      allcentroids(k, 1) = 0.;
+      for (il::int_t i = 0; i < nodes_per_elt_; i++) {
         allcentroids(k, 0) += nodes_(connectivity_(k, i), 0) / nodes_per_elt_;
         allcentroids(k, 1) += nodes_(connectivity_(k, i), 1) / nodes_per_elt_;
       }
@@ -83,20 +88,16 @@ class DomainMesh {
     il::Array2D<double> centroids = allElementCentroid();
 
     // compute distance from all centroids.
-    il::Array<double> dists{connectivity_.size(0), 0.};
+    double dist;
+    double min = std::numeric_limits<double>::max();
+    il::int_t min_pos = -1;
 
     for (il::int_t i = 0; i < connectivity_.size(0); i++) {
-      dists[i] = sqrt(pow(centroids(i, 0) - xy[0], 2.) +
-                      pow(centroids(i, 1) - xy[1], 2.));
-    }
-    //  idamin blas call would be the best.
-
-    double min = dists[0];
-    il::int_t min_pos = 0;
-
-    for (il::int_t i = 0; i < connectivity_.size(0); i++) {
-      if (dists[i] < min) {
-        min = dists[i];
+      const double dx = centroids(i, 0) - xy[0];
+      const double dy = centroids(i, 1) - xy[1];
+      dist = dx * dx + dy * dy;
+      if (dist < min) {
+        min = dist;
         min_pos = i;
       }
     }
