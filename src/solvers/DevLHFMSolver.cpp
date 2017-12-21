@@ -122,6 +122,8 @@ int TwoParallelHFs(int nelts, double dist) {
 
   il::int_t kk = bckmesh.locate(myxt);
 
+  auto node_CONN = mesh.nodeEltConnectivity();
+
   // Parameters
 
   hfp2d::ElasticProperties myelas(10.e9, 0.);
@@ -160,7 +162,6 @@ int TwoParallelHFs(int nelts, double dist) {
 
   AddTipCorrectionP0(mesh, myelas, nelts, K);
   AddTipCorrectionP0(mesh, myelas, Ntot - 1, K);
-
 
   // solve the initial elastic system
   il::Array<double> fini{2 * Ntot, 0.};

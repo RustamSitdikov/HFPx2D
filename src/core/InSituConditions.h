@@ -27,13 +27,11 @@ namespace hfp2d {
 class InSituConditions {
  private:
   //  stress at center of elements of the background mesh
-  //   sxx = sxx_center + D_y_sxx (y-ycenter)
-  //   syy = syy_center + D_x_syy (x-xcenter)
-  //   sxy =  sxy_center
-  // such that we always have Div Sig_0  = 0.
+  //   sxx = sxx_center + D_x_sxx (x-xcenter) +  D_y_sxx (y-ycenter)
+  //   syy = syy_center + D_x_syy (x-xcenter) +  D_y_syy (y-ycenter)
+  //   sxy =  sxy_center + NO gradient for now (because we are lazy)
+  // Note that we don t check if  we  have Div Sig_0 + b = 0 !
   //
-  // or shall we also add D_x_sxx or D_y_Syy -> case of gravity ? with a check
-  // that one of the 2 should be zero
 
   il::Array<double> pp_o_;
   il::Array<double> pp_grad_x_;
@@ -44,7 +42,10 @@ class InSituConditions {
   il::Array<double> sxy_o_;
 
   il::Array<double> syy_grad_o_x_;  // for syy
+  il::Array<double> syy_grad_o_y_;  // for syy
+
   il::Array<double> sxx_grad_o_y_;  // for sxx
+  il::Array<double> sxx_grad_o_x_;  // for sxx
 
  public:
   //////////////////////////////////////////////////////////////////////////////
@@ -55,8 +56,11 @@ class InSituConditions {
   // shall we have a matrix instead of individual stress components vectors ?
 
   InSituConditions(il::Array<double> &sxx, il::Array<double> &syy,
-                   il::Array<double> &sxy, il::Array<double> &syy_grad_x,
+                   il::Array<double> &sxy,
+                   il::Array<double> &sxx_grad_x,
                    il::Array<double> &sxx_grad_y,
+                   il::Array<double> &syy_grad_x,
+                   il::Array<double> &syy_grad_y,
                    hfp2d::DomainMesh &background) {
     // by definition the stresses (& grads if present) are defined at centroid,
     //
@@ -69,10 +73,13 @@ class InSituConditions {
     sxx_o_ = sxx;
     syy_o_ = syy;
     sxy_o_ = sxy;
-    syy_grad_o_x_ = syy_grad_x;
+    sxx_grad_o_x_ = sxx_grad_x;
     sxx_grad_o_y_ = sxx_grad_y;
+
+    syy_grad_o_x_ = syy_grad_x;
+    syy_grad_o_y_ = syy_grad_y;
   };
-  // todo constructor with pp_
+  // todo constructor with pp_ !
 
   //////////////////////////////////////////////////////////////////
   //                  METHODS
@@ -81,17 +88,28 @@ class InSituConditions {
   // Obtain the in-situ stress at a given xy point
   il::StaticArray<double, 3> insituStressAtxy(hfp2d::DomainMesh &domain,
                                               il::Array<double> &xy) {
+
     il::StaticArray<double, 3> stress;
 
     il::int_t kelt = domain.locate(xy);
     il::Array<double> center = domain.elementCentroid(kelt);
 
-    stress[0] = sxx_o_[kelt] + sxx_grad_o_y_[kelt] * (xy[1] - center[1]);
-    stress[1] = syy_o_[kelt] + syy_grad_o_x_[kelt] * (xy[0] - center[0]);
+    stress[0] = sxx_o_[kelt] + sxx_grad_o_x_[kelt]* (xy[0] - center[0])
+        + sxx_grad_o_y_[kelt] * (xy[1] - center[1]);
+    stress[1] = syy_o_[kelt] + syy_grad_o_x_[kelt] * (xy[0] - center[0])
+        + syy_grad_o_y_[kelt] * (xy[1] - center[1]);
     stress[2] = sxy_o_[kelt];
 
     return stress;
   };
+
+
+  // Get Normal and shear Traction at all collocation point of a given segment ?
+
+
+
+  // todo :
+
 };
 }
 

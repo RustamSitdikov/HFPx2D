@@ -33,6 +33,7 @@ il::Array2D<il::int_t> getNodalEltConnectivity(
   // coordinates.
   // we don t care of that case for now.
 
+
   // format is col1: element1, col2: element2 etc.   (note we don t store the
   // corresponding coordinates here....)
 

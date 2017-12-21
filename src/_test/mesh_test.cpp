@@ -43,6 +43,7 @@ TEST(Mesh, test_ribbon){
 //
 //  std::cout << "ribbon size: " << ribbon.size() << " "<<ribbon[0] << " " << ribbon[1];
 //
+
   ASSERT_TRUE((ribbon[0]==1)&& (ribbon[1]==2)  );//&& (ribbon[1]==2)
 
 }

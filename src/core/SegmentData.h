@@ -41,7 +41,6 @@ class SegmentData {
     //  IL_ASSERT(Xs.size(0) == 2);
     //  IL_ASSERT(Xs.size(1) == 2);
 
-
     // compute element size
     il::StaticArray<double, 2> xdiff, s, n, xmean, xaux;
     il::Array2D<double> Xcol{p + 1, 2, 0};
