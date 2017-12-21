@@ -26,7 +26,7 @@
 #include <src/elasticity/PlaneStrainInfinite.h>
 #include <src/elasticity/Simplified3D.h>
 
-#include "SimpleElastic.h"
+#include "SimpleElasticBenchmarks.h"
 #include "src/core/ElasticProperties.h"
 
 namespace hfp2d {
@@ -463,4 +463,80 @@ double SimpleGriffithExampleS3D_P0_AddMesh(int nelts) {
 
   return il::norm(rel_err, il::Norm::L2);
 }
+
+////////////////////////////////////////////////////////////////////////////////
+double SimpleGriffithExampleS3D_P0_byNodes(int nelts) {
+  int p = 0;                // piece wise constant element
+  double h = 2. / (nelts);  //  element size
+
+  double Ep = 1.;  // Plane strain Young's modulus
+
+  // create a basic 1D mesh ....
+  il::Array2D<double> xy{nelts + 1, 2, 0.0};
+  for (int i = 0; i < xy.size(0); ++i) {
+    xy(i, 0) = -1. + i * h;
+    xy(i, 1) = 0.;
+  };
+
+  il::Array2D<il::int_t> myconn{nelts, 2, 0};
+  for (int i = 0; i < myconn.size(0); ++i) {
+    myconn(i, 0) = i;
+    myconn(i, 1) = i + 1;
+  };
+
+  // create mesh object
+  hfp2d::Mesh mesh(xy, myconn, p);
+
+  hfp2d::ElasticProperties myelas(1, 0.3);
+
+  il::Array2D<double> K = hfp2d::basic_assembly_nodal(
+      mesh, myelas, hfp2d::normal_shear_stress_kernel_s3d_dp0_dd_nodal,
+      1000.);  // large pseudo-heigth to reproduce plane-strain kernel
+
+  AddTipCorrectionP0(mesh, myelas, 0, K);
+  AddTipCorrectionP0(mesh, myelas, nelts - 1, K);
+
+  il::int_t ndof = mesh.numberDDDofs();
+  // solve a constant pressurized crack problem...
+  il::Array<double> f{ndof, 1.};  // be careful of sign
+  // just opening dds - set shear loads to zero
+  for (int i = 0; i < ndof / 2; ++i) {
+    f[2 * i] = 0;
+  }
+
+  il::Status status;
+  // use a direct solver
+  il::Array<double> dd = il::linearSolve(K, f, il::io, status);
+  //  // Analytical solution at nodes
+  il::Array<double> thex{ndof / 2, 0}, wsol{ndof / 2, 0};
+
+  int i = 0;
+  for (int e = 0; e < nelts; ++e) {
+    hfp2d::SegmentData sege = mesh.getElementData(e);
+    thex[e] = sege.Xmid(0);
+  }
+
+  wsol =
+      griffithcrack(thex, 1., myelas.Ep(), 1.);  // call to analytical solution
+
+  // printing out the comparisons for each nodes (left and right values at each
+  // nodes due to the piece-wise constant nature of the solution)...
+  il::Array<double> rel_err{ndof / 2 - 2};
+
+  double rel_err_norm;
+  // do not compute the relative error in x=\pm 1 as it will be infinite
+  for (int j = 1; j < ndof / 2 - 1; ++j) {
+    rel_err[j - 1] = sqrt(pow(dd[j * 2 + 1] - wsol[j], 2)) / wsol[j];
+
+    std::cout << "x : " << thex[j] << "..w anal:" << wsol[j]
+              << " w num: " << dd[j * 2 + 1] << " rel error: " << rel_err[j - 1]
+              << "\n";
+  }
+
+  std::cout << " end of Simple Griffith crack example P0 \n";
+  status.ok();
+
+  return il::norm(rel_err, il::Norm::L2);
+}
+
 }

@@ -14,7 +14,7 @@
 
 
 //#include "src/input/loadInput.h"
-#include "src/solvers/SimpleElastic.h"
+#include "src/solvers/SimpleElasticBenchmarks.h"
 //#include "src/core_dev/OldSolutionClass.h"
 //#include "src/input/loadArguments.h"
 
@@ -131,7 +131,7 @@ int main(){
  // int ret = hfp2d::TwoParallelHFs(nelts,dist);
 
   //std::cout << "return " << ret;
-  double ret1 =  hfp2d::SimpleGriffithExampleLinearElement_byNodes(10);
+  double ret1 =  hfp2d::SimpleGriffithExampleS3D_P0_byNodes(10);
 //  double ret1 = hfp2d::SimpleGriffithExampleLinearElement(10);
 //  double ret2 = hfp2d::SimpleGriffithExampleS3D_P0(nelts);
 //  double ret2 = hfp2d::SimpleGriffithExampleS3D_P0_AddMesh(10);

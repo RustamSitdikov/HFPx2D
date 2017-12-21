@@ -33,6 +33,11 @@ il::StaticArray2D<double, 2, 4> normal_shear_stress_kernel_s3d_dp0_dd(
     SegmentData source_elt, SegmentData receiver_elt,  il::int_t i_col,
     ElasticProperties Elas, double ker_options);
 
+
+
+il::StaticArray2D<double, 2, 2> normal_shear_stress_kernel_s3d_dp0_dd_nodal(
+    SegmentData source_elt, SegmentData receiver_elt, il::int_t s_col,
+    il::int_t i_col, ElasticProperties Elas, double ker_options);
 }
 
 #endif // HFPX2D_ELASTICITY2D_H

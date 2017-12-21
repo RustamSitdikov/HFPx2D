@@ -46,8 +46,8 @@ set(SOURCE_FILES
         src/elasticity/Simplified3D.h
         src/elasticity/PlaneStrainInfinite.cpp
         src/elasticity/PlaneStrainInfinite.h
-        src/solvers/SimpleElastic.cpp
-        src/solvers/SimpleElastic.h
+        src/solvers/SimpleElasticBenchmarks.cpp
+        src/solvers/SimpleElasticBenchmarks.h
         src/core/SimulationParameters.h
 #        src/input/loadArguments.cpp
 #        src/input/loadArguments.h

@@ -9,7 +9,7 @@
 
 #include <gtest/gtest.h>
 
-#include <src/solvers/SimpleElastic.h>
+#include <src/solvers/SimpleElasticBenchmarks.h>
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -50,3 +50,9 @@ TEST(UnitP0, griffith_10_add) {
   ASSERT_NEAR(0.0809615, ret, 0.001);   // norm on all elements including tip
 }
 
+
+TEST( UnitP0,griffith_10_by_nodes) {
+  double ret = hfp2d::SimpleGriffithExampleS3D_P0_byNodes(10);
+
+  ASSERT_NEAR(0.0045515, ret, 0.001);// norm on all DD excluding tip ends
+}
