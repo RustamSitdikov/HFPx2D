@@ -27,32 +27,36 @@ class DomainMesh {
   il::int_t nodes_per_elt_;
 
  public:
+  ///////////////////////////////////////////////////
   // constructor ....
+  ///////////////////////////////////////////////////
 
   DomainMesh(const il::Array2D<double> &nodes,
              const il::Array2D<il::int_t> &connectivity,
              const il::Array<il::int_t> &matid) {
+
     IL_EXPECT_FAST(connectivity.size(0) == matid.size());
+
     nodes_ = nodes;
     connectivity_ = connectivity;
-
     matid_ = matid;
 
     nodes_per_elt_ = connectivity.size(1);
+
   };
 
-  /////////////////
+  ///////////////////////////////////////////////////
   // get functions
-  /////////////////
+  ///////////////////////////////////////////////////
 
   // returning the matid corresponding to an element.
   inline il::int_t getmatid(il::int_t k) const { return matid_[k]; };
 
   inline il::int_t numberOfElts() const { return connectivity_.size(0); };
 
-  /////////////////
+  ///////////////////////////////////////////////////
   // Methods
-  /////////////////
+  ///////////////////////////////////////////////////
 
   il::Array<double> elementCentroid(il::int_t k) {
     // compute the xy coor of  element k centroid.

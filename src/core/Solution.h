@@ -37,8 +37,7 @@ class Solution {
   il::Array<double> pressure_;  // fluid pressure (at nodes)
 
   il::Array<double> sigma_n_o_;  // in-situ normal stress at collocation points
-  il::Array<double> tau_o_;     // in-situ  shear stress at collocation points
-
+  il::Array<double> tau_o_;      // in-situ  shear stress at collocation points
 
   // total normal traction component to element (at collocation points)
   il::Array<double> sigma_n_;
@@ -94,7 +93,8 @@ class Solution {
   Solution(){};
 
   // todo : do also the cae where current stress are also stored....
-  //#1. constructor w.o active set and without current stress at collocation points
+  //#1. constructor w.o active set and without current stress at collocation
+  //points
   Solution(hfp2d::Mesh &mesh, double t, const il::Array<double> &width,
            const il::Array<double> &sheardd, const il::Array<double> &pressure,
            const il::Array<double> &sigma0, const il::Array<double> &tau0) {
@@ -103,15 +103,16 @@ class Solution {
     currentmesh_ = mesh;
     openingDD_ = width;
     shearDD_ = sheardd;
-//    sigma_n_ = sigma0;
+    //    sigma_n_ = sigma0;
     sigma_n_o_ = sigma0;
 
-//    tau_ = tau0;
-    tau_o_=tau0;
+    //    tau_ = tau0;
+    tau_o_ = tau0;
     pressure_ = pressure;
   };
 
-  //#2.    constructor w.o active set and without current stress at collocation points
+  //#2.    constructor w.o active set and without current stress at collocation
+  //points
   Solution(hfp2d::Mesh &mesh, double t, double dt,
            const il::Array<double> &width, const il::Array<double> &sheardd,
            const il::Array<double> &pressure, const il::Array<double> &sigma0,
@@ -125,8 +126,8 @@ class Solution {
 
     openingDD_ = width;
     shearDD_ = sheardd;
-//    sigma_n_ = sigma0;
-//    tau_ = tau0;
+    //    sigma_n_ = sigma0;
+    //    tau_ = tau0;
     sigma_n_o_ = sigma0;
     tau_o_ = tau0;
 
@@ -144,10 +145,8 @@ class Solution {
   Solution(hfp2d::Mesh &mesh, double t, double dt,
            const il::Array<double> &width, const il::Array<double> &sheardd,
            const il::Array<double> &pressure, const il::Array<double> &sigmaC,
-           const il::Array<double> &tauC,
-           const il::Array<double> &sigma0,
-           const il::Array<double> &tau0,
-           il::Array<il::int_t> &act_set_elmnts,
+           const il::Array<double> &tauC, const il::Array<double> &sigma0,
+           const il::Array<double> &tau0, il::Array<il::int_t> &act_set_elmnts,
            il::int_t itsFront, il::int_t itsEHL, double err_front,
            double err_width, double err_shear, double err_p) {
     // have checks here on dimensions with mesh....
@@ -176,11 +175,11 @@ class Solution {
   };
 
   // some set functions
- inline void setRibbonDistances(const il::Array<double> &srt) {
+  inline void setRibbonDistances(const il::Array<double> &srt) {
     ribbon_tips_s_ = srt;
   };
 
- inline void setTipsLocation(const il::Array2D<double> &tips_xy) {
+  inline void setTipsLocation(const il::Array2D<double> &tips_xy) {
     tipsLocation_ = tips_xy;
   };
 
@@ -207,8 +206,9 @@ class Solution {
   inline il::Array<double> sigma0() const { return sigma_n_o_; };
   inline il::Array<double> tau0() const { return tau_o_; };
 
-
-  inline il::Array<il::int_t> activeElts() const { return active_set_elements_; };
+  inline il::Array<il::int_t> activeElts() const {
+    return active_set_elements_;
+  };
 
   inline il::Array2D<double> tipsLocation() const { return tipsLocation_; };
   inline il::Array<double> ribbonsDistance() const { return ribbon_tips_s_; };
@@ -227,8 +227,8 @@ class Solution {
   inline il::int_t frontIts() const { return frontIts_; }
   inline il::int_t ehlIts() const { return ehlIts_; }
 
-  //////////////////////////////////////////////////////////////////////////////
 
+  //////////////////////////////////////////////////////////////////////////////
   // methods :
 
   // write solution to file  -> json format
@@ -240,35 +240,37 @@ class Solution {
     // we output the mesh
     json json_coord = json::array();
     for (il::int_t m = 0; m < currentmesh_.coordinates().size(0); ++m) {
-      json_coord[m] = {currentmesh_.coordinates(m, 0), currentmesh_.coordinates(m, 1)};
+      json_coord[m] = {currentmesh_.coordinates(m, 0),
+                       currentmesh_.coordinates(m, 1)};
     }
-
     //  connectivity, and dofs array
     json json_connectivity = json::array();
     json json_dof_handle_dd = json::array();
-    json json_dof_handle_pres=json::array();
+    json json_dof_handle_pres = json::array();
+    json json_mat_id = json::array();
 
     for (il::int_t m = 0; m < currentmesh_.numberOfElts(); ++m) {
-      json_connectivity[m]= {currentmesh_.connectivity(m, 0),currentmesh_.connectivity(m, 1)};
-      if (currentmesh_.interpolationOrder()==0){
-        json_dof_handle_dd[m]={ currentmesh_.dofDD(m, 0),currentmesh_.dofDD(m, 1) };
-        json_dof_handle_pres[m]=currentmesh_.dofPress(m,0);
-      }else
-        if (currentmesh_.interpolationOrder()==1) {
-          json_dof_handle_dd[m]=
-           { currentmesh_.dofDD(m, 0),currentmesh_.dofDD(m, 1), currentmesh_.dofDD(m, 2),currentmesh_.dofDD(m, 3)};
-          json_dof_handle_pres[m]={currentmesh_.dofPress(m,0),currentmesh_.dofPress(m,1)};
+      json_connectivity[m] = {currentmesh_.connectivity(m, 0),
+                              currentmesh_.connectivity(m, 1)};
+      json_mat_id[m] = currentmesh_.matid(m);
+      if (currentmesh_.interpolationOrder() == 0) {
+        json_dof_handle_dd[m] = {currentmesh_.dofDD(m, 0),
+                                 currentmesh_.dofDD(m, 1)};
+        json_dof_handle_pres[m] = currentmesh_.dofPress(m, 0);
+      } else if (currentmesh_.interpolationOrder() == 1) {
+        json_dof_handle_dd[m] = {
+            currentmesh_.dofDD(m, 0), currentmesh_.dofDD(m, 1),
+            currentmesh_.dofDD(m, 2), currentmesh_.dofDD(m, 3)};
+        json_dof_handle_pres[m] = {currentmesh_.dofPress(m, 0),
+                                   currentmesh_.dofPress(m, 1)};
       }
     }
 
-    // note all the loop below should be collapsed into 1
+    // note all the loop below should be collapsed into a single one
     json json_shearDD = json::array();
+    json json_openingDD = json::array();
     for (il::int_t m = 0; m < shearDD_.size(); ++m) {
       json_shearDD[m] = shearDD_[m];
-    }
-
-    json json_openingDD = json::array();
-    for (il::int_t m = 0; m < openingDD_.size(); ++m) {
       json_openingDD[m] = openingDD_[m];
     }
 
@@ -277,69 +279,62 @@ class Solution {
       json_pressure[m] = pressure_[m];
     }
 
-
     json json_shear_stress = json::array();
+    json json_normal_stress = json::array();
     for (il::int_t m = 0; m < tau_.size(); ++m) {
       json_shear_stress[m] = tau_[m];
-    }
-
-    json json_shear_stress_o = json::array();
-    for (il::int_t m = 0; m < tau_o_.size(); ++m) {
-      json_shear_stress_o[m] = tau_o_[m];
-    }
-
-    json json_normal_stress_o = json::array();
-    for (il::int_t m = 0; m < sigma_n_o_.size(); ++m) {
-      json_normal_stress_o[m] = sigma_n_o_[m];
-    }
-
-    json json_normal_stress = json::array();
-    for (il::int_t m = 0; m < sigma_n_.size(); ++m) {
       json_normal_stress[m] = sigma_n_[m];
     }
 
+    json json_shear_stress_o = json::array();
+    json json_normal_stress_o = json::array();
+    for (il::int_t m = 0; m < tau_o_.size(); ++m) {
+      json_shear_stress_o[m] = tau_o_[m];
+      json_normal_stress_o[m] = sigma_n_o_[m];
+    }
 
-    //tips
+    // tips structure etc.
     json json_tip_pos = json::array();
-     json json_tip_vel = json::array();
+    json json_tip_vel = json::array();
     json json_ribbon_s = json::array();
-    json json_tip_elt =json::array();
+    json json_tip_elt = json::array();
 
     for (il::int_t m = 0; m < tips_velocity_.size(); ++m) {
-      json_tip_pos[m] = {tipsLocation_(m, 0),tipsLocation_(m, 1)};
+      json_tip_pos[m] = {tipsLocation_(m, 0), tipsLocation_(m, 1)};
       json_tip_vel[m] = tips_velocity_[m];
       json_ribbon_s[m] = ribbon_tips_s_[m];
       json_tip_elt[m] = currentmesh_.tipElts(m);
     }
 
     json j_mesh = {{"Interpolation order", currentmesh_.interpolationOrder()},
-                    {"Node Coordinates", json_coord},
-                    {"Connectivity", json_connectivity},
-                    {"Dof handle DD", json_dof_handle_dd},
-                   {"Dof handle P",json_dof_handle_pres}};
+                   {"Node coordinates", json_coord},
+                   {"Connectivity", json_connectivity},
+                   {"Material ID", json_mat_id},
+                   {"Dof handle DD", json_dof_handle_dd},
+                   {"Dof handle P", json_dof_handle_pres}};
 
     json j_tips = {{"Tip coordinates", json_tip_pos},
-               {"Tip velocity", json_tip_vel},
-               {"Ribbon-tip distance", json_ribbon_s},
-                   {"Tip elts",json_tip_elt}};
+                   {"Tip velocity", json_tip_vel},
+                   {"Ribbon-tip distance", json_ribbon_s},
+                   {"Tip elts", json_tip_elt}};
 
     json j_obj = {{"Time", time_},
-                   {"Time step", timestep_},
-                   {"Its frac. front ", frontIts_},
-                   {"Error Fracture front", err_front_},
-                   {"Its EHL", ehlIts_},
-                   {"Error EHL pressure", err_P_},
-                   {"Error EHL opening", err_openingDD_},
-                   {"Error EHL opening", err_shearDD_},
-                  {"Mesh",j_mesh},
-                  {"Tips",j_tips},
+                  {"Time step", timestep_},
+                  {"Its frac. front", frontIts_},
+                  {"Error Fracture front", err_front_},
+                  {"Its EHL", ehlIts_},
+                  {"Error EHL pressure", err_P_},
+                  {"Error EHL opening", err_openingDD_},
+                  {"Error EHL opening", err_shearDD_},
+                  {"Mesh", j_mesh},
+                  {"Tips", j_tips},
                   {"Shear DD", json_shearDD},
-                   {"Opening DD", json_openingDD},
-                   {"Fluid Pressure", json_pressure},
-                  {"Initial Shear traction", json_shear_stress_o},
-                  {"Initial Normal traction", json_normal_stress_o},
-                   {"Shear traction", json_shear_stress},
-                   {"Normal traction", json_normal_stress}};
+                  {"Opening DD", json_openingDD},
+                  {"Fluid pressure", json_pressure},
+                  {"Initial shear traction", json_shear_stress_o},
+                  {"Initial normal traction", json_normal_stress_o},
+                  {"Shear traction", json_shear_stress},
+                  {"Normal traction", json_normal_stress}};
 
     // write prettified JSON to file
     std::ofstream output(filename);

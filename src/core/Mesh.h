@@ -139,11 +139,13 @@ class Mesh {  // class for 1D mesh of 1D segment elements ?
     tipelts_ = buildTipElts(node_adj_elt_, tipnodes_);
   };
 
+
   // case where the matid vector is provided
   // constructor with interpolation order and coordinates and connectivity array
   Mesh(const il::Array2D<double> &Coordinates,
        const il::Array2D<il::int_t> &Connectivity,
        const il::Array<il::int_t> &MatID, const il::int_t interpolationOrder) {
+
     // check validity of inputs
 
     IL_EXPECT_FAST(Coordinates.size(0) > 1 && Coordinates.size(1) == 2);

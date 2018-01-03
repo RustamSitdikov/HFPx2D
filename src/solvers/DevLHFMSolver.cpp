@@ -203,6 +203,7 @@ int TwoParallelHFs(int nelts, double dist) {
   // create a solution at time t=0 object.
   hfp2d::Solution Soln =
       hfp2d::Solution(mesh, 0., width, sheardd, pf_o, sig_o, tau_o);
+
   il::Array<double> s0{4, 3 * h / 2.};
 
   il::Array<double> vel0{4, 0.};
@@ -210,8 +211,8 @@ int TwoParallelHFs(int nelts, double dist) {
   Soln.setTipsVelocity(vel0);
   Soln.setRibbonDistances(s0);
 
-
   hfp2d::SimulationParameters SimulParam;
+
   SimulParam.frac_front_max_its = 40;
   SimulParam.frac_front_tolerance = 1.e-3;
   SimulParam.ehl_relaxation = 0.95;

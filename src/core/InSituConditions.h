@@ -79,6 +79,7 @@ class InSituConditions {
     syy_grad_o_x_ = syy_grad_x;
     syy_grad_o_y_ = syy_grad_y;
   };
+
   // todo constructor with pp_ !
 
   //////////////////////////////////////////////////////////////////
@@ -104,8 +105,7 @@ class InSituConditions {
   };
 
 
-  // Get Normal and shear Traction at all collocation point of a given segment ?
-
+  // Get Normal and shear Traction at all collocation point of a given segment?
 
 
   // todo :

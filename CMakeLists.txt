@@ -86,7 +86,7 @@ set(SOURCE_FILES
         src/tip/tipAsymptote.cpp
         src/tip/tipAsymptote.h
         src/util/json.hpp
-        )
+        src/input/json/loadJsonMesh.cpp src/input/json/loadJsonMesh.h)
 
 if(APPLE)
 link_directories($ENV{MKLROOT}/lib $ENV{MKLROOT}/../compiler/lib )
