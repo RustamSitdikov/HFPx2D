@@ -9,7 +9,7 @@
 
  namespace hfp2d {
 class Sources {
- private:
+ protected:
 
   // todo : move it to a struct ?
 
@@ -30,6 +30,9 @@ class Sources {
   //  il::Array
 
  public:
+
+  Sources() {};
+
   // constructor
 
   Sources(il::Array<il::int_t> &sourceLoc, il::Array<double> &injectionRate) {

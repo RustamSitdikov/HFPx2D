@@ -22,7 +22,7 @@ namespace hfp2d {
 
 class Solution {
   // base  class for solution of coupled fluid driven fracture problem
- private:
+ protected:
   double time_;  // current time (tn+1 = tn + timestep) at which the solution
                  // refers to
   double

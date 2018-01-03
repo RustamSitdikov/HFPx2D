@@ -37,7 +37,7 @@ il::Array<il::int_t> buildTipElts(
 ///// 1D mesh class
 class Mesh {  // class for 1D mesh of 1D segment elements ?
 
- private:
+ protected:
   // Coordinates of the nodes - size: number of nodes x problem dimension (2D)
   il::Array2D<double> coordinates_;
 
