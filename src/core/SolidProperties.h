@@ -23,18 +23,18 @@ class SolidProperties {
   il::Array<double> fracture_toughness_;  // list of fracture toughness  (should
                                           // match the number of differents
                                           // material in the matid vector of the
-                                          // mesh)
+                                          // wellMesh)
   // todo :: add fracture energy array....
 
   il::Array<double> wh_o_;  // residual hydraulic width when the mechanical
                             // width is zero (should match the number of
                             // differents material in the matid vector of the
-                            // mesh
+                            // wellMesh
 
   il::Array<double> carter_leakoff_coef_;  //  list of carter leak-off
                                            //  coefficient  (should match the
                                            //  number of differents material in
-                                           //  the matid vector of the mesh)
+                                           //  the matid vector of the wellMesh)
 
 
  public:

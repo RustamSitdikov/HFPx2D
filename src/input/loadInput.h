@@ -16,7 +16,7 @@
 #include "src/core/Mesh.h"
 #include "src/core_dev/Properties.h"
 #include "src/core/SimulationParameters.h"
-#include "src/core/InSituStress.h"
+#include "src/core/InSituConditions.h"
 #include "src/core/Sources.h"
 #include "src/input/geometry/loadGeometry.h"
 #include "src/input/properties/loadProperties.h"

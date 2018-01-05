@@ -20,21 +20,19 @@
 #include <src/core/Mesh.h>
 #include <src/core/Utilities.h>
 
-
 namespace hfp2d {
-
 
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
 // todo need to write a function similar to Assembly for the addition of new
-// rows and columms corresponding to the addition of new elements in the mesh !
+// rows and columms corresponding to the addition of new elements in the wellMesh !
 
 ///////////////////////////////////////////////////////////////////////////////
 il::Array2D<double> basic_assembly(Mesh &mesh, hfp2d::ElasticProperties &elas,
                                    vKernelCall KernelCall, double ker_options) {
   // Kmat :: the stiffness matrix to assemble
-  // mesh :: the Mesh object
+  // wellMesh :: the Mesh object
   // id   :: the DOF handle
   // p    :: the interpolation order
   // elas :: the elastic properties object
@@ -51,8 +49,7 @@ il::Array2D<double> basic_assembly(Mesh &mesh, hfp2d::ElasticProperties &elas,
   // Brute Force assembly
   // double loop on elements to create the stiffness matrix ...
 
-  for (il::int_t e = 0; e < mesh.numberOfElts();
-       ++e) {  // loop on all  elements
+  for (il::int_t e = 0; e < mesh.numberOfElts(); ++e) {  // loop on all elements
 
     //   get characteristic of element # e
     hfp2d::SegmentData mysege = mesh.getElementData(e);
@@ -91,18 +88,18 @@ il::Array2D<double> basic_assembly(Mesh &mesh, hfp2d::ElasticProperties &elas,
   return Kmat;
 };
 
-// rows and columms corresponding to the addition of new elements in the mesh !
+// rows and columms corresponding to the addition of new elements in the wellMesh !
 ///////////////////////////////////////////////////////////////////////////////
 void basic_assembly_add_elts(Mesh &new_mesh, il::int_t n_add,
-                             hfp2d::ElasticProperties &elas, vKernelCall KernelCall,
-                             double ker_options, il::io_t,
-                             il::Array2D<double> &K) {
-  // here newmesh containing the mesh on which the whole elasticity matrix will
+                             hfp2d::ElasticProperties &elas,
+                             vKernelCall KernelCall, double ker_options,
+                             il::io_t, il::Array2D<double> &K) {
+  // here newmesh containing the wellMesh on which the whole elasticity matrix will
   // be built
   // n_add : number of elements added - note that the new element added MUST be
   // stored
   // at the end of the newmesh connectivity table (consistency not checked)
-  // (or better have the new and old mesh ? )
+  // (or better have the new and old wellMesh ? )
 
   il::int_t p = new_mesh.interpolationOrder();
 
@@ -173,7 +170,7 @@ void basic_assembly_add_elts(Mesh &new_mesh, il::int_t n_add,
 //  tip correction for PO elements
 void AddTipCorrectionP0(hfp2d::Mesh &mesh, const hfp2d::ElasticProperties &elas,
                         il::int_t tipElt, il::Array2D<double> &Kmat) {
-  // getting the element size ;( -> cry for a method in mesh class !
+  // getting the element size ;( -> cry for a method in wellMesh class !
 
   //  correction factor from Ryder & Napier 1985.
 
@@ -187,14 +184,15 @@ void AddTipCorrectionP0(hfp2d::Mesh &mesh, const hfp2d::ElasticProperties &elas,
 
 ///////////////////////////////////////////////////////////////////////////////
 // remove tip correction for PO elements
-void RemoveTipCorrectionP0(hfp2d::Mesh &mesh, const hfp2d::ElasticProperties &elas,
+void RemoveTipCorrectionP0(hfp2d::Mesh &mesh,
+                           const hfp2d::ElasticProperties &elas,
                            il::int_t tipElt, il::Array2D<double> &Kmat) {
   //// getting the element size ;( -> cry for a method in mesh class !
   //  il::StaticArray2D<double, 2, 2> Xs;
-  //  Xs(0, 0) = mesh.coordinates(mesh.connectivity(tipElt, 0), 0);
-  //  Xs(0, 1) = mesh.coordinates(mesh.connectivity(tipElt, 0), 1);
-  //  Xs(1, 0) = mesh.coordinates(mesh.connectivity(tipElt, 1), 0);
-  //  Xs(1, 1) = mesh.coordinates(mesh.connectivity(tipElt, 1), 1);
+  //  Xs(0, 0) = mesh.coordinates(wellMesh.connectivity(tipElt, 0), 0);
+  //  Xs(0, 1) = mesh.coordinates(wellMesh.connectivity(tipElt, 0), 1);
+  //  Xs(1, 0) = mesh.coordinates(wellMesh.connectivity(tipElt, 1), 0);
+  //  Xs(1, 1) = mesh.coordinates(wellMesh.connectivity(tipElt, 1), 1);
   //
   //  il::StaticArray<double, 2> xdiff;
   //  xdiff[0] = Xs(1, 0) - Xs(0, 0);
@@ -249,5 +247,78 @@ il::Array2D<double> ReArrangeKP0(const Mesh &mesh, il::Array2D<double> &Kmat) {
   };
 
   return Knew;
+};
+
+////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+il::Array2D<double> basic_assembly_nodal(Mesh &mesh,
+                                         hfp2d::ElasticProperties &elas,
+                                         vKernelCallNode KernelCallNodal,
+                                         double ker_options) {
+  // this matrix perform an assembly by NODE to by element
+  // such that the call to the kernel function is for 2*2 block of the matrix
+  // this sub-block call will be then use in the H-mat approx.
+
+  // Kmat :: the stiffness matrix to assemble
+  // wellMesh :: the Mesh object
+  // id   :: the DOF handle
+  // p    :: the interpolation order
+  // elas :: the elastic properties object
+
+  il::int_t p = mesh.interpolationOrder();
+
+  il::StaticArray2D<double, 2, 2> R;
+  il::Array<il::int_t> dofe{2, 0}, dofc{2, 0};
+
+  il::StaticArray2D<double, 2, 2> stnl;
+  il::int_t ndof = mesh.numberDDDofs();
+
+  il::Array2D<double> Kmat{mesh.numberDDDofs(), mesh.numberDDDofs(), 0.};
+
+  // Brute Force assembly
+  // We perform a loop elts, not node here for simplicity !  note that the
+  // discretization is piece-wise linear
+  // so if a node is shared by 2 segments, it has 2*2=4 unknowns associated to
+  // it
+
+  for (il::int_t e = 0; e < mesh.numberOfElts(); ++e) {  // loop on all elements
+
+    //   get characteristic of element # e
+    hfp2d::SegmentData mysege = mesh.getElementData(e);
+    // Rotation matrix of the element w.r. to x-axis.
+    R = hfp2d::rotationMatrix2D(mysege.theta());
+
+    // loop on the collocation point of that element
+    for (il::int_t i_c = 0; i_c < (p + 1); i_c++) {
+      // vector of dof id of  element e
+      // vector of dof id of element e
+      for (il::int_t i = 0; i < 2; ++i) {
+        dofe[i] = mesh.dofDD(e, i + 2 * i_c);
+      };
+
+      // loop on all the other elements
+      for (il::int_t r = 0; r < mesh.numberOfElts(); r++) {
+        //   get characteristic of element # r
+        hfp2d::SegmentData mysegc = mesh.getElementData(r);
+
+        // loop on the collocation points
+        for (il::int_t j_c = 0; j_c < (p + 1); j_c++) {
+          for (il::int_t i = 0; i < 2; ++i) {
+            dofc[i] = mesh.dofDD(
+                r, i + 2 * j_c);  // vector of dof id of the  element j
+          };
+
+          stnl = KernelCallNodal(mysege, mysegc, i_c, j_c, elas, ker_options);
+
+          for (il::int_t j1 = 0; j1 < 2; ++j1) {
+            for (il::int_t j0 = 0; j0 < 2; ++j0) {
+              Kmat(dofc[0] + j0, dofe[0] + j1) = stnl(j0, j1);
+            }
+          }
+        }
+      }
+    }
+  }
+  return Kmat;
 };
 }

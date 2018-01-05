@@ -43,6 +43,19 @@ void RemoveTipCorrectionP0(hfp2d::Mesh &mesh, const hfp2d::ElasticProperties &el
 
 il::Array2D<double> ReArrangeKP0(const Mesh &mesh,il::Array2D<double> &Kmat);
 
+
+
+typedef  il::StaticArray2D<double, 2,2> (*vKernelCallNode)(
+    SegmentData source_elt, SegmentData receiver_elt, il::int_t i_col,
+    il::int_t j_col,  ElasticProperties Elas, double ker_options);
+
+
+il::Array2D<double> basic_assembly_nodal(Mesh &mesh,
+                                         hfp2d::ElasticProperties &elas,
+                                         vKernelCallNode KernelCall,
+                                         double ker_options);
+
+
 }
 
 #endif  // HFPX2D_ASSEMBLYDDM_H

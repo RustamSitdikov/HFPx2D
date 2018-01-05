@@ -23,7 +23,7 @@ il::Array2D<il::int_t> getNodalEltConnectivity(
     const il::int_t nt_nodes, const il::Array2D<il::int_t> &connectivity) {
   // get element sharing common edges
 
-  // loop over all nodes of the mesh
+  // loop over all nodes of the wellMesh
   // find corresponding elements
   // if n of elt sharing that coordinates ==2 -> put in array...
   //
@@ -32,6 +32,7 @@ il::Array2D<il::int_t> getNodalEltConnectivity(
   // this will not work for the case of more than 2 elements sharing the
   // coordinates.
   // we don t care of that case for now.
+
 
   // format is col1: element1, col2: element2 etc.   (note we don t store the
   // corresponding coordinates here....)
@@ -336,16 +337,15 @@ void Mesh::addNTipElts(const il::int_t t_e, const il::int_t the_tip_node,
   /// //    dof(element, local nnodes number)
   // actually this is the connectivity_ array for  p =1 and
   // a simple elt number of P0
-  switch (interpolation_order_) {
-    case 0: {
-      il::Array2D<il::int_t> id_press{nelts, 1, 0};
-      for (il::int_t e = 0; e < nelts; e++) {
-        id_press(e, 0) = e;
-      };
-      dof_handle_pressure_ = id_press;
-    }
-    case 1:
-      dof_handle_pressure_ = connectivity_;  // 1 unknowns per nodes ....
+  if (interpolation_order_==0){
+    il::Array2D<il::int_t> id_press{nelts,1};
+    for (il::int_t e = 0; e < nelts; e++) {
+      id_press(e, 0) = e;
+    };
+    dof_handle_pressure_ = id_press;
+  }
+  else { // case 1
+    dof_handle_pressure_ = connectivity_;
   };
 
   // rebuild the nodal connected table...

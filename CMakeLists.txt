@@ -39,15 +39,15 @@ set(SOURCE_FILES
         src/core/ElasticProperties.h
         src/core_dev/SolidEvolution.h
         src/core/Sources.h
-
-        src/Elasticity/AssemblyDDM.cpp
-        src/Elasticity/AssemblyDDM.h
-        src/Elasticity/Simplified3D.cpp
-        src/Elasticity/Simplified3D.h
-        src/Elasticity/PlaneStrainInfinite.cpp
-        src/Elasticity/PlaneStrainInfinite.h
-        src/Solvers/SimpleElastic.cpp
-        src/Solvers/SimpleElastic.h
+        src/core/DomainMesh.h
+        src/elasticity/AssemblyDDM.cpp
+        src/elasticity/AssemblyDDM.h
+        src/elasticity/Simplified3D.cpp
+        src/elasticity/Simplified3D.h
+        src/elasticity/PlaneStrainInfinite.cpp
+        src/elasticity/PlaneStrainInfinite.h
+        src/solvers/SimpleElasticBenchmarks.cpp
+        src/solvers/SimpleElasticBenchmarks.h
         src/core/SimulationParameters.h
 #        src/input/loadArguments.cpp
 #        src/input/loadArguments.h
@@ -77,14 +77,20 @@ set(SOURCE_FILES
 #        src/input/conditions/loadConditions.h
 #        src/input/Sources/loadSources.cpp
 #        src/input/Sources/loadSources.h
-        src/FractureFluidFlow/ReynoldsP0.cpp
-        src/FractureFluidFlow/ReynoldsP0.h
-        src/Solvers/DevLHFMSolver.cpp
-        src/Solvers/DevLHFMSolver.h
+        src/elhsolvers/ReynoldsP0.cpp
+        src/elhsolvers/ReynoldsP0.h
+        src/solvers/DevLHFMSolver.cpp
+        src/solvers/DevLHFMSolver.h
         src/core/Solution.h
         src/core/SolidProperties.h
         src/tip/tipAsymptote.cpp
-        src/tip/tipAsymptote.h)
+        src/tip/tipAsymptote.h
+        src/util/json.hpp
+        src/input/json/loadJsonMesh.cpp src/input/json/loadJsonMesh.h
+        src/wellbore/WellInjection.cpp src/wellbore/WellInjection.h
+        src/wellbore/WellMesh.cpp src/wellbore/WellMesh.h
+        src/wellbore/WellFlowP0.cpp src/wellbore/WellFlowP0.h
+        src/wellbore/WellSolution.h src/wellbore/SimpleWellFlowSolverBenchmark.cpp src/wellbore/SimpleWellFlowSolverBenchmark.h)
 
 if(APPLE)
 link_directories($ENV{MKLROOT}/lib $ENV{MKLROOT}/../compiler/lib )
@@ -125,7 +131,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DIL_FOLDER='\"${SR_FOLDER}\"'")
 set(UNIT_TEST_FILES src/_test/elastic_test.cpp
         gtest/src/gtest-all.cc
         src/_test/mesh_test.cpp
-        src/tip/_test/tip_test.cpp)
+        src/tip/_test/tip_test.cpp src/_test/domain_mesh_test.cpp src/wellbore/SimpleWellFlowSolverBenchmark.cpp src/wellbore/SimpleWellFlowSolverBenchmark.h)
 
 add_executable(HFPx2DUnitTest ${SOURCE_FILES} ${UNIT_TEST_FILES} test.cpp)
 

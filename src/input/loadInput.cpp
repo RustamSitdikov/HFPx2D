@@ -49,7 +49,6 @@ void loadInput(const il::String &inputFileName,
     exit(2);
   }
 
-
   ////////// Materials: PROPERTIES KEYWORD //////////
   keyFound = config.search("properties");
 

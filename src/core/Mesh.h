@@ -35,22 +35,21 @@ il::Array<il::int_t> buildTipElts(
     const il::Array<il::int_t> &tipnodes);
 
 ///// 1D mesh class
-class Mesh {  // class for 1D mesh of 1D segment elements ?
+class Mesh {  // class for 1D wellMesh of 1D segment elements ?
 
  private:
   // Coordinates of the nodes - size: number of nodes x problem dimension (2D)
   il::Array2D<double> coordinates_;
 
-  // Connectivity matrix - size: number of elements x (order interpolation + 1)
+  // Connectivity matrix - size: number of elements x  2
   il::Array2D<il::int_t> connectivity_;
 
   // Interpolation order
   il::int_t interpolation_order_;
 
   // Dof handle matrices
-  // for displacements  Discontinuities - size: number of elements x 2dofs per
-  // coordinates x (order
-  // interpolation + 1)
+  // for displacements  Discontinuities - size: number of elements x 2 dofs per
+  // coordinates x (order interpolation + 1)
   il::Array2D<il::int_t> dof_handle_dd_;
 
   // for pressure - size: number of nodes x 1dof per coordinates x (order
@@ -82,7 +81,7 @@ class Mesh {  // class for 1D mesh of 1D segment elements ?
   // todo: naming of the different entities are not consistent AND TOO LONG
 
   //   Mesh()default;
-  Mesh(){};  // TODO: remove empty initialization of mesh class variables if
+  Mesh(){};  // TODO: remove empty initialization of wellMesh class variables if
              // possible.
 
   // Basic constructor with  coordinates and connectivity array and
@@ -120,16 +119,14 @@ class Mesh {  // class for 1D mesh of 1D segment elements ?
     /// //    dof(element, local nnodes number)
     // actually this is the connectivity_ array for  p =1 and
     // a simple elt number of P0
-    switch (interpolation_order_) {
-      case 0: {
-        il::Array2D<il::int_t> id_press{nelts, 1, 0};
-        for (il::int_t e = 0; e < nelts; e++) {
-          id_press(e, 0) = e;
-        };
-        dof_handle_pressure_ = id_press;
-      }
-      case 1:
-        dof_handle_pressure_ = connectivity_;  // 1 unknowns per nodes ....
+    if (interpolation_order_ == 0) {
+      il::Array2D<il::int_t> id_press{nelts, 1};
+      for (il::int_t e = 0; e < nelts; e++) {
+        id_press(e, 0) = e;
+      };
+      dof_handle_pressure_ = id_press;
+    } else {  // case 1
+      dof_handle_pressure_ = connectivity_;
     };
 
     // build the nodal connected table...
@@ -176,16 +173,14 @@ class Mesh {  // class for 1D mesh of 1D segment elements ?
     /// //    dof(element, local nnodes number)
     // actually this is the connectivity_ array for  p =1 and
     // a simple elt number of P0
-    switch (interpolation_order_) {
-      case 0: {
-        il::Array2D<il::int_t> id_press{nelts, 1, 0};
-        for (il::int_t e = 0; e < nelts; e++) {
-          id_press(e, 0) = e;
-        };
-        dof_handle_pressure_ = id_press;
-      }
-      case 1:
-        dof_handle_pressure_ = connectivity_;
+    if (interpolation_order_ == 0) {
+      il::Array2D<il::int_t> id_press{nelts, 1};
+      for (il::int_t e = 0; e < nelts; e++) {
+        id_press(e, 0) = e;
+      };
+      dof_handle_pressure_ = id_press;
+    } else {  // case 1
+      dof_handle_pressure_ = connectivity_;
     };
 
     // build the nodal connected table...
@@ -201,22 +196,22 @@ class Mesh {  // class for 1D mesh of 1D segment elements ?
   //        get functions  - i.e. public interfaces
   //////////////////////////////////////////////////////////////////////////
 
-  il::int_t numberOfElts() const { return connectivity_.size(0); };
+  inline il::int_t numberOfElts() const { return connectivity_.size(0); };
 
-  il::int_t numberOfNodes() const { return coordinates_.size(0); };
+  inline il::int_t numberOfNodes() const { return coordinates_.size(0); };
 
   // nodal coordinates related.
-  il::Array2D<double> coordinates() const { return coordinates_; };
+  inline il::Array2D<double> coordinates() const { return coordinates_; };
   // Read a particular element of the coordinates coordinates
-  double coordinates(il::int_t k, il::int_t i) const {
+  inline double coordinates(il::int_t k, il::int_t i) const {
     return coordinates_(k, i);
   }
   // Read the X coordinate of a coordinates
-  double X(il::int_t k) const { return coordinates_(k, 0); }
+  inline double X(il::int_t k) const { return coordinates_(k, 0); }
   // Read the Y coordinate of a coordinates
-  double Y(il::int_t k) const { return coordinates_(k, 1); }
+  inline double Y(il::int_t k) const { return coordinates_(k, 1); }
 
-  il::StaticArray<double, 2> coordinates(il::int_t k) const {
+  inline il::StaticArray<double, 2> coordinates(il::int_t k) const {
     il::StaticArray<double, 2> temp;
     temp[0] = coordinates_(k, 0);
     temp[1] = coordinates_(k, 1);
@@ -224,9 +219,9 @@ class Mesh {  // class for 1D mesh of 1D segment elements ?
   };
 
   // connectivity related
-  il::Array2D<il::int_t> connectivity() const { return connectivity_; };
+  inline il::Array2D<il::int_t> connectivity() const { return connectivity_; };
   // get the connectivity of an element -> A StaticArray of size 2 here !
-  il::StaticArray<il::int_t, 2> connectivity(il::int_t k) const {
+  inline il::StaticArray<il::int_t, 2> connectivity(il::int_t k) const {
     il::StaticArray<il::int_t, 2> temp;
     for (il::int_t i = 0; i < connectivity_.size(1); i++) {
       temp[i] = connectivity_(k, i);
@@ -235,20 +230,20 @@ class Mesh {  // class for 1D mesh of 1D segment elements ?
   };
 
   //
-  il::int_t connectivity(il::int_t e, il::int_t i) const {
+  inline il::int_t connectivity(il::int_t e, il::int_t i) const {
     // element e, local coordinates i - return global nodes
     return connectivity_(e, i);
   }
 
   // nodal connectivity related
-  il::Array2D<il::int_t> nodeEltConnectivity() const {
+  inline il::Array2D<il::int_t> nodeEltConnectivity() const {
     return node_adj_elt_;
   };
   il::int_t nodeEltConnectivity(il::int_t k, il::int_t l) const {
     return node_adj_elt_(k, l);
   };
 
-  il::Array<il::int_t> nodeEltConnectivity(il::int_t k) const {
+  inline il::Array<il::int_t> nodeEltConnectivity(il::int_t k) const {
     il::Array<il::int_t> temp(node_adj_elt_.size(1));
     for (il::int_t i = 0; i < node_adj_elt_.size(1); i++) {
       temp[i] = node_adj_elt_(k, i);
@@ -257,51 +252,54 @@ class Mesh {  // class for 1D mesh of 1D segment elements ?
   };
 
   // get tip nodes
-  il::Array<il::int_t> tipNodes() const { return tipnodes_; };
-  il::int_t tipNodes(il::int_t k) const { return tipnodes_[k]; };
+  inline il::Array<il::int_t> tipNodes() const { return tipnodes_; };
+  inline il::int_t tipNodes(il::int_t k) const { return tipnodes_[k]; };
 
   // get tip elts
-  il::Array<il::int_t> tipElts() const { return tipelts_; };
-  il::int_t tipElts(il::int_t k) const { return tipelts_[k]; };
+  inline il::Array<il::int_t> tipElts() const { return tipelts_; };
+  inline il::int_t tipElts(il::int_t k) const { return tipelts_[k]; };
 
   // material ID related
-  il::Array<il::int_t> matid() const { return material_id_; };
-  il::int_t matid(il::int_t k) const { return material_id_[k]; }
+  inline il::Array<il::int_t> matid() const { return material_id_; };
+  inline il::int_t matid(il::int_t k) const { return material_id_[k]; }
 
-  il::int_t numberOfMaterials() const {
+  inline il::int_t numberOfMaterials() const {
     return (*std::max_element(material_id_.begin(), material_id_.end()) + 1);
   }
 
   // interpolation order
-  il::int_t interpolationOrder() const { return interpolation_order_; }
+  inline il::int_t interpolationOrder() const { return interpolation_order_; }
 
   // dofs related.....
-  il::int_t numberDDDofsPerElt() const { return dof_handle_dd_.size(1); }
+  inline il::int_t numberDDDofsPerElt() const { return dof_handle_dd_.size(1); }
 
-  il::int_t numberPressDofsPerElt() const { return dof_handle_pressure_.size(1); }
+  inline il::int_t numberPressDofsPerElt() const {
+    return dof_handle_pressure_.size(1);
+  }
 
-  il::int_t numberPressDofs(){
+  inline il::int_t numberPressDofs() {
     il::int_t aux;
     switch (interpolation_order_) {
       case 0: {
-        aux =  dof_handle_pressure_.size(0); // number of elts
+        aux = dof_handle_pressure_.size(0);  // number of elts
       }
-      case 1:{
-        aux=  coordinates_.size(0); // number of nodes
-      }}
-    return aux ;
+      case 1: {
+        aux = coordinates_.size(0);  // number of nodes
+      }
+    }
+    return aux;
   }
 
-  il::int_t numberDDDofs() const {
+  inline il::int_t numberDDDofs() const {
     return (numberOfElts() * (interpolation_order_ + 1) * 2);
   }
 
-  il::int_t dofPress(il::int_t k, il::int_t i) const {
+  inline il::int_t dofPress(il::int_t k, il::int_t i) const {
     // coordinates k, dof i -> return global equation iD
     return dof_handle_pressure_(k, i);
   }
 
-  il::int_t dofDD(il::int_t k, il::int_t i) const {
+  inline il::int_t dofDD(il::int_t k, il::int_t i) const {
     // coordinates k, dof i -> return global equation iD
     return dof_handle_dd_(k, i);  // element , dof dim.
   }
@@ -310,7 +308,7 @@ class Mesh {  // class for 1D mesh of 1D segment elements ?
   //   Methods
   ////////////////////////////////////////////////////////////////////////////////////////////
 
-  hfp2d::SegmentData getElementData(const il::int_t ne);
+  hfp2d::SegmentData getElementData(il::int_t ne);
 
   // a method to get the size of a given element.
   double eltSize(il::int_t &e);
@@ -322,16 +320,16 @@ class Mesh {  // class for 1D mesh of 1D segment elements ?
   // todo rename
   il::Array2D<il::int_t> getNodesSharing2Elts();
 
-  // method to get the ribbon elements  - of a given mesh. (elements nearest to
+  // method to get the ribbon elements  - of a given wellMesh. (elements nearest
+  // to
   // a tip element)
   il::Array<il::int_t> getRibbonElements();
 
   // method to add N element ahead of a tip node of a tip element at a given
   // kick angle
-  void addNTipElts(const il::int_t t_e, const il::int_t the_tip_node,
-                   const il::int_t n_add, double kink_angle);
-
- };
+  void addNTipElts(il::int_t t_e, il::int_t the_tip_node, il::int_t n_add,
+                   double kink_angle);
+};
 }
 
 #endif  // HFPX2D_MESH_H

@@ -17,8 +17,8 @@
 #include <src/core/SolidProperties.h>
 #include <src/core/Solution.h>
 #include <src/core/Sources.h>
-#include "src/core/Fluid.h"
-#include "src/core/Mesh.h"
+#include <src/core/Fluid.h>
+#include <src/core/Mesh.h>
 #include <src/core/SimulationParameters.h>
 
 
@@ -37,12 +37,18 @@ il::Array<double> EdgeConductivitiesP0Newtonian(
   il::Array<double> Cond{edgeAdj.size(0), 0};
   // loop on the inner edges
 
-  // harmonic mean   2*w_l^3*w_r^3/(w_l^3 + w_r^3)
+
   for (il::int_t i = 0; i < edgeAdj.size(0); i++) {
+  // harmonic mean   2*w_l^3*w_r^3/(w_l^3 + w_r^3)
     cl = pow(hydraulic_width[edgeAdj(i, 0)], 3.);
     cr = pow(hydraulic_width[edgeAdj(i, 1)], 3.);
-
     Cond[i] = poiseuille_ct * 2. * (cr * cl) / (cr + cl);
+
+    // arithmetic mean
+//    cl = hydraulic_width[edgeAdj(i, 0)];
+//    cr=hydraulic_width[edgeAdj(i, 1)];
+//    Cond[i] = poiseuille_ct * pow((cl+cr)*0.5,3.);
+
   }
   return Cond;
 };
@@ -55,7 +61,7 @@ il::Array<double> EdgeConductivitiesP0Newtonian(
 il::Array2D<double> BuildFD_P0(hfp2d::Mesh &mesh, hfp2d::Fluid &fluid,
                                il::Array<double> &hydraulicwidth, double coef) {
   //
-  // mesh :: Mesh object
+  // wellMesh :: Mesh object
   // fluid :: Fluid properties object
   // hydraulicwidth:: array containing the hydraulic width of the different
   // cells
@@ -106,9 +112,9 @@ il::Array<double> P0VolumeCompressibility(hfp2d::Mesh &mesh,
     volume[e] =
         mesh.eltSize(e) * (hydraulic_width[e]) * fluid.fluidCompressibility();
   }
-
   return volume;
 }
+
 ////////////////////////////////////////////////////////////////////////////////
 Solution ReynoldsSolverP0(
     hfp2d::Solution &soln, il::Array2D<double> &ElasMat, hfp2d::Fluid &fluid,
@@ -117,13 +123,13 @@ Solution ReynoldsSolverP0(
     il::Array<double> &tip_width, // will need to add leak-off volume...
     hfp2d::SimulationParameters &simulParams, bool mute) {
   // Solution of the Elasto-Hydrodynamics Lubrication over a time step / known
-  // mesh
+  // wellMesh
   // PICARD / Fixed Pt Iterations SCHEME
   // Solve for both increment of DD and fluid pressure over the time step
   //
   // P0 elements
   //
-  // soln:: solution object at time tn (converged solution) [contains the mesh]
+  // soln:: solution object at time tn (converged solution) [contains the wellMesh]
   // ElasMat:: elasticity matrix  organized in [ all normal dofs   - all shear
   // dofs ]
   // fluid    :: Fluid properties object
@@ -190,7 +196,7 @@ Solution ReynoldsSolverP0(
   }
   // effect of net pressure increment on elasticity eq.
   for (il::int_t j = 0; j < n_elts; j++) {
-    Xi(2*j+1, j + 2*n_elts) = 1.;
+    Xi(2*j+1, j + 2*n_elts) = -1.;
   }
 
   //
@@ -205,8 +211,8 @@ Solution ReynoldsSolverP0(
   il::Array<double> Gamma{tot_dofs,0.};  // tangent rhs add
 
    for (il::int_t i = 0; i < n_elts; i++) {
-    Gamma[2*i] = tau0[i] + Fn_elas[2*i];
-    Gamma[2*i + 1] = sig0[i] - Pn[i] +Fn_elas[2*i+1]  ;
+    Gamma[2*i] = -tau0[i] - Fn_elas[2*i];
+    Gamma[2*i + 1] = -sig0[i] + Pn[i] -Fn_elas[2*i+1]  ;
   }
 
   il::Array2D<il::int_t> sharedEdges = meshn.getNodesSharing2Elts();
@@ -218,10 +224,10 @@ Solution ReynoldsSolverP0(
   il::Array<double> Residuals{tot_dofs, 1.};
 
   double res_norm = 0.;
-
   double betarela = simulParams.ehl_relaxation;
   il::int_t k = 0;
 
+  // case where width are imposed in tip regions
   il::int_t neq = tot_dofs - tip_width.size();
   il::Array2D<double> Xi_aux{neq,neq};
   il::Array<double> G_aux{neq};
@@ -246,9 +252,10 @@ Solution ReynoldsSolverP0(
   //-------------------------------------
   // Fixed Point Iteration Solver.
   while ((k < simulParams.ehl_max_its) &&
-         (il::norm(err_Dp, il::Norm::L2) > simulParams.ehl_tolerance) &&
-         (il::norm(err_Dw, il::Norm::L2) > simulParams.ehl_tolerance) &&
-         (il::norm(err_Dv, il::Norm::L2) > simulParams.ehl_tolerance)) {
+      ( (il::norm(err_Dp, il::Norm::L2) > simulParams.ehl_tolerance) ||
+         (il::norm(err_Dw, il::Norm::L2) > simulParams.ehl_tolerance) ) ) {
+//      &&
+//         (il::norm(err_Dv, il::Norm::L2) > simulParams.ehl_tolerance)) {
     k++;
 
     // update hydraulic width.... at tn+dt
@@ -366,6 +373,7 @@ Solution ReynoldsSolverP0(
               << " rel. err dp: " << il::norm(err_Dp, il::Norm::L2)
               << " norm of residuals: " << res_norm << "\n";
   };
+
 
   // update total width, pressure and shear to the end values
    for (il::int_t i = 0; i < n_elts; i++) {
