@@ -36,7 +36,7 @@ int TwoParallelHFs(int nelts, double dist) {
   // 1 and elt
   // 4
 
-  // step 1 create mesh
+  // step 1 create wellMesh
   int p = 0;
   double h = 2. / (nelts);  //  element size
 
@@ -56,7 +56,7 @@ int TwoParallelHFs(int nelts, double dist) {
   //  Array2D M(i, j) -> M(i + 1, j) (Ordre Fortran)
   //  Array2C M(i, j) -> M(i, j + 1) (Ordre C)
 
-  // create a basic 1D mesh .... first fracture
+  // create a basic 1D wellMesh .... first fracture
   for (il::int_t i = 0; i < nelts + 1; ++i) {
     xy(i, 0) = -1. + i * h;
     xy(i, 1) = 0.;
@@ -88,7 +88,7 @@ int TwoParallelHFs(int nelts, double dist) {
 
   hfp2d::Mesh mesh(xy, myconn, p);
 
-  // background mesh 2 Quads
+  // background wellMesh 2 Quads
    il::Array2D<double> nodesB{6,2,0.};
     nodesB(0,0)=-100.;
     nodesB(0,1)=-100.;
@@ -224,7 +224,7 @@ int TwoParallelHFs(int nelts, double dist) {
   il::int_t jt = 0;
   il::int_t nsteps = 300;
 
-  //  il::Array<il::int_t> tip_region_elt_k=mesh.tipElts();
+  //  il::Array<il::int_t> tip_region_elt_k=wellMesh.tipElts();
   //  il::Array<double>    tip_region_width_k{4,0.};
 
   std::string dir = "../Results/";
@@ -311,7 +311,7 @@ hfp2d::Solution FractureFrontLoop(
     hfp2d::SimulationParameters &simulParams, bool mute) {
   // INPUTS
   // Sol_n :: solution object containing the solution at time tn
-  // ElasMat :: elasticity matrix on the current mesh  (might be modified)
+  // ElasMat :: elasticity matrix on the current wellMesh  (might be modified)
   // fluid :: fluid object containing the fluid properties
   // rock :: solid properties object
   // source :: injection object
@@ -376,7 +376,7 @@ hfp2d::Solution FractureFrontLoop(
 
   il::Array2D<double> tip_Loc_k{n_tips, 2, 0.};  // new (x,y) tips location
 
-  // number of element that is added to the mesh in this time step - array - for
+  // number of element that is added to the wellMesh in this time step - array - for
   // each tips
   il::Array<il::int_t> n_add_elt_tip{n_tips, 0};
 
@@ -414,9 +414,9 @@ hfp2d::Solution FractureFrontLoop(
 
     // Invert tip asymptotes, for all tips ...
 
-    // we always restart from the  mesh at tn
+    // we always restart from the  wellMesh at tn
     // tip-regions array, and corresponding tip width array evllces...
-    // always restart from previous time step mesh
+    // always restart from previous time step wellMesh
     mesh_k = mesh_n;
     tip_region_elt_k = mesh_n.tipElts();
     ntip_r_elt_k = tip_region_elt_k.size();
@@ -469,7 +469,7 @@ hfp2d::Solution FractureFrontLoop(
         sc = (tipstruct.st - h_ribbon / 2.) - h_ribbon * et;
         tipVol[et] = tip::moment0(sc, tipstruct);
       };
-      //    prepare opening to impose as volume / mesh size.
+      //    prepare opening to impose as volume / wellMesh size.
       // be careful, do things in reverse from the new tip location at the end
       // of the vector...
       for (il::int_t et = n_add_elt_tip[i]; et >= 0; et--) {
@@ -511,7 +511,7 @@ hfp2d::Solution FractureFrontLoop(
           il::abort();
         }
       };
-      // get tip nodes b, and the other node a of the tip element (see in mesh)
+      // get tip nodes b, and the other node a of the tip element (see in wellMesh)
       // get their coordinates,
       // do   b - (b - a)*(1 - fill_f) to get the tip position.
       il::StaticArray<double, 2> a = mesh_k.coordinates(ti_a);
@@ -553,7 +553,7 @@ hfp2d::Solution FractureFrontLoop(
           tau0[i] = tau0[0];
           Pn[i] = 0.;
         }
-        // From initial mesh
+        // From initial wellMesh
         il::int_t ntot_add = mesh_k.numberOfElts() - mesh_n.numberOfElts();
 
         // resize elasticity matrix to previous time-step dofs size
@@ -579,7 +579,7 @@ hfp2d::Solution FractureFrontLoop(
       {
         if (mesh_k.numberOfElts() == mesh_n.numberOfElts()) {
           ElasMat.resize(mesh_n.numberDDDofs(), mesh_n.numberDDDofs());
-        } else {  // cannot have less element than in the mesh of the solution
+        } else {  // cannot have less element than in the wellMesh of the solution
                   // at the previous time step
           std::cout << "incorrect - back propagation ! ";
           il::abort();

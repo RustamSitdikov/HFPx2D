@@ -7,6 +7,7 @@
 // See the LICENSE.TXT file for more details.
 //
 
+
 #ifndef HFPX2DUNITTEST_SOLUTIONATT_H
 #define HFPX2DUNITTEST_SOLUTIONATT_H
 
@@ -21,14 +22,15 @@
 namespace hfp2d {
 
 class Solution {
-  // base  class for solution of coupled fluid driven fracture problem
- protected:
+  //  class for solution of coupled fluid driven fracture problem
+ private:
+
   double time_;  // current time (tn+1 = tn + timestep) at which the solution
                  // refers to
   double
       timestep_;  // time step  (of the last time step taken to arrive at time_)
 
-  hfp2d::Mesh currentmesh_;  // the associated mesh  // should be a reference
+  hfp2d::Mesh currentmesh_;  // the associated wellMesh  // should be a reference
 
   il::Array<double> openingDD_;  // opg DD (at nodes if P1)
 
@@ -83,7 +85,7 @@ class Solution {
 
  public:
   // constructor. 3 cases are only needed really
-  // 1. quick construction with mesh obj., width, shear and fluid pressure,
+  // 1. quick construction with wellMesh obj., width, shear and fluid pressure,
   // sigma0 and tau0
   // 2. complete construction with also errors etc.
   // 3. complete construction from an input file (i.e. needed for a restart
@@ -98,7 +100,7 @@ class Solution {
   Solution(hfp2d::Mesh &mesh, double t, const il::Array<double> &width,
            const il::Array<double> &sheardd, const il::Array<double> &pressure,
            const il::Array<double> &sigma0, const il::Array<double> &tau0) {
-    // todo should have checks here on dimensions with mesh etc.
+    // todo should have checks here on dimensions with wellMesh etc.
     time_ = t;
     currentmesh_ = mesh;
     openingDD_ = width;
@@ -118,7 +120,7 @@ class Solution {
            const il::Array<double> &pressure, const il::Array<double> &sigma0,
            const il::Array<double> &tau0, il::int_t itsFront, il::int_t itsEHL,
            double err_front, double err_width, double err_shear, double err_p) {
-    // have checks here on dimensions with mesh....
+    // have checks here on dimensions with wellMesh....
 
     time_ = t;
     timestep_ = dt;
@@ -149,7 +151,7 @@ class Solution {
            const il::Array<double> &tau0, il::Array<il::int_t> &act_set_elmnts,
            il::int_t itsFront, il::int_t itsEHL, double err_front,
            double err_width, double err_shear, double err_p) {
-    // have checks here on dimensions with mesh....
+    // have checks here on dimensions with wellMesh....
 
     time_ = t;
     timestep_ = dt;
@@ -237,7 +239,7 @@ class Solution {
 
   int writeToFile(std::string &filename) {
 
-    // we output the mesh
+    // we output the wellMesh
     json json_coord = json::array();
     for (il::int_t m = 0; m < currentmesh_.coordinates().size(0); ++m) {
       json_coord[m] = {currentmesh_.coordinates(m, 0),

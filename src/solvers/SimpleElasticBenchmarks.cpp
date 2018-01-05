@@ -57,7 +57,7 @@ double SimpleGriffithExampleLinearElement(int nelts) {
   //  Array2D M(i, j) -> M(i + 1, j) (Ordre Fortran)
   //  Array2C M(i, j) -> M(i, j + 1) (Ordre C)
 
-  // create a basic 1D mesh ....
+  // create a basic 1D wellMesh ....
   for (il::int_t i = 0; i < xy.size(0); ++i) {
     xy(i, 0) = -1. + i * h;
     xy(i, 1) = 0.;
@@ -95,7 +95,7 @@ double SimpleGriffithExampleLinearElement(int nelts) {
   il::Array<double> thex{ndof / 2, 0}, wsol{ndof / 2, 0};
 
   il::int_t i = 0;
-  // this piece of codes gets 1D mesh of x doubling the nodes of
+  // this piece of codes gets 1D wellMesh of x doubling the nodes of
   // adjacent elements (for comparison with analytical solution)
   for (il::int_t e = 0; e < nelts; ++e) {
     thex[i] = mesh.coordinates(mesh.connectivity(e, 0), 0);
@@ -138,7 +138,7 @@ double SimpleGriffithExampleLinearElement_byNodes(int nelts) {
   //  Array2D M(i, j) -> M(i + 1, j) (Ordre Fortran)
   //  Array2C M(i, j) -> M(i, j + 1) (Ordre C)
 
-  // create a basic 1D mesh ....
+  // create a basic 1D wellMesh ....
   for (il::int_t i = 0; i < xy.size(0); ++i) {
     xy(i, 0) = -1. + i * h;
     xy(i, 1) = 0.;
@@ -176,7 +176,7 @@ double SimpleGriffithExampleLinearElement_byNodes(int nelts) {
   il::Array<double> thex{ndof / 2, 0}, wsol{ndof / 2, 0};
 
   il::int_t i = 0;
-  // this piece of codes gets 1D mesh of x doubling the nodes of
+  // this piece of codes gets 1D wellMesh of x doubling the nodes of
   // adjacent elements (for comparison with analytical solution)
   for (il::int_t e = 0; e < nelts; ++e) {
     thex[i] = mesh.coordinates(mesh.connectivity(e, 0), 0);
@@ -217,7 +217,7 @@ double SimpleGriffithExampleLinearElement_AddMesh(int nelts) {
   il::Array2D<double> xy{nelts + 1, 2, 0.0};
   il::Array2D<il::int_t> myconn{nelts, 2, 0};
 
-  // create a basic 1D mesh ....
+  // create a basic 1D wellMesh ....
   for (il::int_t i = 0; i < xy.size(0); ++i) {
     xy(i, 0) = -1. + i * h;
     xy(i, 1) = 0.;
@@ -238,7 +238,7 @@ double SimpleGriffithExampleLinearElement_AddMesh(int nelts) {
       mesh, myelas, hfp2d::normal_shear_stress_kernel_dp1_dd,
       0.);  // passing p could be avoided here
 
-  // add a nelts anpther element to mesh.
+  // add a nelts anpther element to wellMesh.
   il::int_t t1 = mesh.tipElts(0), t2 = mesh.tipElts(1);
   il::int_t n1 = mesh.tipNodes(0), n2 = mesh.tipNodes(1);
 
@@ -270,7 +270,7 @@ double SimpleGriffithExampleLinearElement_AddMesh(int nelts) {
 
   il::int_t i = 0;
 
-  // this piece of codes gets 1D mesh of x doubling the nodes of
+  // this piece of codes gets 1D wellMesh of x doubling the nodes of
   // adjacent elements (for comparison with analytical solution)
   for (il::int_t e = 0; e < mesh.numberOfElts(); ++e) {
     thex[i] = mesh.coordinates(mesh.connectivity(e, 0), 0);
@@ -309,7 +309,7 @@ double SimpleGriffithExampleS3D_P0(int nelts) {
 
   double Ep = 1.;  // Plane strain Young's modulus
 
-  // create a basic 1D mesh ....
+  // create a basic 1D wellMesh ....
   il::Array2D<double> xy{nelts + 1, 2, 0.0};
   for (int i = 0; i < xy.size(0); ++i) {
     xy(i, 0) = -1. + i * h;
@@ -322,7 +322,7 @@ double SimpleGriffithExampleS3D_P0(int nelts) {
     myconn(i, 1) = i + 1;
   };
 
-  // create mesh object
+  // create wellMesh object
   hfp2d::Mesh mesh(xy, myconn, p);
 
   hfp2d::ElasticProperties myelas(1, 0.3);
@@ -384,7 +384,7 @@ double SimpleGriffithExampleS3D_P0_AddMesh(int nelts) {
 
   double Ep = 1.;  // Plane strain Young's modulus
 
-  // create a basic 1D mesh ....
+  // create a basic 1D wellMesh ....
   il::Array2D<double> xy{nelts + 1, 2, 0.0};
   for (int i = 0; i < xy.size(0); ++i) {
     xy(i, 0) = -1. + i * h;
@@ -397,7 +397,7 @@ double SimpleGriffithExampleS3D_P0_AddMesh(int nelts) {
     myconn(i, 1) = i + 1;
   };
 
-  // create mesh object
+  // create wellMesh object
   hfp2d::Mesh mesh(xy, myconn, p);
 
   hfp2d::ElasticProperties myelas(1, 0.3);
@@ -406,7 +406,7 @@ double SimpleGriffithExampleS3D_P0_AddMesh(int nelts) {
       mesh, myelas, hfp2d::normal_shear_stress_kernel_s3d_dp0_dd,
       1000.);  // large pseudo-heigth to reproduce plane-strain kernel
 
-  // add a nelts anpther element to mesh.
+  // add a nelts anpther element to wellMesh.
   il::int_t t1 = mesh.tipElts(0), t2 = mesh.tipElts(1);
   il::int_t n1 = mesh.tipNodes(0), n2 = mesh.tipNodes(1);
 
@@ -471,7 +471,7 @@ double SimpleGriffithExampleS3D_P0_byNodes(int nelts) {
 
   double Ep = 1.;  // Plane strain Young's modulus
 
-  // create a basic 1D mesh ....
+  // create a basic 1D wellMesh ....
   il::Array2D<double> xy{nelts + 1, 2, 0.0};
   for (int i = 0; i < xy.size(0); ++i) {
     xy(i, 0) = -1. + i * h;
@@ -484,7 +484,7 @@ double SimpleGriffithExampleS3D_P0_byNodes(int nelts) {
     myconn(i, 1) = i + 1;
   };
 
-  // create mesh object
+  // create wellMesh object
   hfp2d::Mesh mesh(xy, myconn, p);
 
   hfp2d::ElasticProperties myelas(1, 0.3);
@@ -538,5 +538,14 @@ double SimpleGriffithExampleS3D_P0_byNodes(int nelts) {
 
   return il::norm(rel_err, il::Norm::L2);
 }
+
+
+////////////////////////////////////////////////////////////////////////////////
+//   Simple solver for a json mesh file and constant remote loading for stress
+// need to project on element to get tn ts
+
+
+
+
 
 }

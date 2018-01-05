@@ -21,7 +21,7 @@ class DomainMesh {
 
   il::Array2D<il::int_t> connectivity_;
 
-  il::Array<il::int_t> matid_;  // usually in this kind of domain mesh: material
+  il::Array<il::int_t> matid_;  // usually in this kind of domain wellMesh: material
   // is different for each element.. never known
 
   il::int_t nodes_per_elt_;
@@ -106,13 +106,13 @@ class DomainMesh {
       }
     }
 
-    // this will work for a regular Quad mesh but NOT necessarily for
-    // unstructured triangular mesh
+    // this will work for a regular Quad wellMesh but NOT necessarily for
+    // unstructured triangular wellMesh
     return min_pos;  // let's be bold don t do any more checks  ! aie aie.
     // todo bulletproof this locate routine -> find all elements around via node
     // sharing, then check it is not in one of the element around.
     // this will return the first element found if xy is exactly a node of the
-    // background mesh.
+    // background wellMesh.
   }
 };
 

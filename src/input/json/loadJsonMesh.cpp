@@ -7,11 +7,13 @@
 // See the LICENSE.TXT file for more details.
 //
 
-#include "loadJsonMesh.h"
 
-#include <src/core/Mesh.h>
 #include <fstream>
 #include <src/util/json.hpp>
+
+
+#include <src/core/Mesh.h>
+#include "loadJsonMesh.h"
 
 namespace hfp2d {
 
@@ -37,12 +39,12 @@ hfp2d::Mesh loadJsonMesh(const std::string &meshfilename) {
   };
 
   if (n_present != 1) {
-    std::cout << " error in mesh file - no coordinates \n";
+    std::cout << " error in Mesh file - no coordinates \n";
     il::abort();
   }
 
   if (c_present != 1) {
-    std::cout << " error in mesh file - no connectivity \n";
+    std::cout << " error in Mesh file - no connectivity \n";
     il::abort();
   }
 

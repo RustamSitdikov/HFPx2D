@@ -17,8 +17,8 @@
 #include <src/core/SolidProperties.h>
 #include <src/core/Solution.h>
 #include <src/core/Sources.h>
-#include "src/core/Fluid.h"
-#include "src/core/Mesh.h"
+#include <src/core/Fluid.h>
+#include <src/core/Mesh.h>
 #include <src/core/SimulationParameters.h>
 
 
@@ -61,7 +61,7 @@ il::Array<double> EdgeConductivitiesP0Newtonian(
 il::Array2D<double> BuildFD_P0(hfp2d::Mesh &mesh, hfp2d::Fluid &fluid,
                                il::Array<double> &hydraulicwidth, double coef) {
   //
-  // mesh :: Mesh object
+  // wellMesh :: Mesh object
   // fluid :: Fluid properties object
   // hydraulicwidth:: array containing the hydraulic width of the different
   // cells
@@ -112,9 +112,9 @@ il::Array<double> P0VolumeCompressibility(hfp2d::Mesh &mesh,
     volume[e] =
         mesh.eltSize(e) * (hydraulic_width[e]) * fluid.fluidCompressibility();
   }
-
   return volume;
 }
+
 ////////////////////////////////////////////////////////////////////////////////
 Solution ReynoldsSolverP0(
     hfp2d::Solution &soln, il::Array2D<double> &ElasMat, hfp2d::Fluid &fluid,
@@ -123,13 +123,13 @@ Solution ReynoldsSolverP0(
     il::Array<double> &tip_width, // will need to add leak-off volume...
     hfp2d::SimulationParameters &simulParams, bool mute) {
   // Solution of the Elasto-Hydrodynamics Lubrication over a time step / known
-  // mesh
+  // wellMesh
   // PICARD / Fixed Pt Iterations SCHEME
   // Solve for both increment of DD and fluid pressure over the time step
   //
   // P0 elements
   //
-  // soln:: solution object at time tn (converged solution) [contains the mesh]
+  // soln:: solution object at time tn (converged solution) [contains the wellMesh]
   // ElasMat:: elasticity matrix  organized in [ all normal dofs   - all shear
   // dofs ]
   // fluid    :: Fluid properties object

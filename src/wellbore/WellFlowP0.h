@@ -59,7 +59,7 @@ struct BracketS {
 //            (ImplicitFunction fun,
 //             IFParameters &params,
 //             double lw_bound, //
-//             double up_bound, // mesh size
+//             double up_bound, // wellMesh size
 //             const int max_iter,
 //             bool mute);
 
@@ -72,7 +72,7 @@ double brent(ImplicitFunction fun, IFParameters &params, double a0, double b0,
 namespace hfp2d {
 
 //////////////////////////////////////////////////////////////////////////
-//        CONSTANTS
+//        CONSTANTS  -
 //////////////////////////////////////////////////////////////////////////
 
 const double epsilon = 1e-9;
@@ -112,7 +112,7 @@ struct IFParametersHD : imf::IFParameters {
 // bracketing routine for HD solver
 imf::BracketS bracketingHD(imf::ImplicitFunction fun, IFParametersHD &params,
                            double lw_bound,  //
-                           double up_bound,  // mesh size
+                           double up_bound,  // wellMesh size
                            const int max_iter, bool mute);
 
 // overload: bracketing the root (friction factor)
@@ -155,32 +155,28 @@ double ffMDRmixed3(IFParametersHD &params);
 
 // nodal (edge) edge conductivities based on Darcy friction factor
 // Ff(Re_num, rough)
-il::Array<double> nodeConductivitiesP0(
+// is this needed outsite ?
+il::Array<double> edgeConductivitiesP0(
     WellMesh &mesh, il::Array<double> &velocity, hfp2d::Fluid &fluid,
     double (*ffFunction)(IFParametersHD &params));
 
-
 // Finite Volume (Finite Difference) Matrix L from edge conductivities
+// is this needed outsite ?
 il::Array2D<double> buildWellFiniteDiffP0(WellMesh &mesh,
                                           il::Array<double> &edg_cond,
                                           double coef);
 
-// let's overload it to build FV matrix from scratch
-il::Array2D<double> buildWellFiniteDiffP0(
-    WellMesh &mesh, Fluid &fluid, il::Array<double> &velocity,
-    double (*ffFunction)(IFParametersHD &params), double coef);
-
 // function for current cell (element) volume increments
+// is this needed outsite ?
 il::Array<double> wellVolumeCompressibilityP0(
-    Mesh &mesh, Fluid &fluid, il::Array<double> &hydraulic_width);
+    Mesh &mesh, Fluid &fluid, il::Array<double> &hydraulic_diameter);
 
-
-// Solver of the well Hydrodynamics
-WellSolution wellFlowSolverP0(WellSolution &well_soln, Fluid &fluid,
+// Solver of the well Hydrodynamics over one time-step.
+WellSolution wellFlowSolverP0(WellSolution &well_soln, hfp2d::WellMesh &w_mesh,
+                              hfp2d::WellInjection &w_inj, Fluid &fluid,
                               double (*ffFunction)(IFParametersHD &params),
                               double timestep,
-                              SimulationParameters &simul_params,
-                              bool mute);
+                              SimulationParameters &simul_params, bool mute);
 }
 
 #endif  // HFPX2DUNITTEST_REYNOLDSP0_H

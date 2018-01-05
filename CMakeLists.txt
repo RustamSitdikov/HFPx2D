@@ -89,7 +89,8 @@ set(SOURCE_FILES
         src/input/json/loadJsonMesh.cpp src/input/json/loadJsonMesh.h
         src/wellbore/WellInjection.cpp src/wellbore/WellInjection.h
         src/wellbore/WellMesh.cpp src/wellbore/WellMesh.h
-        src/wellbore/WellFlowP0.cpp src/wellbore/WellFlowP0.h)
+        src/wellbore/WellFlowP0.cpp src/wellbore/WellFlowP0.h
+        src/wellbore/WellSolution.h src/wellbore/SimpleWellFlowSolverBenchmark.cpp src/wellbore/SimpleWellFlowSolverBenchmark.h)
 
 if(APPLE)
 link_directories($ENV{MKLROOT}/lib $ENV{MKLROOT}/../compiler/lib )
@@ -130,7 +131,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DIL_FOLDER='\"${SR_FOLDER}\"'")
 set(UNIT_TEST_FILES src/_test/elastic_test.cpp
         gtest/src/gtest-all.cc
         src/_test/mesh_test.cpp
-        src/tip/_test/tip_test.cpp src/_test/domain_mesh_test.cpp)
+        src/tip/_test/tip_test.cpp src/_test/domain_mesh_test.cpp src/wellbore/SimpleWellFlowSolverBenchmark.cpp src/wellbore/SimpleWellFlowSolverBenchmark.h)
 
 add_executable(HFPx2DUnitTest ${SOURCE_FILES} ${UNIT_TEST_FILES} test.cpp)
 

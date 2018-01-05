@@ -28,17 +28,16 @@
 namespace hfp2d {
 
 //////////////////////////////////////////////////////////////////////////
-// well mesh class; based on hfp2d::Mesh class
+// well wellMesh class; based on hfp2d::Mesh class
 //////////////////////////////////////////////////////////////////////////
-class WellMesh : public Mesh {
-  friend class Mesh;
+class WellMesh {
 
-  // A mesh object for a well
+  // A wellMesh object for a well
   // P0 elements:
   // measured depth & true vertical depth are given at the NODES;
   // hydraulic radius & roughness are set at the CENTER of each element
 
- protected:
+ private:
   // MD / TVD - measured depth (curvilinear) / true vertical depth
   il::Array<double> md_;
   il::Array<double> tvd_;
@@ -59,11 +58,13 @@ class WellMesh : public Mesh {
 
   double azimuth;  // it may be il::Array<double>
 
-  // HD - hydraulic radius (measured)
+  // HD - hydraulic diameter   at cell center.
   il::Array<double> hd_;
 
   // dimensionless surface roughness
   il::Array<double> rough_;
+
+  il::int_t  interpolation_order_ = 0;
 
  public:
   ////////////////////////////////////////////////////////////////////////
@@ -114,9 +115,11 @@ class WellMesh : public Mesh {
 
     IL_EXPECT_FAST(rough.size() == n_elt);
     rough_ = rough;
+
     inclination_ = il::Array<double>{n_elt};
 
     coordinates_ = il::Array2D<double>{n_nod, 2};
+
     coordinates_(0, 0) = 0.0;
     coordinates_(0, 1) = 0.0;
     connectivity_ = il::Array2D<il::int_t>{n_elt, 2};
@@ -152,25 +155,28 @@ class WellMesh : public Mesh {
 
     // elements sharing each node
     // (il::Array2D<il::int_t> {n_elt - 1, 2})
-    setNodeAdjElts();
+// build the nodal connected table...
+    node_adj_elts_ =
+        getNodalEltConnectivity(coordinates_.size(0), connectivity_);
+
   }
 
   ////////////////////////////////////////////////////////////////////////
   //        public interfaces
   ////////////////////////////////////////////////////////////////////////
 
-  il::int_t numberOfElts() const { return connectivity_.size(0); }
-
+  inline il::int_t numberOfElts() const { return connectivity_.size(0); }
+//
   il::int_t numberOfNodes() const { return coordinates_.size(0); }
-
+//
   il::Array2D<double> coordinates() const { return coordinates_; };
-
+//
   double coordinates(il::int_t k, il::int_t i) const {
     return coordinates_(k, i);
   }
-
+//
   il::Array2D<il::int_t> connectivity() const { return connectivity_; };
-
+//
   il::int_t connectivity(il::int_t e, il::int_t i) const {
     return connectivity_(e, i);
   }
@@ -214,7 +220,7 @@ class WellMesh : public Mesh {
   // get the size of a given element
   // (overrides the parent Mesh method
   // since curvilinear coordinate MD is used)
-  double eltSize(const il::int_t el);
+  double eltSize( il::int_t el);
 };
 
 //////////////////////////////////////////////////////////////////////////

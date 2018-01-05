@@ -17,15 +17,15 @@
 
 
 TEST(Mesh, test_ribbon){
-  //  a very simple mesh with 4 elements  (0,1,2,3)
+  //  a very simple wellMesh with 4 elements  (0,1,2,3)
   // ensure the ribbon elements are 1 and 2
 
-  // create the mesh.
+  // create the wellMesh.
    il::int_t nelts = 4;
 
    il::Array2D<double> xy{nelts+1,2,0.};
 
-//  // create a basic 1D mesh .... first fracture
+//  // create a basic 1D wellMesh .... first fracture
    for (il::int_t i = 0; i < nelts + 1; ++i) {
       xy(i, 0) = -1.0 + 1.*i  ;
       xy(i, 1) = 0.;

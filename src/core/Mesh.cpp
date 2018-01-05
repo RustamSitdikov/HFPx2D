@@ -23,7 +23,7 @@ il::Array2D<il::int_t> getNodalEltConnectivity(
     const il::int_t nt_nodes, const il::Array2D<il::int_t> &connectivity) {
   // get element sharing common edges
 
-  // loop over all nodes of the mesh
+  // loop over all nodes of the wellMesh
   // find corresponding elements
   // if n of elt sharing that coordinates ==2 -> put in array...
   //

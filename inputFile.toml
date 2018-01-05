@@ -11,9 +11,9 @@
 
 ###########   GEOMETRY   ###########
 [geometry]
-    #### Automatic mesh generation: FOR 1D MESHES ONLY ####
+    #### Automatic wellMesh generation: FOR 1D MESHES ONLY ####
 
-    # type of mesh generation
+    # type of wellMesh generation
     mesh_generation = "automatic"
 
     # number of fractures (must coincide with following data
@@ -25,16 +25,16 @@
 
     # start the description of the fracture creation
 
-[geometry.fracture0] # linear mesh in the vertical direction
+[geometry.fracture0] # linear wellMesh in the vertical direction
 
         # name of the meshed fracture
         name_of_fracture = "A first fracture"
 
-        # start of the mesh
+        # start of the wellMesh
         x_1 = 0.0
         y_1 = 0.0
 
-        # end of the mesh
+        # end of the wellMesh
         x_2 = 0.0
         y_2 = 5.0
 

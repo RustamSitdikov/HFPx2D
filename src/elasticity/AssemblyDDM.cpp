@@ -26,13 +26,13 @@ namespace hfp2d {
 ///////////////////////////////////////////////////////////////////////////////
 
 // todo need to write a function similar to Assembly for the addition of new
-// rows and columms corresponding to the addition of new elements in the mesh !
+// rows and columms corresponding to the addition of new elements in the wellMesh !
 
 ///////////////////////////////////////////////////////////////////////////////
 il::Array2D<double> basic_assembly(Mesh &mesh, hfp2d::ElasticProperties &elas,
                                    vKernelCall KernelCall, double ker_options) {
   // Kmat :: the stiffness matrix to assemble
-  // mesh :: the Mesh object
+  // wellMesh :: the Mesh object
   // id   :: the DOF handle
   // p    :: the interpolation order
   // elas :: the elastic properties object
@@ -88,18 +88,18 @@ il::Array2D<double> basic_assembly(Mesh &mesh, hfp2d::ElasticProperties &elas,
   return Kmat;
 };
 
-// rows and columms corresponding to the addition of new elements in the mesh !
+// rows and columms corresponding to the addition of new elements in the wellMesh !
 ///////////////////////////////////////////////////////////////////////////////
 void basic_assembly_add_elts(Mesh &new_mesh, il::int_t n_add,
                              hfp2d::ElasticProperties &elas,
                              vKernelCall KernelCall, double ker_options,
                              il::io_t, il::Array2D<double> &K) {
-  // here newmesh containing the mesh on which the whole elasticity matrix will
+  // here newmesh containing the wellMesh on which the whole elasticity matrix will
   // be built
   // n_add : number of elements added - note that the new element added MUST be
   // stored
   // at the end of the newmesh connectivity table (consistency not checked)
-  // (or better have the new and old mesh ? )
+  // (or better have the new and old wellMesh ? )
 
   il::int_t p = new_mesh.interpolationOrder();
 
@@ -170,7 +170,7 @@ void basic_assembly_add_elts(Mesh &new_mesh, il::int_t n_add,
 //  tip correction for PO elements
 void AddTipCorrectionP0(hfp2d::Mesh &mesh, const hfp2d::ElasticProperties &elas,
                         il::int_t tipElt, il::Array2D<double> &Kmat) {
-  // getting the element size ;( -> cry for a method in mesh class !
+  // getting the element size ;( -> cry for a method in wellMesh class !
 
   //  correction factor from Ryder & Napier 1985.
 
@@ -189,10 +189,10 @@ void RemoveTipCorrectionP0(hfp2d::Mesh &mesh,
                            il::int_t tipElt, il::Array2D<double> &Kmat) {
   //// getting the element size ;( -> cry for a method in mesh class !
   //  il::StaticArray2D<double, 2, 2> Xs;
-  //  Xs(0, 0) = mesh.coordinates(mesh.connectivity(tipElt, 0), 0);
-  //  Xs(0, 1) = mesh.coordinates(mesh.connectivity(tipElt, 0), 1);
-  //  Xs(1, 0) = mesh.coordinates(mesh.connectivity(tipElt, 1), 0);
-  //  Xs(1, 1) = mesh.coordinates(mesh.connectivity(tipElt, 1), 1);
+  //  Xs(0, 0) = mesh.coordinates(wellMesh.connectivity(tipElt, 0), 0);
+  //  Xs(0, 1) = mesh.coordinates(wellMesh.connectivity(tipElt, 0), 1);
+  //  Xs(1, 0) = mesh.coordinates(wellMesh.connectivity(tipElt, 1), 0);
+  //  Xs(1, 1) = mesh.coordinates(wellMesh.connectivity(tipElt, 1), 1);
   //
   //  il::StaticArray<double, 2> xdiff;
   //  xdiff[0] = Xs(1, 0) - Xs(0, 0);
@@ -260,7 +260,7 @@ il::Array2D<double> basic_assembly_nodal(Mesh &mesh,
   // this sub-block call will be then use in the H-mat approx.
 
   // Kmat :: the stiffness matrix to assemble
-  // mesh :: the Mesh object
+  // wellMesh :: the Mesh object
   // id   :: the DOF handle
   // p    :: the interpolation order
   // elas :: the elastic properties object

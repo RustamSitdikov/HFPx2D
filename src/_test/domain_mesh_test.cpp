@@ -16,7 +16,7 @@
 TEST(domain_Mesh_Test,t1) {
  // test centroid.
 
-  // background mesh 2 Quads
+  // background wellMesh 2 Quads
   il::Array2D<double> nodesB{6,2,0.};
   nodesB(0,0)=-100.;
   nodesB(0,1)=-100.;
@@ -57,7 +57,7 @@ TEST(domain_Mesh_Test,t1) {
 
 TEST(domain_Mesh_Test,t2) {
 
-  // background mesh 2 Quads
+  // background wellMesh 2 Quads
   il::Array2D<double> nodesB{6,2,0.};
   nodesB(0,0)=-100.;
   nodesB(0,1)=-100.;
@@ -98,7 +98,7 @@ TEST(domain_Mesh_Test,t2) {
 
 TEST(domain_Mesh_Test,t3) {
   // test locate and matid
-  // background mesh 2 Quads
+  // background wellMesh 2 Quads
   il::Array2D<double> nodesB{6,2,0.};
   nodesB(0,0)=-100.;
   nodesB(0,1)=-100.;

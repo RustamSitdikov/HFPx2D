@@ -47,15 +47,15 @@ class Sources {
     source_location_ = sourceLoc; // in P0 we want element, and in P1 it's a node
   };
 
-  il::Array<double> InjectionRate() const { return injection_rate_; };
-  double InjectionRate(il::int_t k) const { return injection_rate_[k];};
+  inline il::Array<double> InjectionRate() const { return injection_rate_; };
+  inline double InjectionRate(il::int_t k) const { return injection_rate_[k];};
 
-  il::Array<il::int_t> SourceElt() const { return source_location_; };
-  il::int_t SourceElt(il::int_t k) const {return source_location_[k];};
+  inline il::Array<il::int_t> SourceElt() const { return source_location_; };
+  inline il::int_t SourceElt(il::int_t k) const {return source_location_[k];};
 
   // just overloading here.... in case the source is at a node
-  il::Array<il::int_t> SourceNodes() const { return source_location_; };
-  il::int_t SourceNodes(il::int_t k) const {return source_location_[k];};
+  inline il::Array<il::int_t> SourceNodes() const { return source_location_; };
+  inline il::int_t SourceNodes(il::int_t k) const {return source_location_[k];};
 
 };
 }
