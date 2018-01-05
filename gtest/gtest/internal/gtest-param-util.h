@@ -53,7 +53,7 @@
 
 namespace testing {
 
-// Input to a parameterized test name generator, describing a test parameter.
+// input to a parameterized test name generator, describing a test parameter.
 // Consists of the parameter value and the integer parameter index.
 template <class ParamType>
 struct TestParamInfo {

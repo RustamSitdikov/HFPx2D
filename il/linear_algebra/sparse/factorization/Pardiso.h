@@ -250,7 +250,7 @@ inline Pardiso::Pardiso() {
   //      increasing order in each row
   pardiso_iparm_[26] = 0;
 
-  // Input/Output and working precision
+  // input/Output and working precision
   // - 0: double precision
   // - 1: single precision
   pardiso_iparm_[27] = 0;
