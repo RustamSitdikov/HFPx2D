@@ -10,7 +10,6 @@
 #include <gtest/gtest.h>
 
 #include <src/solvers/SimpleElasticBenchmarks.h>
-
 ////////////////////////////////////////////////////////////////////////////////
 
 //   TEST griffith crack with 10 P1 elements
@@ -56,3 +55,7 @@ TEST( UnitP0,griffith_10_by_nodes) {
 
   ASSERT_NEAR(0.0045515, ret, 0.001);// norm on all DD excluding tip ends
 }
+
+
+
+

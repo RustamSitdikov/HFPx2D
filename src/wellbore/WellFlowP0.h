@@ -157,12 +157,12 @@ double ffMDRmixed3(IFParametersHD &params);
 // Ff(Re_num, rough)
 // is this needed outsite ?
 il::Array<double> edgeConductivitiesP0(
-    WellMesh &mesh, il::Array<double> &velocity, hfp2d::Fluid &fluid,
+    WellMesh &w_mesh, il::Array<double> &velocity, hfp2d::Fluid &fluid,
     double (*ffFunction)(IFParametersHD &params));
 
 // Finite Volume (Finite Difference) Matrix L from edge conductivities
 // is this needed outsite ?
-il::Array2D<double> buildWellFiniteDiffP0(WellMesh &mesh,
+il::Array2D<double> buildWellFiniteDiffP0(WellMesh &w_mesh,
                                           il::Array<double> &edg_cond,
                                           double coef);
 

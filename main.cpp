@@ -134,14 +134,14 @@ int main() {
   //  std::cout << "\n rel error L2 norm in Constant Elements (with tip
   //  correction): " << ret2 << "\n";
 
- // int test= hfp2d::WellboreFlowBenchmark();
+  int test= hfp2d::WellboreFlowBenchmark();
 
   //std::cout << " end of code \n\n\n";
 
-   std::string dir = "../Debug/";
-   std::string meshfilename = dir + "TestMesh.json";
-
-   hfp2d::Mesh mymesh=hfp2d::loadJsonMesh(meshfilename);
+//   std::string dir = "../Debug/";
+//   std::string meshfilename = dir + "TestMesh.json";
+//
+//   hfp2d::Mesh mymesh=hfp2d::loadJsonMesh(meshfilename);
 
   std::cout << "end of code\n";
 

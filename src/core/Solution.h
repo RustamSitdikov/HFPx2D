@@ -229,16 +229,16 @@ class Solution {
   inline il::int_t frontIts() const { return frontIts_; }
   inline il::int_t ehlIts() const { return ehlIts_; }
 
-
   //////////////////////////////////////////////////////////////////////////////
-  // methods :
+  // METHODS :
+  //////////////////////////////////////////////////////////////////////////////
 
   // write solution to file  -> json format
   // for convenience
   using json = nlohmann::json;
 
-  int writeToFile(std::string &filename) {
-
+  //----------------------------------------------------------------------
+  json createJsonObject(){
     // we output the wellMesh
     json json_coord = json::array();
     for (il::int_t m = 0; m < currentmesh_.coordinates().size(0); ++m) {
@@ -338,12 +338,23 @@ class Solution {
                   {"Shear traction", json_shear_stress},
                   {"Normal traction", json_normal_stress}};
 
+    return j_obj;
+  }
+  //----------------------------------------------------------------------
+
+
+  //----------------------------------------------------------------------
+  void writeToFile(std::string &filename) {
+
+    json j_obj=createJsonObject();
     // write prettified JSON to file
     std::ofstream output(filename);
     output << std::setw(4) << j_obj << std::endl;
 
-    return 0;
+
   };
+  //----------------------------------------------------------------------
+
 };
 
 // todo read json from file for restart

@@ -10,8 +10,10 @@
 #ifndef HFPX2D_WELLINJECTION_H
 #define HFPX2D_WELLINJECTION_H
 
-#include <il/Array.h>
 #include <il/math.h>
+
+#include <il/Array.h>
+#include <il/Array2D.h>
 
 #include <src/core/Sources.h>
 
@@ -35,7 +37,7 @@ class WellInjection {
   il::Array<il::int_t> hf_location_;
 
   // plug location (zero-flux boundary condition)  -> location of the element where plug is ?
-  il::int_t plug_location_;
+//  il::int_t plug_location_;
 
   // rate of outflow in hydraulic fractures.
   il::Array<double> hf_rates_;
@@ -61,12 +63,13 @@ class WellInjection {
 
   // normal constructor
   WellInjection(double well_inj_rate, il::Array<il::int_t> &hf_location,
-                il::int_t plug_location, il::Array<double> &hf_vol_rate,
+                //il::int_t plug_location,
+                il::Array<double> &hf_vol_rate,
                 //il::Array<double> &hf_p_drop,
                 il::Array<double> &coef_perf,
                 il::Array<double> &coef_tort, il::Array<double> &beta_tort) {
     well_inj_rate_ = well_inj_rate;
-    plug_location_ = plug_location;
+    //plug_location_ = plug_location;
 
     IL_EXPECT_FAST(hf_location.size()==hf_vol_rate.size());
     IL_EXPECT_FAST(coef_perf.size()==hf_location.size());
@@ -99,7 +102,7 @@ class WellInjection {
  // inline il::Array<double> hfPressDrop() { return hf_p_drop_; }
  // inline double hfPressDrop(il::int_t nf) { return hf_p_drop_[nf]; }
 
-  inline il::int_t plugLocation() { return plug_location_; }
+  //inline il::int_t plugLocation() { return plug_location_; }
 
   inline il::Array<double> coefPerf() { return coef_perf_; }
   inline double coefPerf(il::int_t nf) { return coef_perf_[nf]; }

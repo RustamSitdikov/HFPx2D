@@ -19,7 +19,7 @@
 #include <src/core/SimulationParameters.h>
 #include <src/elasticity/AssemblyDDM.h>
 #include <src/elasticity/Simplified3D.h>
-#include <src/elhsolvers/ReynoldsP0.h>
+#include <src/ehlsolvers/ReynoldsP0.h>
 #include <src/solvers/DevLHFMSolver.h>
 
 #include <src/tip/tipAsymptote.h>
@@ -301,6 +301,19 @@ int TwoParallelHFs(int nelts, double dist) {
 
   return 0;
 };
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+// write a routine - for well + n fracs benchmark
+// with json inputs.
+
+// write a routine for the solution of the well-flow / frac prop over a time step
+//
+//
+
+
+////////////////////////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////////////////////////////
 // Fracture Front Loop - solve for one time step from tn to tn+timestep
@@ -643,5 +656,6 @@ hfp2d::Solution FractureFrontLoop(
 
   //
   return Soln_p_1_k;
+
 }
 }
