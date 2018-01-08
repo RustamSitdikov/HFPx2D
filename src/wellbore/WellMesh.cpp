@@ -27,32 +27,5 @@ double WellMesh::eltSize(const il::int_t el) {
   return std::fabs(md_[n_r] - md_[n_l]);
 }
 
-////////////////////////////////////////////////////////////////////////////////
-// method to get elements sharing each node
-// (i.e. nodal_connectivity for all nodes with 2 neighbours)
-void WellMesh::setNodeAdjElts() {
-  node_adj_elt_ = getNodalEltConnectivity(numberOfNodes(), connectivity_);
-}
 
-////////////////////////////////////////////////////////////////////////////////
-il::Array2D<il::int_t> WellMesh::getNodesSharing2Elts() {
-  // case of only 2 nodes for now.....
-  // needed for building FD matrix  of WB .....
-  // ONLY WORK ON MESH where nodes have maximum of 2 adjacaent elements
-  // hardcoded for a continuous wellbore mesh.
-
-  IL_EXPECT_FAST(connectivity_.size(1) == 2);
-
-  il::Array2D<il::int_t> temp(numberOfNodes() - 2, 2, 0);
-
-  il::int_t k = 0;
-  for (il::int_t i = 0; i < coordinates_.size(0); i++) {
-    if (node_adj_elt_(i, 1) > -1) {
-      temp(k, 0) = node_adj_elt_(i, 0);
-      temp(k, 1) = node_adj_elt_(i, 1);
-      k++;
-    }
-  }
-  return temp;
-}
 }

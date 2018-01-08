@@ -152,8 +152,8 @@ namespace hfp2d {
 
   using json = nlohmann::json;
 
+  //----------------------------------------------------------------------
   json createJsonObject(){
-
 
     json json_pressure = json::array();
     json json_velocity = json::array();
@@ -190,7 +190,6 @@ namespace hfp2d {
     // write prettified JSON to file
     std::ofstream output(filename);
     output << std::setw(4) << j_obj << std::endl;
-
 
   };
   //----------------------------------------------------------------------

@@ -20,10 +20,10 @@
 
 // Inclusion from hfp2d
 #include <src/core/Fluid.h>
-#include <src/core/Mesh.h>
 #include <src/core/SegmentData.h>
 #include <src/core/Solution.h>
 #include <src/core/Sources.h>
+#include <src/core/Mesh.h>
 
 namespace hfp2d {
 
@@ -49,8 +49,10 @@ class WellMesh {
   il::Array2D<il::int_t> connectivity_;
 
   // elements sharing each node
-  // todo: it would better be featured in the parent Mesh class
+
   il::Array2D<il::int_t> node_adj_elt_;
+
+  il::Array2D<il::int_t> edge_common_;
 
   // local sine of inclination inclination
   // (used to determine hydrostatic pressure gradient)
@@ -160,10 +162,18 @@ class WellMesh {
     }
 
 // build the nodal connected table...
-    node_adj_elt_ =
-        getNodalEltConnectivity(coordinates_.size(0), connectivity_);
+    node_adj_elt_  = getNodalEltConnectivity(coordinates_.size(0), connectivity_);
 
-    //todo we could store here the nodes sharing 2 elements for efficiency instead
+    edge_common_ =il::Array2D<il::int_t>(md_.size() - 2, 2, 0);
+
+    il::int_t k = 0;
+    for (il::int_t i = 0; i < coordinates_.size(0); i++) {
+      if (node_adj_elt_(i, 1) > -1) {
+        edge_common_(k, 0) = node_adj_elt_(i, 0);
+        edge_common_(k, 1) = node_adj_elt_(i, 1);
+        k++;
+      }
+    }
 
   }
 
@@ -186,10 +196,14 @@ class WellMesh {
   il::int_t connectivity(il::int_t e, il::int_t i) const {
     return connectivity_(e, i);
   }
-  // nodal connectivity related
-  inline il::Array2D<il::int_t> nodeEltConnectivity() const {
-    return node_adj_elt_;
-  };
+//  // nodal connectivity related
+//  inline il::Array2D<il::int_t> nodeEltConnectivity() const {
+//    return node_adj_elt_;
+//  };
+
+  il::Array2D<il::int_t> edgeCommon() const { return edge_common_;};
+
+
 
   il::Array<double> md() { return md_; }
 
@@ -211,11 +225,7 @@ class WellMesh {
 
   double rough(il::int_t el) { return rough_[el]; }
 
-  il::Array2D<il::int_t> nodeAdjElts() { return node_adj_elt_; }
 
-  il::int_t nodeAdjElts(il::int_t n, il::int_t i) {
-    return node_adj_elt_(n, i);
-  }
 
   ////////////////////////////////////////////////////////////////////////
   //        set functions

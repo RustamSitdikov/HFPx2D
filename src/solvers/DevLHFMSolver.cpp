@@ -15,13 +15,12 @@
 #include <src/core/Fluid.h>
 #include <src/core/Mesh.h>
 #include <src/core/DomainMesh.h>
-
 #include <src/core/SimulationParameters.h>
+
 #include <src/elasticity/AssemblyDDM.h>
 #include <src/elasticity/Simplified3D.h>
 #include <src/ehlsolvers/ReynoldsP0.h>
 #include <src/solvers/DevLHFMSolver.h>
-
 #include <src/tip/tipAsymptote.h>
 
 
@@ -237,21 +236,15 @@ int TwoParallelHFs(int nelts, double dist) {
 
   std::cout << "Dimensionless Viscosity " << Mbar << "\n";
 
+  // time step loop.
   while (jt < nsteps) {
     jt++;
-    //
-    //    Solution Soln1=hfp2d::ReynoldsSolverP0(Soln, K, water, the_rock,
-    //    the_source,
-    //                                         dt, false, tip_region_elt_k,
-    //                                         tip_region_width_k,
-    //                                         SimulParam,true);
 
     Solution Soln1 = hfp2d::FractureFrontLoop(
         Soln, K, water, the_rock, the_source, frac_heigth, dt, SimulParam, true);
 
-    // accept time steps ?
-
-    if (Soln1.errFront()<0.01)
+    // accept time step ?
+    if (Soln1.errFront()<0.01) // todo pass this tolerance in inputs
     {
       Soln = Soln1;
       std::cout << " steps # " << jt << " time  " << Soln.time() << "\n";
@@ -308,12 +301,30 @@ int TwoParallelHFs(int nelts, double dist) {
 // write a routine - for well + n fracs benchmark
 // with json inputs.
 
+int MultipleFracsPropagation(int nelts) {
+  // routine for the propagation of multiple Heigth contained HFs from a horizontal wellbore
+  // DEBUGGING
+
+  //
+
+  return  0;
+
+}
+
+
+
+
+
 // write a routine for the solution of the well-flow / frac prop over a time step
 //
 //
 
 
-////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // Fracture Front Loop - solve for one time step from tn to tn+timestep

@@ -527,7 +527,8 @@ il::Array<double> edgeConductivitiesP0(
   // returns A dv/d(grad P) = A 2 * hd / (density * abs(velocity) * ff(Re, eps))
 
   IFParametersHD params;
-  il::Array2D<il::int_t> edgecommon = w_mesh.getNodesSharing2Elts();
+
+  il::Array2D<il::int_t> edgecommon = w_mesh.edgeCommon();
 
   il::Array<double> h_width = w_mesh.hd();
   il::Array<double> rough = w_mesh.rough();
@@ -582,9 +583,9 @@ il::Array2D<double> buildWellFiniteDiffP0(WellMesh &w_mesh,
   // edg_cond :: node (edge) Darcy conductivities array
   // coef     :: the factor of all entries (typically, the time-step)
 
-  // checks here....
+  // checks here...
 
-  il::Array2D<il::int_t> edgecommon = w_mesh.getNodesSharing2Elts();
+  il::Array2D<il::int_t> edgecommon = w_mesh.edgeCommon();
 
   // todo: L would better be a sparse matrix.....
   il::Array2D<double> L{w_mesh.numberOfElts(), w_mesh.numberOfElts(), 0.};
@@ -599,7 +600,7 @@ il::Array2D<double> buildWellFiniteDiffP0(WellMesh &w_mesh,
     el = edgecommon(i, 1);
     hi = (w_mesh.eltSize(er) + w_mesh.eltSize(el)) / 2.;
     // cross-sections, right & left of the edge (node)
-    dv = coef * edg_cond[i] / hi;  // why the minus here
+    dv = coef * edg_cond[i] / hi;  //
     // diagonal entries
     L(er, er) += dv;
     L(el, el) += dv;
@@ -652,7 +653,7 @@ WellSolution wellFlowSolverP0(hfp2d::WellSolution &well_soln,
   // call it here just in case
   // w_mesh.setNodeAdjElts();
 
-  il::Array2D<il::int_t> edgecommon = w_mesh.getNodesSharing2Elts();
+  il::Array2D<il::int_t> edgecommon = w_mesh.edgeCommon();
   il::int_t n_s_e = edgecommon.size(0);
 
   //  WellInjection w_inj = well_soln.wellInjection();
@@ -851,6 +852,7 @@ WellSolution wellFlowSolverP0(hfp2d::WellSolution &well_soln,
   return hfp2d::WellSolution(well_soln.time() + timestep, timestep, p_hs, p_n,
                              v_k, Re, k,il::norm(err_Dp, il::Norm::L2),
                              il::norm(err_Dv, il::Norm::L2));
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////

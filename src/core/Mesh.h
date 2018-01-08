@@ -34,6 +34,9 @@ il::Array<il::int_t> buildTipElts(
     const il::Array2D<il::int_t> &node_connectivity,
     const il::Array<il::int_t> &tipnodes);
 
+
+
+
 ///// 1D mesh class
 class Mesh {  // class for 1D wellMesh of 1D segment elements ?
 
