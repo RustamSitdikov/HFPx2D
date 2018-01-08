@@ -6,20 +6,19 @@
 // Geo-Energy Laboratory, 2016-2018.  All rights reserved.
 // See the LICENSE.TXT file for more details.
 //
+
 #include <il/math.h>
 
-#include "LoadInputMultistage.h"
+#include <src/wellbore/LoadInputMultistage.h>
 
-#include <src/wellbore/WellInjection.h>
-#include <src/wellbore/WellMesh.h>
-#include <src/util/json.hpp>
 
 namespace hfp2d {
 
 using json = nlohmann::json;
 
 //------------------------------------------------------------------------------
-hfp2d::WellMesh LoadWellMesh(json &j_wmesh) {
+// loading well mesh
+hfp2d::WellMesh loadWellMesh(json &j_wmesh) {
   // load the well mesh and create the welll mesh object from the json
   long md_present = j_wmesh.count("MD");               //
   long tvd_present = j_wmesh.count("TVD");             //
@@ -76,11 +75,13 @@ hfp2d::WellMesh LoadWellMesh(json &j_wmesh) {
 }
 //------------------------------------------------------------------------------
 
-hfp2d::WellInjection LoadWellParameters(json &j_params,
+
+//------------------------------------------------------------------------------
+// loading well parameters.
+hfp2d::WellInjection loadWellParameters(json &j_params,
                                         hfp2d::WellMesh &the_well) {
 
   long cl_p = j_params.count("Clusters MD");  //
-  // int tvd_present = j_params.count("Plug MD");         //
   long p_present = j_params.count("Perforations coefficient");  //
   long t_present = j_params.count("Tortuosity coefficient");    //
   long t_b_present = j_params.count("Tortuosity exponent");
@@ -111,18 +112,6 @@ hfp2d::WellInjection LoadWellParameters(json &j_params,
   }
 
   auto pump_rate = j_params["Pump rate"].get<double>();
-
-  // for now we do not have the plug md, we assume that the end of the well mesh
-  // correspond to the plug location
-  //  auto plug_md = j_params["Plug MD"].get<double>();
-  //  il::int_t plug_loc = ne;
-  //  for (il::int_t e = 0; e < the_well.numberOfElts(); e++) {
-  //    if ((plug_md < md[the_well.connectivity(e, 1)]) &&
-  //        (plug_md >= md[the_well.connectivity(e, 0)])) {
-  //      plug_loc = e;
-  //      break;
-  //    }
-  //  }
 
   if (p_present != 1) {
     std::cout << "error in input file - no perf coef \n";
@@ -161,4 +150,98 @@ hfp2d::WellInjection LoadWellParameters(json &j_params,
 
   return w_inj;
 }
+//------------------------------------------------------------------------------
+
+//------------------------------------------------------------------------------
+// Loading Fluid Properties
+hfp2d::Fluid loadFluidProperties(json &j_fluid){
+
+  if (j_fluid.count("Rheology")!=1) {
+    std::cout << "No fluid rehology input !";
+    il::abort();
+  }
+
+  if (j_fluid.count("Density")!=1){
+    std::cout << "No fluid density input !";
+    il::abort();
+  }
+  auto dens = j_fluid["Density"].get<double>();
+
+  if (j_fluid.count("Compressibility")!=1){
+    std::cout << "No fluid Compressibility input !";
+    il::abort();
+  }
+  auto c_f = j_fluid["Compressibility"].get<double>();
+
+  if (j_fluid.count("Rheology")!=1){
+    std::cout << "No fluid rheology input !";
+    il::abort();
+  }
+  // compare Rheology string to Newtonian ?
+
+  if (j_fluid.count("Viscosity")!=1){
+    std::cout << "No fluid viscosity input !";
+    il::abort();
+  }
+  auto visc = j_fluid["Viscosity"].get<double>();
+
+  hfp2d::Fluid the_fluid(dens,c_f,visc);
+  return the_fluid;
+};
+//------------------------------------------------------------------------------
+// Loading Solid Properties
+hfp2d::SolidProperties loadSolidProperties(json &j_rock){
+
+  if (j_rock.count("Young's modulus")!=1) {
+    std::cout << "No Young's modulus  input !";
+    il::abort();
+  }
+  auto yme = j_rock["Young's modulus"].get<double>();
+
+  if (j_rock.count("Poisson's ratio")!=1) {
+    std::cout << "No Poisson's ratio  input !";
+    il::abort();
+  }
+  auto nu = j_rock["Poisson's ratio"].get<double>();
+
+  hfp2d::ElasticProperties my_elas(yme,nu);
+
+  if (j_rock.count("Fracture toughness")!=1) {
+    std::cout << "No Fracture toughness  input !";
+    il::abort();
+  }
+
+  if (j_rock.count("Minimum hydraulic width")!=1) {
+    std::cout << "No Minimum hydraulic width  input !";
+    il::abort();
+  }
+
+  if (j_rock.count("Leak-off coefficient")!=1) {
+    std::cout << "No Leak-off coefficient  input !";
+    il::abort();
+  }
+
+  il::int_t nct = j_rock["Fracture toughness"].size();
+  il::int_t ncwh = j_rock["Minimum hydraulic width"].size();
+  il::int_t ncc = j_rock["Leak-off coefficient"].size();
+
+  IL_EXPECT_FAST((nct==ncwh)&&(ncc==nct));
+
+
+  il::Array<double> tough(nct, 0.), Cl(nct, 0.), wh_o(nct, 0.);
+
+  for (il::int_t i=0;i<nct;i++){
+    tough[i]=j_rock["Fracture toughness"][i];
+    Cl[i]=j_rock["Leak-off coefficient"][i];
+    wh_o[i]=j_rock["Minimum hydraulic width"][i];
+  }
+
+  hfp2d::SolidProperties solid(my_elas,tough,wh_o,Cl);
+
+  return solid;
+
+};
+//------------------------------------------------------------------------------
+
+
 };

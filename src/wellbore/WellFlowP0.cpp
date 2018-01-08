@@ -1,5 +1,5 @@
 //
-// This file is part of HFPx2DUnitTest.
+// This file is part of HFPx2D.
 //
 // Created by Brice Lecampion on 06.10.17.
 // Copyright (c) ECOLE POLYTECHNIQUE FEDERALE DE LAUSANNE, Switzerland,

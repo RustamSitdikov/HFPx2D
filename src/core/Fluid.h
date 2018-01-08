@@ -27,7 +27,7 @@ private:
 
 public:
 
-   Fluid(double density, double viscosity, double compressibility) {
+   Fluid(double density, double compressibility, double viscosity) {
 
     density_ = density;
     viscosity_ = viscosity;

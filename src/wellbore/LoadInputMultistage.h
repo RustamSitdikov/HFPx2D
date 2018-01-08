@@ -9,6 +9,8 @@
 #ifndef HFPX2D_LOADINPUTMULTISTAGE_H
 #define HFPX2D_LOADINPUTMULTISTAGE_H
 
+#include <src/core/SolidProperties.h>
+#include <src/core/Fluid.h>
 #include <src/wellbore/WellMesh.h>
 #include <src/wellbore/WellInjection.h>
 #include <src/util/json.hpp>
@@ -17,9 +19,15 @@ namespace hfp2d {
 using json = nlohmann::json;
 
 
-hfp2d::WellMesh  LoadWellMesh(json &j_wmesh);
+hfp2d::WellMesh  loadWellMesh(json &j_wmesh);
 
-hfp2d::WellInjection LoadWellParameters(json &j_params,hfp2d::WellMesh &the_well);
+hfp2d::WellInjection loadWellParameters(json &j_params,
+                                        hfp2d::WellMesh &the_well);
+
+hfp2d::Fluid loadFluidProperties(json &j_fluid);
+
+hfp2d::SolidProperties loadSolidProperties(json &j_rock);
+
 
 };
 

@@ -136,6 +136,8 @@ int main() {
 
   int test= hfp2d::WellboreFlowBenchmark();
 
+  test = hfp2d::MultipleFracsPropagation();
+
   //std::cout << " end of code \n\n\n";
 
 //   std::string dir = "../Debug/";

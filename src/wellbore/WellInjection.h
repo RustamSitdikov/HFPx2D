@@ -11,7 +11,6 @@
 #define HFPX2D_WELLINJECTION_H
 
 #include <il/math.h>
-
 #include <il/Array.h>
 #include <il/Array2D.h>
 

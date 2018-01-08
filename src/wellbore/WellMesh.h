@@ -1,5 +1,5 @@
 //
-// This file is part of WellHDTest.
+// This file is part of HFPx2D.
 //
 // Created by nikolski on 11/22/2017.
 // Copyright (c) ECOLE POLYTECHNIQUE FEDERALE DE LAUSANNE, Switzerland,
@@ -48,19 +48,18 @@ class WellMesh {
   il::Array2D<double> coordinates_;
   il::Array2D<il::int_t> connectivity_;
 
-  // elements sharing each node
-
-  il::Array2D<il::int_t> node_adj_elt_;
-
+  // elements sharing common node
   il::Array2D<il::int_t> edge_common_;
 
   // local sine of inclination inclination
   // (used to determine hydrostatic pressure gradient)
   il::Array<double> inclination_;
 
-  double azimuth;  // it may be il::Array<double>
 
-  // HD - hydraulic diameter   at cell center.
+  double azimuth_;  // it may be il::Array<double>
+  // is stored in degree not radians !
+
+  // HD - hydraulic diameter at cell center.
   il::Array<double> hd_;
 
   // dimensionless surface roughness
@@ -152,6 +151,7 @@ class WellMesh {
 
       double cos_a = std::sqrt(1. - std::pow(sin_a, 2));
 
+      azimuth_=azimuth;
       // calculate the well orientation in x-y plane (north is toward y)
       // todo: make azimuth il::Array<double>
       double to_rad = il::pi / 180.;
@@ -162,15 +162,17 @@ class WellMesh {
     }
 
 // build the nodal connected table...
-    node_adj_elt_  = getNodalEltConnectivity(coordinates_.size(0), connectivity_);
+    il::Array2D<il::int_t> node_adj_elt;
+
+    node_adj_elt = getNodalEltConnectivity(coordinates_.size(0), connectivity_);
 
     edge_common_ =il::Array2D<il::int_t>(md_.size() - 2, 2, 0);
 
     il::int_t k = 0;
     for (il::int_t i = 0; i < coordinates_.size(0); i++) {
-      if (node_adj_elt_(i, 1) > -1) {
-        edge_common_(k, 0) = node_adj_elt_(i, 0);
-        edge_common_(k, 1) = node_adj_elt_(i, 1);
+      if (node_adj_elt(i, 1) > -1) {
+        edge_common_(k, 0) = node_adj_elt(i, 0);
+        edge_common_(k, 1) = node_adj_elt(i, 1);
         k++;
       }
     }
@@ -181,7 +183,9 @@ class WellMesh {
   //        public interfaces
   ////////////////////////////////////////////////////////////////////////
 
-  inline il::int_t numberOfElts() const { return connectivity_.size(0); }
+  double azimuth() const { return azimuth_;};
+
+   il::int_t numberOfElts() const { return connectivity_.size(0); }
 //
   il::int_t numberOfNodes() const { return coordinates_.size(0); }
 //
@@ -196,14 +200,8 @@ class WellMesh {
   il::int_t connectivity(il::int_t e, il::int_t i) const {
     return connectivity_(e, i);
   }
-//  // nodal connectivity related
-//  inline il::Array2D<il::int_t> nodeEltConnectivity() const {
-//    return node_adj_elt_;
-//  };
 
   il::Array2D<il::int_t> edgeCommon() const { return edge_common_;};
-
-
 
   il::Array<double> md() { return md_; }
 
@@ -225,14 +223,6 @@ class WellMesh {
 
   double rough(il::int_t el) { return rough_[el]; }
 
-
-
-  ////////////////////////////////////////////////////////////////////////
-  //        set functions
-  ////////////////////////////////////////////////////////////////////////
-
-  void setNodeAdjElts();
-
   ////////////////////////////////////////////////////////////////////////
   //        Methods
   ////////////////////////////////////////////////////////////////////////
@@ -240,9 +230,15 @@ class WellMesh {
   // get the size of a given element
   // (overrides the parent Mesh method
   // since curvilinear coordinate MD is used)
-  double eltSize( il::int_t el);
+   double eltSize(const il::int_t el) {
+    // left node
+    il::int_t n_l = connectivity_(el, 0);
+    // right node
+    il::int_t n_r = connectivity_(el, 1);
+    // return distance
+    return std::fabs(md_[n_r] - md_[n_l]);
+  }
 
-  il::Array2D<il::int_t> getNodesSharing2Elts();
 
 
 };

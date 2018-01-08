@@ -20,7 +20,6 @@ using json = nlohmann::json;
 
 int WellboreFlowBenchmark() {
 
-
   std::string wellfilename = "../Debug/WellTest.json";
 
   std::ifstream input(wellfilename);  // ?
@@ -34,25 +33,32 @@ int WellboreFlowBenchmark() {
   json j_wmesh = j["Wellbore mesh"];
 
   if ((j.count("Model parameters") != 1)) {
-    std::cout << "No wellbore parameters in input file ";
+    std::cout << "No parameters in input file ";
     il::abort();
   }
   json j_params = j["Model parameters"];
 
-  hfp2d::WellMesh the_well=LoadWellMesh(j_wmesh);
-  hfp2d::WellInjection w_inj=LoadWellParameters(j_params,the_well);
+  hfp2d::WellMesh the_well= loadWellMesh(j_wmesh);
+  hfp2d::WellInjection w_inj= loadWellParameters(j_params, the_well);
+
+  if (j_params.count("Fluid properties")!=1){
+    std::cout << "No fluid properties input in  model parameters";
+    il::abort();
+  }
+
+  json j_fluid = j_params["Fluid properties"];
+
+  hfp2d::Fluid water=loadFluidProperties(j_fluid);
 
   double dt = 0.1;
 
   // create initial solution
-  hfp2d::Fluid water(1.e3, 1.e-3, 5.e-10);
-
   hfp2d::WellSolution iniSol(the_well, w_inj, water, dt);
-
   hfp2d::SimulationParameters WellFlowParam;
 
   WellFlowParam.ehl_relaxation = 1.0;
   WellFlowParam.ehl_tolerance = 1.e-6;
+
   // one step.
 
   hfp2d::WellSolution SolN = iniSol;
@@ -63,7 +69,6 @@ int WellboreFlowBenchmark() {
   std::string resfilename = "../Debug/WellTest_results.json";
 
   SolN_1.writeToFile(resfilename);
-
 
   return 0;
 }

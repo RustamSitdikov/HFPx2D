@@ -1,6 +1,5 @@
 cmake_minimum_required(VERSION 3.6)
 
-
 project(HFPx2DUnitTest CXX)
 
 project(HFPx2D CXX)
@@ -21,7 +20,7 @@ set(CMAKE_CXX_COMPILER /usr/bin/g++)
 endif()
 
 #  FOR HFPx2D
- # set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+# set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 IF(CMAKE_BUILD_TYPE MATCHES DEBUG)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror -Wall -Wextra -pedantic")
@@ -30,25 +29,22 @@ ENDIF(CMAKE_BUILD_TYPE MATCHES DEBUG)
 set(SOURCE_FILES_DIR ${PROJECT_SOURCE_DIR}/src)
 
 set(SOURCE_FILES
-        src/core/Mesh.cpp
-        src/core/Mesh.h
-        src/core/Utilities.h
-        src/core/Utilities.cpp
+        src/core/Mesh.cpp src/core/Mesh.h
+        src/core/Utilities.h src/core/Utilities.cpp
         src/core/SegmentData.h
         src/core/Fluid.h
         src/core/ElasticProperties.h
         src/core_dev/SolidEvolution.h
         src/core/Sources.h
         src/core/DomainMesh.h
-        src/elasticity/AssemblyDDM.cpp
-        src/elasticity/AssemblyDDM.h
-        src/elasticity/Simplified3D.cpp
-        src/elasticity/Simplified3D.h
-        src/elasticity/PlaneStrainInfinite.cpp
-        src/elasticity/PlaneStrainInfinite.h
-        src/solvers/SimpleElasticBenchmarks.cpp
-        src/solvers/SimpleElasticBenchmarks.h
         src/core/SimulationParameters.h
+        src/core/Solution.h
+        src/core/SolidProperties.h
+        src/core/InSituConditions.h
+        src/elasticity/AssemblyDDM.cpp src/elasticity/AssemblyDDM.h
+        src/elasticity/Simplified3D.cpp src/elasticity/Simplified3D.h
+        src/elasticity/PlaneStrainInfinite.cpp src/elasticity/PlaneStrainInfinite.h
+        src/solvers/SimpleElasticBenchmarks.cpp src/solvers/SimpleElasticBenchmarks.h
 #        src/input/loadArguments.cpp
 #        src/input/loadArguments.h
 #        src/input/loadInput.cpp
@@ -69,28 +65,26 @@ set(SOURCE_FILES
         #src/input/geometry/autoLineMeshInfo.h
 #        src/input/properties/loadSingleMaterial.cpp
 #        src/input/properties/loadSingleMaterial.h
-        src/input/findUtilities.cpp
-        src/input/findUtilities.h
-        il/io/toml/toml.h
-        il/io/toml/toml.cpp
+        src/input/findUtilities.cpp src/input/findUtilities.h
+        il/io/toml/toml.h il/io/toml/toml.cpp
         #        src/input/conditions/loadConditions.cpp
 #        src/input/conditions/loadConditions.h
 #        src/input/Sources/loadSources.cpp
 #        src/input/Sources/loadSources.h
-        src/ehlsolvers/ReynoldsP0.cpp
-        src/ehlsolvers/ReynoldsP0.h
-        src/solvers/DevLHFMSolver.cpp
-        src/solvers/DevLHFMSolver.h
-        src/core/Solution.h
-        src/core/SolidProperties.h
-        src/tip/tipAsymptote.cpp
-        src/tip/tipAsymptote.h
+        src/ehlsolvers/ReynoldsP0.cpp src/ehlsolvers/ReynoldsP0.h
+        src/solvers/DevLHFMSolver.cpp src/solvers/DevLHFMSolver.h
+
+        src/tip/tipAsymptote.cpp src/tip/tipAsymptote.h
         src/util/json.hpp
         src/input/json/loadJsonMesh.cpp src/input/json/loadJsonMesh.h
         src/wellbore/WellInjection.cpp src/wellbore/WellInjection.h
-        src/wellbore/WellMesh.cpp src/wellbore/WellMesh.h
+        src/wellbore/WellMesh.h
         src/wellbore/WellFlowP0.cpp src/wellbore/WellFlowP0.h
-        src/wellbore/WellSolution.h src/wellbore/SimpleWellFlowSolverBenchmark.cpp src/wellbore/SimpleWellFlowSolverBenchmark.h src/solvers/MultiFracsSolution.h)
+        src/wellbore/WellSolution.h
+        src/wellbore/SimpleWellFlowSolverBenchmark.cpp
+        src/wellbore/SimpleWellFlowSolverBenchmark.h
+        src/solvers/MultiFracsSolution.h
+        src/wellbore/LoadInputMultistage.cpp src/wellbore/LoadInputMultistage.h)
 
 if(APPLE)
 link_directories($ENV{MKLROOT}/lib $ENV{MKLROOT}/../compiler/lib )

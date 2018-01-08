@@ -26,7 +26,13 @@ hfp2d::Solution FractureFrontLoop(
     const hfp2d::SolidProperties &rock,const hfp2d::Sources &source, double frac_height,
     double timestep, hfp2d::SimulationParameters &simulParams, bool mute);
 
+
+int MultipleFracsPropagation();
+
+
 }
+
+
 
 
 #endif //HFPX2DUNITTEST_DEVLHFMSOLVER_H

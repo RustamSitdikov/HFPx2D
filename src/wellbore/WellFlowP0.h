@@ -1,5 +1,5 @@
 //
-// This file is part of HFPx2DUnitTest.
+// This file is part of HFPx2D.
 //
 // Created by Brice Lecampion on 06.10.17.
 // Copyright (c) ECOLE POLYTECHNIQUE FEDERALE DE LAUSANNE, Switzerland,
@@ -11,18 +11,17 @@
 
 #define HFPX2DUNITTEST_REYNOLDSP0_H
 
-#include "il/Array.h"
+#include <il/Array.h>
 
 #include <src/core/Fluid.h>
 #include <src/core/Mesh.h>
 #include <src/core/Solution.h>
+#include <src/core/SimulationParameters.h>
+#include <src/core/Sources.h>
 #include <src/wellbore/WellMesh.h>
 #include <src/wellbore/WellSolution.h>
 
-#include <src/core/SimulationParameters.h>
-#include <src/core/Sources.h>
-
-// todo: move this namespace to Utilities.h & .cpp
+// todo: move this namespace to Utilities.h & .cpp ?
 namespace imf {
 
 //    class ImplicitFunction {
