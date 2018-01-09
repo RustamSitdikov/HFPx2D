@@ -139,7 +139,7 @@ int main() {
   // std::cout << " end of code \n\n\n";
 
   std::string dir = "/Users/federicociardo/ClionProjects/Debug/";
-  std::string meshfilename = dir + "HalfCircle207.Mesh2.json";
+  std::string meshfilename = dir + "HalfCircle10.Mesh.json";
 
   hfp2d::Mesh mymesh = hfp2d::loadJsonMesh(meshfilename);
 

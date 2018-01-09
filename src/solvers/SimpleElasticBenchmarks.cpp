@@ -549,15 +549,12 @@ double SimpleCircleCrackExample_P0_byNodes(hfp2d::Mesh &MyMesh) {
 
   hfp2d::ElasticProperties myelas(Ep, nu);
 
+  il::Array2D<double> K = hfp2d::basic_assembly_nodal(
+      MyMesh, myelas, hfp2d::normal_shear_stress_kernel_s3d_dp0_dd_nodal,
+      1000.);
+
   //  il::Array2D<double> K = hfp2d::basic_assembly_nodal(
-  //      MyMesh, myelas, hfp2d::normal_shear_stress_kernel_s3d_dp0_dd_nodal,
-  //      1000.);
-
-  //    il::Array2D<double> K = hfp2d::basic_assembly_nodal(
-  //        MyMesh, myelas, hfp2d::normal_shear_stress_kernel_dp1_dd_nodal, 0.);
-
-  il::Array2D<double> K = hfp2d::basic_assembly(
-      MyMesh, myelas, hfp2d::normal_shear_stress_kernel_dp1_dd, 0.);
+  //      MyMesh, myelas, hfp2d::normal_shear_stress_kernel_dp1_dd_nodal, 0.);
 
   il::int_t ndof = MyMesh.numberDDDofs();
   il::int_t nelts = MyMesh.numberOfElts();
@@ -580,12 +577,12 @@ double SimpleCircleCrackExample_P0_byNodes(hfp2d::Mesh &MyMesh) {
   }
 
   // solve a constant pressurized crack problem...
-  il::Array<double> f{ndof, 1.};
+  il::Array<double> f{ndof, 0.};
   // just opening dds - set shear loads to zero
-  //  for (il::int_t i = 0; i < ndof / 2; ++i) {
-  //    f[2 * i] = insitu_stress_distribution(i, 0);
-  //    f[2 * i + 1] = insitu_stress_distribution(i, 1);
-  //  }
+  for (il::int_t i = 0; i < ndof / 2; ++i) {
+    f[2 * i] = insitu_stress_distribution(i, 0);
+    f[2 * i + 1] = insitu_stress_distribution(i, 1);
+  }
 
   il::Status status;
   // use a direct solver

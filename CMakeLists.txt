@@ -40,14 +40,14 @@ set(SOURCE_FILES
         src/core_dev/SolidEvolution.h
         src/core/Sources.h
         src/core/DomainMesh.h
-        src/elasticity/AssemblyDDM.cpp
-        src/elasticity/AssemblyDDM.h
-        src/elasticity/Simplified3D.cpp
-        src/elasticity/Simplified3D.h
-        src/elasticity/PlaneStrainInfinite.cpp
-        src/elasticity/PlaneStrainInfinite.h
-        src/solvers/SimpleElasticBenchmarks.cpp
-        src/solvers/SimpleElasticBenchmarks.h
+        src/Elasticity/AssemblyDDM.cpp
+        src/Elasticity/AssemblyDDM.h
+        src/Elasticity/Simplified3D.cpp
+        src/Elasticity/Simplified3D.h
+        src/Elasticity/PlaneStrainInfinite.cpp
+        src/Elasticity/PlaneStrainInfinite.h
+        src/Solvers/SimpleElasticBenchmarks.cpp
+        src/Solvers/SimpleElasticBenchmarks.h
         src/core/SimulationParameters.h
 #        src/input/loadArguments.cpp
 #        src/input/loadArguments.h
@@ -79,8 +79,8 @@ set(SOURCE_FILES
 #        src/input/Sources/loadSources.h
         src/ehlsolvers/ReynoldsP0.cpp
         src/ehlsolvers/ReynoldsP0.h
-        src/solvers/DevLHFMSolver.cpp
-        src/solvers/DevLHFMSolver.h
+        src/Solvers/DevLHFMSolver.cpp
+        src/Solvers/DevLHFMSolver.h
         src/core/Solution.h
         src/core/SolidProperties.h
         src/tip/tipAsymptote.cpp
@@ -97,7 +97,7 @@ set(SOURCE_FILES
         src/wellbore/WellSolution.h
         src/wellbore/SimpleWellFlowSolverBenchmark.cpp
         src/wellbore/SimpleWellFlowSolverBenchmark.h
-        src/solvers/MultiFracsSolution.h)
+        src/Solvers/MultiFracsSolution.h)
 
 if(APPLE)
 link_directories($ENV{MKLROOT}/lib $ENV{MKLROOT}/../compiler/lib )
