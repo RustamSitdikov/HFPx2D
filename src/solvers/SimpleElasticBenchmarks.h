@@ -4,12 +4,13 @@
 // Created by Brice Lecampion on 30.08.17.
 // Copyright (c) ECOLE POLYTECHNIQUE FEDERALE DE LAUSANNE, Switzerland,
 // Geo-Energy Laboratory, 2016-2017.  All rights reserved.
-// See the LICENSE.TXT file for more details. 
+// See the LICENSE.TXT file for more details.
 //
+
+#include <src/core/Mesh.h>
 
 #ifndef HFPX2D_SIMPLEELASTIC_H
 #define HFPX2D_SIMPLEELASTIC_H
-
 
 namespace hfp2d {
 
@@ -25,6 +26,7 @@ double SimpleGriffithExampleLinearElement_byNodes(int nelts);
 
 double SimpleGriffithExampleS3D_P0_byNodes(int nelts);
 
+double SimpleCircleCrackExample_P0_byNodes(hfp2d::Mesh &MyMesh);
 }
 
-#endif //HFPX2D_SIMPLEELASTIC_H
+#endif  // HFPX2D_SIMPLEELASTIC_H

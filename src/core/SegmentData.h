@@ -38,8 +38,8 @@ class SegmentData {
   //////////////////////////////////////////////////////////////////////////////
   // constructor from segment end point coordinates matrix.
   SegmentData(il::StaticArray2D<double, 2, 2>  Xs,il::int_t p) {
-    //  IL_ASSERT(Xs.size(0) == 2);
-    //  IL_ASSERT(Xs.size(1) == 2);
+//      IL_ASSERT(Xs.size(0) == 2);
+//      IL_ASSERT(Xs.size(1) == 2);
 
     // compute element size
     il::StaticArray<double, 2> xdiff, s, n, xmean, xaux;

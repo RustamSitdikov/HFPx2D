@@ -111,13 +111,13 @@ elseif(UNIX)
     target_include_directories(HFPx2D PRIVATE ${CMAKE_SOURCE_DIR} /opt/intel/mkl/include)
 endif()
 
-if(APPLE)
+#if(APPLE)
 # below for some under mac os sierra ;(
-add_custom_command(TARGET HFPx2D
-        POST_BUILD COMMAND
-        /usr/bin/install_name_tool -add_rpath /opt/intel/compilers_and_libraries_2017.0.102/mac/mkl/lib
-        $<TARGET_FILE:HFPx2D>)
-endif()
+#add_custom_command(TARGET HFPx2D
+#        POST_BUILD COMMAND
+#        /usr/bin/install_name_tool -add_rpath /opt/intel/compilers_and_libraries_2017.0.102/mac/mkl/lib
+#        $<TARGET_FILE:HFPx2D>)
+#endif()
 
 
 ################################################################################

@@ -214,6 +214,7 @@ il::Array<il::int_t> Mesh::getRibbonElements() {
 ////////////////////////////////////////////////////////////////////////////////
 // Function returning the segment characteristic object for element ne
 hfp2d::SegmentData Mesh::getElementData(const il::int_t ne) {
+
   il::StaticArray2D<double, 2, 2> Xs;
   Xs(0, 0) = coordinates_(connectivity_(ne, 0), 0);
   Xs(0, 1) = coordinates_(connectivity_(ne, 0), 1);

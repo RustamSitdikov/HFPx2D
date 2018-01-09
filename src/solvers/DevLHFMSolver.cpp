@@ -17,10 +17,10 @@
 #include <src/core/DomainMesh.h>
 
 #include <src/core/SimulationParameters.h>
-#include <src/elasticity/AssemblyDDM.h>
-#include <src/elasticity/Simplified3D.h>
+#include <src/Elasticity/AssemblyDDM.h>
+#include <src/Elasticity/Simplified3D.h>
 #include <src/elhsolvers/ReynoldsP0.h>
-#include <src/solvers/DevLHFMSolver.h>
+#include <src/Solvers/DevLHFMSolver.h>
 
 #include <src/tip/tipAsymptote.h>
 

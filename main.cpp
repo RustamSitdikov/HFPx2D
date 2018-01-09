@@ -12,11 +12,11 @@
 #include <iostream>
 
 //#include "src/input/loadInput.h"
-#include "src/solvers/SimpleElasticBenchmarks.h"
+#include "src/Solvers/SimpleElasticBenchmarks.h"
 //#include "src/core_dev/OldSolutionClass.h"
 //#include "src/input/loadArguments.h"
 
-#include "src/solvers/DevLHFMSolver.h"
+#include "src/Solvers/DevLHFMSolver.h"
 
 #include <src/wellbore/SimpleWellFlowSolverBenchmark.h>
 
@@ -116,8 +116,8 @@ int main() {
   //  std::cout << "\n\n ----- Simple Griffith crack examples ----- \n\n" <<
   //  std::endl;
 
-  int nelts = 11;
-  double dist = 1e8;
+  //  int nelts = 11;
+  //  double dist = 1e8;
   //
   //
   // int ret = hfp2d::TwoParallelHFs(nelts,dist);
@@ -134,17 +134,20 @@ int main() {
   //  std::cout << "\n rel error L2 norm in Constant Elements (with tip
   //  correction): " << ret2 << "\n";
 
- // int test= hfp2d::WellboreFlowBenchmark();
+  // int test= hfp2d::WellboreFlowBenchmark();
 
-  //std::cout << " end of code \n\n\n";
+  // std::cout << " end of code \n\n\n";
 
-   std::string dir = "../Debug/";
-   std::string meshfilename = dir + "TestMesh.json";
+  std::string dir = "/Users/federicociardo/ClionProjects/Debug/";
+  std::string meshfilename = dir + "HalfCircle207.Mesh2.json";
 
-   hfp2d::Mesh mymesh=hfp2d::loadJsonMesh(meshfilename);
+  hfp2d::Mesh mymesh = hfp2d::loadJsonMesh(meshfilename);
+
+  double ret3 = hfp2d::SimpleCircleCrackExample_P0_byNodes(mymesh);
+
+  std::cout << "\n rel error L2 norm in Constant Elements: " << ret3 << "\n";
 
   std::cout << "end of code\n";
-
 
   return 0;
 }

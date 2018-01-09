@@ -20,11 +20,11 @@
 #include <il/linear_algebra.h>
 #include <il/norm.h>
 
-#include "src/elasticity/AssemblyDDM.h"
+#include "src/Elasticity/AssemblyDDM.h"
 
+#include <src/Elasticity/PlaneStrainInfinite.h>
+#include <src/Elasticity/Simplified3D.h>
 #include <src/core/Mesh.h>
-#include <src/elasticity/PlaneStrainInfinite.h>
-#include <src/elasticity/Simplified3D.h>
 
 #include "SimpleElasticBenchmarks.h"
 #include "src/core/ElasticProperties.h"
@@ -539,13 +539,60 @@ double SimpleGriffithExampleS3D_P0_byNodes(int nelts) {
   return il::norm(rel_err, il::Norm::L2);
 }
 
-
 ////////////////////////////////////////////////////////////////////////////////
-//   Simple solver for a json mesh file and constant remote loading for stress
-// need to project on element to get tn ts
+// Simple solver for a json mesh file and constant remote loading for stress
+// - need to project on element to get tn ts (normal and shear traction) -
 
+double SimpleCircleCrackExample_P0_byNodes(hfp2d::Mesh &MyMesh) {
+  double Ep = 1.;   // Plane strain Young's modulus
+  double nu = 0.0;  // Poisson's ratio
 
+  hfp2d::ElasticProperties myelas(Ep, nu);
 
+  //  il::Array2D<double> K = hfp2d::basic_assembly_nodal(
+  //      MyMesh, myelas, hfp2d::normal_shear_stress_kernel_s3d_dp0_dd_nodal,
+  //      1000.);
 
+  //    il::Array2D<double> K = hfp2d::basic_assembly_nodal(
+  //        MyMesh, myelas, hfp2d::normal_shear_stress_kernel_dp1_dd_nodal, 0.);
 
+  il::Array2D<double> K = hfp2d::basic_assembly(
+      MyMesh, myelas, hfp2d::normal_shear_stress_kernel_dp1_dd, 0.);
+
+  il::int_t ndof = MyMesh.numberDDDofs();
+  il::int_t nelts = MyMesh.numberOfElts();
+
+  il::Array2D<double> insitu_stress_distribution(nelts, 2);
+  double far_field_vert_stress = 1.0;
+  double far_field_horiz_stress = 0.0;
+
+  for (il::int_t elmt_k = 0; elmt_k < nelts; ++elmt_k) {
+    hfp2d::SegmentData mysege = MyMesh.getElementData(elmt_k);
+    for (il::int_t coll_k = 0; coll_k < MyMesh.interpolationOrder() + 1;
+         ++coll_k) {
+      insitu_stress_distribution(elmt_k, 0) =
+          -1 * (far_field_vert_stress * sin(mysege.theta())) +
+          (far_field_horiz_stress * cos(mysege.theta()));
+      insitu_stress_distribution(elmt_k, 1) =
+          -1 * (far_field_vert_stress * cos(mysege.theta())) +
+          (far_field_horiz_stress * sin(mysege.theta()));
+    }
+  }
+
+  // solve a constant pressurized crack problem...
+  il::Array<double> f{ndof, 1.};
+  // just opening dds - set shear loads to zero
+  //  for (il::int_t i = 0; i < ndof / 2; ++i) {
+  //    f[2 * i] = insitu_stress_distribution(i, 0);
+  //    f[2 * i + 1] = insitu_stress_distribution(i, 1);
+  //  }
+
+  il::Status status;
+  // use a direct solver
+  il::Array<double> dd = il::linearSolve(K, f, il::io, status);
+
+  double A = 10.;
+
+  return A;
+}
 }
