@@ -19,11 +19,10 @@
 #include <src/core/SimulationParameters.h>
 #include <src/Elasticity/AssemblyDDM.h>
 #include <src/Elasticity/Simplified3D.h>
-#include <src/elhsolvers/ReynoldsP0.h>
+#include <src/ehlsolvers/ReynoldsP0.h>
 #include <src/Solvers/DevLHFMSolver.h>
 
 #include <src/tip/tipAsymptote.h>
-
 
 namespace hfp2d {
 

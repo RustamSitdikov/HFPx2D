@@ -38,8 +38,6 @@ class SegmentData {
   //////////////////////////////////////////////////////////////////////////////
   // constructor from segment end point coordinates matrix.
   SegmentData(il::StaticArray2D<double, 2, 2>  Xs,il::int_t p) {
-//      IL_ASSERT(Xs.size(0) == 2);
-//      IL_ASSERT(Xs.size(1) == 2);
 
     // compute element size
     il::StaticArray<double, 2> xdiff, s, n, xmean, xaux;
@@ -49,9 +47,9 @@ class SegmentData {
     xdiff[0] = Xs(1, 0) - Xs(0, 0);
     xdiff[1] = Xs(1, 1) - Xs(0, 1);
 
-    size_ = sqrt(pow(xdiff[0], 2) + pow(xdiff[1], 2));
+    size_ = sqrt( xdiff[0]*xdiff[0]+xdiff[1]*xdiff[1]);
 
-    // s & n provide a direct orhonormal frame  with s oriented from node 1 to node 2
+    // s & n provide a direct orthonormal frame  with s oriented from node 1 to node 2
 
     // tangent vector s
     s[0] = xdiff[0] / size_;
@@ -62,7 +60,8 @@ class SegmentData {
     s_ = s;
     n_ = n;
 
-    theta_ = acos(s[0] / sqrt(pow(s[0], 2) + pow(s[1], 2)));
+    theta_ = acos(s[0] / sqrt(s[0]*s[0] + s[1]*s[1]));
+
     if (s[1] < 0) {
       theta_ = -theta_;
     };

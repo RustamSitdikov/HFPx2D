@@ -50,7 +50,7 @@ class WellMesh {
 
   // elements sharing each node
   // todo: it would better be featured in the parent Mesh class
-  il::Array2D<il::int_t> node_adj_elts_;
+  il::Array2D<il::int_t> node_adj_elt_;
 
   // local sine of inclination inclination
   // (used to determine hydrostatic pressure gradient)
@@ -78,6 +78,13 @@ class WellMesh {
   WellMesh(il::Array<double> &md, il::Array<double> &tvd, il::Array<double> &hd,
            double azimuth,  // todo: make it il::Array<double>
            il::Array<double> &rough) {
+    // md:: array of measured depth
+    // tvd : array of corresponding true vertical depth
+    // hd: array of pipe diameter
+    // rough:: array of pipe roughhness
+    // azimuth:: double well azimuth w.r. to true north (in the y axis direction by convention)
+    //           in degree !
+
     // check validity of inputs
     IL_EXPECT_FAST(md.size() > 1 && tvd.size() > 1);
     IL_EXPECT_FAST(tvd.size() == md.size());
@@ -143,21 +150,20 @@ class WellMesh {
 
       double cos_a = std::sqrt(1. - std::pow(sin_a, 2));
 
-      // calculate the well orientation in x-y plane
+      // calculate the well orientation in x-y plane (north is toward y)
       // todo: make azimuth il::Array<double>
+      double to_rad = il::pi / 180.;
       coordinates_(n_r, 0) =
-          coordinates_(n_l, 0) + std::sin(azimuth) * cos_a * el_length;
+          coordinates_(n_l, 0) + std::sin(azimuth*to_rad) * cos_a * el_length;
       coordinates_(n_r, 1) =
-          coordinates_(n_l, 1) + std::cos(azimuth) * cos_a * el_length;
+          coordinates_(n_l, 1) + std::cos(azimuth*to_rad) * cos_a * el_length;
     }
 
-    // Mesh(coordinates_, connectivity_, 0);
-
-    // elements sharing each node
-    // (il::Array2D<il::int_t> {n_elt - 1, 2})
 // build the nodal connected table...
-    node_adj_elts_ =
+    node_adj_elt_ =
         getNodalEltConnectivity(coordinates_.size(0), connectivity_);
+
+    //todo we could store here the nodes sharing 2 elements for efficiency instead
 
   }
 
@@ -180,6 +186,10 @@ class WellMesh {
   il::int_t connectivity(il::int_t e, il::int_t i) const {
     return connectivity_(e, i);
   }
+  // nodal connectivity related
+  inline il::Array2D<il::int_t> nodeEltConnectivity() const {
+    return node_adj_elt_;
+  };
 
   il::Array<double> md() { return md_; }
 
@@ -201,10 +211,10 @@ class WellMesh {
 
   double rough(il::int_t el) { return rough_[el]; }
 
-  il::Array2D<il::int_t> nodeAdjElts() { return node_adj_elts_; }
+  il::Array2D<il::int_t> nodeAdjElts() { return node_adj_elt_; }
 
   il::int_t nodeAdjElts(il::int_t n, il::int_t i) {
-    return node_adj_elts_(n, i);
+    return node_adj_elt_(n, i);
   }
 
   ////////////////////////////////////////////////////////////////////////
@@ -221,11 +231,12 @@ class WellMesh {
   // (overrides the parent Mesh method
   // since curvilinear coordinate MD is used)
   double eltSize( il::int_t el);
+
+  il::Array2D<il::int_t> getNodesSharing2Elts();
+
+
 };
 
-//////////////////////////////////////////////////////////////////////////
-//        OTHER ROUTINES
-//////////////////////////////////////////////////////////////////////////
 };
 
 #endif  // WELLHDTEST_WELLMESH_H

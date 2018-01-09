@@ -35,6 +35,7 @@ int WellboreFlowBenchmark() {
   int tvd_present = j_wmesh.count("TVD");             //
   int pipe_present = j_wmesh.count("Pipe diameter");  //
   int r_present = j_wmesh.count("Pipe roughness");    //
+  int wa_present =j_wmesh.count("Well azimuth");
 
   if (md_present != 1) {
     std::cout << " error in wellMesh file - no MD \n";
@@ -75,7 +76,12 @@ int WellboreFlowBenchmark() {
     piperough[i] = pipe_r;
   }
 
-  hfp2d::WellMesh the_well(md, tvd, pipediam, 0., piperough);
+  double az=0.;
+  if (wa_present==1){
+    az=j_wmesh["Well azimuth"].get<double>();
+  }
+
+  hfp2d::WellMesh the_well(md, tvd, pipediam, az, piperough);
   // well mesh is read & loaded.
 
   //||(j.count("Model parameters")!=1)
@@ -114,15 +120,15 @@ int WellboreFlowBenchmark() {
   }
 
   auto pump_rate = j_params["Pump rate"].get<double>();
-  auto plug_md = j_params["Pump rate"].get<double>();
-  il::int_t plug_loc = ne;
-  for (il::int_t e = 0; e < the_well.numberOfElts(); e++) {
-    if ((plug_md < md[the_well.connectivity(e, 1)]) &&
-        (plug_md >= md[the_well.connectivity(e, 0)])) {
-      plug_loc = e;
-      break;
-    }
-  }
+//  auto plug_md = j_params["Plug MD"].get<double>();
+//  il::int_t plug_loc = ne;
+//  for (il::int_t e = 0; e < the_well.numberOfElts(); e++) {
+//    if ((plug_md < md[the_well.connectivity(e, 1)]) &&
+//        (plug_md >= md[the_well.connectivity(e, 0)])) {
+//      plug_loc = e;
+//      break;
+//    }
+//  }
 
   if (p_present != 1) {
     std::cout << " error in  file - no perf coef \n";
@@ -144,8 +150,8 @@ int WellboreFlowBenchmark() {
 
   IL_EXPECT_FAST((ncp == nct) && (n_cl == ncp) && (ncb == ncp));
 
-  il::Array<double> perf_coef(ncp, 0.), tort_coef(ncp, 0.), tort_beta(ncp, 0.),
-      hf_vol_rate(ncp, 0.);
+  il::Array<double> perf_coef(ncp, 0.), tort_coef(ncp, 0.), tort_beta(ncp, 0.);
+
   for (il::int_t i = 0; i < ncp; i++) {
     perf_coef[i] = j_params["Perforations coefficient"][i];
     tort_coef[i] = j_params["Tortuosity coefficient"][i];
@@ -154,7 +160,9 @@ int WellboreFlowBenchmark() {
 
   auto f_model = j_params["Friction model"].get<std::string>();
 
-  hfp2d::WellInjection w_inj(pump_rate, cluster_locs, plug_loc, hf_vol_rate,
+  il::Array<double>  hf_vol_rate(ncp, 0.); // zero HF rate.
+
+  hfp2d::WellInjection w_inj(pump_rate, cluster_locs,  hf_vol_rate,
                              perf_coef, tort_coef, tort_beta);
 
   double dt = 0.1;
@@ -166,10 +174,7 @@ int WellboreFlowBenchmark() {
 
   hfp2d::SimulationParameters WellFlowParam;
 
-  // WellFlowParam.frac_front_max_its = 40;
-  // WellFlowParam.frac_front_tolerance = 1.e-3;
-
-  WellFlowParam.ehl_relaxation = 0.9;
+  WellFlowParam.ehl_relaxation = 1.0;
   WellFlowParam.ehl_tolerance = 1.e-6;
   // one step.
 
@@ -177,6 +182,11 @@ int WellboreFlowBenchmark() {
 
   hfp2d::WellSolution SolN_1 = wellFlowSolverP0(
       SolN, the_well, w_inj, water, ffChurchill, dt, WellFlowParam, false);
+
+  std::string resfilename = "../Debug/WellTest_results.json";
+
+  SolN_1.writeToFile(resfilename);
+
 
   return 0;
 }

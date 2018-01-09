@@ -1,9 +1,18 @@
 //==============================================================================
 //
-//                                  InsideLoop
+// Copyright 2017 The InsideLoop Authors. All Rights Reserved.
 //
-// This file is distributed under the University of Illinois Open Source
-// License. See LICENSE.txt for details.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 //
 //==============================================================================
 
@@ -15,6 +24,7 @@
 #include <il/container/2d/Array2C.h>
 #include <il/container/2d/Array2D.h>
 #include <il/container/2d/LowerArray2D.h>
+#include <il/container/2d/StaticArray2D.h>
 #include <il/container/2d/UpperArray2D.h>
 #include <il/linear_algebra/dense/norm.h>
 
@@ -29,13 +39,13 @@ namespace il {
 template <typename MatrixType>
 class LU {};
 
-template <>
-class LU<il::Array2D<double>> {
- private:
-  il::Array<lapack_int> ipiv_;
-  il::Array2D<double> lu_;
+template <il::int_t n>
+class LU<il::StaticArray2D<double, n, n>> {
+private:
+  il::StaticArray<lapack_int, n> ipiv_;
+  il::StaticArray2D<double, n, n> lu_;
 
- public:
+public:
   // Computes a LU factorization of a general n0 x n1 matrix A using partial
   // pivoting with row interchanges. The factorization has the form
   //
@@ -43,16 +53,74 @@ class LU<il::Array2D<double>> {
   //
   // where P is a permutation matrix, L is lower triangular with unit diagonal
   // elements, and U is upper triangular.
-  LU(il::Array2D<double> A, il::io_t, il::Status& status);
+  LU(il::StaticArray2D<double, n, n> A, il::io_t, il::Status &status);
+
+  // Compute the inverse of the matrix
+  il::StaticArray2D<double, n, n> inverse() const;
+
+  // Compute an approximation of the condition number
+  //  double conditionNumber(il::Norm norm_type, double norm_a) const;
+};
+
+template <il::int_t n>
+LU<il::StaticArray2D<double, n, n>>::LU(il::StaticArray2D<double, n, n> A,
+                                        il::io_t, il::Status &status)
+    : ipiv_{}, lu_{} {
+  const int layout = LAPACK_COL_MAJOR;
+  const lapack_int lapack_n = static_cast<lapack_int>(n);
+  il::StaticArray<lapack_int, lapack_n> ipiv{};
+  const lapack_int lapack_error = LAPACKE_dgetrf(
+      layout, lapack_n, lapack_n, A.data(), lapack_n, ipiv.data());
+  IL_EXPECT_FAST(lapack_error >= 0);
+
+  if (lapack_error == 0) {
+    status.setOk();
+    ipiv_ = ipiv;
+    lu_ = A;
+  } else {
+    status.setError(il::Error::MatrixSingular);
+    IL_SET_SOURCE(status);
+    status.setInfo("rank", il::int_t{lapack_error - 1});
+  }
+}
+
+template <il::int_t n>
+il::StaticArray2D<double, n, n>
+LU<il::StaticArray2D<double, n, n>>::inverse() const {
+  il::StaticArray2D<double, n, n> inverse = lu_;
+  const int layout = LAPACK_COL_MAJOR;
+  const lapack_int lapack_n = static_cast<lapack_int>(n);
+  const lapack_int lapack_error =
+      LAPACKE_dgetri(layout, lapack_n, inverse.data(), lapack_n, ipiv_.data());
+  IL_EXPECT_FAST(lapack_error == 0);
+
+  return inverse;
+}
+
+template <>
+class LU<il::Array2D<double>> {
+private:
+  il::Array<lapack_int> ipiv_;
+  il::Array2D<double> lu_;
+
+public:
+  // Computes a LU factorization of a general n0 x n1 matrix A using partial
+  // pivoting with row interchanges. The factorization has the form
+  //
+  //  A = P.L.U
+  //
+  // where P is a permutation matrix, L is lower triangular with unit diagonal
+  // elements, and U is upper triangular.
+  LU(il::Array2D<double> A, il::io_t, il::Status &status);
 
   // Size of the matrix
   il::int_t size(il::int_t d) const;
 
   // Read access to the L part of the decomposition
-  const double& L(il::int_t i, il::int_t j) const;
+  const double &L(il::int_t i, il::int_t j) const;
 
   // Read access to the U part of the decomposition
-  const double& U(il::int_t i, il::int_t j) const;
+  const double &U(il::int_t i, il::int_t j) const;
 
   // Solve the system of equation with one second member
   il::Array<double> solve(il::Array<double> y) const;
@@ -76,7 +144,7 @@ class LU<il::Array2D<double>> {
   il::UpperArray2D<double> U() const;
 };
 
-LU<il::Array2D<double>>::LU(il::Array2D<double> A, il::io_t, il::Status& status)
+LU<il::Array2D<double>>::LU(il::Array2D<double> A, il::io_t, il::Status &status)
     : ipiv_{}, lu_{} {
   const int layout = LAPACK_COL_MAJOR;
   const lapack_int m = static_cast<lapack_int>(A.size(0));
@@ -119,8 +187,8 @@ il::Array<double> LU<il::Array2D<double>>::solve(il::Array<double> y) const {
   return y;
 }
 
-il::Array2D<double> LU<il::Array2D<double>>::solve(
-    il::Array2D<double> y) const {
+il::Array2D<double>
+LU<il::Array2D<double>>::solve(il::Array2D<double> y) const {
   IL_EXPECT_FAST(lu_.size(0) == lu_.size(1));
   IL_EXPECT_FAST(lu_.size(0) == y.size(0));
 
@@ -179,17 +247,59 @@ double LU<il::Array2D<double>>::conditionNumber(il::Norm norm_type,
   return 1.0 / rcond;
 }
 
-const double& LU<il::Array2D<double>>::L(il::int_t i, il::int_t j) const {
+const double &LU<il::Array2D<double>>::L(il::int_t i, il::int_t j) const {
   IL_EXPECT_MEDIUM(j < i);
   return lu_(i, j);
 }
 
-const double& LU<il::Array2D<double>>::U(il::int_t i, il::int_t j) const {
+const double &LU<il::Array2D<double>>::U(il::int_t i, il::int_t j) const {
   IL_EXPECT_MEDIUM(j >= i);
   return lu_(i, j);
 }
 
-il::LowerArray2D<double> LU<il::Array2D<double>>::L() const {
+/*
+template <> class LU<il::Array2C<double>> {
+private:
+  il::Array<lapack_int> ipiv_;
+  il::Array2C<double> lu_;
+
+public:
+  // Computes a LU factorization of a general n0 x n1 matrix A using partial
+  // pivoting with row interchanges. The factorization has the form
+  //
+  //  A = P.L.U
+  //
+  // where P is a permutation matrix, L is lower triangular with unit diagonal
+  // elements, and U is upper triangular.
+  LU(il::Array2C<double> A, il::io_t, il::Status &status);
+};
+
+template <>
+LU<il::Array2C<double>>::LU(il::Array2C<double> A, il::io_t, il::Status &status)
+    : ipiv_{}, lu_{} {
+  IL_EXPECT_FAST(A.size(0) == A.size(1));
+
+  const int layout = LAPACK_ROW_MAJOR;
+  const lapack_int m = static_cast<lapack_int>(A.size(0));
+  const lapack_int n = static_cast<lapack_int>(A.size(1));
+  const lapack_int lda = static_cast<lapack_int>(A.stride(0));
+  il::Array<lapack_int> ipiv{A.size(0) < A.size(1) ? A.size(0) : A.size(1)};
+  const lapack_int lapack_error =
+      LAPACKE_dgetrf(layout, m, n, A.data(), lda, ipiv.data());
+
+  IL_EXPECT_FAST(lapack_error >= 0);
+  if (lapack_error == 0) {
+    status.setOk();
+    ipiv_ = std::move(ipiv);
+    lu_ = std::move(A);
+  } else {
+    status.setError(il::Error::MatrixSingular);
+    IL_SET_SOURCE(status);
+    status.setInfo("rank", il::int_t{lapack_error - 1});
+  }
+}
+
+template <> il::LowerArray2D<double> LU<il::Array2D<double>>::L() const {
   IL_EXPECT_FAST(size(0) == size(1));
 
   const il::int_t n = size(0);
@@ -203,7 +313,7 @@ il::LowerArray2D<double> LU<il::Array2D<double>>::L() const {
   return L;
 }
 
-il::UpperArray2D<double> LU<il::Array2D<double>>::U() const {
+template <> il::UpperArray2D<double> LU<il::Array2D<double>>::U() const {
   IL_EXPECT_FAST(size(0) == size(1));
 
   const il::int_t n = size(0);
@@ -215,6 +325,51 @@ il::UpperArray2D<double> LU<il::Array2D<double>>::U() const {
   }
   return U;
 }
-}  // namespace il
 
-#endif  // IL_PARTIALLU_H
+// template <>
+// class LU<il::Array2C<double>> {
+// private:
+//  il::Array<lapack_int> ipiv_;
+//  il::Array2C<double> lu_;
+//
+// public:
+//  // Computes a LU factorization of a general n0 x n1 matrix A using partial
+//  // pivoting with row interchanges. The factorization has the form
+//  //
+//  //  A = P.L.U
+//  //
+//  // where P is a permutation matrix, L is lower triangular with unit diagonal
+//  // elements, and U is upper triangular.
+//  LU(il::Array2C<double> A, il::io_t, il::Status& status);
+//};
+//
+// template <>
+// LU<il::Array2C<double>>::LU(il::Array2C<double> A, il::io_t, il::Status&
+// status)
+//    : ipiv_{}, lu_{} {
+//  IL_EXPECT_FAST(A.size(0) == A.size(1));
+//
+//  const int layout = LAPACK_ROW_MAJOR;
+//  const lapack_int m = static_cast<lapack_int>(A.size(0));
+//  const lapack_int n = static_cast<lapack_int>(A.size(1));
+//  const lapack_int lda = static_cast<lapack_int>(A.stride(0));
+//  il::Array<lapack_int> ipiv{A.size(0) < A.size(1) ? A.size(0) : A.size(1)};
+//  const lapack_int lapack_error =
+//      LAPACKE_dgetrf(layout, m, n, A.data(), lda, ipiv.data());
+//
+//  IL_EXPECT_FAST(lapack_error >= 0);
+//  if (lapack_error == 0) {
+//    status.setOk();
+//    ipiv_ = std::move(ipiv);
+//    lu_ = std::move(A);
+//  } else {
+//    status.setError(il::Error::MatrixSingular);
+//    IL_SET_SOURCE(status);
+//    status.setInfo("rank", il::int_t{lapack_error - 1});
+//  }
+//}
+ */
+
+} // namespace il
+
+#endif // IL_PARTIALLU_H

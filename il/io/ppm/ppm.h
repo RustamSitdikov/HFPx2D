@@ -1,9 +1,18 @@
 //==============================================================================
 //
-//                                  InsideLoop
+// Copyright 2017 The InsideLoop Authors. All Rights Reserved.
 //
-// This file is distributed under the University of Illinois Open Source
-// License. See LICENSE.txt for details.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 //
 //==============================================================================
 
@@ -29,11 +38,20 @@ il::Array2D<il::Pixel> readPpm(const std::string& filename, il::io_t,
                                il::Status& status) {
   il::Array2D<il::Pixel> image{};
 
-  FILE* fp{std::fopen(filename.c_str(), "rb")};
+#ifdef IL_UNIX
+  FILE* fp = std::fopen(filename.c_str(), "rb");
   if (!fp) {
-    status.set(ErrorCode::not_found);
+    status.setError(il::Error::FilesystemFileNotFound);
     return image;
   }
+#else
+  FILE* fp;
+  const errno_t error_nb = fopen_s(&fp, filename.c_str(), "rb");
+  if (error_nb != 0) {
+    status.setError(il::Error::FilesystemFileNotFound);
+    return image;
+  }
+#endif
 
   char buffer[16];
   if (!std::fgets(buffer, sizeof(buffer), fp)) {
@@ -57,19 +75,37 @@ il::Array2D<il::Pixel> readPpm(const std::string& filename, il::io_t,
   // read image size information
   int width;
   int height;
+#ifdef IL_UNIX
   if (std::fscanf(fp, "%d %d", &width, &height) != 2) {
-    status.set(ErrorCode::BinaryFileWrongFormat);
+    status.setError(il::Error::BinaryFileWrongFormat);
     return image;
   }
+#else
+  const int error_no = fscanf_s(fp, "%d %d", &width, &height);
+  if (error_no != 2) {
+    status.setError(il::Error::BinaryFileWrongFormat);
+    return image;
+  }
+#endif
   // read rgb component
   int rgb_comp_color;
+#ifdef IL_UNIX
   if (std::fscanf(fp, "%d", &rgb_comp_color) != 1) {
-    status.set(ErrorCode::BinaryFileWrongFormat);
+    status.setError(il::Error::BinaryFileWrongFormat);
     return image;
   }
+#else
+  {
+    const int error_no = fscanf_s(fp, "%d", &rgb_comp_color);
+    if (error_no != 1) {
+      status.setError(il::Error::BinaryFileWrongFormat);
+      return image;
+    }
+  }
+#endif
   // check rgb component depth
   if (rgb_comp_color != 255) {
-    status.set(ErrorCode::BinaryFileWrongFormat);
+    status.setError(il::Error::BinaryFileWrongFormat);
     return image;
   }
   while (std::fgetc(fp) != '\n') {
@@ -78,7 +114,7 @@ il::Array2D<il::Pixel> readPpm(const std::string& filename, il::io_t,
   // read pixel data from file
   image.resize(width, height);
   if (std::fread(image.data(), 3 * width, height, fp) != height) {
-    status.set(ErrorCode::BinaryFileWrongFormat);
+    status.setError(il::Error::BinaryFileWrongFormat);
     image.resize(0, 0);
     return image;
   }

@@ -1,9 +1,18 @@
 //==============================================================================
 //
-//                                  InsideLoop
+// Copyright 2017 The InsideLoop Authors. All Rights Reserved.
 //
-// This file is distributed under the University of Illinois Open Source
-// License. See LICENSE.txt for details.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 //
 //==============================================================================
 
@@ -67,10 +76,10 @@ Cholesky<il::Array2D<double>>::Cholesky(il::Array2D<double> A, il::io_t,
       LAPACKE_dpotrf(layout, uplo, n, A.data(), lda);
   IL_EXPECT_FAST(lapack_error >= 0);
   if (lapack_error == 0) {
-    status.set(ErrorCode::ok);
+    status.setOk();
     l_ = std::move(A);
   } else {
-    status.set(ErrorCode::nonpositive_number);
+    status.setError(il::Error::FloatingPointNegative);
   }
 }
 
@@ -145,10 +154,10 @@ Cholesky<LowerArray2D<double>>::Cholesky(il::LowerArray2D<double> A, il::io_t,
   const lapack_int lapack_error = LAPACKE_dpptrf(layout, uplo, n, A.data());
   IL_EXPECT_FAST(lapack_error >= 0);
   if (lapack_error == 0) {
-    status.set(ErrorCode::ok);
+    status.setOk();
     l_ = std::move(A);
   } else {
-    status.set(ErrorCode::negative_number);
+    status.setError(il::Error::FloatingPointNonPositive);
   }
 }
 

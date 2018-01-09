@@ -321,8 +321,7 @@ class Mesh {  // class for 1D wellMesh of 1D segment elements ?
   il::Array2D<il::int_t> getNodesSharing2Elts();
 
   // method to get the ribbon elements  - of a given wellMesh. (elements nearest
-  // to
-  // a tip element)
+  // to a tip element)
   il::Array<il::int_t> getRibbonElements();
 
   // method to add N element ahead of a tip node of a tip element at a given

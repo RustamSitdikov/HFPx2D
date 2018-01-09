@@ -1,9 +1,18 @@
 //==============================================================================
 //
-//                                  InsideLoop
+// Copyright 2017 The InsideLoop Authors. All Rights Reserved.
 //
-// This file is distributed under the University of Illinois Open Source
-// License. See LICENSE.txt for details.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 //
 //==============================================================================
 
@@ -19,7 +28,7 @@
 // <utility> is needed for std::move
 #include <utility>
 
-#include <il/base.h>
+#include <il/container/2d/Array2DView.h>
 #include <il/core/memory/allocate.h>
 
 namespace il {
@@ -184,6 +193,14 @@ class Array2D {
   /* \brief Get the alignment of the pointer returned by data()
    */
   il::int_t alignment() const;
+
+  il::Array2DView<T> view() const;
+
+  il::Array2DView<T> view(il::Range range0, il::Range range1) const;
+
+  il::Array2DEdit<T> edit();
+
+  il::Array2DEdit<T> edit(il::Range range0, il::Range range1);
 
   /* \brief Get a pointer to const to the first element of the array
   // \details One should use this method only when using C-style API
@@ -977,6 +994,56 @@ il::int_t Array2D<T>::alignment() const {
 }
 
 template <typename T>
+il::Array2DView<T> Array2D<T>::view() const {
+  return il::Array2DView<T>{data(), size(0), size(1), stride(1), 0, 0};
+}
+
+template <typename T>
+il::Array2DView<T> Array2D<T>::view(il::Range range0, il::Range range1) const {
+  IL_EXPECT_FAST(static_cast<std::size_t>(range0.begin) <
+                 static_cast<std::size_t>(size(0)));
+  IL_EXPECT_FAST(static_cast<std::size_t>(range0.end) <=
+                 static_cast<std::size_t>(size(0)));
+  IL_EXPECT_FAST(static_cast<std::size_t>(range1.begin) <
+                 static_cast<std::size_t>(size(1)));
+  IL_EXPECT_FAST(static_cast<std::size_t>(range1.end) <=
+                 static_cast<std::size_t>(size(1)));
+
+  const il::int_t the_stride = stride(1);
+  return il::Array2DView<T>{data_ + range1.begin * the_stride + range0.begin,
+                            range0.end - range0.begin,
+                            range1.end - range1.begin,
+                            the_stride,
+                            0,
+                            0};
+}
+
+template <typename T>
+il::Array2DEdit<T> Array2D<T>::edit() {
+  return il::Array2DEdit<T>{data(), size(0), size(1), stride(1), 0, 0};
+}
+
+template <typename T>
+il::Array2DEdit<T> Array2D<T>::edit(il::Range range0, il::Range range1) {
+  IL_EXPECT_FAST(static_cast<std::size_t>(range0.begin) <
+                 static_cast<std::size_t>(size(0)));
+  IL_EXPECT_FAST(static_cast<std::size_t>(range0.end) <=
+                 static_cast<std::size_t>(size(0)));
+  IL_EXPECT_FAST(static_cast<std::size_t>(range1.begin) <
+                 static_cast<std::size_t>(size(1)));
+  IL_EXPECT_FAST(static_cast<std::size_t>(range1.end) <=
+                 static_cast<std::size_t>(size(1)));
+
+  const il::int_t the_stride = stride(1);
+  return il::Array2DEdit<T>{data_ + range1.begin * the_stride + range0.begin,
+                            range0.end - range0.begin,
+                            range1.end - range1.begin,
+                            the_stride,
+                            0,
+                            0};
+}
+
+template <typename T>
 const T* Array2D<T>::data() const {
   return data_;
 }
@@ -1056,6 +1123,7 @@ bool Array2D<T>::invariance() const {
   }
   return ans;
 }
+
 }  // namespace il
 
 #endif  // IL_ARRAY2D_H

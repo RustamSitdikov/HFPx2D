@@ -1,9 +1,18 @@
 //==============================================================================
 //
-//                                  InsideLoop
+// Copyright 2017 The InsideLoop Authors. All Rights Reserved.
 //
-// This file is distributed under the University of Illinois Open Source
-// License. See LICENSE.txt for details.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 //
 //==============================================================================
 
@@ -52,7 +61,8 @@ NumpyInfo getNumpyInfo(il::io_t, std::FILE* fp, il::Status& status) {
   // Read the header
   //
   il::Array<char> second_buffer{header_length + 1};
-  StringView header = StringView{il::StringType::Bytes, second_buffer.begin(), header_length + 1};
+  StringView header = StringView{il::StringType::Bytes, second_buffer.begin(),
+                                 header_length + 1};
   char* success = fgets(second_buffer.begin(), header_length + 1, fp);
   if (success == nullptr || !(header[header.size() - 2] == '\n')) {
     status.setError(il::Error::BinaryFileWrongFormat);
@@ -132,7 +142,7 @@ void saveNumpyInfo(const NumpyInfo& numpy_info, il::io_t, std::FILE* fp,
   header.append(numpy_info.type);
   // ordering
   header.append("', 'fortran_order': ");
-  if (numpy_info.fortran_order){
+  if (numpy_info.fortran_order) {
     header.append("True");
   } else {
     header.append("False");

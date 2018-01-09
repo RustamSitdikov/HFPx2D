@@ -1,9 +1,18 @@
 //==============================================================================
 //
-//                                  InsideLoop
+// Copyright 2017 The InsideLoop Authors. All Rights Reserved.
 //
-// This file is distributed under the University of Illinois Open Source
-// License. See LICENSE.txt for details.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 //
 //==============================================================================
 
@@ -40,18 +49,16 @@ T min(T a, T b, T c, T d) {
   return min(min(a, b), min(c, d));
 }
 
-
-//template <typename T>
-//T max(T a, T b, T c) {
+// template <typename T>
+// T max(T a, T b, T c) {
 //  auto temp = T{max(b, c)};
 //  return a >= temp ? a : temp;
 //}
 //
-//template <typename T>
-//T max(T a, T b, T c, T d) {
+// template <typename T>
+// T max(T a, T b, T c, T d) {
 //  return max(max(a, b), max(c, d));
 //}
-
 
 template <typename T>
 T abs(T x) {

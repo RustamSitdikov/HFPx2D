@@ -1,9 +1,18 @@
 //==============================================================================
 //
-//                                  InsideLoop
+// Copyright 2017 The InsideLoop Authors. All Rights Reserved.
 //
-// This file is distributed under the University of Illinois Open Source
-// License. See LICENSE.txt for details.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 //
 //==============================================================================
 
@@ -48,6 +57,9 @@ class Map {
   static constexpr il::int_t kMaxSize_ =
       3 * static_cast<il::int_t>(static_cast<std::size_t>(1)
                                  << (8 * sizeof(std::size_t) - 4));
+#ifdef IL_DEBUGGER_HELPERS
+  il::int_t size_;
+#endif
 
  public:
   Map();
@@ -58,29 +70,36 @@ class Map {
   Map& operator=(const Map<K, V, F>& map);
   Map& operator=(Map<K, V, F>&& map);
   ~Map();
-  template <il::int_t m>
-  void insertCString(const char (&key)[m], const V& value);
+
+  // All the insertions
   void insert(const K& key, const V& value);
   void insert(const K& key, V&& value);
   void insert(K&& key, const V& value);
   void insert(K&& key, V&& value);
-  il::int_t search(const K& key) const;
-  il::int_t searchCString(const char* key, il::int_t n) const;
+  template <il::int_t m>
+  void insertCString(const char (&key)[m], const V& value);
+  template <il::int_t m>
+  void insertCString(const char (&key)[m], V&& value);
 
+  // Searching for a key
+  il::int_t search(const K& key) const;
   template <il::int_t m>
   il::int_t searchCString(const char (&key)[m]) const;
+  il::int_t searchCString(const char* key, il::int_t n) const;
   bool found(il::int_t i) const;
+
+  // Inserting a new (key, value)
+  void insert(const K& key, const V& value, il::io_t, il::int_t& i);
+  void insert(const K& key, V&& value, il::io_t, il::int_t& i);
+  void insert(K&& key, const V& value, il::io_t, il::int_t& i);
+  void insert(K&& key, V&& value, il::io_t, il::int_t& i);
   void insertCString(const char* key, const il::int_t n, const V& value,
                      il::io_t, il::int_t& i);
   template <il::int_t m>
   void insertCString(const char (&key)[m], const V& value, il::io_t,
                      il::int_t& i);
-  void insert(const K& key, const V& value, il::io_t, il::int_t& i);
-  void insert(const K& key, V&& value, il::io_t, il::int_t& i);
-  void insert(K&& key, const V& value, il::io_t, il::int_t& i);
-  void insert(K&& key, V&& value, il::io_t, il::int_t& i);
 
-  void erase(il::int_t i);
+  // Getting the key and values for a given slot
   const K& key(il::int_t i) const;
   const V& value(il::int_t i) const;
   V& value(il::int_t i);
@@ -91,16 +110,21 @@ class Map {
   template <il::int_t m>
   const V& valueForCString(const char (&key)[m], const V& default_value) const;
 
+  void erase(il::int_t i);
+
+  // Changing the size
   void clear();
   bool isEmpty() const;
   il::int_t nbElements() const;
   il::int_t nbTombstones() const;
   il::int_t nbBuckets() const;
   void reserve(il::int_t r);
+  void rehash();
+
+  // Looping over the map
   il::int_t first() const;
   il::int_t sentinel() const;
   il::int_t next(il::int_t i) const;
-  void rehash();
 
  private:
   static int pForSlots(il::int_t n);
@@ -139,6 +163,9 @@ Map<K, V, F>::Map() {
   nb_elements_ = 0;
   nb_tombstones_ = 0;
   p_ = -1;
+#ifdef IL_DEBUGGER_HELPERS
+  size_ = 0;
+#endif
 }
 
 template <typename K, typename V, typename F>
@@ -151,6 +178,9 @@ Map<K, V, F>::Map(il::int_t n) {
   } else if (n == 0) {
     bucket_ = nullptr;
     p_ = -1;
+#ifdef IL_DEBUGGER_HELPERS
+    size_ = 0;
+#endif
   } else {
     const int p = pForSlots(n);
     const il::int_t m = nbBuckets(p);
@@ -159,6 +189,9 @@ Map<K, V, F>::Map(il::int_t n) {
       F::constructEmpty(il::io, reinterpret_cast<K*>(bucket_ + i));
     }
     p_ = p;
+#ifdef IL_DEBUGGER_HELPERS
+    size_ = std::pow(2, p_);
+#endif
   }
   nb_elements_ = 0;
   nb_tombstones_ = 0;
@@ -174,6 +207,9 @@ Map<K, V, F>::Map(il::value_t, std::initializer_list<il::KeyValue<K, V>> list) {
   if (n == 0) {
     bucket_ = nullptr;
     p_ = -1;
+#ifdef IL_DEBUGGER_HELPERS
+    size_ = 0;
+#endif
   } else {
     const int p = pForSlots(n);
     const il::int_t m = nbBuckets(p);
@@ -182,6 +218,9 @@ Map<K, V, F>::Map(il::value_t, std::initializer_list<il::KeyValue<K, V>> list) {
       F::constructEmpty(il::io, reinterpret_cast<K*>(bucket_ + i));
     }
     p_ = p;
+#ifdef IL_DEBUGGER_HELPERS
+    size_ = std::pow(2, p_);
+#endif
     nb_elements_ = 0;
     nb_tombstones_ = 0;
     for (il::int_t k = 0; k < n; ++k) {
@@ -195,6 +234,9 @@ Map<K, V, F>::Map(il::value_t, std::initializer_list<il::KeyValue<K, V>> list) {
 template <typename K, typename V, typename F>
 Map<K, V, F>::Map(const Map<K, V, F>& map) {
   p_ = map.p_;
+#ifdef IL_DEBUGGER_HELPERS
+  size_ = map.size_;
+#endif
   nb_elements_ = 0;
   nb_tombstones_ = 0;
   if (p_ >= 0) {
@@ -213,10 +255,16 @@ template <typename K, typename V, typename F>
 Map<K, V, F>::Map(Map<K, V, F>&& map) {
   bucket_ = map.bucket_;
   p_ = map.p_;
+#ifdef IL_DEBUGGER_HELPERS
+  size_ = map.size_;
+#endif
   nb_elements_ = map.nb_elements_;
   nb_tombstones_ = map.nb_tombstones_;
   map.bucket_ = nullptr;
   map.p_ = -1;
+#ifdef IL_DEBUGGER_HELPERS
+  size_ = 0;
+#endif
   map.nb_elements_ = 0;
   map.nb_tombstones_ = 0;
 }
@@ -229,7 +277,7 @@ Map<K, V, F>& Map<K, V, F>::operator=(const Map<K, V, F>& map) {
     if (old_p >= 0) {
       const il::int_t old_m = nbBuckets(old_p);
       for (il::int_t i = 0; i < old_m; ++i) {
-        if (!F::isEmpty(bucket_ + i) && !F::isTombstone(bucket_ + i)) {
+        if (!F::isEmpty(bucket_[i].key) && !F::isTombstone(bucket_[i].key)) {
           (&((bucket_ + i)->value))->~V();
           (&((bucket_ + i)->key))->~K();
         }
@@ -249,9 +297,15 @@ Map<K, V, F>& Map<K, V, F>::operator=(const Map<K, V, F>& map) {
       }
     }
     p_ = p;
+#ifdef IL_DEBUGGER_HELPERS
+    size_ = std::pow(2, p_);
+#endif
   } else {
     bucket_ = nullptr;
     p_ = -1;
+#ifdef IL_DEBUGGER_HELPERS
+    size_ = 0;
+#endif
   }
   nb_elements_ = map.nb_elements_;
   nb_tombstones_ = map.nb_tombstones_;
@@ -274,6 +328,9 @@ Map<K, V, F>& Map<K, V, F>::operator=(Map<K, V, F>&& map) {
     }
     bucket_ = map.bucket_;
     p_ = map.p_;
+#ifdef IL_DEBUGGER_HELPERS
+    size_ = map.size_;
+#endif
     nb_elements_ = map.nb_elements_;
     nb_tombstones_ = map.nb_tombstones_;
     map.bucket_ = nullptr;
@@ -295,18 +352,6 @@ Map<K, V, F>::~Map() {
       }
     }
     il::deallocate(bucket_);
-  }
-}
-
-template <typename K, typename V, typename F>
-template <il::int_t m>
-void Map<K, V, F>::insertCString(const char (&key)[m], const V& value) {
-  il::int_t i = searchCString(key);
-  if (!found(i)) {
-    insert(key, value, il::io, i);
-  } else {
-    (bucket_ + i)->value.~V();
-    new (&((bucket_ + i)->value)) V(value);
   }
 }
 
@@ -355,7 +400,61 @@ void Map<K, V, F>::insert(K&& key, V&& value) {
 }
 
 template <typename K, typename V, typename F>
+template <il::int_t m>
+void Map<K, V, F>::insertCString(const char (&key)[m], const V& value) {
+  il::int_t i = searchCString(key);
+  if (!found(i)) {
+    insert(key, value, il::io, i);
+  } else {
+    (bucket_ + i)->value.~V();
+    new (&((bucket_ + i)->value)) V(value);
+  }
+}
+
+template <typename K, typename V, typename F>
+template <il::int_t m>
+void Map<K, V, F>::insertCString(const char (&key)[m], V&& value) {
+  il::int_t i = searchCString(key);
+  if (!found(i)) {
+    insert(key, value, il::io, i);
+  } else {
+    (bucket_ + i)->value.~V();
+    new (&((bucket_ + i)->value)) V(std::move(value));
+  }
+}
+
+template <typename K, typename V, typename F>
 il::int_t Map<K, V, F>::search(const K& key) const {
+  IL_EXPECT_MEDIUM(!F::isEmpty(key));
+  IL_EXPECT_MEDIUM(!F::isTombstone(key));
+
+  if (p_ == -1) {
+    return -1;
+  }
+
+  const std::size_t mask = (static_cast<std::size_t>(1) << p_) - 1;
+  std::size_t i = F::hash(key, p_);
+  std::size_t i_tombstone = -1;
+  std::size_t delta_i = 1;
+  while (true) {
+    if (F::isEmpty(bucket_[i].key)) {
+      return (i_tombstone == static_cast<std::size_t>(-1))
+                 ? -(1 + static_cast<il::int_t>(i))
+                 : -(1 + static_cast<il::int_t>(i_tombstone));
+    } else if (F::isTombstone(bucket_[i].key)) {
+      i_tombstone = i;
+    } else if (F::isEqual(bucket_[i].key, key)) {
+      return static_cast<il::int_t>(i);
+    }
+    i += delta_i;
+    i &= mask;
+    ++delta_i;
+  }
+}
+
+template <typename K, typename V, typename F>
+template <il::int_t m>
+il::int_t Map<K, V, F>::searchCString(const char (&key)[m]) const {
   IL_EXPECT_MEDIUM(!F::isEmpty(key));
   IL_EXPECT_MEDIUM(!F::isTombstone(key));
 
@@ -396,38 +495,11 @@ il::int_t Map<K, V, F>::searchCString(const char* key, il::int_t n) const {
   while (true) {
     if (F::isEmpty(bucket_[i].key)) {
       return (i_tombstone == static_cast<std::size_t>(-1))
-             ? -(1 + static_cast<il::int_t>(i))
-             : -(1 + static_cast<il::int_t>(i_tombstone));
-    } else if (F::isTombstone(bucket_[i].key)) {
-      i_tombstone = i;
-    } else if (F::isEqual(bucket_[i].key, key, n)) {
-      return static_cast<il::int_t>(i);
-    }
-    i += delta_i;
-    i &= mask;
-    ++delta_i;
-  }
-}
-
-template <typename K, typename V, typename F>
-template <il::int_t m>
-il::int_t Map<K, V, F>::searchCString(const char (&key)[m]) const {
-  if (p_ == -1) {
-    return -1;
-  }
-
-  const std::size_t mask = (static_cast<std::size_t>(1) << p_) - 1;
-  std::size_t i = F::hash(key) & mask;
-  std::size_t i_tombstone = -1;
-  std::size_t delta_i = 1;
-  while (true) {
-    if (F::isEmpty(bucket_[i].key)) {
-      return (i_tombstone == static_cast<std::size_t>(-1))
                  ? -(1 + static_cast<il::int_t>(i))
                  : -(1 + static_cast<il::int_t>(i_tombstone));
     } else if (F::isTombstone(bucket_[i].key)) {
       i_tombstone = i;
-    } else if (F::isEqual(bucket_[i].key, key)) {
+    } else if (F::isEqual(bucket_[i].key, key, n)) {
       return static_cast<il::int_t>(i);
     }
     i += delta_i;
@@ -443,7 +515,7 @@ bool Map<K, V, F>::found(il::int_t i) const {
 
 template <typename K, typename V, typename F>
 void Map<K, V, F>::insertCString(const char* key, const il::int_t n,
-                                 const V& value, il::io_t, il::int_t& i){
+                                 const V& value, il::io_t, il::int_t& i) {
   IL_EXPECT_FAST(!found(i));
 
   il::int_t i_local = -(1 + i);
@@ -626,7 +698,7 @@ const V& Map<K, V, F>::valueForKey(const K& key) const {
   } else {
     return V{};
   }
-};
+}
 
 template <typename K, typename V, typename F>
 const V& Map<K, V, F>::valueForKey(const K& key, const V& default_value) const {
@@ -636,7 +708,7 @@ const V& Map<K, V, F>::valueForKey(const K& key, const V& default_value) const {
   } else {
     return default_value;
   }
-};
+}
 
 template <typename K, typename V, typename F>
 template <il::int_t m>
@@ -647,18 +719,19 @@ const V& Map<K, V, F>::valueForCString(const char (&key)[m]) const {
   } else {
     return V{};
   }
-};
+}
 
 template <typename K, typename V, typename F>
 template <il::int_t m>
-const V& Map<K, V, F>::valueForCString(const char (&key)[m], const V& default_value) const {
+const V& Map<K, V, F>::valueForCString(const char (&key)[m],
+                                       const V& default_value) const {
   const il::int_t i = search(key);
   if (found(i)) {
     return value(i);
   } else {
     return default_value;
   }
-};
+}
 
 template <typename K, typename V, typename F>
 il::int_t Map<K, V, F>::nbElements() const {
@@ -792,6 +865,9 @@ void Map<K, V, F>::reserveWithP(int p) {
     F::constructEmpty(il::io, reinterpret_cast<K*>(bucket_ + i));
   }
   p_ = p;
+#ifdef IL_DEBUGGER_HELPERS
+  size_ = std::pow(2, p_);
+#endif
   nb_elements_ = 0;
   nb_tombstones_ = 0;
 

@@ -1,9 +1,18 @@
 //==============================================================================
 //
-//                                  InsideLoop
+// Copyright 2017 The InsideLoop Authors. All Rights Reserved.
 //
-// This file is distributed under the University of Illinois Open Source
-// License. See LICENSE.txt for details.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 //
 //==============================================================================
 
@@ -19,7 +28,7 @@
 // <utility> is needed for std::move
 #include <utility>
 
-#include <il/base.h>
+#include <il/container/1d/ArrayView.h>
 #include <il/core/memory/allocate.h>
 
 namespace il {
@@ -181,6 +190,8 @@ class Array {
   */
   void resize(il::int_t n);
 
+  void resize(il::int_t n, const T& x);
+
   /* \brief Get the capacity of the il::Array<T>
    */
   il::int_t capacity() const;
@@ -213,6 +224,14 @@ class Array {
   /* \brief Get the alignment of the pointer returned by data()
    */
   il::int_t alignment() const;
+
+  il::ArrayView<T> view() const;
+
+  il::ArrayView<T> view(il::Range range) const;
+
+  il::ArrayEdit<T> edit();
+
+  il::ArrayEdit<T> edit(il::Range range);
 
   /* \brief Get a pointer to const to the first element of the array
   // \details One should use this method only when using C-style API
@@ -656,6 +675,39 @@ void Array<T>::resize(il::int_t n) {
 }
 
 template <typename T>
+void Array<T>::resize(il::int_t n, const T& x) {
+  IL_EXPECT_FAST(n >= 0);
+
+  if (n <= capacity()) {
+    if (il::isTrivial<T>::value) {
+      for (il::int_t i = size(); i < n; ++i) {
+        data_[i] = x;
+      }
+    } else {
+      for (il::int_t i = size() - 1; i >= n; --i) {
+        (data_ + i)->~T();
+      }
+      for (il::int_t i = size(); i < n; ++i) {
+        new (data_ + i) T{x};
+      }
+    }
+  } else {
+    const il::int_t n_old = size();
+    increaseCapacity(n);
+    if (il::isTrivial<T>::value) {
+      for (il::int_t i = n_old; i < n; ++i) {
+        data_[i] = x;
+      }
+    } else {
+      for (il::int_t i = n_old; i < n; ++i) {
+        new (data_ + i) T{x};
+      }
+    }
+  }
+  size_ = data_ + n;
+}
+
+template <typename T>
 il::int_t Array<T>::capacity() const {
   return capacity_ - data_;
 }
@@ -732,6 +784,36 @@ template <typename T>
 il::int_t Array<T>::alignment() const {
   return alignment_;
 }
+
+template <typename T>
+il::ArrayView<T> Array<T>::view() const {
+  return il::ArrayView<T>{data_, size()};
+};
+
+template <typename T>
+il::ArrayView<T> Array<T>::view(il::Range range) const {
+  IL_EXPECT_MEDIUM(static_cast<std::size_t>(range.begin) <
+                   static_cast<std::size_t>(size()));
+  IL_EXPECT_MEDIUM(static_cast<std::size_t>(range.end) <=
+                   static_cast<std::size_t>(size()));
+
+  return il::ArrayView<T>{data_ + range.begin, range.end - range.begin};
+};
+
+template <typename T>
+il::ArrayEdit<T> Array<T>::edit() {
+  return il::ArrayEdit<T>{data_, size()};
+};
+
+template <typename T>
+il::ArrayEdit<T> Array<T>::edit(il::Range range) {
+  IL_EXPECT_MEDIUM(static_cast<std::size_t>(range.begin) <
+                   static_cast<std::size_t>(size()));
+  IL_EXPECT_MEDIUM(static_cast<std::size_t>(range.end) <=
+                   static_cast<std::size_t>(size()));
+
+  return il::ArrayEdit<T>{data_ + range.begin, range.end - range.begin};
+};
 
 template <typename T>
 const T* Array<T>::data() const {
@@ -820,74 +902,6 @@ bool Array<T>::invariance() const {
   return ans;
 }
 
-template <typename T>
-T min(const il::Array<T>& A) {
-  IL_EXPECT_FAST(A.size() > 0);
-  T ans{A[0]};
-  for (il::int_t k = 0; k < A.size(); ++k) {
-    if (A[k] < ans) {
-      ans = A[k];
-    }
-  }
-  return ans;
-}
-
-template <typename T>
-T max(const il::Array<T>& v) {
-  IL_EXPECT_FAST(v.size() > 0);
-  T max{v[0]};
-  for (il::int_t k = 0; k < v.size(); ++k) {
-    if (v[k] > max) {
-      max = v[k];
-    }
-  }
-  return max;
-}
-
-template <typename T>
-T mean(const il::Array<T>& v) {
-  IL_EXPECT_FAST(v.size() > 0);
-  T ans = 0;
-  for (il::int_t i = 0; i < v.size(); ++i) {
-    ans += v[i];
-  }
-  ans /= v.size();
-  return ans;
-}
-
-template <typename T>
-T sigma(const il::Array<T>& v) {
-  IL_EXPECT_FAST(v.size() > 1);
-  T mean = 0;
-  for (il::int_t i = 0; i < v.size(); ++i) {
-    mean += v[i];
-  }
-  mean /= v.size();
-  T sigma = 0;
-  for (il::int_t i = 0; i < v.size(); ++i) {
-    sigma += (v[i] - mean) * (v[i] - mean);
-  }
-  sigma /= v.size() - 1;
-  sigma = std::sqrt(sigma);
-  return sigma;
-}
-
-template <typename T>
-void transvection(il::Array<T>& x, il::int_t k1, T lambda, il::int_t k2) {
-  x[k1] += lambda * x[k2];
-}
-
-template <typename T>
-void dilation(il::Array<T>& x, il::int_t k, T lambda) {
-  x[k] *= lambda;
-}
-
-template <typename T>
-void swap(il::Array<T>& x, il::int_t k1, il::int_t k2) {
-  T temp{x[k1]};
-  x[k1] = x[k2];
-  x[k2] = temp;
-}
 }  // namespace il
 
 #endif  // IL_ARRAY_H

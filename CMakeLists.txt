@@ -77,8 +77,8 @@ set(SOURCE_FILES
 #        src/input/conditions/loadConditions.h
 #        src/input/Sources/loadSources.cpp
 #        src/input/Sources/loadSources.h
-        src/elhsolvers/ReynoldsP0.cpp
-        src/elhsolvers/ReynoldsP0.h
+        src/ehlsolvers/ReynoldsP0.cpp
+        src/ehlsolvers/ReynoldsP0.h
         src/solvers/DevLHFMSolver.cpp
         src/solvers/DevLHFMSolver.h
         src/core/Solution.h
@@ -86,11 +86,18 @@ set(SOURCE_FILES
         src/tip/tipAsymptote.cpp
         src/tip/tipAsymptote.h
         src/util/json.hpp
-        src/input/json/loadJsonMesh.cpp src/input/json/loadJsonMesh.h
-        src/wellbore/WellInjection.cpp src/wellbore/WellInjection.h
-        src/wellbore/WellMesh.cpp src/wellbore/WellMesh.h
-        src/wellbore/WellFlowP0.cpp src/wellbore/WellFlowP0.h
-        src/wellbore/WellSolution.h src/wellbore/SimpleWellFlowSolverBenchmark.cpp src/wellbore/SimpleWellFlowSolverBenchmark.h)
+        src/input/json/loadJsonMesh.cpp
+        src/input/json/loadJsonMesh.h
+        src/wellbore/WellInjection.cpp
+        src/wellbore/WellInjection.h
+        src/wellbore/WellMesh.cpp
+        src/wellbore/WellMesh.h
+        src/wellbore/WellFlowP0.cpp
+        src/wellbore/WellFlowP0.h
+        src/wellbore/WellSolution.h
+        src/wellbore/SimpleWellFlowSolverBenchmark.cpp
+        src/wellbore/SimpleWellFlowSolverBenchmark.h
+        src/solvers/MultiFracsSolution.h)
 
 if(APPLE)
 link_directories($ENV{MKLROOT}/lib $ENV{MKLROOT}/../compiler/lib )
@@ -128,10 +135,14 @@ set(SR_FOLDER "${CMAKE_SOURCE_DIR}/src")
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DIL_FOLDER='\"${SR_FOLDER}\"'")
 
-set(UNIT_TEST_FILES src/_test/elastic_test.cpp
+set(UNIT_TEST_FILES src/_test/elastic_benchmarks.cpp
         gtest/src/gtest-all.cc
         src/_test/mesh_test.cpp
-        src/tip/_test/tip_test.cpp src/_test/domain_mesh_test.cpp src/wellbore/SimpleWellFlowSolverBenchmark.cpp src/wellbore/SimpleWellFlowSolverBenchmark.h)
+        src/tip/_test/tip_test.cpp
+        src/_test/domain_mesh_test.cpp
+        src/wellbore/SimpleWellFlowSolverBenchmark.cpp
+        src/wellbore/SimpleWellFlowSolverBenchmark.h
+        src/elasticity/_test/elasticity_tests.cpp)
 
 add_executable(HFPx2DUnitTest ${SOURCE_FILES} ${UNIT_TEST_FILES} test.cpp)
 

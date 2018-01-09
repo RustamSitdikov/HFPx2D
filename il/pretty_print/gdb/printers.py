@@ -1,11 +1,20 @@
-# ==============================================================================
-# 
-#                                   InsideLoop
-# 
-#  This file is distributed under the University of Illinois Open Source
-#  License. See LICENSE.txt for details.
+#===============================================================================
 #
-# ==============================================================================
+# Copyright 2017 The InsideLoop Authors. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+#===============================================================================
 #
 #
 # To use it:
@@ -145,6 +154,31 @@ class Array2DPrinter:
 
 	def to_string(self):
 		return "[size0: %s], [size1: %s], [capacity0: %s], [capacity1: %s]" % (self.size0, self.size1, self.capacity0, self.capacity1)
+
+class Array2DViewPrinter:
+	def __init__(self, val):
+		type = val.type
+		if type.code == gdb.TYPE_CODE_REF:
+			type = type.target()
+		self.type = type.unqualified().strip_typedefs()
+		self.innerType = self.type.template_argument(0)
+		self.val = val
+		self.data = self.val['data_'].cast(self.innerType.pointer())
+		self.size0 = self.val['debug_size_0_']
+		self.size1 = self.val['debug_size_1_']
+		self.stride = self.val['debug_stride_']
+
+	def children(self):
+		yield "size_0", self.size0
+		yield "size_1", self.size1
+		for k1 in range(0, self.size1):
+			for k0 in range(0, self.size0):
+				dataPtr = self.data + self.stride * k1 + k0
+				item = dataPtr.dereference()
+				yield ("[%s, %s]" % (k0, k1)), item
+
+	def to_string(self):
+		return "[size0: %s], [size1: %s]" % (self.size0, self.size1)
 
 class StaticArray2DPrinter:
 	def __init__(self, val):
@@ -573,12 +607,12 @@ class MapStringPrinter:
 		yield "nb_buckets", self.nb_buckets
 		yield "capacity_elements", self.capacity_elements
 		yield "capacity_tombstones", self.capacity_tombstones
-		i = 0
 		for k in range(0, self.nb_buckets):
 			pointer = self.slot + k
 			string = "*((long long*)("+str(pointer)+")+2)"
-			value = gdb.parse_and_eval(string)
-			if (value < 4611686018427387904):
+			value = int(gdb.parse_and_eval(string))
+			value_bis = value // (2**56)
+			if (value_bis != 31 and value_bis != 30):
 				item = pointer.dereference()
 				yield ("[%s] " % k), item
 
@@ -698,6 +732,7 @@ def build_insideloop_dictionary ():
 	pretty_printers_dict[re.compile('^il::ArrayView<.*>$')]  = lambda val: ArrayViewPrinter(val)
 	pretty_printers_dict[re.compile('^il::ConstArrayView<.*>$')]  = lambda val: ArrayViewPrinter(val)
 	pretty_printers_dict[re.compile('^il::Array2D<.*>$')]  = lambda val: Array2DPrinter(val)
+	pretty_printers_dict[re.compile('^il::Array2DView<.*>$')]  = lambda val: Array2DViewPrinter(val)
 	pretty_printers_dict[re.compile('^il::Array2C<.*>$')]  = lambda val: Array2CPrinter(val)
 	pretty_printers_dict[re.compile('^il::StaticArray2D<.*>$')]  = lambda val: StaticArray2DPrinter(val)
 	pretty_printers_dict[re.compile('^il::StaticArray2C<.*>$')]  = lambda val: StaticArray2CPrinter(val)

@@ -13,6 +13,7 @@
 #include <il/Array.h>
 #include <il/Array2D.h>
 
+#include <src/util/json.hpp>
 #include <src/wellbore/WellInjection.h>
 #include <src/wellbore/WellMesh.h>
 
@@ -30,49 +31,49 @@ namespace hfp2d {
     double time_;
     // time step
     double timestep_;
-    // wellbore wellMesh
-  //  WellMesh well_mesh_;
-    // injection parameters
-  //  WellInjection well_inj_;
 
     // fluid pressure (at cell center)
     il::Array<double> pressure_;
     // hydrostatic fluid pressure (at cell center)
     il::Array<double> hydrostatic_pressure_;
-    // av. fluid velocity (at cell edges)
+    //   fluid velocity (at cell edges)
     il::Array<double> velocity_;
 
+    // Reynolds number (at cell edges)
+    il::Array<double> Re_;
 
     // pressures at the HF injection locations ("source_location_")
     // on the fracture side, so - is this needed here ?
-    il::Array<double> hf_pressure_;
+//    il::Array<double> hf_pressure_;
 
     // max relative difference on unknowns (between successive iteration),
     // ie. (u_(k+1)-u_k)/u_(k+1)
     double err_p_;  // on fluid pressure
     double err_v_;  // on av. velocity
 
+    // number of iterations for well flow step convergence
+    il::int_t ehlIts_=0;
 
    public:
 
-    ////////////////////////////////////////////////////////////////////////
-    //        CONSTRUCTORS
-    ////////////////////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////////////////////
+  //        CONSTRUCTORS
+  ////////////////////////////////////////////////////////////////////////
 
     // default constructor
-    WellSolution(){}; // is this needed?
+     WellSolution(){};
 
+    //----------------------------------------------------------------------
     // normal constructor
-    WellSolution(//WellMesh &well_mesh,
-                 //WellInjection &well_inj,
-                 double time,
+    WellSolution(double time,
                  double dt, il::Array<double> &p_hs, il::Array<double> &p,
-                                      il::Array<double> &v,
+                 il::Array<double> &v, il::Array<double> &Re,
+                 il::int_t its,
                  double err_p, double err_v) {
 
-//      well_mesh_ = well_mesh; // Not needed to be stored here as it does not change.
-
-    //  well_inj_ = well_inj;
+      IL_EXPECT_FAST(p.size()==p_hs.size());
+      IL_EXPECT_FAST(v.size()==Re.size());
+      IL_EXPECT_FAST(v.size()==p.size()-1);
 
       time_ = time;
       timestep_ = dt;
@@ -80,12 +81,17 @@ namespace hfp2d {
       velocity_ = v;
       err_p_ = err_p;
       err_v_ = err_v;
+      ehlIts_=its;
 
       hydrostatic_pressure_ = p_hs; // we always store the hydrostatic... we do not recompute here... unsafe
 
-    };
+      Re_=Re;
 
-    // hydrostatic constructor for time_==0
+    };
+  //----------------------------------------------------------------------
+
+  //----------------------------------------------------------------------
+  // hydrostatic constructor for time_==0
     WellSolution(WellMesh &well_mesh,
                  WellInjection &well_inj,
                  Fluid &fluid,  double dt) {
@@ -99,6 +105,7 @@ namespace hfp2d {
       timestep_ = dt;
 
       il::int_t n_el = well_mesh.numberOfElts();
+      // need here to cut at plug location.....
 
       hydrostatic_pressure_ = il::Array<double>{n_el};
 
@@ -111,11 +118,13 @@ namespace hfp2d {
       pressure_ = hydrostatic_pressure_;
 
       velocity_ = il::Array<double>{n_el - 1, 0.};
+      Re_ = il::Array<double>{n_el - 1, 0.};
 
       err_p_ = 0.;
       err_v_ = 0.;
 
     };
+  //----------------------------------------------------------------------
 
     ////////////////////////////////////////////////////////////////////////
     //        public interfaces
@@ -124,13 +133,9 @@ namespace hfp2d {
     inline double time() { return time_; }
     inline double timestep() { return timestep_; }
 
-   // WellMesh wellMesh() const { return well_mesh_; }
- //   WellInjection wellInjection() const { return well_inj_; }
-
     inline il::Array<double> pressure() { return pressure_; }
     inline il::Array<double> hydrostaticPressure() { return hydrostatic_pressure_; }
 
-    inline il::Array<double> hfPressure() { return hf_pressure_; }
     inline il::Array<double> velocity() { return velocity_; }
     inline double errP() { return err_p_; }
     inline double errV() { return err_v_; }
@@ -139,21 +144,59 @@ namespace hfp2d {
     //        set functions
     ////////////////////////////////////////////////////////////////////////
 
-    //  void setMesh(WellMesh &well_mesh) { well_mesh_ = well_mesh; };  // ??? why
-  //    void setInj(WellInjection &well_inj) { well_inj_ = well_inj; };
-
     ////////////////////////////////////////////////////////////////////////
     //        methods
     ////////////////////////////////////////////////////////////////////////
 
-    // solver: matching "velocity_" to the "pressure_"
-    // solver: matching "injection_rate_" to the "well_inj.hf_p_drop_"
-    // solver: matching "well_inj.hf_p_drop_" to "pressure_"-"hf_pressure_"
+    //  create json output object
 
-    // write solution to Json file
+  using json = nlohmann::json;
+
+  json createJsonObject(){
+
+
+    json json_pressure = json::array();
+    json json_velocity = json::array();
+    json json_hydrostatic = json::array();
+    json json_Reynolds =json::array();
+
+    for (il::int_t m = 0; m < pressure_.size(); ++m) {
+      json_pressure[m] = pressure_[m];
+      json_hydrostatic[m] = hydrostatic_pressure_[m];
+    }
+
+    for (il::int_t m = 0; m < velocity_.size(); ++m) {
+      json_velocity[m] = velocity_[m];
+      json_Reynolds[m] = Re_[m];
+    }
+
+    json j_obj={
+        {"Time",time_},{"Time step",timestep_},
+        {"Pressure",json_pressure},{"Hydrostatic",json_hydrostatic},
+        {"Velocity",json_velocity},{"Reynolds",json_Reynolds},
+        {"Error pressure", err_p_},
+        {"Error velocity",err_v_},
+        {"Its well-flow",ehlIts_}
+    };
+
+    return j_obj;
+
+  };
+
+  //----------------------------------------------------------------------
+  void writeToFile(std::string &filename) {
+
+    json j_obj=createJsonObject();
+    // write prettified JSON to file
+    std::ofstream output(filename);
+    output << std::setw(4) << j_obj << std::endl;
 
 
   };
+  //----------------------------------------------------------------------
+
+
+};
 
 }
 

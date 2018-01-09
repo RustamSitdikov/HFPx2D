@@ -379,14 +379,18 @@ il::StaticArray2D<double, 2, 4> normal_shear_stress_kernel_s3d_dp0_dd(
   il::StaticArray2D<double, 2, 2> R =
       hfp2d::rotationMatrix2D(source_elt.theta());
 
+  il::StaticArray2D<double, 2, 2> Rt=R;
+  Rt(0,1)=R(1,0);
+  Rt(1,0)=R(0,1);
+
   il::StaticArray<double, 2> xe;
   for (int i = 0; i < 2; ++i) {
     xe[i] = receiver_elt.CollocationPoints(i_col, i) - source_elt.Xmid(i);
   }
-  xe = il::dot(R, xe);
+  xe = il::dot(Rt, xe);
 
-  il::StaticArray<double, 2> n = il::dot(R, receiver_elt.n());
-  il::StaticArray<double, 2> s = il::dot(R, receiver_elt.s());
+  il::StaticArray<double, 2> n = il::dot(Rt, receiver_elt.n());
+  il::StaticArray<double, 2> s = il::dot(Rt, receiver_elt.s());
 
   double h = source_elt.size();
 
@@ -457,14 +461,18 @@ il::StaticArray2D<double, 2, 2> normal_shear_stress_kernel_s3d_dp0_dd_nodal(
   il::StaticArray2D<double, 2, 2> R =
       hfp2d::rotationMatrix2D(source_elt.theta());
 
+  il::StaticArray2D<double, 2, 2> Rt=R;
+  Rt(0,1)=R(1,0);
+  Rt(1,0)=R(0,1);
+
   il::StaticArray<double, 2> xe;
   for (int i = 0; i < 2; ++i) {
     xe[i] = receiver_elt.CollocationPoints(i_col, i) - source_elt.Xmid(i);
   }
-  xe = il::dot(R, xe);
+  xe = il::dot(Rt, xe);
 
-  il::StaticArray<double, 2> n = il::dot(R, receiver_elt.n());
-  il::StaticArray<double, 2> s = il::dot(R, receiver_elt.s());
+  il::StaticArray<double, 2> n = il::dot(Rt, receiver_elt.n());
+  il::StaticArray<double, 2> s = il::dot(Rt, receiver_elt.s());
 
   double h = source_elt.size();
 

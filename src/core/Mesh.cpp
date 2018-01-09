@@ -335,7 +335,7 @@ void Mesh::addNTipElts(const il::int_t t_e, const il::int_t the_tip_node,
   }
   dof_handle_dd_ = id_dd;  /// dof
 
-  /// //    dof(element, local nnodes number)
+  //   dof(element, local nnodes number)
   // actually this is the connectivity_ array for  p =1 and
   // a simple elt number of P0
   if (interpolation_order_==0){
@@ -356,4 +356,5 @@ void Mesh::addNTipElts(const il::int_t t_e, const il::int_t the_tip_node,
   tipnodes_ = buildTipNodes(node_adj_elt_);
   tipelts_ = buildTipElts(node_adj_elt_, tipnodes_);
 }
+
 }

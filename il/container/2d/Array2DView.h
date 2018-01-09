@@ -1,9 +1,18 @@
 //==============================================================================
 //
-//                                  InsideLoop
+// Copyright 2017 The InsideLoop Authors. All Rights Reserved.
 //
-// This file is distributed under the University of Illinois Open Source
-// License. See LICENSE.txt for details.
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 //
 //==============================================================================
 
@@ -15,9 +24,9 @@
 namespace il {
 
 template <typename T>
-class ConstArray2DView {
+class Array2DView {
  protected:
-#ifdef IL_DEBUG_VISUALIZER
+#ifdef IL_DEBUGGER_HELPERS
   il::int_t debug_size_0_;
   il::int_t debug_size_1_;
   il::int_t debug_stride_;
@@ -30,27 +39,27 @@ class ConstArray2DView {
 
  public:
   /* \brief Default constructor
-  // \details It creates a ConstArray2DView of 0 rows and 0 columns.
+  // \details It creates a Array2DView of 0 rows and 0 columns.
   */
-  ConstArray2DView();
+  Array2DView();
 
-  /* \brief Construct an il::ConstArray2DView<T> from a
+  /* \brief Construct an il::Array2DView<T> from a
   C-array (a pointer) and
   // its size and the stride
   //
   // void f(const double* data, il::int_t n, il::int_t p, il::int_t stride) {
-  //   il::ConstArray2DView<double> A{data, n, p, stride};
+  //   il::Array2DView<double> A{data, n, p, stride};
   //   ...
   // }
   */
-  ConstArray2DView(const T* data, il::int_t n0, il::int_t n1, il::int_t stride,
-                   short align_mod, short align_r);
+  Array2DView(const T* data, il::int_t n0, il::int_t n1, il::int_t stride,
+              short align_mod, short align_r);
 
   /* \brief Accessor
   // \details Access (read only) the (i, j)-th element of the array view. Bound
   // checking is done in debug mode but not in release mode.
   //
-  // il::ConstArray2DView<double> A{data, n, p};
+  // il::Array2DView<double> A{data, n, p};
   // std::cout << v(0, 0) << std::endl;
   */
   const T& operator()(il::int_t i0, il::int_t i1) const;
@@ -77,8 +86,42 @@ class ConstArray2DView {
 };
 
 template <typename T>
-ConstArray2DView<T>::ConstArray2DView() {
-#ifdef IL_DEBUG_VISUALIZER
+class Array2DEdit : public Array2DView<T> {
+ public:
+  /* \brief Default constructor
+  // \details It creates a Array2DEdit of 0 rows and 0 columns.
+  */
+  Array2DEdit();
+
+  /* \brief Construct an il::Array2DEdit<T> from a C-array (a
+  pointer) and
+  // its size and the stride
+  //
+  // void f(const double* data, il::int_t n, il::int_t, il::int_t stride) {
+  //   il::Array2DEdit<double> A{data, n, p, stride};
+  //   ...
+  // }
+  */
+  Array2DEdit(T* data, il::int_t n0, il::int_t n1, il::int_t stride,
+              short align_mod, short align_r);
+
+  /* \brief Accessor
+  // \details Access (read and write) the (i, j)-th element of the array view.
+  // Bound checking is done in debug mode but not in release mode.
+  */
+  T& operator()(il::int_t i0, il::int_t i1);
+
+  Array2DEdit<T> edit(il::Range r0, il::Range r1);
+
+  /* \brief Get a pointer to const to the first element of the array
+  // \details One should use this method only when using C-style API
+  */
+  T* data();
+};
+
+template <typename T>
+Array2DView<T>::Array2DView() {
+#ifdef IL_DEBUGGER_HELPERS
   debug_size_0_ = 0;
   debug_size_1_ = 0;
   debug_stride_ = 0;
@@ -92,41 +135,26 @@ ConstArray2DView<T>::ConstArray2DView() {
 }
 
 template <typename T>
-ConstArray2DView<T>::ConstArray2DView(const T* data, il::int_t n0, il::int_t n1,
-                                      il::int_t stride, short align_mod,
-                                      short align_r) {
+Array2DView<T>::Array2DView(const T* data, il::int_t n0, il::int_t n1,
+                            il::int_t stride, short align_mod, short align_r) {
   IL_EXPECT_FAST(n0 >= 0);
   IL_EXPECT_FAST(n1 >= 0);
   IL_EXPECT_FAST(stride > 0);
-  if (n0 > 0 && n1 > 0) {
-    data_ = const_cast<T*>(data);
-#ifdef IL_DEBUG_VISUALIZER
-    debug_size_0_ = n0;
-    debug_size_1_ = n1;
-    debug_stride_ = stride;
+  data_ = const_cast<T*>(data);
+#ifdef IL_DEBUGGER_HELPERS
+  debug_size_0_ = n0;
+  debug_size_1_ = n1;
+  debug_stride_ = stride;
 #endif
-    size_[0] = data_ + n0;
-    size_[1] = data_ + n1;
-    stride_ = data_ + stride;
-    align_mod_ = align_mod;
-    align_r_ = align_r;
-  } else {
-#ifdef IL_DEBUG_VISUALIZER
-    debug_size_0_ = 0;
-    debug_size_1_ = 0;
-    debug_stride_ = 0;
-#endif
-    data_ = nullptr;
-    size_[0] = nullptr;
-    size_[1] = nullptr;
-    stride_ = nullptr;
-    align_mod_ = 0;
-    align_r_ = 0;
-  }
+  size_[0] = data_ + n0;
+  size_[1] = data_ + n1;
+  stride_ = data_ + stride;
+  align_mod_ = align_mod;
+  align_r_ = align_r;
 }
 
 template <typename T>
-const T& ConstArray2DView<T>::operator()(il::int_t i0, il::int_t i1) const {
+const T& Array2DView<T>::operator()(il::int_t i0, il::int_t i1) const {
   IL_EXPECT_MEDIUM(static_cast<std::size_t>(i0) <
                    static_cast<std::size_t>(size(0)));
   IL_EXPECT_MEDIUM(static_cast<std::size_t>(i1) <
@@ -135,66 +163,32 @@ const T& ConstArray2DView<T>::operator()(il::int_t i0, il::int_t i1) const {
 }
 
 template <typename T>
-il::int_t ConstArray2DView<T>::size(il::int_t d) const {
+il::int_t Array2DView<T>::size(il::int_t d) const {
   IL_EXPECT_MEDIUM(static_cast<std::size_t>(d) < static_cast<std::size_t>(2));
   return static_cast<il::int_t>(size_[d] - data_);
 }
 
 template <typename T>
-const T* ConstArray2DView<T>::data() const {
+const T* Array2DView<T>::data() const {
   return data_;
 }
 
 template <typename T>
-il::int_t ConstArray2DView<T>::stride(il::int_t d) const {
+il::int_t Array2DView<T>::stride(il::int_t d) const {
   IL_EXPECT_FAST(static_cast<std::size_t>(d) < static_cast<std::size_t>(2));
   return (d == 0) ? 1 : static_cast<il::int_t>(stride_ - data_);
 }
 
-////////////////////////////////////////////////////////////////////////////////
+template <typename T>
+Array2DEdit<T>::Array2DEdit() : Array2DView<T>{} {}
 
 template <typename T>
-class Array2DView : public ConstArray2DView<T> {
- public:
-  /* \brief Default constructor
-  // \details It creates a Array2DView of 0 rows and 0 columns.
-  */
-  Array2DView();
-
-  /* \brief Construct an il::Array2DView<T> from a C-array (a
-  pointer) and
-  // its size and the stride
-  //
-  // void f(const double* data, il::int_t n, il::int_t, il::int_t stride) {
-  //   il::Array2DView<double> A{data, n, p, stride};
-  //   ...
-  // }
-  */
-  Array2DView(T* data, il::int_t n0, il::int_t n1, il::int_t stride,
-              short align_mod, short align_r);
-
-  /* \brief Accessor
-  // \details Access (read and write) the (i, j)-th element of the array view.
-  // Bound checking is done in debug mode but not in release mode.
-  */
-  T& operator()(il::int_t i0, il::int_t i1);
-
-  /* \brief Get a pointer to const to the first element of the array
-  // \details One should use this method only when using C-style API
-  */
-  T* data();
-};
-
-template <typename T>
-Array2DView<T>::Array2DView() : ConstArray2DView<T>{} {}
-
-template <typename T>
-Array2DView<T>::Array2DView(T* data, il::int_t n0, il::int_t n1,
+Array2DEdit<T>::Array2DEdit(T* data, il::int_t n0, il::int_t n1,
                             il::int_t stride, short align_mod, short align_r)
-    : ConstArray2DView<T>{data, n0, n1, stride, align_mod, align_r} {}
+    : Array2DView<T>{data, n0, n1, stride, align_mod, align_r} {}
 
 template <typename T>
-T& Array2DView<T>::operator()(il::int_t i0, il::int_t i1) {
+T& Array2DEdit<T>::operator()(il::int_t i0, il::int_t i1) {
   IL_EXPECT_MEDIUM(static_cast<std::size_t>(i0) <
                    static_cast<std::size_t>(this->size(0)));
   IL_EXPECT_MEDIUM(static_cast<std::size_t>(i1) <
@@ -203,9 +197,25 @@ T& Array2DView<T>::operator()(il::int_t i0, il::int_t i1) {
 }
 
 template <typename T>
-T* Array2DView<T>::data() {
+Array2DEdit<T> Array2DEdit<T>::edit(il::Range r0, il::Range r1) {
+  IL_EXPECT_MEDIUM(static_cast<std::size_t>(r0.begin) <
+                   static_cast<std::size_t>(this->size(0)));
+  IL_EXPECT_MEDIUM(static_cast<std::size_t>(r0.end) <=
+                   static_cast<std::size_t>(this->size(0)));
+  IL_EXPECT_MEDIUM(static_cast<std::size_t>(r1.begin) <
+                   static_cast<std::size_t>(this->size(1)));
+  IL_EXPECT_MEDIUM(static_cast<std::size_t>(r1.end) <=
+                   static_cast<std::size_t>(this->size(1)));
+
+  const il::int_t my_stride = this->stride(1);
+  return il::Array2DEdit<T>{data() + r0.begin + r1.begin * my_stride, r0.end - r0.begin, r1.end - r1.begin, my_stride, 0, 0};
+}
+
+template <typename T>
+T* Array2DEdit<T>::data() {
   return this->data_;
 }
+
 }  // namespace il
 
 #endif  // IL_ARRAY2DVIEW_H

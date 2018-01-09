@@ -519,7 +519,7 @@ double ffMDRmixed3(IFParametersHD &params) {
 ////////////////////////////////////////////////////////////////////////////////
 // nodal (edge) conductivities based on Darcy friction factor Ff(Re_num, rough)
 il::Array<double> edgeConductivitiesP0(
-    WellMesh &mesh, il::Array<double> &velocity, Fluid &fluid,
+    WellMesh &w_mesh, il::Array<double> &velocity, Fluid &fluid,
     double (*ffFunction)(IFParametersHD &params)) {
   // input should be an array of integers (il::int_t),
   // with rows for inner edges, each column for the 2 adjacent elements,
@@ -527,19 +527,19 @@ il::Array<double> edgeConductivitiesP0(
   // returns A dv/d(grad P) = A 2 * hd / (density * abs(velocity) * ff(Re, eps))
 
   IFParametersHD params;
+  il::Array2D<il::int_t> edgecommon = w_mesh.getNodesSharing2Elts();
 
-  il::Array2D<il::int_t> node_adj_elts = mesh.nodeAdjElts();
-  il::Array<double> h_width = mesh.hd();
-  il::Array<double> rough = mesh.rough();
+  il::Array<double> h_width = w_mesh.hd();
+  il::Array<double> rough = w_mesh.rough();
 
-  il::Array<double> edge_conduct{node_adj_elts.size(0), 0.};
+  il::Array<double> edge_conduct{edgecommon.size(0), 0.};
 
   // loop on the inner nodes (edges)
-  for (il::int_t i = 0; i < node_adj_elts.size(0); i++) {
+  for (il::int_t i = 0; i < edgecommon.size(0); i++) {
     // harmonic mean of hydraulic width, left & right of the i-th edge
-    double hd_mean =
-        2. * (h_width[node_adj_elts(i, 1)] * h_width[node_adj_elts(i, 0)]) /
-        (h_width[node_adj_elts(i, 1)] + h_width[node_adj_elts(i, 0)]);
+    double hd_mean = 2. *
+                     (h_width[edgecommon(i, 1)] * h_width[edgecommon(i, 0)]) /
+                     (h_width[edgecommon(i, 1)] + h_width[edgecommon(i, 0)]);
 
     double A_mean = hd_mean * hd_mean * il::pi / 4;
 
@@ -548,9 +548,8 @@ il::Array<double> edgeConductivitiesP0(
                     fluid.fluidViscosity();
 
     // dimensionless surface roughness (harmonic mean)
-    params.rough = 2. *
-                   (rough[node_adj_elts(i, 0)] * rough[node_adj_elts(i, 1)]) /
-                   (rough[node_adj_elts(i, 0)] + rough[node_adj_elts(i, 1)]);
+    params.rough = 2. * (rough[edgecommon(i, 0)] * rough[edgecommon(i, 1)]) /
+                   (rough[edgecommon(i, 0)] + rough[edgecommon(i, 1)]);
 
     // Poiseuille (~zero Reynolds) switch
     if (params.Re_num < epsilon) {
@@ -575,7 +574,7 @@ il::Array<double> edgeConductivitiesP0(
 // Finite Volume (Finite Difference) Matrix L built from edge conductivities
 // should return a sparse matrix....
 // for now, for quick debug assemble a dense one
-il::Array2D<double> buildWellFiniteDiffP0(WellMesh &mesh,
+il::Array2D<double> buildWellFiniteDiffP0(WellMesh &w_mesh,
                                           il::Array<double> &edg_cond,
                                           double coef) {
   // Inputs:
@@ -585,12 +584,10 @@ il::Array2D<double> buildWellFiniteDiffP0(WellMesh &mesh,
 
   // checks here....
 
-   il::Array2D<il::int_t> edgecommon = mesh.nodeAdjElts();
-  // wellMesh.getNodesSharing2Elts();
-  //il::Array2D<il::int_t> edgecommon = mesh.getNodesSharing2Elts();
+  il::Array2D<il::int_t> edgecommon = w_mesh.getNodesSharing2Elts();
 
   // todo: L would better be a sparse matrix.....
-  il::Array2D<double> L{mesh.numberOfElts(), mesh.numberOfElts(), 0.};
+  il::Array2D<double> L{w_mesh.numberOfElts(), w_mesh.numberOfElts(), 0.};
 
   il::int_t er, el, ml = edgecommon.size(0);
 
@@ -600,7 +597,7 @@ il::Array2D<double> buildWellFiniteDiffP0(WellMesh &mesh,
   for (il::int_t i = 0; i < ml; i++) {
     er = edgecommon(i, 0);
     el = edgecommon(i, 1);
-    hi = (mesh.eltSize(er) + mesh.eltSize(el)) / 2.;
+    hi = (w_mesh.eltSize(er) + w_mesh.eltSize(el)) / 2.;
     // cross-sections, right & left of the edge (node)
     dv = coef * edg_cond[i] / hi;  // why the minus here
     // diagonal entries
@@ -630,9 +627,7 @@ il::Array<double> wellVolumeCompressibilityP0(
 // Solver of the well Hydrodynamics over a time-step with given in and out flow
 WellSolution wellFlowSolverP0(hfp2d::WellSolution &well_soln,
                               hfp2d::WellMesh &w_mesh,
-                              hfp2d::WellInjection &w_inj,
-                              // const Sources &source, /..... should have WellInjection here as argument...
-                              Fluid &fluid,
+                              hfp2d::WellInjection &w_inj, Fluid &fluid,
                               double (*ffFunction)(IFParametersHD &params),
                               double timestep,
                               SimulationParameters &simul_params, bool mute) {
@@ -652,27 +647,23 @@ WellSolution wellFlowSolverP0(hfp2d::WellSolution &well_soln,
   // returns a Solution at t_n+1 object
   //
 
-  // WellMesh w_mesh = well_soln.wellMesh();
-
   il::int_t n_elts = w_mesh.numberOfElts();
 
   // call it here just in case
   // w_mesh.setNodeAdjElts();
 
-  il::Array2D<il::int_t> node_adj_elts = w_mesh.nodeAdjElts();
-  il::int_t n_s_e = node_adj_elts.size(0);
+  il::Array2D<il::int_t> edgecommon = w_mesh.getNodesSharing2Elts();
+  il::int_t n_s_e = edgecommon.size(0);
 
-//  WellInjection w_inj = well_soln.wellInjection();
+  //  WellInjection w_inj = well_soln.wellInjection();
 
-  // Well plug location: node
-  il::int_t plug_location_n = w_inj.plugLocation();
-
+  // Well plug location: element
+  // il::int_t plug_location_e = w_inj.plugLocation();
   // element (farthest pressurized element)
-  il::int_t plug_location_e = node_adj_elts(plug_location_n, 0);
-  // todo: review the well plug handling
+  // todo: review the well plug handling -> most probably not needed.
 
   // remember, it's a P0 scheme
-  il::int_t tot_dofs = il::min(n_elts, plug_location_e + 1);
+  il::int_t tot_dofs = n_elts;  // il::min(n_elts, plug_location_e + 1);
 
   // pressure @ prev. time step
   il::Array<double> p_n = well_soln.pressure();
@@ -698,12 +689,12 @@ WellSolution wellFlowSolverP0(hfp2d::WellSolution &well_soln,
 
   // INITIALIZE hydraulic width, sin(inclination), vectors of rel-errors
   // todo change to hyd_radius
-  il::Array<double> hyd_wid = w_mesh.hd(), stat_p{n_elts, 0.},
+  il::Array<double> hyd_diam = w_mesh.hd(), stat_p{n_elts, 0.},
                     err_Dv{n_s_e, 1.}, err_Dp{n_elts, 1.};
 
   // INITIALIZE the part of the tangent matrix matrix_Xi that won't change
   // during iterations
-  il::Array<double> cfV = wellVolumeCompressibilityP0(w_mesh, fluid, hyd_wid);
+  il::Array<double> cfV = wellVolumeCompressibilityP0(w_mesh, fluid, hyd_diam);
 
   il::Array<double> DX_k{tot_dofs, 0.}, DX_k_1{tot_dofs, 0.};
 
@@ -749,14 +740,15 @@ WellSolution wellFlowSolverP0(hfp2d::WellSolution &well_soln,
     vector_RS[0] += w_inj.wellInjRate() * timestep;
     // sinks -> all HFs
     for (il::int_t i = 0; i < w_inj.numberOfHFs(); i++) {
-      // check if the HF is above the plug
-      if (w_inj.hfLocation(i) <= plug_location_e) {
-        // add outflow to the RHS
-        vector_RS[w_inj.hfLocation(i)] -= w_inj.hfVolRate(i) * timestep;
-      }
+      //      // check if the HF is above the plug
+      //      if (w_inj.hfLocation(i) <= plug_location_e) {
+      // add outflow to the RHS
+      vector_RS[w_inj.hfLocation(i)] -= w_inj.hfVolRate(i) * timestep;
+      //      }
     }
     // plug at an edge (node) -> zero flux through the edge
-    // todo: review the well plug handling
+    // todo: review the well plug handling, plug not really needed, mesh can be
+    // adjusted in inputs.
 
     // compute current residuals w.r.to previous iteration solution
     // (before solution of the new iteration)
@@ -767,16 +759,16 @@ WellSolution wellFlowSolverP0(hfp2d::WellSolution &well_soln,
     // Solve the tangent system - solving for pressure increment
     il::Status status{};
     // use a direct solver
-     DX_k = il::linearSolve(matrix_Xi, vector_RS, il::io, status);
-    //il::LU<il::Array2D<double>> lu_decomposition(matrix_Xi, il::io, status);
+    DX_k = il::linearSolve(matrix_Xi, vector_RS, il::io, status);
+    // il::LU<il::Array2D<double>> lu_decomposition(matrix_Xi, il::io, status);
     // if (!status.ok()) {
     //     // The matrix is singular to the machine precision.
     //     // You should deal with the error.
     // }
     // double cnd = lu_decomposition.conditionNumber(il::Norm::L2, );
     // std::cout << cnd << std::endl;
-    status.abortOnError();
-    //DX_k = lu_decomposition.solve(vector_RS);
+    // status.abortOnError();
+    // DX_k = lu_decomposition.solve(vector_RS);
     status.ok();
 
     // under-relaxation of the solution
@@ -799,16 +791,17 @@ WellSolution wellFlowSolverP0(hfp2d::WellSolution &well_soln,
       // harmonic mean of hydraulic width, left & right of the i-th edge
       // this should be done in WellMesh
       double hd_mean =
-          2. * (hyd_wid[node_adj_elts(i, 1)] * hyd_wid[node_adj_elts(i, 0)]) /
-          (hyd_wid[node_adj_elts(i, 1)] + hyd_wid[node_adj_elts(i, 0)]);
+          2. * (hyd_diam[edgecommon(i, 1)] * hyd_diam[edgecommon(i, 0)]) /
+          (hyd_diam[edgecommon(i, 1)] + hyd_diam[edgecommon(i, 0)]);
 
-      double hi = (w_mesh.eltSize(node_adj_elts(i, 0)) +
-                   w_mesh.eltSize(node_adj_elts(i, 1))) /
+      double hi = (w_mesh.eltSize(edgecommon(i, 0)) +
+                   w_mesh.eltSize(edgecommon(i, 1))) /
                   2.;
 
       // flux through i-th edge (node)
-      double v_new = edg_cond[i] * (p_tilde_iter[node_adj_elts(i, 0)] -
-                                    p_tilde_iter[node_adj_elts(i, 1)]) / hi;
+      double v_new = edg_cond[i] * (p_tilde_iter[edgecommon(i, 0)] -
+                                    p_tilde_iter[edgecommon(i, 1)]) /
+                     hi;
 
       // divide by cross-sections to get av. velocity
       v_new /= il::pi / 4. * hd_mean * hd_mean;
@@ -828,12 +821,7 @@ WellSolution wellFlowSolverP0(hfp2d::WellSolution &well_soln,
                 << " rel. err. dp: " << il::norm(err_Dp, il::Norm::L2)
                 << std::endl;
     };
-  }// end of iterative loop
-
-  // update total pressure
-  for (il::int_t i = 0; i < p_n.size(); i++) {
-    p_n[i] = p_tilde_iter[i] + p_hs[i];
-  }
+  }  // end of iterative loop
 
   if (!mute) {
     std::cout << " end of Picard Scheme for Well flow, after " << k << " its. "
@@ -842,10 +830,27 @@ WellSolution wellFlowSolverP0(hfp2d::WellSolution &well_soln,
               << " norm of residuals: " << res_norm << std::endl;
   };
 
-  return hfp2d::WellSolution(well_soln.time() + timestep, timestep, p_hs, p_n, v_k,
-      il::norm(err_Dp, il::Norm::L2), il::norm(err_Dv, il::Norm::L2));
+  // update total pressure
+  for (il::int_t i = 0; i < p_n.size(); i++) {
+    p_n[i] = p_tilde_iter[i] + p_hs[i];
+  }
 
+  // compute Reynolds number
+  il::Array<double> Re(v_k.size(), 0.);
+  for (il::int_t i = 0; i < n_s_e; i++) {
+    // harmonic mean of hydraulic width, left & right of the i-th edge
+    // this should be done in WellMesh
+    double hd_mean = 2. *
+                     (hyd_diam[edgecommon(i, 1)] * hyd_diam[edgecommon(i, 0)]) /
+                     (hyd_diam[edgecommon(i, 1)] + hyd_diam[edgecommon(i, 0)]);
 
+    Re[i] = hd_mean * fluid.fluidDensity() * std::fabs(v_k[i]) /
+            fluid.fluidViscosity();
+  }
+
+  return hfp2d::WellSolution(well_soln.time() + timestep, timestep, p_hs, p_n,
+                             v_k, Re, k,il::norm(err_Dp, il::Norm::L2),
+                             il::norm(err_Dv, il::Norm::L2));
 }
 
 ////////////////////////////////////////////////////////////////////////////////
