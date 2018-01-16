@@ -852,7 +852,6 @@ hfp2d::WellSolution wellFlowSolverP0(
   return hfp2d::WellSolution(
       well_soln.time() + timestep, timestep, p_hs, p_n, v_k, Re, out_flow, k,
       il::norm(err_Dp, il::Norm::L2), il::norm(err_Dv, il::Norm::L2));
-
 }
 
 ////////////////////////////////////////////////////////////////////////////////

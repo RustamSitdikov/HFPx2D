@@ -210,7 +210,6 @@ class Solution {
 
    double pressure(il::int_t & k) const { return pressure_[k];};
 
-
    il::Array<il::int_t> activeElts() const {
     return active_set_elements_;
   };
@@ -353,7 +352,6 @@ class Solution {
     // write prettified JSON to file
     std::ofstream output(filename);
     output << std::setw(4) << j_obj << std::endl;
-
 
   };
   //----------------------------------------------------------------------
