@@ -356,7 +356,7 @@ Solution ReynoldsSolverP0(
       DW_k[i] = DX_k[2*i + 1];
     }
 
-    if (mute == false) {
+    if (! mute ) {
       std::cout << " its " << k
                 << " rel. err. dw: " << il::norm(err_Dw, il::Norm::L2) <<
                 " rel. err dp: " << il::norm(err_Dp, il::Norm::L2)
@@ -367,7 +367,7 @@ Solution ReynoldsSolverP0(
 
   }
 
-  if (mute == false) {
+  if (! mute) {
     std::cout << " end of Picard Scheme for Reynolds, after " << k << " its "
               << " rel. err. dw: " << il::norm(err_Dw, il::Norm::L2)
               << " rel. err dp: " << il::norm(err_Dp, il::Norm::L2)

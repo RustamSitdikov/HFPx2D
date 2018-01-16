@@ -173,11 +173,15 @@ il::Array<double> wellVolumeCompressibilityP0(
 
 
 // Solver of the well Hydrodynamics over one time-step.
-hfp2d::WellSolution wellFlowSolverP0(hfp2d::WellSolution &well_soln, hfp2d::WellMesh &w_mesh,
-                              hfp2d::WellInjection &w_inj, hfp2d::Fluid &fluid,
-                              double (*ffFunction)(IFParametersHD &params),
-                              double timestep,
-                              SimulationParameters &simul_params, bool mute);
+hfp2d::WellSolution wellFlowSolverP0(hfp2d::WellSolution &well_soln,
+                                     hfp2d::WellMesh &w_mesh,
+                                     hfp2d::WellInjection &w_inj,
+                                     hfp2d::Sources &out_flow,
+                                     double (*ffFunction)(IFParametersHD &),
+                                     double timestep,
+                                     hfp2d::SimulationParameters &simul_params,
+                                     bool mute,
+                                     hfp2d::Fluid &fluid);
 }
 
 #endif  // HFPX2DUNITTEST_REYNOLDSP0_H

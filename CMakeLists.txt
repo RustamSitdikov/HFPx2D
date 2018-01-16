@@ -83,7 +83,7 @@ set(SOURCE_FILES
         src/wellbore/SimpleWellFlowSolverBenchmark.h
         src/solvers/MultiFracsSolution.h
         src/wellbore/LoadInputMultistage.cpp src/wellbore/LoadInputMultistage.h
-        src/solvers/DevLHFMSolver.cpp src/solvers/DevLHFMSolver.h
+        src/solvers/HFPropagationP0.cpp src/solvers/HFPropagationP0.h
         src/solvers/MultiFracsSolver.cpp src/solvers/MultiFracsSolver.h)
 
 if(APPLE)

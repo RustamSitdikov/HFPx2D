@@ -48,10 +48,9 @@ class WellSolution {
   // number of iterations for well flow step convergence
   il::int_t ehlIts_ = 0;
 
-  // out flow element location
-  il::Array<il::int_t> out_flow_loc_;
-  // and outflow values
-  il::Array<double> out_flow_;
+  // out flow sources
+  hfp2d::Sources clusters_sources_;
+
 
  public:
   ////////////////////////////////////////////////////////////////////////
@@ -65,8 +64,9 @@ class WellSolution {
   // normal constructor
   WellSolution(double time, double dt, il::Array<double> &p_hs,
                il::Array<double> &p, il::Array<double> &v,
-               il::Array<double> &Re, il::int_t its, double err_p, double err_v,
-               il::Array<il::int_t> &out_l,il::Array<double> &out) {
+               il::Array<double> &Re,
+               hfp2d::Sources &outflow,
+               il::int_t its, double err_p, double err_v) {
     IL_EXPECT_FAST(p.size() == p_hs.size());
     IL_EXPECT_FAST(v.size() == Re.size());
     IL_EXPECT_FAST(v.size() == p.size() - 1);
@@ -84,17 +84,15 @@ class WellSolution {
 
     Re_ = Re;
 
-    // store outflow as well
-    IL_EXPECT_FAST(out_l.size() == out.size());
-
-    out_flow_loc_ = out_l;
-    out_flow_ = out;
+   // clusters_sources_ = outflow;
   };
   //----------------------------------------------------------------------
 
   //----------------------------------------------------------------------
   // hydrostatic constructor for time_==0
-  WellSolution(WellMesh &well_mesh, WellInjection &well_inj, Fluid &fluid) {
+  WellSolution(WellMesh &well_mesh,
+               WellInjection &well_inj,
+               Fluid &fluid) {
     double g = 9.811;  // m/s^2
 
     // well_mesh_ = well_mesh; // Not needed to be stored here as it does not
@@ -123,8 +121,7 @@ class WellSolution {
     err_p_ = 0.;
     err_v_ = 0.;
 
-    out_flow_loc_ = well_inj.hfLocation();
-    out_flow_ = well_inj.hfRate();
+  //  clusters_sources_ = outflow;
   };
   //----------------------------------------------------------------------
 
@@ -132,24 +129,34 @@ class WellSolution {
   //        public interfaces
   ////////////////////////////////////////////////////////////////////////
 
-   double time() const { return time_; }
-   double timestep() const { return timestep_; }
+  double time() const { return time_; }
+  double timestep() const { return timestep_; }
 
-   il::Array<double> pressure() const { return pressure_; }
-   double pressure(il::int_t e) const { return pressure_[e]; }
+  il::Array<double> pressure() const { return pressure_; }
+  double pressure(il::int_t e) const { return pressure_[e]; }
 
-   il::Array<double> hydrostaticPressure() const { return hydrostatic_pressure_; }
-  double hydrostaticPressure(il::int_t e) const { return hydrostatic_pressure_[e]; }
+  il::Array<double> hydrostaticPressure() const {
+    return hydrostatic_pressure_;
+  }
+  double hydrostaticPressure(il::int_t e) const {
+    return hydrostatic_pressure_[e];
+  }
 
-   il::Array<double> velocity() const { return velocity_; }
-   double velocity(il::int_t e) const { return velocity_[e]; }
+  il::Array<double> velocity() const { return velocity_; }
+  double velocity(il::int_t e) const { return velocity_[e]; }
 
-   double errP() const { return err_p_; }
-   double errV() const { return err_v_; }
+  double errP() const { return err_p_; }
+  double errV() const { return err_v_; }
 
-  il::Array<il::int_t> clusterElts() const { return out_flow_loc_; }
+//  il::Array<il::int_t> clusterElts() const {
+//    return clusters_sources_.SourceElt();
+//  }
+//  il::Array<double> clusterFluxes() const {
+//    return clusters_sources_.InjectionRate();
+//  };
 
-  il::Array<double> clusterFluxes() const { return out_flow_;};
+ // hfp2d::Sources clusterSources() const {return clusters_sources_;};
+
 
   ////////////////////////////////////////////////////////////////////////
   //        set functions
@@ -159,17 +166,17 @@ class WellSolution {
   //        methods
   ////////////////////////////////////////////////////////////////////////
 
-  // get fluid pressure in front of each clusters
-  il::Array<double> pressureAtClusters(){
+  // get fluid pressure at a number of element
+  il::Array<double> pressureAtElts(il::Array<il::int_t> &elt_list) {
+    il::int_t nc = elt_list.size();
+    IL_EXPECT_FAST(nc<=pressure_.size());
 
-    il::Array<double> pc{out_flow_loc_.size(),0.};
-  for (il::int_t i=0;i<out_flow_loc_.size();i++){
-    pc[i]=pressure_[out_flow_loc_[i]];
+    il::Array<double> pc{nc, 0.};
+    for (il::int_t i = 0; i < nc; i++) {
+      pc[i] = pressure_[elt_list[i]];
+    }
+    return pc;
   }
-  return pc;
-  }
-
-
 
   //  create json output object
 
@@ -192,12 +199,8 @@ class WellSolution {
       json_Reynolds[m] = Re_[m];
     }
 
-    json json_hf_loc = json::array();
-    json json_hf_rate = json::array();
-    for (il::int_t m = 0; m < out_flow_loc_.size(); ++m) {
-      json_hf_loc[m] = out_flow_loc_[m];
-      json_hf_rate[m] = out_flow_[m];
-    }
+//    json json_hf_loc = json::array();
+//    json json_hf_rate = json::array();
 
 
     json j_obj = {{"Time", time_},
@@ -206,8 +209,8 @@ class WellSolution {
                   {"Hydrostatic", json_hydrostatic},
                   {"Velocity", json_velocity},
                   {"Reynolds", json_Reynolds},
-                  {"Outflow element",json_hf_loc},
-                  {"Outflow",json_hf_rate},
+//                  {"Outflow element", json_hf_loc},
+//                  {"Outflow", json_hf_rate},
                   {"Error pressure", err_p_},
                   {"Error velocity", err_v_},
                   {"Its well-flow", ehlIts_}};

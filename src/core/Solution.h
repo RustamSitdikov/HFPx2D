@@ -208,6 +208,9 @@ class Solution {
    il::Array<double> sigma0() const { return sigma_n_o_; };
    il::Array<double> tau0() const { return tau_o_; };
 
+   double pressure(il::int_t & k) const { return pressure_[k];};
+
+
    il::Array<il::int_t> activeElts() const {
     return active_set_elements_;
   };

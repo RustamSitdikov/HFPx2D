@@ -75,6 +75,33 @@ hfp2d::WellMesh loadWellMesh(json &j_wmesh) {
 }
 //------------------------------------------------------------------------------
 
+hfp2d::Sources loadWellSource(json &j_params,hfp2d::WellMesh &the_well){
+
+  il::int_t n_cl = j_params["Clusters MD"].size();
+  il::Array<double> cl_mds(n_cl, 0.);
+
+  for (il::int_t i = 0; i < n_cl; i++) {
+    cl_mds[i] = j_params["Clusters MD"][i];
+  }
+
+  il::Array<il::int_t> cluster_locs(n_cl, 0);
+  // localize the element where the cluster is located
+  il::int_t n_elts = the_well.md().size() - 1;
+  for (il::int_t i = 0; i < n_cl; i++) {
+    for (il::int_t e = 0; e < n_elts; e++) {
+      if ((cl_mds[i] < the_well.md(the_well.connectivity(e, 1))) &&
+          (cl_mds[i] >= the_well.md(the_well.connectivity(e, 0)))) {
+        cluster_locs[i] = e;
+        break;
+      }
+    }
+  }
+  il::Array<double> hf_vol_rate(n_cl, 0.);  // zero HF rate.
+
+  hfp2d::Sources wellsource(cluster_locs,hf_vol_rate);
+  return  wellsource;
+
+}
 
 //------------------------------------------------------------------------------
 // loading well parameters.
@@ -131,7 +158,7 @@ hfp2d::WellInjection loadWellParameters(json &j_params,
   il::int_t nct = j_params["Tortuosity coefficient"].size();
   il::int_t ncb = j_params["Tortuosity exponent"].size();
 
-  IL_EXPECT_FAST((ncp == nct) && (n_cl == ncp) && (ncb == ncp));
+  IL_EXPECT_FAST((ncp == nct) && (n_cl == ncp) && (ncb == ncp) );
 
   il::Array<double> perf_coef(ncp, 0.), tort_coef(ncp, 0.), tort_beta(ncp, 0.);
 
@@ -145,7 +172,7 @@ hfp2d::WellInjection loadWellParameters(json &j_params,
 
   il::Array<double> hf_vol_rate(ncp, 0.);  // zero HF rate.
 
-  hfp2d::WellInjection w_inj(pump_rate, cluster_locs, hf_vol_rate, perf_coef,
+  hfp2d::WellInjection w_inj(pump_rate,  perf_coef,
                              tort_coef, tort_beta);
 
   return w_inj;

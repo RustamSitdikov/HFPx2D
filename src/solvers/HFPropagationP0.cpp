@@ -22,7 +22,7 @@
 #include <src/elasticity/Simplified3D.h>
 #include <src/tip/tipAsymptote.h>
 
-#include <src/solvers/DevLHFMSolver.h>
+#include <src/solvers/HFPropagationP0.h>
 
 namespace hfp2d {
 
@@ -243,8 +243,16 @@ int TwoParallelHFs(int nelts, double dist) {
     jt++;
 
     Solution Soln1 =
-        hfp2d::FractureFrontLoop(Soln, K, water, the_rock, the_source,
-                                 frac_heigth, dt, SimulParam, true);
+        hfp2d::FractureFrontLoop(Soln,
+                                 water,
+                                 the_rock,
+                                 the_source,
+                                 frac_heigth,
+                                 dt,
+                                 SimulParam,
+                                 true,
+                                 il::io_t(),
+                                 K);
 
     // accept time step ?
     if (Soln1.errFront() < 0.01)  // todo pass this tolerance in inputs
@@ -301,11 +309,16 @@ int TwoParallelHFs(int nelts, double dist) {
 
 ////////////////////////////////////////////////////////////////////////////////
 // Fracture Front Loop - solve for one time step from tn to tn+timestep
-hfp2d::Solution FractureFrontLoop(
-    const hfp2d::Solution &Sol_n, il::Array2D<double> &ElasMat,
-    hfp2d::Fluid &fluid, const hfp2d::SolidProperties &rock,
-    const hfp2d::Sources &source, double frac_height, double timestep,
-    hfp2d::SimulationParameters &simulParams, bool mute) {
+hfp2d::Solution FractureFrontLoop(const hfp2d::Solution &Sol_n,
+                                  hfp2d::Fluid &fluid,
+                                  const hfp2d::SolidProperties &rock,
+                                  const hfp2d::Sources &source,
+                                  double frac_height,
+                                  double timestep,
+                                  hfp2d::SimulationParameters &simulParams,
+                                  bool mute,
+                                  il::io_t,
+                                  il::Array2D<double> &ElasMat) {
   // INPUTS
   // Sol_n :: solution object containing the solution at time tn
   // ElasMat :: elasticity matrix on the current wellMesh  (might be modified)

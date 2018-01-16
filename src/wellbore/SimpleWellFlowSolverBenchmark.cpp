@@ -41,6 +41,7 @@ int WellboreFlowBenchmark() {
 
   hfp2d::WellMesh the_well= loadWellMesh(j_wmesh);
   hfp2d::WellInjection w_inj= loadWellParameters(j_params, the_well);
+  hfp2d::Sources w_outflow = loadWellSource(j_params,the_well);
 
   if (j_params.count("Fluid properties")!=1){
     std::cout << "No fluid properties input in  model parameters";
@@ -64,8 +65,16 @@ int WellboreFlowBenchmark() {
 
   hfp2d::WellSolution SolN = iniSol;
 
-  WellSolution SolN_1 = wellFlowSolverP0(
-      SolN, the_well, w_inj, water, ffChurchill, dt, WellFlowParam, false);
+
+  WellSolution SolN_1 = wellFlowSolverP0(SolN,
+                                         the_well,
+                                         w_inj,
+                                         w_outflow,
+                                         ffChurchill,
+                                         dt,
+                                         WellFlowParam,
+                                         false,
+                                         water);
 
   std::string resfilename = "../Debug/WellTest_results.json";
 

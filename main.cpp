@@ -17,7 +17,7 @@
 //#include "src/input/loadArguments.h"
 
 
-#include <src/solvers/DevLHFMSolver.h>
+#include <src/solvers/HFPropagationP0.h>
 #include <src/wellbore/SimpleWellFlowSolverBenchmark.h>
 #include <src/solvers/MultiFracsSolver.h>
 

@@ -29,6 +29,8 @@ hfp2d::WellInjection loadWellParameters(json &j_params,
 
 hfp2d::Fluid loadFluidProperties(json &j_fluid);
 
+hfp2d::Sources loadWellSource(json &j_params,hfp2d::WellMesh &the_well);
+
 hfp2d::SolidProperties loadSolidProperties(json &j_rock);
 
 hfp2d::InSituConditions loadInSitu(json &j_insitu);

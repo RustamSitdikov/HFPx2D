@@ -19,10 +19,10 @@
 #include <src/wellbore/WellFlowP0.h>
 #include <src/wellbore/WellSolution.h>
 
-#include <src/solvers/MultiFracsSolution.h>
-
 #include <src/elasticity/AssemblyDDM.h>
 #include <src/elasticity/Simplified3D.h>
+#include <src/solvers/HFPropagationP0.h>
+#include <src/solvers/MultiFracsSolution.h>
 
 #include <src/util/json.hpp>
 
@@ -38,7 +38,7 @@ int MultipleFracsPropagation() {
   // horizontal wellbore
   // DEBUGGING
 
-  //
+  // ...
 
   std::string wellfilename = "../Debug/WellTest.json";
 
@@ -73,6 +73,8 @@ int MultipleFracsPropagation() {
     il::abort();
   }
 
+  hfp2d::Sources well_sources = loadWellSource(j_params, the_well);
+
   json j_fluid = j_params["Fluid properties"];
   hfp2d::Fluid fracfluid = loadFluidProperties(j_fluid);
 
@@ -106,7 +108,7 @@ int MultipleFracsPropagation() {
   // check consistency with number of perf.
   IL_EXPECT_FAST(nfracs == w_inj.coefPerf().size());
   // check consistency with number of perf.
-  IL_EXPECT_FAST(nfracs == w_inj.hfLocation().size());
+  //  IL_EXPECT_FAST(nfracs == w_inj.hfLocation().size());
 
   // number of element per fracture.
   il::int_t nelts = 7;  // default value
@@ -132,8 +134,8 @@ int MultipleFracsPropagation() {
   double sin_az = sin(frac_az_x);
 
   for (il::int_t f = 0; f < nfracs; f++) {
-    double xo = the_well.coordinates(w_inj.hfLocation(f), 0);
-    double yo = the_well.coordinates(w_inj.hfLocation(f), 1);
+    double xo = the_well.coordinates(well_sources.SourceElt(f), 0);
+    double yo = the_well.coordinates(well_sources.SourceElt(f), 1);
     double lo = j_params["Initial fracture length"][f];
     double h = 2 * lo / nelts;
     for (il::int_t i = (nelts + 1) * f; i < (nelts + 1) * (f + 1); i++) {
@@ -152,7 +154,7 @@ int MultipleFracsPropagation() {
 
   // zero initial rates entering the fracs
   il::Array<double> frac_rates{nfracs, 0.};
-  hfp2d::Sources frac_inj(source_loc_frac, frac_rates);
+  hfp2d::Sources well_influxes(source_loc_frac, frac_rates);
 
   // in-situ conditions on current mesh .....
   //
@@ -186,11 +188,12 @@ int MultipleFracsPropagation() {
   il::Array<double> in_situ_traction =
       inSituStress.uniformAllInSituTractions(fracsMesh);
 
-  il::Array<double> pc = wellIniSol.pressureAtClusters();
+  il::Array<il::int_t> cluster_loc = well_sources.SourceElt();
+  il::Array<double> pc = wellIniSol.pressureAtElts(cluster_loc);
 
   il::Array<double> snc{nfracs, 0.};
-  for (il::int_t i = 0; i < frac_inj.SourceElt().size(); i++) {
-    snc[i] = in_situ_traction[frac_inj.SourceElt(i) * 2 + 1];
+  for (il::int_t i = 0; i < well_influxes.SourceElt().size(); i++) {
+    snc[i] = in_situ_traction[well_influxes.SourceElt(i) * 2 + 1];
   }
 
   // as long as fluid pressure is lower than the in-situ stress we just loop on
@@ -205,13 +208,13 @@ int MultipleFracsPropagation() {
   while (k < 10) {
     k++;
 
-    hfp2d::WellSolution wellSol_n_p_1 =
-        hfp2d::wellFlowSolverP0(wellSol_n, the_well, w_inj, fracfluid,
-                                ffChurchill, dt, WellFlowParam, true);
+    hfp2d::WellSolution wellSol_n_p_1 = hfp2d::wellFlowSolverP0(
+        wellSol_n, the_well, w_inj, well_sources, ffChurchill, dt,
+        WellFlowParam, true, fracfluid);
     //
     wellSol_n = wellSol_n_p_1;
 
-    pc = wellSol_n.pressureAtClusters();
+    pc = wellSol_n.pressureAtElts(cluster_loc);
 
     for (il::int_t i = 0; i < nfracs; i++) {
       std::cout << "------\n";
@@ -272,9 +275,9 @@ int MultipleFracsPropagation() {
     tau_o[i] = ftini[2 * i];
   }
 
-  // create a solution at time t=0 object.
-  hfp2d::Solution fracSol_n =
-      hfp2d::Solution(fracsMesh, 0., width, sheardd, pf_o, sn_o, tau_o);
+  // create a solution at the current time of the wellsolution  object.
+  hfp2d::Solution fracSol_n = hfp2d::Solution(
+      fracsMesh, wellSol_n.time(), width, sheardd, pf_o, sn_o, tau_o);
   il::Array<double> vel0{4, 0.};  // initial tip velocity
   fracSol_n.setTipsVelocity(vel0);
 
@@ -288,33 +291,133 @@ int MultipleFracsPropagation() {
   // we know are ready
   il::Array<double> dpc{nfracs, 0.};
 
-  hfp2d::MultiFracsSolution completeSol_n(fracSol_n, wellSol_n, frac_inj, dpc, 0.,
-                                         0);
+  hfp2d::MultiFracsSolution completeSol_n(fracSol_n, wellSol_n, well_influxes,
+                                          well_sources, 0, dpc, 0.);
 
+  // time step loop !!!
 
   return 0;
 }
 
-////////////////////////////////////////////////////////////////////////////////
-hfp2d::MultiFracsSolution wellHFsSolver(hfp2d::MultiFracsSolution &Sol_n,
-                                        double dt, hfp2d::WellMesh &w_mesh,
-                                        hfp2d::WellInjection &w_inj,
-                                        hfp2d::SimulationParameters &well_solver,
-                                        hfp2d::SimulationParameters &frac_solver,
-                                        il::io_t,
-                                        il::Array2D<double> &K) {
+// todo : add Sources in the Solution class ?
+// todo : add wellbore mesh in well solution class ? for simplicity ?
+// such that we have simpler api
 
+////////////////////////////////////////////////////////////////////////////////
+hfp2d::MultiFracsSolution wellHFsSolver(
+    hfp2d::MultiFracsSolution &Sol_n, double dt, hfp2d::WellMesh &w_mesh,
+    hfp2d::WellInjection &w_inj, hfp2d::Fluid &fracfluid,
+    hfp2d::SolidProperties &rock, hfp2d::SimulationParameters &frac_solver_p,
+    hfp2d::SimulationParameters &well_solver_p, double &frac_heigth, bool mute,
+    il::io_t, il::Array2D<double> &K) {
   // We solve here the coupling between wellbore flow, fluid partitioning
   // between fractures
   // and hydraulic fracture propagation over one time-step.
+  //
+  // we start with rates at the previous time-step for the trial solution
+  il::int_t nclusters = Sol_n.fracFluxes().size();
+
+  hfp2d::Solution fracSol_n = Sol_n.fracSolution();
+  hfp2d::WellSolution wellSol_n = Sol_n.wellSolution();
+
+  hfp2d::Solution fracSol_k = Sol_n.fracSolution();
+  hfp2d::WellSolution wellSol_k = Sol_n.wellSolution();
+
+  hfp2d::Sources frac_sources_k = Sol_n.fracSources();
+  hfp2d::Sources well_sources_k = Sol_n.wellSources();
+
+  il::Array<il::int_t> frac_inj_loc = frac_sources_k.SourceElt();
+  il::Array<il::int_t> well_out_loc = well_sources_k.SourceElt();
+
+  il::Array<double> Q_in_k = Sol_n.fracFluxes();
+  il::Array<double> Q_old = Q_in_k;
+  il::Array<double> pc_w_k{nclusters, 0.}, pc_f_k{nclusters, 0.};
+  il::Array<double> dpc_k{nclusters, 0.}, errQ{nclusters, 0.};
 
   // Fixed point iteration scheme
+  //
+  //
+  double rela_flux = 0.3;  // pass as arguments ?
+  double err = 1.;
+  double Tolerance = 1.e-3;
+  int k = 0;
+  int kmax = 100;
+  // note if all the fluxes are zero do not solve for frac flux, just the
+  // wellbore
+  while ((k < kmax) && (err > Tolerance)) {
+    k++;
 
+    frac_sources_k.setInjectionRates(Q_in_k);
+    well_sources_k.setInjectionRates(Q_in_k);
 
+    // solve for wellbore flow
+    wellSol_k = hfp2d::wellFlowSolverP0(wellSol_n, w_mesh, w_inj,
+                                        well_sources_k, ffChurchill, dt,
+                                        well_solver_p, true, fracfluid);
 
+    // solve for fracture propagation with given flux.
+    if (il::norm(Q_in_k, il::Norm::L2) != 0.) {
+      fracSol_k = hfp2d::FractureFrontLoop(fracSol_n, fracfluid, rock,
+                                           frac_sources_k, frac_heigth, dt,
+                                           frac_solver_p, true, il::io_t(), K);
+    }
+    // would need to have some checks for convergences of the solvers.....
 
-  //  hfp2d::MultiFracsSolution newSol();
-  return Sol_n;
+    // extract pressure at clusters
+    // wellbore side
+    pc_w_k = wellSol_k.pressureAtElts(well_out_loc);
 
+    // fracture side and compute new flow rates.
+    for (il::int_t i = 0; i < nclusters; i++) {
+      pc_f_k[i] = fracSol_k.pressure(frac_inj_loc[i]);
+      dpc_k[i] = pc_w_k[i] - pc_f_k[i];
+      // compute new flow rates.... the best would be to root find here ?
+
+      if (Q_in_k[i] == 0.) {  // to ensure we don t have infinite flux.
+        if (w_inj.coefTort(i) != 0.) {
+          Q_in_k[i] = std::pow(std::abs(dpc_k[i]), 1. / w_inj.betaTort(i)) /
+                      w_inj.coefTort(i);
+        } else {
+          Q_in_k[i] = std::sqrt(std::abs(dpc_k[i])) /
+                      w_inj.coefPerf(i);  // ok provided coefPerf is non-zero.
+        }
+      }
+
+      Q_in_k[i] = dpc_k[i] / (w_inj.coefPerf(i) * Q_in_k[i] +
+                              w_inj.coefTort(i) *
+                                  std::pow(Q_in_k[i], w_inj.betaTort(i) - 1.0));
+    }
+    // underelaxation of the flux....
+    il::blas((1. - rela_flux), Q_old, rela_flux, il::io, Q_in_k);
+    // compute successive relative difference, L2 norm
+
+    for (il::int_t i = 0; i < nclusters; i++) {
+      errQ[i] = abs((Q_in_k[i] - Q_old[i]) / Q_in_k[i]);
+    }
+    Q_old = Q_in_k;
+
+    err = il::norm(errQ, il::Norm::L2);
+    if (!mute) {
+      std::cout << "Its " << k << " new fluxes: ";
+      for (il::int_t i = 0; i < nclusters; i++) {
+        std::cout << i << " : " << Q_in_k[i] << " ";
+      }
+      std::cout << "error: " << err << "\n";
+    }
+  }
+
+  if (!mute) {
+    if (err < Tolerance) {
+      std::cout << "Well - HFs  converged after " << k << " Its\n";
+    } else
+      std::cout << "Well - HFs NOT converged after " << k
+                << " Its, error is: " << err << "\n";
+  }
+
+  hfp2d::MultiFracsSolution newSol(fracSol_k, wellSol_k, frac_sources_k,
+                                   well_sources_k, k, dpc_k, err);
+
+  return newSol;
 }
+
 }

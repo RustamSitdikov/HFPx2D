@@ -33,10 +33,9 @@ class WellInjection {
   // outflux (HFs) locations on the wellbore
   // see "source_location_" for the corresponding
   // locations on the HF wellMesh
-  il::Array<il::int_t> hf_location_;
-
+//  il::Array<il::int_t> hf_location_;
   // rate of outflow in hydraulic fractures.
-  il::Array<double> hf_rates_;
+//   il::Array<double> hf_rates_;
 
   // nonlinear HF entry friction model parameters
   // (see Lecampion & Desroches 2015)
@@ -55,22 +54,23 @@ class WellInjection {
   WellInjection(){};
 
   // normal constructor
-  WellInjection(double well_inj_rate, il::Array<il::int_t> &hf_location,
+  WellInjection(double well_inj_rate,
+                //il::Array<il::int_t> &hf_location,
                 //il::int_t plug_location,
-                il::Array<double> &hf_vol_rate,
+               // il::Array<double> &hf_vol_rate,
                 //il::Array<double> &hf_p_drop,
                 il::Array<double> &coef_perf,
                 il::Array<double> &coef_tort, il::Array<double> &beta_tort) {
     well_inj_rate_ = well_inj_rate;
     //plug_location_ = plug_location;
 
-    IL_EXPECT_FAST(hf_location.size()==hf_vol_rate.size());
-    IL_EXPECT_FAST(coef_perf.size()==hf_location.size());
-    IL_EXPECT_FAST(coef_tort.size()==hf_location.size());
-    IL_EXPECT_FAST(beta_tort.size()==hf_location.size());
+ //   IL_EXPECT_FAST(hf_location.size()==hf_vol_rate.size());
+    IL_EXPECT_FAST(coef_perf.size()==coef_tort.size());
+    IL_EXPECT_FAST(coef_tort.size()==beta_tort.size());
+    IL_EXPECT_FAST(beta_tort.size()==coef_perf.size());
 
-    hf_location_ = hf_location;
-    hf_rates_ = hf_vol_rate;
+ //   hf_location_ = hf_location;
+  //  hf_rates_ = hf_vol_rate;
    // hf_p_drop_ = hf_p_drop;
 
     coef_perf_ = coef_perf;
@@ -83,13 +83,13 @@ class WellInjection {
   ////////////////////////////////////////////////////////////////////////
 
   double wellInjRate() { return well_inj_rate_; }
-  il::int_t numberOfHFs() { return hf_location_.size(); }
+  //il::int_t numberOfHFs() { return hf_location_.size(); }
 
-  il::Array<il::int_t> hfLocation() { return hf_location_; }
-  il::int_t hfLocation(il::int_t nf) { return hf_location_[nf]; }
-
-  il::Array<double> hfRate() { return hf_rates_; }
-  double hfRate(il::int_t nf) { return hf_rates_[nf]; }
+//  il::Array<il::int_t> hfLocation() { return hf_location_; }
+//  il::int_t hfLocation(il::int_t nf) { return hf_location_[nf]; }
+//
+//  il::Array<double> hfRate() { return hf_rates_; }
+//  double hfRate(il::int_t nf) { return hf_rates_[nf]; }
 
  // inline il::Array<double> hfPressDrop() { return hf_p_drop_; }
  // inline double hfPressDrop(il::int_t nf) { return hf_p_drop_[nf]; }
@@ -112,10 +112,10 @@ class WellInjection {
   void setWellInjRate(double well_inj_rate) { well_inj_rate_ = well_inj_rate; };
 
   // setting volume rate(s) into the HF(s)
-  void setHFVolRate(il::Array<double> &newVolRate);
+ // void setHFVolRate(il::Array<double> &newVolRate);
 
   // return the residue norm (error)
-  void setHFVolRate(il::Array<double> &newVolRate, il::io_t, double &err);
+//  void setHFVolRate(il::Array<double> &newVolRate, il::io_t, double &err);
 
   ////////////////////////////////////////////////////////////////////////
   //        methods

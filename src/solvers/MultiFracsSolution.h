@@ -29,20 +29,26 @@ class MultiFracsSolution {
 
   hfp2d::Sources frac_influxes_ ;
 
+  hfp2d::Sources well_outfluxes_ ;
+
   il::Array<double> dp_entries_ ;  // pressure drop for each cluster.
 
   il::int_t Its_well_frac_coupling_=0;
 
-  double err_fluxes_=0.;
+  double err_fluxes_=0.;   // shall we also have the residuals here ?
 
  public:
 
   //////////////////////////////////////////////////////////////////////////////
   //  CONSTRUCTORS
   //////////////////////////////////////////////////////////////////////////////
-  MultiFracsSolution(Solution &frac_s,WellSolution &well_s,
-                     Sources &rates_s,il::Array<double> &dp,double err_f,il::int_t its) {
-
+  MultiFracsSolution(hfp2d::Solution &frac_s,
+                     hfp2d::WellSolution &well_s,
+                     hfp2d::Sources &frac_influxes,
+                     hfp2d::Sources &well_outfluxes,
+                     il::int_t its,
+                     il::Array<double> &dp,
+                     double err_f) {
 
     fracs_solution_ = frac_s;
     well_solution_ = well_s;
@@ -51,12 +57,18 @@ class MultiFracsSolution {
 
     time_=fracs_solution_.time();
 
+    IL_EXPECT_FAST(frac_influxes.SourceElt().size()==well_outfluxes.SourceElt().size());
+    frac_influxes_ = frac_influxes;
+    well_outfluxes_ =  well_outfluxes;
 
-    frac_influxes_ = rates_s;
-// check consistency between well outflow and frac inflow here ?
-
+    il::int_t  nc = frac_influxes.SourceElt().size();
+    for (il::int_t i=0;i<nc;i++){
+      IL_EXPECT_FAST(frac_influxes.InjectionRate(i)==well_outfluxes.InjectionRate(i));
+    }
 
     IL_EXPECT_FAST(dp.size()==frac_influxes_.InjectionRate().size());
+
+
     dp_entries_=dp;
 
     err_fluxes_=err_f;
@@ -69,17 +81,19 @@ class MultiFracsSolution {
   ////////////////////////////////////////////////////////////////////////
 
   hfp2d::Sources fracSources() const { return  frac_influxes_;} ;
+  hfp2d::Sources wellSources() const { return  well_outfluxes_;} ;
 
   hfp2d::Solution fracSolution() const {return fracs_solution_;};
 
   hfp2d::WellSolution wellSolution() const {return well_solution_;}
 
-  il::Array<il::int_t> wellClusterElt() const { return well_solution_.clusterElts();} ;
+  il::Array<il::int_t> wellClusterElt() const { return well_outfluxes_.SourceElt();} ;
 
   il::Array<il::int_t> fracInletElts() const { return frac_influxes_.SourceElt();} ;
 
   il::Array<double> fracFluxes() const { return frac_influxes_.InjectionRate();} ;
 
+  il::Array<double> clusterFluxes() const { return well_outfluxes_.InjectionRate();} ;
 
   //////////////////////////////////////////////////////////////////////////////
   //  METHODS
