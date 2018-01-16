@@ -27,9 +27,6 @@ hfp2d::Solution FractureFrontLoop(
     double timestep, hfp2d::SimulationParameters &simulParams, bool mute);
 
 
-int MultipleFracsPropagation();
-
-
 }
 
 

@@ -16,9 +16,10 @@
 //#include "src/core_dev/OldSolutionClass.h"
 //#include "src/input/loadArguments.h"
 
-#include "src/solvers/DevLHFMSolver.h"
 
+#include <src/solvers/DevLHFMSolver.h>
 #include <src/wellbore/SimpleWellFlowSolverBenchmark.h>
+#include <src/solvers/MultiFracsSolver.h>
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -105,12 +106,12 @@
 
 //////////////////////// Previous code snippet /////////////////////////////////
 
-#include <il/Array.h>
-#include <src/core/Mesh.h>
+//#include <il/Array.h>
+//#include <src/core/Mesh.h>
 
-#include <src/input/json/loadJsonMesh.h>
-
-using json = nlohmann::json;
+//#include <src/input/json/loadJsonMesh.h>
+//
+//using json = nlohmann::json;
 
 int main() {
   //  std::cout << "\n\n ----- Simple Griffith crack examples ----- \n\n" <<

@@ -12,6 +12,7 @@
 #include <src/wellbore/SimpleWellFlowSolverBenchmark.h>
 #include <src/wellbore/WellFlowP0.h>
 #include <src/wellbore/LoadInputMultistage.h>
+
 #include <src/util/json.hpp>
 
 namespace hfp2d {
@@ -53,7 +54,7 @@ int WellboreFlowBenchmark() {
   double dt = 0.1;
 
   // create initial solution
-  hfp2d::WellSolution iniSol(the_well, w_inj, water, dt);
+  hfp2d::WellSolution iniSol(the_well, w_inj, water);
   hfp2d::SimulationParameters WellFlowParam;
 
   WellFlowParam.ehl_relaxation = 1.0;
@@ -63,7 +64,7 @@ int WellboreFlowBenchmark() {
 
   hfp2d::WellSolution SolN = iniSol;
 
-  hfp2d::WellSolution SolN_1 = wellFlowSolverP0(
+  WellSolution SolN_1 = wellFlowSolverP0(
       SolN, the_well, w_inj, water, ffChurchill, dt, WellFlowParam, false);
 
   std::string resfilename = "../Debug/WellTest_results.json";

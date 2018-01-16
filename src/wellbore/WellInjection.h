@@ -35,14 +35,8 @@ class WellInjection {
   // locations on the HF wellMesh
   il::Array<il::int_t> hf_location_;
 
-  // plug location (zero-flux boundary condition)  -> location of the element where plug is ?
-//  il::int_t plug_location_;
-
   // rate of outflow in hydraulic fractures.
   il::Array<double> hf_rates_;
-
-  // pressure drops between HFs and the wellbore
- // il::Array<double> hf_p_drop_;
 
   // nonlinear HF entry friction model parameters
   // (see Lecampion & Desroches 2015)
@@ -76,7 +70,6 @@ class WellInjection {
     IL_EXPECT_FAST(beta_tort.size()==hf_location.size());
 
     hf_location_ = hf_location;
-
     hf_rates_ = hf_vol_rate;
    // hf_p_drop_ = hf_p_drop;
 
@@ -89,27 +82,27 @@ class WellInjection {
   //        public interfaces
   ////////////////////////////////////////////////////////////////////////
 
-  inline double wellInjRate() { return well_inj_rate_; }
-  inline il::int_t numberOfHFs() { return hf_location_.size(); }
+  double wellInjRate() { return well_inj_rate_; }
+  il::int_t numberOfHFs() { return hf_location_.size(); }
 
-  inline il::Array<il::int_t> hfLocation() { return hf_location_; }
-  inline il::int_t hfLocation(il::int_t nf) { return hf_location_[nf]; }
+  il::Array<il::int_t> hfLocation() { return hf_location_; }
+  il::int_t hfLocation(il::int_t nf) { return hf_location_[nf]; }
 
-  inline il::Array<double> hfVolRate() { return hf_rates_; }
-  inline double hfVolRate(il::int_t nf) { return hf_rates_[nf]; }
+  il::Array<double> hfRate() { return hf_rates_; }
+  double hfRate(il::int_t nf) { return hf_rates_[nf]; }
 
  // inline il::Array<double> hfPressDrop() { return hf_p_drop_; }
  // inline double hfPressDrop(il::int_t nf) { return hf_p_drop_[nf]; }
 
   //inline il::int_t plugLocation() { return plug_location_; }
 
-  inline il::Array<double> coefPerf() { return coef_perf_; }
-  inline double coefPerf(il::int_t nf) { return coef_perf_[nf]; }
-  inline il::Array<double> coefTort() { return coef_tort_; }
+  il::Array<double> coefPerf() { return coef_perf_; }
+  double coefPerf(il::int_t nf) { return coef_perf_[nf]; }
+  il::Array<double> coefTort() { return coef_tort_; }
 
-  inline double coefTort(il::int_t nf) { return coef_tort_[nf]; }
-  inline il::Array<double> betaTort() { return beta_tort_; }
-  inline double betaTort(il::int_t nf) { return beta_tort_[nf]; }
+  double coefTort(il::int_t nf) { return coef_tort_[nf]; }
+  il::Array<double> betaTort() { return beta_tort_; }
+  double betaTort(il::int_t nf) { return beta_tort_[nf]; }
 
   ////////////////////////////////////////////////////////////////////////
   //        set functions

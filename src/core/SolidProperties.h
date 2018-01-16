@@ -16,6 +16,7 @@
 namespace hfp2d {
 
 class SolidProperties {
+
  private:
 
   hfp2d::ElasticProperties elastic_properties_;  // elastic properties object
@@ -36,42 +37,37 @@ class SolidProperties {
                                            //  number of differents material in
                                            //  the matid vector of the wellMesh)
 
-
  public:
-
   // constructor
 
   SolidProperties(hfp2d::ElasticProperties &elas,
-                 const il::Array<double> &toughness,
-                 const il::Array<double> &wh_0, const il::Array<double> &Cl){
-
+                  const il::Array<double> &toughness,
+                  const il::Array<double> &wh_0, const il::Array<double> &Cl) {
     elastic_properties_ = elas;
     fracture_toughness_ = toughness;
     wh_o_ = wh_0;
     carter_leakoff_coef_ = Cl;
-
   };
 
   /////////////////////////////////////////////////////////////////////////////
   // get functions
 
   hfp2d::ElasticProperties ElasticProperties() const {
-      return elastic_properties_;};
+    return elastic_properties_;
+  };
 
-  il::Array<double> Wh_O() const {return wh_o_;};
+  il::Array<double> Wh_O() const { return wh_o_; };
 
-  double Wh_O(il::int_t k) const { return wh_o_[k];}
+  double Wh_O(il::int_t k) const { return wh_o_[k]; }
 
-  il::Array<double> KIc() const {return fracture_toughness_;};
+  il::Array<double> KIc() const { return fracture_toughness_; };
 
-  double KIc(il::int_t k) const { return fracture_toughness_[k];}
+  double KIc(il::int_t k) const { return fracture_toughness_[k]; }
 
-  il::Array<double> Cl() const {return carter_leakoff_coef_;};
+  il::Array<double> Cl() const { return carter_leakoff_coef_; };
 
-  double Cl(il::int_t k) const { return carter_leakoff_coef_[k];}
-
+  double Cl(il::int_t k) const { return carter_leakoff_coef_[k]; }
 };
-
 }
 
 #endif  // HFPX2DUNITTEST_ROCKPROPERTIES_H

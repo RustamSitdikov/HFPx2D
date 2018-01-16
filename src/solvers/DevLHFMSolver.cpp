@@ -6,6 +6,7 @@
 // Geo-Energy Laboratory, 2016-2017.  All rights reserved.
 // See the LICENSE.TXT file for more details.
 //
+#include <fstream>
 
 #include <il/Array.h>
 #include <il/Array2D.h>
@@ -16,18 +17,12 @@
 #include <src/core/Fluid.h>
 #include <src/core/Mesh.h>
 #include <src/core/SimulationParameters.h>
-
 #include <src/ehlsolvers/ReynoldsP0.h>
 #include <src/elasticity/AssemblyDDM.h>
 #include <src/elasticity/Simplified3D.h>
-#include <src/solvers/DevLHFMSolver.h>
 #include <src/tip/tipAsymptote.h>
 
-#include <src/wellbore/LoadInputMultistage.h>
-#include <src/wellbore/WellFlowP0.h>
-#include <src/wellbore/WellInjection.h>
-#include <src/wellbore/WellMesh.h>
-#include <src/wellbore/WellSolution.h>
+#include <src/solvers/DevLHFMSolver.h>
 
 namespace hfp2d {
 
@@ -303,151 +298,6 @@ int TwoParallelHFs(int nelts, double dist) {
   return 0;
 };
 
-////////////////////////////////////////////////////////////////////////////////
-using json = nlohmann::json;
-// write a routine - for well + n fracs benchmark
-// with json inputs.
-
-int MultipleFracsPropagation() {
-  // routine for the propagation of multiple Heigth contained HFs from a
-  // horizontal wellbore
-  // DEBUGGING
-
-  //
-
-  std::string wellfilename = "../Debug/WellTest.json";
-
-  std::ifstream input(wellfilename);  // ?
-  json j;
-  input >> j;
-
-  if ((j.count("Wellbore mesh") != 1)) {
-    std::cout << "No wellbore mesh in json input file ";
-    il::abort();
-  }
-  json j_wmesh = j["Wellbore mesh"];
-
-  if ((j.count("Model parameters") != 1)) {
-    std::cout << "No parameters in input file ";
-    il::abort();
-  }
-  json j_params = j["Model parameters"];
-
-  if ((j.count("Simulation parameters") != 1)) {
-    std::cout << "No Simulation parameters in input file ";
-    il::abort();
-  }
-  json j_simul = j["Simulation parameters"];
-
-  // start loading in our objects.
-  hfp2d::WellMesh the_well = loadWellMesh(j_wmesh);
-  hfp2d::WellInjection w_inj = loadWellParameters(j_params, the_well);
-
-  if (j_params.count("Fluid properties") != 1) {
-    std::cout << "No fluid properties input in  model parameters";
-    il::abort();
-  }
-
-  json j_fluid = j_params["Fluid properties"];
-  hfp2d::Fluid water = loadFluidProperties(j_fluid);
-
-  if (j_params.count("Rock properties") != 1) {
-    std::cout << "No rock properties input in  model parameters";
-    il::abort();
-  }
-  json j_rock = j_params["Rock properties"];
-  hfp2d::SolidProperties rock = loadSolidProperties(j_rock);
-
-  // ----------
-  // Create Initial fracture mesh
-  // fracture are always assume to start at 90 from the well axis for now.
-  //
-  // -> need to have a vector of initial length of fracs
-  //  and initial number of elements per frac.
-
-  long nf = j_params.count("Initial fracture length");
-  if (j_params.count("Initial fracture length") != 1) {
-    std::cout << "No initial frac length in input file ";
-    il::abort();
-  }
-
-  il::int_t nfracs = j_params["Initial fracture length"].size();
-  IL_EXPECT_FAST(
-      nfracs ==
-      w_inj.coefPerf().size());  // check consistency with number of perf.
-  IL_EXPECT_FAST(
-      nfracs ==
-      w_inj.hfLocation().size());  // check consistency with number of perf.
-
-  il::int_t nelts = 7;
-  if (j_simul.count("Initial number of elements per fracture") == 1) {
-    nelts = j_simul["Initial number of elements per fracture"];
-    if (!(nelts % 2)) {
-      nelts = nelts + 1;
-    }
-  }
-
-  il::Array2D<double> xy{(nelts + 1) * nfracs, 2, 0.};
-  il::Array2D<il::int_t> conn{nelts * nfracs, 2, 0};
-
-  double well_az =
-      the_well.azimuth();  // is stored in degree not radians w.r. to y !
-  // with respect to true North which is by definition the y-axis
-  // double frac_az=the_well.azimuth()*(il::pi)/180.-il::pi/2.;
-
-  double frac_az_x = the_well.azimuth() * (il::pi) / 180.;
-  double cos_az = cos(frac_az_x);
-  double sin_az = sin(frac_az_x);
-
-  for (il::int_t f = 0; f < nfracs; f++) {
-    double xo = the_well.coordinates(w_inj.hfLocation(f), 0);
-    double yo = the_well.coordinates(w_inj.hfLocation(f), 1);
-    double lo = j_params["Initial fracture length"][f];
-    double h = 2 * lo / nelts;
-    for (il::int_t i = (nelts + 1) * f; i < (nelts + 1) * (f + 1); i++) {
-      xy(i, 0) = xo + ((i - (nelts + 1) * f) * h - lo) * cos_az;
-      xy(i, 1) = yo + ((i - (nelts + 1) * f) * h - lo) * sin_az;
-    }
-    for (il::int_t i = nelts * f; i < (nelts) * (f + 1); i++) {
-      conn(i, 0) = i + f;
-      conn(i, 1) = i + 1 + f;
-    }
-  }
-
-  hfp2d::Mesh fracsMesh(xy, conn, 0);
-
-  // in-situ on current mesh .....
-  //
-
-
-  // Simulation Parameters....
-  // default
-
-  hfp2d::SimulationParameters SimulFracParam;
-  SimulFracParam.frac_front_max_its = 40;
-  SimulFracParam.frac_front_tolerance = 1.e-3;
-  SimulFracParam.ehl_relaxation = 0.95;
-  SimulFracParam.ehl_tolerance = 1.e-6;
-
-  hfp2d::SimulationParameters WellFlowParam;
-  WellFlowParam.ehl_relaxation = 1.0;
-  WellFlowParam.ehl_tolerance = 1.e-6;
-
-  // Create Initial state.....
-
-
-
-
-  return 0;
-
-
-
-}
-
-// write a routine for the solution of the well-flow / frac prop over a time
-// step
-//
-//
 
 ////////////////////////////////////////////////////////////////////////////////
 // Fracture Front Loop - solve for one time step from tn to tn+timestep
@@ -782,9 +632,7 @@ hfp2d::Solution FractureFrontLoop(
   // update last pieces of the solution object...
 
   Soln_p_1_k.setRibbonDistances(s_o_new);  //
-
   Soln_p_1_k.setTipsVelocity(v_tip_k);
-
   Soln_p_1_k.setTipsLocation(tip_Loc_k);  //
 
   Soln_p_1_k.setErrorFront(errorF);

@@ -72,8 +72,6 @@ set(SOURCE_FILES
 #        src/input/Sources/loadSources.cpp
 #        src/input/Sources/loadSources.h
         src/ehlsolvers/ReynoldsP0.cpp src/ehlsolvers/ReynoldsP0.h
-        src/solvers/DevLHFMSolver.cpp src/solvers/DevLHFMSolver.h
-
         src/tip/tipAsymptote.cpp src/tip/tipAsymptote.h
         src/util/json.hpp
         src/input/json/loadJsonMesh.cpp src/input/json/loadJsonMesh.h
@@ -84,7 +82,9 @@ set(SOURCE_FILES
         src/wellbore/SimpleWellFlowSolverBenchmark.cpp
         src/wellbore/SimpleWellFlowSolverBenchmark.h
         src/solvers/MultiFracsSolution.h
-        src/wellbore/LoadInputMultistage.cpp src/wellbore/LoadInputMultistage.h)
+        src/wellbore/LoadInputMultistage.cpp src/wellbore/LoadInputMultistage.h
+        src/solvers/DevLHFMSolver.cpp src/solvers/DevLHFMSolver.h
+        src/solvers/MultiFracsSolver.cpp src/solvers/MultiFracsSolver.h)
 
 if(APPLE)
 link_directories($ENV{MKLROOT}/lib $ENV{MKLROOT}/../compiler/lib )

@@ -17,6 +17,7 @@
 
 #include <src/core/DomainMesh.h>
 #include <src/core/SegmentData.h>
+#include <src/core/Mesh.h>
 
 
 namespace hfp2d {
@@ -149,7 +150,37 @@ class InSituConditions {
     return traction;
   };
 
-  // todo :
+// populate all traction from an uniform stress field......
+  il::Array<double> uniformAllInSituTractions(hfp2d::Mesh &mesh){
+
+    il::StaticArray<double, 2> aux;
+
+    il::Array<double> all_tractions{mesh.numberDDDofs(),0.};
+
+    IL_EXPECT_FAST(mesh.numberDDDofs()==mesh.numberDDDofsPerElt()*mesh.numberOfElts());
+
+//    il::int_t p=mesh.interpolationOrder();
+    il::int_t dd_e=mesh.numberDDDofsPerElt();
+    for (il::int_t e=0;e<mesh.numberOfElts();e++){
+      hfp2d::SegmentData seg=mesh.getElementData(e);
+      aux=uniformInsituTractions(seg);
+      all_tractions[e*dd_e]=aux[0];
+      all_tractions[e*dd_e+1]=aux[1];
+      if ((mesh.interpolationOrder()==1)) {
+        all_tractions[e*dd_e+2]=aux[0];
+        all_tractions[e*dd_e+3]=aux[1];
+      }
+    }
+
+    return all_tractions;
+
+  }
+
+
+  // todo : more general cases of piece-wise gradient stress over the domain mesh.
+
+
+
 };
 }
 

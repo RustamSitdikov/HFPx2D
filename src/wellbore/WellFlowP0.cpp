@@ -22,8 +22,8 @@
 
 #include <src/core/Mesh.h>
 #include <src/wellbore/WellFlowP0.h>
-#include <src/wellbore/WellMesh.h>
-#include <src/wellbore/WellSolution.h>
+//#include <src/wellbore/WellMesh.h>
+//#include <src/wellbore/WellSolution.h>
 
 // todo: move this namespace to Utilities.h & .cpp
 namespace imf {
@@ -519,7 +519,7 @@ double ffMDRmixed3(IFParametersHD &params) {
 ////////////////////////////////////////////////////////////////////////////////
 // nodal (edge) conductivities based on Darcy friction factor Ff(Re_num, rough)
 il::Array<double> edgeConductivitiesP0(
-    WellMesh &w_mesh, il::Array<double> &velocity, Fluid &fluid,
+    hfp2d::WellMesh &w_mesh, il::Array<double> &velocity, hfp2d::Fluid &fluid,
     double (*ffFunction)(IFParametersHD &params)) {
   // input should be an array of integers (il::int_t),
   // with rows for inner edges, each column for the 2 adjacent elements,
@@ -575,7 +575,7 @@ il::Array<double> edgeConductivitiesP0(
 // Finite Volume (Finite Difference) Matrix L built from edge conductivities
 // should return a sparse matrix....
 // for now, for quick debug assemble a dense one
-il::Array2D<double> buildWellFiniteDiffP0(WellMesh &w_mesh,
+il::Array2D<double> buildWellFiniteDiffP0(hfp2d::WellMesh &w_mesh,
                                           il::Array<double> &edg_cond,
                                           double coef) {
   // Inputs:
@@ -614,7 +614,7 @@ il::Array2D<double> buildWellFiniteDiffP0(WellMesh &w_mesh,
 ////////////////////////////////////////////////////////////////////////////////
 // function for current cell (element) volume -> returning a vector
 il::Array<double> wellVolumeCompressibilityP0(
-    WellMesh &mesh, Fluid &fluid, il::Array<double> &hydraulic_diameter) {
+    hfp2d::WellMesh &mesh, hfp2d::Fluid &fluid, il::Array<double> &hydraulic_diameter) {
   il::Array<double> volume{mesh.numberOfElts(), 0.};
   // Area \times c_f \times h_i
   for (il::int_t e = 0; e < mesh.numberOfElts(); e++) {
@@ -626,12 +626,12 @@ il::Array<double> wellVolumeCompressibilityP0(
 
 ////////////////////////////////////////////////////////////////////////////////
 // Solver of the well Hydrodynamics over a time-step with given in and out flow
-WellSolution wellFlowSolverP0(hfp2d::WellSolution &well_soln,
+hfp2d::WellSolution wellFlowSolverP0(hfp2d::WellSolution &well_soln,
                               hfp2d::WellMesh &w_mesh,
-                              hfp2d::WellInjection &w_inj, Fluid &fluid,
+                              hfp2d::WellInjection &w_inj, hfp2d::Fluid &fluid,
                               double (*ffFunction)(IFParametersHD &params),
                               double timestep,
-                              SimulationParameters &simul_params, bool mute) {
+                              hfp2d::SimulationParameters &simul_params, bool mute) {
   // Solver for wellbore Hydrodynamics over a time step.
   // (solves for fluid pressure over a time step)
   // PICARD / Fixed Pt Iterations SCHEME
@@ -744,7 +744,7 @@ WellSolution wellFlowSolverP0(hfp2d::WellSolution &well_soln,
       //      // check if the HF is above the plug
       //      if (w_inj.hfLocation(i) <= plug_location_e) {
       // add outflow to the RHS
-      vector_RS[w_inj.hfLocation(i)] -= w_inj.hfVolRate(i) * timestep;
+      vector_RS[w_inj.hfLocation(i)] -= w_inj.hfRate(i) * timestep;
       //      }
     }
     // plug at an edge (node) -> zero flux through the edge
@@ -849,9 +849,14 @@ WellSolution wellFlowSolverP0(hfp2d::WellSolution &well_soln,
             fluid.fluidViscosity();
   }
 
+
+  auto  w_inj_loc = w_inj.hfLocation();
+  auto w_inj_rate=w_inj.hfRate();
+
   return hfp2d::WellSolution(well_soln.time() + timestep, timestep, p_hs, p_n,
                              v_k, Re, k,il::norm(err_Dp, il::Norm::L2),
-                             il::norm(err_Dv, il::Norm::L2));
+                             il::norm(err_Dv, il::Norm::L2),
+                             w_inj_loc,w_inj_rate);
 
 }
 

@@ -91,7 +91,7 @@ class Solution {
   // 3. complete construction from an input file (i.e. needed for a restart
   // simulation)
 
-  // for now, we implement #1 ans #2
+  // for now, we implement #1 and #2
   Solution(){};
 
   // todo : do also the cae where current stress are also stored....
@@ -177,60 +177,60 @@ class Solution {
   };
 
   // some set functions
-  inline void setRibbonDistances(const il::Array<double> &srt) {
+   void setRibbonDistances(const il::Array<double> &srt) {
     ribbon_tips_s_ = srt;
   };
 
-  inline void setTipsLocation(const il::Array2D<double> &tips_xy) {
+   void setTipsLocation(const il::Array2D<double> &tips_xy) {
     tipsLocation_ = tips_xy;
   };
 
-  inline void setErrorFront(const double errF) { err_front_ = errF; };
+   void setErrorFront(const double errF) { err_front_ = errF; };
 
-  inline void setItsFront(const il::int_t its) { frontIts_ = its; };
+   void setItsFront(const il::int_t its) { frontIts_ = its; };
 
-  inline void setTipsVelocity(const il::Array<double> &tips_vel) {
+   void setTipsVelocity(const il::Array<double> &tips_vel) {
     tips_velocity_ = tips_vel;
   };
 
-  inline void setTimeStep(const double dt) { timestep_ = dt; };
+   void setTimeStep(const double dt) { timestep_ = dt; };
 
-  inline void setActiveElts(const il::Array<il::int_t> &act_set_elmnts) {
+   void setActiveElts(const il::Array<il::int_t> &act_set_elmnts) {
     active_set_elements_ = act_set_elmnts;
   }
 
   /////////////////////////////////////////////////////////////////////////////
   // get functions
 
-  inline il::Array<double> openingDD() const { return openingDD_; };
-  inline il::Array<double> shearDD() const { return shearDD_; };
-  inline il::Array<double> pressure() const { return pressure_; };
-  inline il::Array<double> sigma0() const { return sigma_n_o_; };
-  inline il::Array<double> tau0() const { return tau_o_; };
+   il::Array<double> openingDD() const { return openingDD_; };
+   il::Array<double> shearDD() const { return shearDD_; };
+   il::Array<double> pressure() const { return pressure_; };
+   il::Array<double> sigma0() const { return sigma_n_o_; };
+   il::Array<double> tau0() const { return tau_o_; };
 
-  inline il::Array<il::int_t> activeElts() const {
+   il::Array<il::int_t> activeElts() const {
     return active_set_elements_;
   };
 
-  inline il::Array2D<double> tipsLocation() const { return tipsLocation_; };
-  inline il::Array<double> ribbonsDistance() const { return ribbon_tips_s_; };
-  inline il::Array<double> tipsVelocity() const { return tips_velocity_; };
+   il::Array2D<double> tipsLocation() const { return tipsLocation_; };
+   il::Array<double> ribbonsDistance() const { return ribbon_tips_s_; };
+   il::Array<double> tipsVelocity() const { return tips_velocity_; };
 
-  inline hfp2d::Mesh currentMesh() const { return currentmesh_; };
+   hfp2d::Mesh currentMesh() const { return currentmesh_; };
 
-  inline double time() const { return time_; };
-  inline double timestep() const { return timestep_; }
+   double time() const { return time_; };
+   double timestep() const { return timestep_; }
 
-  inline double errFront() const { return err_front_; }
-  inline double errOpening() const { return err_openingDD_; }
-  inline double errShear() const { return err_shearDD_; }
-  inline double errPressure() const { return err_P_; }
+   double errFront() const { return err_front_; }
+   double errOpening() const { return err_openingDD_; }
+   double errShear() const { return err_shearDD_; }
+   double errPressure() const { return err_P_; }
 
-  inline il::int_t frontIts() const { return frontIts_; }
-  inline il::int_t ehlIts() const { return ehlIts_; }
+   il::int_t frontIts() const { return frontIts_; }
+   il::int_t ehlIts() const { return ehlIts_; }
 
   //////////////////////////////////////////////////////////////////////////////
-  // METHODS :
+  //  METHODS :
   //////////////////////////////////////////////////////////////////////////////
 
   // write solution to file  -> json format

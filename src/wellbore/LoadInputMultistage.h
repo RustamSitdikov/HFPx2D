@@ -9,10 +9,13 @@
 #ifndef HFPX2D_LOADINPUTMULTISTAGE_H
 #define HFPX2D_LOADINPUTMULTISTAGE_H
 
+
 #include <src/core/SolidProperties.h>
 #include <src/core/Fluid.h>
+#include <src/core/InSituConditions.h>
 #include <src/wellbore/WellMesh.h>
 #include <src/wellbore/WellInjection.h>
+
 #include <src/util/json.hpp>
 
 namespace hfp2d {
@@ -28,6 +31,7 @@ hfp2d::Fluid loadFluidProperties(json &j_fluid);
 
 hfp2d::SolidProperties loadSolidProperties(json &j_rock);
 
+hfp2d::InSituConditions loadInSitu(json &j_insitu);
 
 };
 

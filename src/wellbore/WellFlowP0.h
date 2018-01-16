@@ -156,23 +156,25 @@ double ffMDRmixed3(IFParametersHD &params);
 // Ff(Re_num, rough)
 // is this needed outsite ?
 il::Array<double> edgeConductivitiesP0(
-    WellMesh &w_mesh, il::Array<double> &velocity, hfp2d::Fluid &fluid,
+    hfp2d::WellMesh &w_mesh, il::Array<double> &velocity, hfp2d::Fluid &fluid,
     double (*ffFunction)(IFParametersHD &params));
 
 // Finite Volume (Finite Difference) Matrix L from edge conductivities
 // is this needed outsite ?
-il::Array2D<double> buildWellFiniteDiffP0(WellMesh &w_mesh,
+il::Array2D<double> buildWellFiniteDiffP0(hfp2d::WellMesh &w_mesh,
                                           il::Array<double> &edg_cond,
                                           double coef);
 
 // function for current cell (element) volume increments
 // is this needed outsite ?
 il::Array<double> wellVolumeCompressibilityP0(
-    Mesh &mesh, Fluid &fluid, il::Array<double> &hydraulic_diameter);
+    hfp2d::Mesh &mesh, hfp2d::Fluid &fluid, il::Array<double> &hydraulic_diameter);
+
+
 
 // Solver of the well Hydrodynamics over one time-step.
-WellSolution wellFlowSolverP0(WellSolution &well_soln, hfp2d::WellMesh &w_mesh,
-                              hfp2d::WellInjection &w_inj, Fluid &fluid,
+hfp2d::WellSolution wellFlowSolverP0(hfp2d::WellSolution &well_soln, hfp2d::WellMesh &w_mesh,
+                              hfp2d::WellInjection &w_inj, hfp2d::Fluid &fluid,
                               double (*ffFunction)(IFParametersHD &params),
                               double timestep,
                               SimulationParameters &simul_params, bool mute);

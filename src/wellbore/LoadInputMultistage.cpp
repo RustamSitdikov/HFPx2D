@@ -6,11 +6,11 @@
 // Geo-Energy Laboratory, 2016-2018.  All rights reserved.
 // See the LICENSE.TXT file for more details.
 //
+#include <string>
 
 #include <il/math.h>
 
 #include <src/wellbore/LoadInputMultistage.h>
-
 
 namespace hfp2d {
 
@@ -242,6 +242,32 @@ hfp2d::SolidProperties loadSolidProperties(json &j_rock){
 
 };
 //------------------------------------------------------------------------------
+
+hfp2d::InSituConditions loadInSitu(json &j_insitu){
+
+  if (j_insitu.count("Type")!=1) {
+    std::cout << "No type of in-situ conditions in  input !";
+    il::abort();
+  }
+
+  auto type = j_insitu["Type"].get<std::string>();
+
+  if (type.compare("uniform") != 0){
+    std::cout << "so far only uniform in-situ stress coded up !";
+    il::abort();
+  }
+
+  auto sxx = j_insitu["Sxx"].get<double>();
+  auto syy = j_insitu["Syy"].get<double>();
+  auto sxy = j_insitu["Sxy"].get<double>();
+
+
+  hfp2d::InSituConditions inSitu(sxx,syy,sxy);
+
+  return inSitu;
+
+}
+
 
 
 };
