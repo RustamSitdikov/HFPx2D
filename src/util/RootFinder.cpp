@@ -15,7 +15,6 @@
 
 
 
-// todo: move this namespace to Utilities.h & .cpp
 namespace imf {
 
 // Brent's root finding method
@@ -132,6 +131,8 @@ double brent(ImplicitFunction fun, IFParameters &params, double a0, double b0,
     std::cout << "The solution did not converge after " << max_iter
               << " iterations" << std::endl;
   }
+
   return -1;
 }
+
 }
