@@ -21,7 +21,8 @@ class DomainMesh {
 
   il::Array2D<il::int_t> connectivity_;
 
-  il::Array<il::int_t> matid_;  // usually in this kind of domain wellMesh: material
+  il::Array<il::int_t>
+      matid_;  // usually in this kind of domain wellMesh: material
   // is different for each element.. never known
 
   il::int_t nodes_per_elt_;
@@ -34,7 +35,6 @@ class DomainMesh {
   DomainMesh(const il::Array2D<double> &nodes,
              const il::Array2D<il::int_t> &connectivity,
              const il::Array<il::int_t> &matid) {
-
     IL_EXPECT_FAST(connectivity.size(0) == matid.size());
 
     nodes_ = nodes;
@@ -42,7 +42,6 @@ class DomainMesh {
     matid_ = matid;
 
     nodes_per_elt_ = connectivity.size(1);
-
   };
 
   ///////////////////////////////////////////////////
@@ -50,9 +49,9 @@ class DomainMesh {
   ///////////////////////////////////////////////////
 
   // returning the matid corresponding to an element.
-  inline il::int_t getmatid(il::int_t k) const { return matid_[k]; };
+  il::int_t getmatid(il::int_t k) const { return matid_[k]; };
 
-  inline il::int_t numberOfElts() const { return connectivity_.size(0); };
+  il::int_t numberOfElts() const { return connectivity_.size(0); };
 
   ///////////////////////////////////////////////////
   // Methods

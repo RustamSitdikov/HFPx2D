@@ -7,7 +7,6 @@
 // See the LICENSE.TXT file for more details.
 //
 
-
 #ifndef HFPX2DUNITTEST_SOLUTIONATT_H
 #define HFPX2DUNITTEST_SOLUTIONATT_H
 
@@ -24,13 +23,13 @@ namespace hfp2d {
 class Solution {
   //  class for solution of coupled fluid driven fracture problem
  private:
-
   double time_;  // current time (tn+1 = tn + timestep) at which the solution
                  // refers to
   double
       timestep_;  // time step  (of the last time step taken to arrive at time_)
 
-  hfp2d::Mesh currentmesh_;  // the associated wellMesh  // should be a reference
+  hfp2d::Mesh
+      currentmesh_;  // the associated wellMesh  // should be a reference
 
   il::Array<double> openingDD_;  // opg DD (at nodes if P1)
 
@@ -96,7 +95,7 @@ class Solution {
 
   // todo : do also the cae where current stress are also stored....
   //#1. constructor w.o active set and without current stress at collocation
-  //points
+  // points
   Solution(hfp2d::Mesh &mesh, double t, const il::Array<double> &width,
            const il::Array<double> &sheardd, const il::Array<double> &pressure,
            const il::Array<double> &sigma0, const il::Array<double> &tau0) {
@@ -114,7 +113,7 @@ class Solution {
   };
 
   //#2.    constructor w.o active set and without current stress at collocation
-  //points
+  // points
   Solution(hfp2d::Mesh &mesh, double t, double dt,
            const il::Array<double> &width, const il::Array<double> &sheardd,
            const il::Array<double> &pressure, const il::Array<double> &sigma0,
@@ -177,57 +176,55 @@ class Solution {
   };
 
   // some set functions
-  inline void setRibbonDistances(const il::Array<double> &srt) {
+  void setRibbonDistances(const il::Array<double> &srt) {
     ribbon_tips_s_ = srt;
   };
 
-  inline void setTipsLocation(const il::Array2D<double> &tips_xy) {
+  void setTipsLocation(const il::Array2D<double> &tips_xy) {
     tipsLocation_ = tips_xy;
   };
 
-  inline void setErrorFront(const double errF) { err_front_ = errF; };
+  void setErrorFront(const double errF) { err_front_ = errF; };
 
-  inline void setItsFront(const il::int_t its) { frontIts_ = its; };
+  void setItsFront(const il::int_t its) { frontIts_ = its; };
 
-  inline void setTipsVelocity(const il::Array<double> &tips_vel) {
+  void setTipsVelocity(const il::Array<double> &tips_vel) {
     tips_velocity_ = tips_vel;
   };
 
-  inline void setTimeStep(const double dt) { timestep_ = dt; };
+  void setTimeStep(const double dt) { timestep_ = dt; };
 
-  inline void setActiveElts(const il::Array<il::int_t> &act_set_elmnts) {
+  void setActiveElts(const il::Array<il::int_t> &act_set_elmnts) {
     active_set_elements_ = act_set_elmnts;
   }
 
   /////////////////////////////////////////////////////////////////////////////
   // get functions
 
-  inline il::Array<double> openingDD() const { return openingDD_; };
-  inline il::Array<double> shearDD() const { return shearDD_; };
-  inline il::Array<double> pressure() const { return pressure_; };
-  inline il::Array<double> sigma0() const { return sigma_n_o_; };
-  inline il::Array<double> tau0() const { return tau_o_; };
+  il::Array<double> openingDD() const { return openingDD_; };
+  il::Array<double> shearDD() const { return shearDD_; };
+  il::Array<double> pressure() const { return pressure_; };
+  il::Array<double> sigma0() const { return sigma_n_o_; };
+  il::Array<double> tau0() const { return tau_o_; };
 
-  inline il::Array<il::int_t> activeElts() const {
-    return active_set_elements_;
-  };
+  il::Array<il::int_t> activeElts() const { return active_set_elements_; };
 
-  inline il::Array2D<double> tipsLocation() const { return tipsLocation_; };
-  inline il::Array<double> ribbonsDistance() const { return ribbon_tips_s_; };
-  inline il::Array<double> tipsVelocity() const { return tips_velocity_; };
+  il::Array2D<double> tipsLocation() const { return tipsLocation_; };
+  il::Array<double> ribbonsDistance() const { return ribbon_tips_s_; };
+  il::Array<double> tipsVelocity() const { return tips_velocity_; };
 
-  inline hfp2d::Mesh currentMesh() const { return currentmesh_; };
+  hfp2d::Mesh currentMesh() const { return currentmesh_; };
 
-  inline double time() const { return time_; };
-  inline double timestep() const { return timestep_; }
+  double time() const { return time_; };
+  double timestep() const { return timestep_; }
 
-  inline double errFront() const { return err_front_; }
-  inline double errOpening() const { return err_openingDD_; }
-  inline double errShear() const { return err_shearDD_; }
-  inline double errPressure() const { return err_P_; }
+  double errFront() const { return err_front_; }
+  double errOpening() const { return err_openingDD_; }
+  double errShear() const { return err_shearDD_; }
+  double errPressure() const { return err_P_; }
 
-  inline il::int_t frontIts() const { return frontIts_; }
-  inline il::int_t ehlIts() const { return ehlIts_; }
+  il::int_t frontIts() const { return frontIts_; }
+  il::int_t ehlIts() const { return ehlIts_; }
 
   //////////////////////////////////////////////////////////////////////////////
   // METHODS :
@@ -238,7 +235,7 @@ class Solution {
   using json = nlohmann::json;
 
   //----------------------------------------------------------------------
-  json createJsonObject(){
+  json createJsonObject() {
     // we output the wellMesh
     json json_coord = json::array();
     for (il::int_t m = 0; m < currentmesh_.coordinates().size(0); ++m) {
@@ -342,19 +339,14 @@ class Solution {
   }
   //----------------------------------------------------------------------
 
-
   //----------------------------------------------------------------------
   void writeToFile(std::string &filename) {
-
-    json j_obj=createJsonObject();
+    json j_obj = createJsonObject();
     // write prettified JSON to file
     std::ofstream output(filename);
     output << std::setw(4) << j_obj << std::endl;
-
-
   };
   //----------------------------------------------------------------------
-
 };
 
 // todo read json from file for restart
