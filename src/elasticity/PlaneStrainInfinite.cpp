@@ -67,14 +67,14 @@ il::StaticArray2D<double, 2, 4> stresses_kernel_dp1_dd(double h, double Ep,
   double xpp1 = xp + 1.;
   double dxpp3 = 2. * xp + 3.;
   double xpm2 = xp - 2.;
-  double r1 = pow(xpm1, 2.) + pow(yp, 2.);
-  double r2 = pow(xpp1, 2.) + pow(yp, 2.);
-  double yp2m1 = pow(yp, 2.) - 1;
-  double yp2p1 = pow(yp, 2.) + 1;
+  double r1 = (xpm1 * xpm1) + (yp * yp);
+  double r2 = (xpp1 * xpp1) + (yp * yp);
+  double yp2m1 = yp * yp - 1;
+  double yp2p1 = yp * yp + 1;
 
-  double AtanAux1 = atanh((2. * xp) / (pow(xp, 2.) + yp2p1)) * 0.5;
-  double AtanAux2 = atanh((2. * xp) / (pow(xp, 2.) + yp2p1)) * 0.5;
-
+  double AtanAux1 = atanh((2. * xp) / ((xp * xp) + yp2p1)) * 0.5;
+  double AtanAux2 = atanh((2. * xp) / ((xp * xp) + yp2p1)) * 0.5;
+  //
   double AtanAuxxpm1 = atan(xpm1 / yp);
   double AtanAuxxpp1 = atan(xpp1 / yp);
 
@@ -86,50 +86,53 @@ il::StaticArray2D<double, 2, 4> stresses_kernel_dp1_dd(double h, double Ep,
 
   double sxys1 =
       AtanAux1 -
-      pow(r1, -1.) * pow(r2, -2.) *
-          (pow(xpm1, 2.) * pow(xpp1, 3.) +
-           2. * xp * (3. + xp) * xpp1 * pow(yp, 2.) + xpm1 * pow(yp, 4.));
+      (1. / r1) * (1. / (r2 * r2)) *
+          ((xpm1 * xpm1) * (xpp1 * xpp1 * xpp1) +
+           2. * xp * (3. + xp) * xpp1 * (yp * yp) + xpm1 * (yp * yp * yp * yp));
 
-  double syys1 = pow(r1, -1.) * pow(r2, -2.) * (2 * xpm1 * yp * pow(xpp1, 2.) -
-                                                2 * (1 + 3 * xp) * pow(yp, 3.));
+  double syys1 =
+      (1. / r1) * (1. / (r2 * r2)) *
+      (2 * xpm1 * yp * (xpp1 * xpp1) - 2 * (1 + 3 * xp) * (yp * yp * yp));
 
   double syyn1 =
-      AtanAux1 - xpp1 * pow(r2, -2) * (pow(xpp1, 2) + 3 * pow(yp, 2)) +
-      2 * xp * pow(yp, 2) *
-          pow(2 * yp2m1 * pow(xp, 2) + pow(xp, 4) + pow(yp2p1, 2), -1);
+      AtanAux1 - xpp1 * (1. / (r2 * r2)) * ((xpp1 * xpp1) + 3 * (yp * yp)) +
+      2 * xp * (yp * yp) * (1. / (2 * yp2m1 * (xp * xp) + (xp * xp * xp * xp) +
+                                  (yp2p1 * yp2p1)));
 
   double sxys2 =
       -AtanAux2 +
-      pow(r1, -2) * pow(r2, -1) *
-          (pow(xpm1, 3) * pow(xpp1, 2) +
-           2 * (-3 + xp) * xp * xpm1 * pow(yp, 2) + xpp1 * pow(yp, 4));
+      (1. / (r1 * r1)) * (1. / r2) *
+          ((xpm1 * xpm1 * xpm1) * (xpp1 * xpp1) +
+           2 * (-3 + xp) * xp * xpm1 * (yp * yp) + xpp1 * (yp * yp * yp * yp));
 
-  double syys2 = pow(r1, -2) * pow(r2, -1) *
-                 (2 * xpp1 * yp * pow(xpm1, 2) + (2 - 6 * xp) * pow(yp, 3));
+  double syys2 = (1. / (r1 * r1)) * (1. / r2) * (2 * xpp1 * yp * (xpm1 * xpm1) +
+                                                 (2 - 6 * xp) * (yp * yp * yp));
+
   double syyn2 =
       -AtanAux2 +
-      pow(r1, -2) * pow(r2, -1) *
-          (pow(xpm1, 3) * pow(xpp1, 2) +
-           2 * (2 + xp) * xpm1 * xpp1 * pow(yp, 2) + (-3 + xp) * pow(yp, 4));
+      (1. / (r1 * r1)) * (1. / r2) * ((xpm1 * xpm1 * xpm1) * (xpp1 * xpp1) +
+                                      2 * (2 + xp) * xpm1 * xpp1 * (yp * yp) +
+                                      (-3 + xp) * (yp * yp * yp * yp));
 
-  if (yp != 0.)  // case of observation point on the unit sgement line
+  if (yp != 0.)  // case of observation point on the unit segment line
   {
     sxxs1 = AtanAuxxpm1 - AtanAuxxpp1 +
-            2 * yp * pow(r1, -1) * pow(r2, -2) *
-                (xpm1 * xpm2 * pow(xpp1, 2) + (3 + dxpp3 * xp) * pow(yp, 2) +
-                 pow(yp, 4));  //
+            2 * yp * (1. / r1) * (1. / (r2 * r2)) *
+                (xpm1 * xpm2 * (xpp1 * xpp1) + (3 + dxpp3 * xp) * (yp * yp) +
+                 (yp * yp * yp * yp));  //
 
     sxxs2 = -AtanAuxxpm1 +
-            pow(r1, -2) * pow(r2, -1) *
-                (AtanAuxxpp1 * r2 * pow(r1, 2) -
-                 2 * (2 + xp) * xpp1 * yp * pow(xpm1, 2) -
-                 2 * (3 + xp * (-3 + 2 * xp)) * pow(yp, 3) - 2 * pow(yp, 5));
+            (1. / (r1 * r1)) * (1. / r2) *
+                (AtanAuxxpp1 * r2 * (r1 * r1) -
+                 2 * (2 + xp) * xpp1 * yp * (xpm1 * xpm1) -
+                 2 * (3 + xp * (-3 + 2 * xp)) * (yp * yp * yp) -
+                 2 * (yp * yp * yp * yp * yp));
   } else {
     sxxs1 =
-        ((il::pi) * (xpm1 / sqrt(pow(xpm1, 2.)) - xpp1 / sqrt(pow(xpp1, 2.)))) /
+        ((il::pi) * (xpm1 / sqrt((xpm1 * xpm1)) - xpp1 / sqrt((xpp1 * xpp1)))) /
         2.;  // could be simplified further as 2 or 0 depending on abs(xp)
     sxxs2 = ((il::pi) *
-             (-(xpm1 / sqrt(pow(xpm1, 2.))) + xpp1 / sqrt(pow(xpp1, 2.)))) /
+             (-(xpm1 / sqrt((xpm1 * xpm1))) + xpp1 / sqrt((xpp1 * xpp1)))) /
             2.;
   }
 
@@ -182,16 +185,16 @@ il::StaticArray2D<double, 2, 4> normal_shear_stress_kernel_dp1_dd(
   il::StaticArray2D<double, 2, 2> R =
       hfp2d::rotationMatrix2D(source_elt.theta());
 
-  il::StaticArray2D<double, 2, 2> Rt=R;
-  Rt(0,1)=R(1,0);
-  Rt(1,0)=R(0,1);
+  il::StaticArray2D<double, 2, 2> Rt = R;
+  Rt(0, 1) = R(1, 0);
+  Rt(1, 0) = R(0, 1);
 
   il::StaticArray<double, 2> xe;
   for (int i = 0; i < 2; ++i) {
     xe[i] = receiver_elt.CollocationPoints(i_col, i) - source_elt.Xmid(i);
   }
 
-  xe = il::dot(Rt,xe);
+  xe = il::dot(Rt, xe);
 
   il::StaticArray<double, 2> n = il::dot(Rt, receiver_elt.n());
   il::StaticArray<double, 2> s = il::dot(Rt, receiver_elt.s());
@@ -316,14 +319,14 @@ il::StaticArray<double, 4> stresses_kernel_dp1_dd_nodal(il::int_t local_node_i,
   double xpp1 = xp + 1.;
   double dxpp3 = 2. * xp + 3.;
   double xpm2 = xp - 2.;
-  double r1 = pow(xpm1, 2.) + pow(yp, 2.);
-  double r2 = pow(xpp1, 2.) + pow(yp, 2.);
-  double yp2m1 = pow(yp, 2.) - 1;
-  double yp2p1 = pow(yp, 2.) + 1;
+  double r1 = (xpm1*xpm1) + (yp*yp);
+  double r2 = (xpp1*xpp1) + (yp*yp);
+  double yp2m1 = (yp*yp) - 1;
+  double yp2p1 = (yp*yp) + 1;
 
-  double AtanAux1 = atanh((2. * xp) / (pow(xp, 2.) + yp2p1)) * 0.5;
-  double AtanAux2 = atanh((2. * xp) / (pow(xp, 2.) + yp2p1)) * 0.5;
-
+  double AtanAux1 = atanh((2. * xp) / ((xp*xp) + yp2p1)) * 0.5;
+  double AtanAux2 = atanh((2. * xp) / ((xp*xp) + yp2p1)) * 0.5;
+  //
   double AtanAuxxpm1 = atan(xpm1 / yp);
   double AtanAuxxpp1 = atan(xpp1 / yp);
 
@@ -339,29 +342,29 @@ il::StaticArray<double, 4> stresses_kernel_dp1_dd_nodal(il::int_t local_node_i,
 
     double sxys1 =
         AtanAux1 -
-        pow(r1, -1.) * pow(r2, -2.) *
-            (pow(xpm1, 2.) * pow(xpp1, 3.) +
-             2. * xp * (3. + xp) * xpp1 * pow(yp, 2.) + xpm1 * pow(yp, 4.));
+        (1./r1) * (1./(r2*r2)) *
+            ((xpm1*xpm1) * (xpp1*xpp1*xpp1) +
+             2. * xp * (3. + xp) * xpp1 * (yp*yp) + xpm1 * (yp*yp*yp*yp));
 
     double syys1 =
-        pow(r1, -1.) * pow(r2, -2.) *
-        (2 * xpm1 * yp * pow(xpp1, 2.) - 2 * (1 + 3 * xp) * pow(yp, 3.));
+        (1./r1) * (1./(r2*r2)) *
+        (2 * xpm1 * yp * (xpp1*xpp1) - 2 * (1 + 3 * xp) * (yp*yp*yp));
 
     double syyn1 =
-        AtanAux1 - xpp1 * pow(r2, -2) * (pow(xpp1, 2) + 3 * pow(yp, 2)) +
-        2 * xp * pow(yp, 2) *
-            pow(2 * yp2m1 * pow(xp, 2) + pow(xp, 4) + pow(yp2p1, 2), -1);
+        AtanAux1 - xpp1 * (1./(r2*r2)) * ((xpp1*xpp1) + 3 * (yp*yp)) +
+        2 * xp * pow(yp, 2) * (1./
+            (2 * yp2m1 * (xp*xp) + (xp*xp*xp*xp) + (yp2p1*yp2p1)));
 
     if (yp != 0.)  // case of observation point on the unit sgement line
     {
       sxxs1 = AtanAuxxpm1 - AtanAuxxpp1 +
-              2 * yp * pow(r1, -1) * pow(r2, -2) *
-                  (xpm1 * xpm2 * pow(xpp1, 2) + (3 + dxpp3 * xp) * pow(yp, 2) +
-                   pow(yp, 4));  //
+              2 * yp * (1./r1) * (1./(r2*r2)) *
+                  (xpm1 * xpm2 * (xpp1*xpp1) + (3 + dxpp3 * xp) * (yp*yp) +
+                   (yp*yp*yp*yp));  //
 
     } else {
       sxxs1 = ((il::pi) *
-               (xpm1 / sqrt(pow(xpm1, 2.)) - xpp1 / sqrt(pow(xpp1, 2.)))) /
+               (xpm1 / sqrt((xpm1*xpm1)) - xpp1 / sqrt((xpp1*xpp1)))) /
               2.;  // could be simplified further as 2 or 0 depending on abs(xp)
     }
 
@@ -376,28 +379,28 @@ il::StaticArray<double, 4> stresses_kernel_dp1_dd_nodal(il::int_t local_node_i,
   if (local_node_i == 1) {  // node 2 in C convention
     double sxys2 =
         -AtanAux2 +
-        pow(r1, -2) * pow(r2, -1) *
-            (pow(xpm1, 3) * pow(xpp1, 2) +
-             2 * (-3 + xp) * xp * xpm1 * pow(yp, 2) + xpp1 * pow(yp, 4));
+        (1./(r1*r1)) * (1./r2) *
+            ((xpm1*xpm1*xpm1) * (xpp1*xpp1) +
+             2 * (-3 + xp) * xp * xpm1 * (yp*yp) + xpp1 * (yp*yp*yp*yp));
 
-    double syys2 = pow(r1, -2) * pow(r2, -1) *
-                   (2 * xpp1 * yp * pow(xpm1, 2) + (2 - 6 * xp) * pow(yp, 3));
+    double syys2 = (1./(r1*r1)) * (1./r2) *
+                   (2 * xpp1 * yp * (xpm1*xpm1) + (2 - 6 * xp) * (yp*yp*yp));
     double syyn2 =
         -AtanAux2 +
-        pow(r1, -2) * pow(r2, -1) *
-            (pow(xpm1, 3) * pow(xpp1, 2) +
-             2 * (2 + xp) * xpm1 * xpp1 * pow(yp, 2) + (-3 + xp) * pow(yp, 4));
+        (1./(r1*r1)) * (1./r2) *
+            ((xpm1*xpm1*xpm1) * (xpp1*xpp1) +
+             2 * (2 + xp) * xpm1 * xpp1 * (yp*yp) + (-3 + xp) * (yp*yp*yp*yp));
 
     if (yp != 0.)  // case of observation point on the unit sgement line
     {
       sxxs2 = -AtanAuxxpm1 +
-              pow(r1, -2) * pow(r2, -1) *
-                  (AtanAuxxpp1 * r2 * pow(r1, 2) -
-                   2 * (2 + xp) * xpp1 * yp * pow(xpm1, 2) -
-                   2 * (3 + xp * (-3 + 2 * xp)) * pow(yp, 3) - 2 * pow(yp, 5));
+              (1./(r1*r1)) * (1./r2) *
+                  (AtanAuxxpp1 * r2 * (r1*r1) -
+                   2 * (2 + xp) * xpp1 * yp * (xpm1*xpm1) -
+                   2 * (3 + xp * (-3 + 2 * xp)) * (yp*yp*yp) - 2 * (yp*yp*yp*yp*yp));
     } else {
       sxxs2 = ((il::pi) *
-               (-(xpm1 / sqrt(pow(xpm1, 2.))) + xpp1 / sqrt(pow(xpp1, 2.)))) /
+               (-(xpm1 / sqrt((xpm1*xpm1))) + xpp1 / sqrt((xpp1*xpp1)))) /
               2.;
     }
 
@@ -450,9 +453,9 @@ il::StaticArray2D<double, 2, 2> normal_shear_stress_kernel_dp1_dd_nodal(
   il::StaticArray2D<double, 2, 2> R =
       hfp2d::rotationMatrix2D(source_elt.theta());
 
-  il::StaticArray2D<double, 2, 2> Rt=R;
-  Rt(0,1)=R(1,0);
-  Rt(1,0)=R(0,1);
+  il::StaticArray2D<double, 2, 2> Rt = R;
+  Rt(0, 1) = R(1, 0);
+  Rt(1, 0) = R(0, 1);
 
   // receiver collocation point in the reference frame of the source element.
   il::StaticArray<double, 2> xe;
