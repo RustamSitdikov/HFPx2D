@@ -38,7 +38,7 @@ namespace hfp2d {
 // dislocation is centered on the origin in the plane e_3=0 (z) , (-a,a) in e_1
 // (x) (-b,b)
 // in e_2 (z
-
+    
 // AUXILIARY FUNCTIONS NEEDED
 // second order derivatives of I(x,y,z,xi,eta)
 double ip11(double x, double y, double z, double xi, double eta) {
@@ -101,8 +101,8 @@ double ip111(double x, double y, double z, double xi, double eta) {
   double R2 = (x - xi) * (x - xi) + (y - eta) * (y - eta) + z * z;
   double R = sqrt(R2);
 
-  return (R * (R2 - 2. * pow(x - xi, 2)) + (y - eta) * (R2 - pow(x - xi, 2))) /
-         (pow(R2, 3. / 2.) * pow(R + y - eta, 2.));
+  return (R * (R2 - 2. * ((x - xi)*(x - xi))) + (y - eta) * (R2 - ((x-xi)*(x-xi)))) /
+         (pow(R2, 3. / 2.) * ((R + y - eta)*(R + y - eta)));
 }
 
 double ip112(double x, double y, double z, double xi, double eta) {
@@ -123,7 +123,7 @@ double ip113(double x, double y, double z, double xi, double eta) {
   double R = sqrt(R2);
 
   return z * (xi - x) * (2. * R + y - eta) /
-         (pow(R2, 3. / 2.) * pow(R + y - eta, 2));
+         (pow(R2, 3. / 2.) * ((R + y - eta)*(R + y - eta)));
 }
 
 double ip122(double x, double y, double z, double xi, double eta) {
@@ -147,7 +147,7 @@ double ip133(double x, double y, double z, double xi, double eta) {
   double R = sqrt(R2);
 
   return (R * (R2 - 2. * z * z) + (R2 - z * z) * (y - eta)) /
-         (pow(R2, 3. / 2.) * pow(R + y - eta, 2.));
+         (pow(R2, 3. / 2.) * ((R + y - eta)*(R + y - eta)));
 }
 
 double ip222(double x, double y, double z, double xi, double eta) {
@@ -156,9 +156,9 @@ double ip222(double x, double y, double z, double xi, double eta) {
   double R2 = (x - xi) * (x - xi) + (y - eta) * (y - eta) + z * z;
   double R = sqrt(R2);
 
-  return (R * (R2 - 2. * pow(y - eta, 2.)) +
+  return (R * (R2 - 2. * ((y - eta)*(y - eta))) +
           (x - xi) * (R2 - (y - eta) * (y - eta))) /
-         (pow(R2, 3. / 2.) * pow(R + x - xi, 2.));
+         (pow(R2, 3. / 2.) * ((R + x - xi)*(R + x - xi)));
 }
 
 double ip223(double x, double y, double z, double xi, double eta) {
@@ -168,7 +168,7 @@ double ip223(double x, double y, double z, double xi, double eta) {
   double R = sqrt(R2);
 
   return z * (eta - y) * (2 * R + x - xi) /
-         (pow(R2, 3. / 2.) * pow(R + x - xi, 2.));
+         (pow(R2, 3. / 2.) * ((R + x - xi)*(R + x - xi)));
 }
 
 double ip233(double x, double y, double z, double xi, double eta) {
@@ -177,7 +177,7 @@ double ip233(double x, double y, double z, double xi, double eta) {
   double R = sqrt(R2);
 
   return (R * (R2 - 2. * z * z) + (x - xi) * (R2 - z * z)) /
-         (pow(R2, 3. / 2.) * pow(R + x - xi, 2.));
+         (pow(R2, 3. / 2.) * ((R + x - xi)*(R + x - xi)));
 }
 
 // CHEMMERY Integration function
