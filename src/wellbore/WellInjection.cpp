@@ -64,26 +64,26 @@ namespace hfp2d {
 //  well_inj.hf_rates_ = new_vol_rate;
 //  return new_vol_rate;
 //}
-
-// setting volume rate(s) into the HF(s)
-void WellInjection::setHFVolRate(il::Array<double> &new_vol_rate) {
-  hf_rates_ = new_vol_rate;
-}
-
-// overload - calculate the residue norm (error)
-void WellInjection::setHFVolRate(il::Array<double> &new_vol_rate, il::io_t,
-                                 double &err) {
-  il::Array<double> diff{new_vol_rate.size()};
-  for (il::int_t i = 0; i < new_vol_rate.size(); ++i) {
-    if (!isnan(hf_rates_[i])) {
-      diff[i] = new_vol_rate[i] - hf_rates_[i];
-    } else {
-      diff[i] = new_vol_rate[i];
-    }
-  }
-  err = il::norm(diff, il::Norm::L2);
-  hf_rates_ = new_vol_rate;
-}
+//
+//// setting volume rate(s) into the HF(s)
+//void WellInjection::setHFVolRate(il::Array<double> &new_vol_rate) {
+//  hf_rates_ = new_vol_rate;
+//}
+//
+//// overload - calculate the residue norm (error)
+//void WellInjection::setHFVolRate(il::Array<double> &new_vol_rate, il::io_t,
+//                                 double &err) {
+//  il::Array<double> diff{new_vol_rate.size()};
+//  for (il::int_t i = 0; i < new_vol_rate.size(); ++i) {
+//    if (!isnan(hf_rates_[i])) {
+//      diff[i] = new_vol_rate[i] - hf_rates_[i];
+//    } else {
+//      diff[i] = new_vol_rate[i];
+//    }
+//  }
+//  err = il::norm(diff, il::Norm::L2);
+//  hf_rates_ = new_vol_rate;
+//}
 
 
 }

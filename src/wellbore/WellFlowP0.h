@@ -1,5 +1,5 @@
 //
-// This file is part of HFPx2DUnitTest.
+// This file is part of HFPx2D.
 //
 // Created by Brice Lecampion on 06.10.17.
 // Copyright (c) ECOLE POLYTECHNIQUE FEDERALE DE LAUSANNE, Switzerland,
@@ -11,63 +11,17 @@
 
 #define HFPX2DUNITTEST_REYNOLDSP0_H
 
-#include "il/Array.h"
+#include <il/Array.h>
 
 #include <src/core/Fluid.h>
 #include <src/core/Mesh.h>
 #include <src/core/Solution.h>
-#include <src/wellbore/WellMesh.h>
-#include <src/wellbore/WellSolution.h>
-
 #include <src/core/SimulationParameters.h>
 #include <src/core/Sources.h>
+#include <src/wellbore/WellMesh.h>
+#include <src/wellbore/WellSolution.h>
+#include <src/util/RootFinder.h>
 
-// todo: move this namespace to Utilities.h & .cpp
-namespace imf {
-
-//    class ImplicitFunction {
-//    protected:
-//        // implicit function parameters
-//        virtual struct params_ {};
-//    public:
-//        ImplicitFunction() {};
-//        virtual double fun(double s) = 0;
-//    };
-
-//////////////////////////////////////////////////////////////////////////
-//        IMPLICIT FUNCTION TOOLS
-//////////////////////////////////////////////////////////////////////////
-
-// implicit function parameters (virtual)
-struct IFParameters {};
-
-// (virtual) implicit residual function to minimize (set to zero)
-typedef double (*ImplicitFunction)(double s, IFParameters &params);
-
-//////////////////////////////////////////////////////////////////////////
-//        ROUTINES (bracketing (virtual) & root finder)
-//////////////////////////////////////////////////////////////////////////
-
-// bracket structure
-struct BracketS {
-  double l_b;
-  double u_b;
-};
-
-//    // (virtial) bracketing the root
-//    typedef BracketS (*Bracketing)
-//            (ImplicitFunction fun,
-//             IFParameters &params,
-//             double lw_bound, //
-//             double up_bound, // wellMesh size
-//             const int max_iter,
-//             bool mute);
-
-// Brent root finder
-// template <class IFParameters>
-double brent(ImplicitFunction fun, IFParameters &params, double a0, double b0,
-             const double epsilon, const int max_iter, bool mute);
-}
 
 namespace hfp2d {
 
@@ -157,26 +111,32 @@ double ffMDRmixed3(IFParametersHD &params);
 // Ff(Re_num, rough)
 // is this needed outsite ?
 il::Array<double> edgeConductivitiesP0(
-    WellMesh &w_mesh, il::Array<double> &velocity, hfp2d::Fluid &fluid,
+    hfp2d::WellMesh &w_mesh, il::Array<double> &velocity, hfp2d::Fluid &fluid,
     double (*ffFunction)(IFParametersHD &params));
 
 // Finite Volume (Finite Difference) Matrix L from edge conductivities
 // is this needed outsite ?
-il::Array2D<double> buildWellFiniteDiffP0(WellMesh &w_mesh,
+il::Array2D<double> buildWellFiniteDiffP0(hfp2d::WellMesh &w_mesh,
                                           il::Array<double> &edg_cond,
                                           double coef);
 
 // function for current cell (element) volume increments
 // is this needed outsite ?
 il::Array<double> wellVolumeCompressibilityP0(
-    Mesh &mesh, Fluid &fluid, il::Array<double> &hydraulic_diameter);
+    hfp2d::Mesh &mesh, hfp2d::Fluid &fluid, il::Array<double> &hydraulic_diameter);
+
+
 
 // Solver of the well Hydrodynamics over one time-step.
-WellSolution wellFlowSolverP0(WellSolution &well_soln, hfp2d::WellMesh &w_mesh,
-                              hfp2d::WellInjection &w_inj, Fluid &fluid,
-                              double (*ffFunction)(IFParametersHD &params),
-                              double timestep,
-                              SimulationParameters &simul_params, bool mute);
+hfp2d::WellSolution wellFlowSolverP0(hfp2d::WellSolution &well_soln,
+                                     hfp2d::WellMesh &w_mesh,
+                                     hfp2d::WellInjection &w_inj,
+                                     hfp2d::Sources &out_flow,
+                                     double (*ffFunction)(IFParametersHD &),
+                                     double timestep,
+                                     hfp2d::SimulationParameters &simul_params,
+                                     bool mute,
+                                     hfp2d::Fluid &fluid);
 }
 
 #endif  // HFPX2DUNITTEST_REYNOLDSP0_H

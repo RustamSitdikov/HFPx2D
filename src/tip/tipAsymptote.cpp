@@ -457,6 +457,6 @@ double moment1(double s, TipParameters &taParam) {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-// todo: Carter tip leak-off
+// todo: Carter tip leak-off volume
 
 }

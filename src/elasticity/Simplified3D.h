@@ -12,9 +12,7 @@
 #define HFPX2D_ELASTICITY2D_H
 
 // Inclusion from Inside Loop library
-//#include <il/Array2D.h>
 #include <il/StaticArray2D.h>
-//#include <il/Array.h>
 #include <il/StaticArray.h>
 
 #include <src/core/Mesh.h>

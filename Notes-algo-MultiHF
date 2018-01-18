@@ -1,28 +1,38 @@
 
 NOTES - Multi-HF-algo Development
 
-Goals:
-Full Algorithm should be working by year end
-First validations (plane-strain case  - fractures far-apart from each other) by early December to Total !
+Elasticity benchmark
+- Simplified 3D benchmarks compared with 3D code
+- 1 rectangular crack -> induced stress in the mid plane.
+     - convergence tests
+- 1 curved rectangular crack -> induced stress in the plane
+- 2 parallel cracks
+- 2 curved cracks
 
+
+HF Benchmarks:
+1- plane-strain case  - fractures far-apart from each other :: viscosity and toughness
+todo: 2-PKN like (transition kgd-> pkn)
+
+
+things to be done.
 
 tip asymptote package
-- simplify API
-- some oscillations when starting from a state where Ki=Kic and then pumping more fluid !
-- check the relaxation on tip velocity -> output velocity (factor 2 when oscillating at start )
+ - add leak-off tip volume
 
 Development FracturesFrontLoop
-
-- we will have to pin-point the time at which the initiation criteria is first met ?
-   -> see  tip asymptote problems ?   can we avoid that ?
-
-- Elasticity Matrix add row and columns when adding elements ...
-    -> write a routine
+- add leak-off
 
 - Reynolds Multi-HF
     - width constraints (case for example when starting pumping and the pressure is below sigma_n_o)
         -> convergence on pressure increment only (if width constraint are active)
 
 - Coupling with wellbore-flow
-    - Shall we hard couple ?
-    -
+    - try staggered loop above the fracture front loop - try with 2 fractures
+    - json inputs stuff...
+
+- Background mesh for mat properties and in-situ conditions
+
+- test stress jumps
+- test toughness jumps
+

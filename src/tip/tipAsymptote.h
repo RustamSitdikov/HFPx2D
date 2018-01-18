@@ -119,6 +119,7 @@ double moment0(TipParameters &taParam);
 double moment1(TipParameters &taParam);
 double moment0(double s, TipParameters &taParam);
 double moment1(double s, TipParameters &taParam);
+
 }
 
 #endif  // HFPX2D_TIP_ASYMPTOTE_H

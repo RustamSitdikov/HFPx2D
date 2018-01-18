@@ -6,7 +6,6 @@
 // See the LICENSE.TXT file for more details. 
 //
 
-
 #include <gtest/gtest.h>
 
 #include <src/core/DomainMesh.h>

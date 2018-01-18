@@ -1,5 +1,5 @@
 //
-// This file is part of HFPx2DUnitTest.
+// This file is part of HFPx2D.
 //
 // Created by Brice Lecampion on 06.10.17.
 // Copyright (c) ECOLE POLYTECHNIQUE FEDERALE DE LAUSANNE, Switzerland,
@@ -22,129 +22,10 @@
 
 #include <src/core/Mesh.h>
 #include <src/wellbore/WellFlowP0.h>
-#include <src/wellbore/WellMesh.h>
-#include <src/wellbore/WellSolution.h>
+#include <src/util/RootFinder.h>
 
-// todo: move this namespace to Utilities.h & .cpp
-namespace imf {
-
-// Brent's root finding method
-//
-// Brent R.P. (1973),
-// "Chapter 4: An Algorithm with Guaranteed Convergence
-// for Finding a Zero of a Function",
-// Algorithms for Minimization without Derivatives,
-// Englewood Cliffs, NJ: Prentice-Hall, ISBN 0-13-022335-2
-//
-double brent(ImplicitFunction fun, IFParameters &params, double a0, double b0,
-             const double epsilon, const int max_iter, bool mute) {
-  //
-  double a = a0;
-  double b = b0;
-  double fa = fun(a, params);  // calculated now to save function calls
-  double fb = fun(b, params);  // calculated now to save function calls
-  double fs = 0;               // initialize
-
-  if (std::isnan(fa)) {
-    if (!mute) {
-      std::cout << "f(a) isn't finite; a=" << a << std::endl;
-    }
-    return -111;
-  }
-
-  if (std::isnan(fb)) {
-    if (!mute) {
-      std::cout << "f(b) isn't finite; b=" << b << std::endl;
-    }
-    return -111;
-  }
-
-  if (fa * fb > 0.0) {
-    // throw exception if root isn't bracketed
-    if (!mute) {
-      std::cout << "Signs of f(a) and f(b) must be opposite" << std::endl;
-    }
-    return -11;
-  }
-
-  // if magnitude of f(lower_bound) is less than magnitude of f(upper_bound)
-  if (std::abs(fa) < std::abs(b)) {
-    std::swap(a, b);
-    std::swap(fa, fb);
-  }
-
-  double c =
-      a;  // c now equals the largest magnitude of the lower and upper bounds
-  double fc = fa;  // precompute function evalutation for point c by assigning
-                   // it the same value as fa
-  bool mflag = true;  // boolean flag used to evaluate if statement later on
-  double s = 0;       // Our Root that will be returned
-  double d = 0;       // Only used if mflag is unset (mflag == false)
-
-  for (unsigned int iter = 1; iter < max_iter; ++iter) {
-    // stop if converged on root or error is less than tolerance
-    if (std::abs(b - a) < epsilon) {
-      if (!mute) {
-        std::cout << "After " << iter << " iterations the root is: " << s
-                  << std::endl;
-      }
-      return s;
-    }  // end if
-
-    if (fa != fc && fb != fc) {
-      // use inverse quadratic interopolation
-      s = (a * fb * fc / ((fa - fb) * (fa - fc))) +
-          (b * fa * fc / ((fb - fa) * (fb - fc))) +
-          (c * fa * fb / ((fc - fa) * (fc - fb)));
-    } else {
-      // secant method
-      s = b - fb * (b - a) / (fb - fa);
-    }
-
-    // check to see whether we can use the faster converging quadratic
-    // && secant methods or if we need to use bisection
-    if (((s < (3 * a + b) * 0.25) || (s > b)) ||
-        (mflag && (std::abs(s - b) >= (std::abs(b - c) * 0.5))) ||
-        (!mflag && (std::abs(s - b) >= (std::abs(c - d) * 0.5))) ||
-        (mflag && (std::abs(b - c) < epsilon)) ||
-        (!mflag && (std::abs(c - d) < epsilon))) {
-      // bisection method
-      s = (a + b) * 0.5;
-
-      mflag = true;
-    } else {
-      mflag = false;
-    }
-
-    fs = fun(s, params);  // calculate fs
-    d = c;                // first time d is being used
-    // (wasnt used on first iteration because mflag was set)
-    c = b;    // set c equal to upper bound
-    fc = fb;  // set f(c) = f(b)
-
-    // fa and fs have opposite signs
-    if (fa * fs < 0) {
-      b = s;
-      fb = fs;  // set f(b) = f(s)
-    } else {
-      a = s;
-      fa = fs;  // set f(a) = f(s)
-    }
-
-    if (std::abs(fa) < std::abs(fb)) {
-      std::swap(a, b);    // swap a and b
-      std::swap(fa, fb);  // make sure f(a) and f(b) are correct after swap
-    }
-
-  }  // end of loop
-  // error message
-  if (!mute) {
-    std::cout << "The solution did not converge after " << max_iter
-              << " iterations" << std::endl;
-  }
-  return -1;
-}
-}
+//#include <src/wellbore/WellMesh.h>
+//#include <src/wellbore/WellSolution.h>
 
 namespace hfp2d {
 
@@ -519,7 +400,7 @@ double ffMDRmixed3(IFParametersHD &params) {
 ////////////////////////////////////////////////////////////////////////////////
 // nodal (edge) conductivities based on Darcy friction factor Ff(Re_num, rough)
 il::Array<double> edgeConductivitiesP0(
-    WellMesh &w_mesh, il::Array<double> &velocity, Fluid &fluid,
+    hfp2d::WellMesh &w_mesh, il::Array<double> &velocity, hfp2d::Fluid &fluid,
     double (*ffFunction)(IFParametersHD &params)) {
   // input should be an array of integers (il::int_t),
   // with rows for inner edges, each column for the 2 adjacent elements,
@@ -527,7 +408,8 @@ il::Array<double> edgeConductivitiesP0(
   // returns A dv/d(grad P) = A 2 * hd / (density * abs(velocity) * ff(Re, eps))
 
   IFParametersHD params;
-  il::Array2D<il::int_t> edgecommon = w_mesh.getNodesSharing2Elts();
+
+  il::Array2D<il::int_t> edgecommon = w_mesh.edgeCommon();
 
   il::Array<double> h_width = w_mesh.hd();
   il::Array<double> rough = w_mesh.rough();
@@ -574,7 +456,7 @@ il::Array<double> edgeConductivitiesP0(
 // Finite Volume (Finite Difference) Matrix L built from edge conductivities
 // should return a sparse matrix....
 // for now, for quick debug assemble a dense one
-il::Array2D<double> buildWellFiniteDiffP0(WellMesh &w_mesh,
+il::Array2D<double> buildWellFiniteDiffP0(hfp2d::WellMesh &w_mesh,
                                           il::Array<double> &edg_cond,
                                           double coef) {
   // Inputs:
@@ -582,9 +464,9 @@ il::Array2D<double> buildWellFiniteDiffP0(WellMesh &w_mesh,
   // edg_cond :: node (edge) Darcy conductivities array
   // coef     :: the factor of all entries (typically, the time-step)
 
-  // checks here....
+  // checks here...
 
-  il::Array2D<il::int_t> edgecommon = w_mesh.getNodesSharing2Elts();
+  il::Array2D<il::int_t> edgecommon = w_mesh.edgeCommon();
 
   // todo: L would better be a sparse matrix.....
   il::Array2D<double> L{w_mesh.numberOfElts(), w_mesh.numberOfElts(), 0.};
@@ -599,7 +481,7 @@ il::Array2D<double> buildWellFiniteDiffP0(WellMesh &w_mesh,
     el = edgecommon(i, 1);
     hi = (w_mesh.eltSize(er) + w_mesh.eltSize(el)) / 2.;
     // cross-sections, right & left of the edge (node)
-    dv = coef * edg_cond[i] / hi;  // why the minus here
+    dv = coef * edg_cond[i] / hi;  //
     // diagonal entries
     L(er, er) += dv;
     L(el, el) += dv;
@@ -613,7 +495,8 @@ il::Array2D<double> buildWellFiniteDiffP0(WellMesh &w_mesh,
 ////////////////////////////////////////////////////////////////////////////////
 // function for current cell (element) volume -> returning a vector
 il::Array<double> wellVolumeCompressibilityP0(
-    WellMesh &mesh, Fluid &fluid, il::Array<double> &hydraulic_diameter) {
+    hfp2d::WellMesh &mesh, hfp2d::Fluid &fluid,
+    il::Array<double> &hydraulic_diameter) {
   il::Array<double> volume{mesh.numberOfElts(), 0.};
   // Area \times c_f \times h_i
   for (il::int_t e = 0; e < mesh.numberOfElts(); e++) {
@@ -625,12 +508,11 @@ il::Array<double> wellVolumeCompressibilityP0(
 
 ////////////////////////////////////////////////////////////////////////////////
 // Solver of the well Hydrodynamics over a time-step with given in and out flow
-WellSolution wellFlowSolverP0(hfp2d::WellSolution &well_soln,
-                              hfp2d::WellMesh &w_mesh,
-                              hfp2d::WellInjection &w_inj, Fluid &fluid,
-                              double (*ffFunction)(IFParametersHD &params),
-                              double timestep,
-                              SimulationParameters &simul_params, bool mute) {
+hfp2d::WellSolution wellFlowSolverP0(
+    hfp2d::WellSolution &well_soln, hfp2d::WellMesh &w_mesh,
+    hfp2d::WellInjection &w_inj, hfp2d::Sources &out_flow,
+    double (*ffFunction)(IFParametersHD &), double timestep,
+    hfp2d::SimulationParameters &simul_params, bool mute, hfp2d::Fluid &fluid) {
   // Solver for wellbore Hydrodynamics over a time step.
   // (solves for fluid pressure over a time step)
   // PICARD / Fixed Pt Iterations SCHEME
@@ -652,7 +534,7 @@ WellSolution wellFlowSolverP0(hfp2d::WellSolution &well_soln,
   // call it here just in case
   // w_mesh.setNodeAdjElts();
 
-  il::Array2D<il::int_t> edgecommon = w_mesh.getNodesSharing2Elts();
+  il::Array2D<il::int_t> edgecommon = w_mesh.edgeCommon();
   il::int_t n_s_e = edgecommon.size(0);
 
   //  WellInjection w_inj = well_soln.wellInjection();
@@ -739,11 +621,11 @@ WellSolution wellFlowSolverP0(hfp2d::WellSolution &well_soln,
     // source -> 0-th cell
     vector_RS[0] += w_inj.wellInjRate() * timestep;
     // sinks -> all HFs
-    for (il::int_t i = 0; i < w_inj.numberOfHFs(); i++) {
+    for (il::int_t i = 0; i < out_flow.SourceElt().size(); i++) {
       //      // check if the HF is above the plug
       //      if (w_inj.hfLocation(i) <= plug_location_e) {
       // add outflow to the RHS
-      vector_RS[w_inj.hfLocation(i)] -= w_inj.hfVolRate(i) * timestep;
+      vector_RS[out_flow.SourceElt(i)] -= out_flow.InjectionRate(i) * timestep;
       //      }
     }
     // plug at an edge (node) -> zero flux through the edge
@@ -848,9 +730,9 @@ WellSolution wellFlowSolverP0(hfp2d::WellSolution &well_soln,
             fluid.fluidViscosity();
   }
 
-  return hfp2d::WellSolution(well_soln.time() + timestep, timestep, p_hs, p_n,
-                             v_k, Re, k,il::norm(err_Dp, il::Norm::L2),
-                             il::norm(err_Dv, il::Norm::L2));
+  return hfp2d::WellSolution(
+      well_soln.time() + timestep, timestep, p_hs, p_n, v_k, Re, out_flow, k,
+      il::norm(err_Dp, il::Norm::L2), il::norm(err_Dv, il::Norm::L2));
 }
 
 ////////////////////////////////////////////////////////////////////////////////

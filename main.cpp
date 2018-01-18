@@ -12,13 +12,14 @@
 #include <iostream>
 
 //#include "src/input/loadInput.h"
-#include "src/Solvers/SimpleElasticBenchmarks.h"
+#include "src/solvers/SimpleElasticBenchmarks.h"
 //#include "src/core_dev/OldSolutionClass.h"
 //#include "src/input/loadArguments.h"
 
-#include "src/Solvers/DevLHFMSolver.h"
 
+#include <src/solvers/HFPropagationP0.h>
 #include <src/wellbore/SimpleWellFlowSolverBenchmark.h>
+#include <src/solvers/MultiFracsSolver.h>
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -105,19 +106,19 @@
 
 //////////////////////// Previous code snippet /////////////////////////////////
 
-#include <il/Array.h>
-#include <src/core/Mesh.h>
+//#include <il/Array.h>
+//#include <src/core/Mesh.h>
 
-#include <src/input/json/loadJsonMesh.h>
-
-using json = nlohmann::json;
+//#include <src/input/json/loadJsonMesh.h>
+//
+//using json = nlohmann::json;
 
 int main() {
   //  std::cout << "\n\n ----- Simple Griffith crack examples ----- \n\n" <<
   //  std::endl;
 
-  //  int nelts = 11;
-  //  double dist = 1e8;
+  int nelts = 11;
+  double dist = 1e8;
   //
   //
   // int ret = hfp2d::TwoParallelHFs(nelts,dist);
@@ -134,20 +135,19 @@ int main() {
   //  std::cout << "\n rel error L2 norm in Constant Elements (with tip
   //  correction): " << ret2 << "\n";
 
-  // int test= hfp2d::WellboreFlowBenchmark();
+  int test= hfp2d::WellboreFlowBenchmark();
 
-  // std::cout << " end of code \n\n\n";
+  test = hfp2d::MultipleFracsPropagation();
 
-  std::string dir = "/Users/federicociardo/ClionProjects/Debug/";
-  std::string meshfilename = dir + "HalfCircle10.Mesh.json";
+  //std::cout << " end of code \n\n\n";
 
-  hfp2d::Mesh mymesh = hfp2d::loadJsonMesh(meshfilename);
-
-  double ret3 = hfp2d::SimpleCircleCrackExample_P0_byNodes(mymesh);
-
-  std::cout << "\n rel error L2 norm in Constant Elements: " << ret3 << "\n";
+//   std::string dir = "../Debug/";
+//   std::string meshfilename = dir + "TestMesh.json";
+//
+//   hfp2d::Mesh mymesh=hfp2d::loadJsonMesh(meshfilename);
 
   std::cout << "end of code\n";
+
 
   return 0;
 }
