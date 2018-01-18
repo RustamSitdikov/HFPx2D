@@ -9,7 +9,7 @@
 
 #include <gtest/gtest.h>
 
-#include <src/Solvers/SimpleElasticBenchmarks.h>
+#include <src/solvers/SimpleElasticBenchmarks.h>
 
 ////////////////////////////////////////////////////////////////////////////////
 

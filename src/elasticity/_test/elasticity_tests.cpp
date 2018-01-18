@@ -15,9 +15,9 @@
 #include <il/linear_algebra.h>
 #include <il/norm.h>
 
-#include <src/Elasticity/AssemblyDDM.h>
-#include <src/Elasticity/PlaneStrainInfinite.h>
-#include <src/Elasticity/Simplified3D.h>
+#include <src/elasticity/AssemblyDDM.h>
+#include <src/elasticity/PlaneStrainInfinite.h>
+#include <src/elasticity/Simplified3D.h>
 #include <src/core/Mesh.h>
 
 //--------------------------------------------------------------------------
