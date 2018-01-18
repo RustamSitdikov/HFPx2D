@@ -11,19 +11,18 @@
 #include <il/Array2D.h>
 #include <il/linear_algebra/dense/norm.h>
 
+#include <src/core/DomainMesh.h>
 #include <src/core/ElasticProperties.h>
 #include <src/core/Fluid.h>
 #include <src/core/Mesh.h>
-#include <src/core/DomainMesh.h>
 
 #include <src/core/SimulationParameters.h>
+#include <src/ehlsolvers/ReynoldsP0.h>
 #include <src/elasticity/AssemblyDDM.h>
 #include <src/elasticity/Simplified3D.h>
-#include <src/ehlsolvers/ReynoldsP0.h>
-#include <src/solvers/DevLHFMSolver.h>
+#include <src/solvers/HFPropagationP0.h>
 
 #include <src/tip/tipAsymptote.h>
-
 
 namespace hfp2d {
 
@@ -89,36 +88,37 @@ int TwoParallelHFs(int nelts, double dist) {
   hfp2d::Mesh mesh(xy, myconn, p);
 
   // background wellMesh 2 Quads
-   il::Array2D<double> nodesB{6,2,0.};
-    nodesB(0,0)=-100.;
-    nodesB(0,1)=-100.;
-    nodesB(1,0)=-100.;
-    nodesB(1,1)=100.;
-    nodesB(2,0)=0.;
-    nodesB(2,1)=100.;
-    nodesB(3,0)=0.;
-    nodesB(3,1)=-100.;
-    nodesB(4,0)=100.;
-    nodesB(4,1)=-100.;
-    nodesB(5,0)=100.;
-    nodesB(5,1)=100.;
-  il::Array2D<il::int_t> connB{2,4,0};
-  connB(0,0)=0;
-  connB(0,1)=1;
-  connB(0,2)=2;
-  connB(0,3)=3;
-  connB(1,0)=2;
-  connB(1,1)=3;
-  connB(1,2)=4;
-  connB(1,3)=5;
+  il::Array2D<double> nodesB{6, 2, 0.};
+  nodesB(0, 0) = -100.;
+  nodesB(0, 1) = -100.;
+  nodesB(1, 0) = -100.;
+  nodesB(1, 1) = 100.;
+  nodesB(2, 0) = 0.;
+  nodesB(2, 1) = 100.;
+  nodesB(3, 0) = 0.;
+  nodesB(3, 1) = -100.;
+  nodesB(4, 0) = 100.;
+  nodesB(4, 1) = -100.;
+  nodesB(5, 0) = 100.;
+  nodesB(5, 1) = 100.;
+  il::Array2D<il::int_t> connB{2, 4, 0};
+  connB(0, 0) = 0;
+  connB(0, 1) = 1;
+  connB(0, 2) = 2;
+  connB(0, 3) = 3;
+  connB(1, 0) = 2;
+  connB(1, 1) = 3;
+  connB(1, 2) = 4;
+  connB(1, 3) = 5;
 
-  il::Array<il::int_t> matidB{2,0};
-  matidB[1]=1;
+  il::Array<il::int_t> matidB{2, 0};
+  matidB[1] = 1;
 
-  hfp2d::DomainMesh bckmesh(nodesB,connB,matidB);
+  hfp2d::DomainMesh bckmesh(nodesB, connB, matidB);
 
-  il::Array<double> myxt(2,0.);
-  myxt[0]=1.;myxt[1]=0.;
+  il::Array<double> myxt(2, 0.);
+  myxt[0] = 1.;
+  myxt[1] = 0.;
 
   il::int_t kk = bckmesh.locate(myxt);
 
@@ -131,7 +131,8 @@ int TwoParallelHFs(int nelts, double dist) {
   il::Array<double> sig_o{Ntot, 1e6}, tau_o{Ntot, 0.};
 
   // initial fluid pressure
-  il::Array<double> pf_o{Ntot, 1.2e6};  // slightly above sig_o to have initial width
+  il::Array<double> pf_o{Ntot,
+                         1.2e6};  // slightly above sig_o to have initial width
   // create source obj. - hardcoded for now....
   il::Array<double> Qo{2, 0.0001};
 
@@ -186,8 +187,8 @@ int TwoParallelHFs(int nelts, double dist) {
   status.ok();
   std::cout << "solved \n";
 
-  double ki=(myelas.Ep()*dd_ini[3]/std::sqrt(3*h/2.)/std::sqrt(32./il::pi)) ;
-
+  double ki = (myelas.Ep() * dd_ini[3] / std::sqrt(3 * h / 2.) /
+               std::sqrt(32. / il::pi));
 
   //  for (il::int_t i = 0; i < 2 * Ntot; i++) {
   //    std::cout << " dd " << dd_ini[i] << "\n";
@@ -246,13 +247,13 @@ int TwoParallelHFs(int nelts, double dist) {
     //                                         tip_region_width_k,
     //                                         SimulParam,true);
 
-    Solution Soln1 = hfp2d::FractureFrontLoop(
-        Soln, K, water, the_rock, the_source, frac_heigth, dt, SimulParam, true);
+    Solution Soln1 =
+        hfp2d::FractureFrontLoop(Soln, water, the_rock, the_source, frac_heigth,
+                                 dt, SimulParam, true, il::io, K);
 
     // accept time steps ?
 
-    if (Soln1.errFront()<0.01)
-    {
+    if (Soln1.errFront() < 0.01) {
       Soln = Soln1;
       std::cout << " steps # " << jt << " time  " << Soln.time() << "\n";
       std::cout << " P at source " << Soln.pressure()[the_source.SourceElt(0)]
@@ -269,8 +270,8 @@ int TwoParallelHFs(int nelts, double dist) {
       Soln.writeToFile(filename);
 
       mean_tip_v = il::norm(Soln.tipsVelocity(), il::Norm::L2);
-      if ( (mean_tip_v > 0.0) ) { //&& (Soln.tipsLocation()(1,0)>1.5)
-        double dt_new = 1.25  * h / mean_tip_v;
+      if ((mean_tip_v > 0.0)) {  //&& (Soln.tipsLocation()(1,0)>1.5)
+        double dt_new = 1.25 * h / mean_tip_v;
         // modify to more clever ?
         if (dt_new > 3. * dt) {
           dt = 3. * dt;
@@ -284,44 +285,46 @@ int TwoParallelHFs(int nelts, double dist) {
       }
     } else {  // reject time step
       std::cout << "Reject time step - non-convergence on fracture fronts \n";
-        if (dt/2.>= dt_min){
-        dt=dt/2.;
-          std::cout << "Reduce time steps. ";
+      if (dt / 2. >= dt_min) {
+        dt = dt / 2.;
+        std::cout << "Reduce time steps. ";
         jt--;
-        }else
-        {
-          std::cout << "Error on frac. front too large with small time steps. - stop simulation \n";
-          break;
-        }
+      } else {
+        std::cout << "Error on frac. front too large with small time steps. - "
+                     "stop simulation \n";
+        break;
+      }
     }
-
   }
 
-  std::cout << "now out of Time step loop " << "\n";
+  std::cout << "now out of Time step loop "
+            << "\n";
 
   return 0;
 };
-
 
 ////////////////////////////////////////////////////////////////////////////////
 
 // write a routine - for well + n fracs benchmark
 // with json inputs.
 
-// write a routine for the solution of the well-flow / frac prop over a time step
+// write a routine for the solution of the well-flow / frac prop over a time
+// step
 //
 //
-
 
 ////////////////////////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////////////////////////////
 // Fracture Front Loop - solve for one time step from tn to tn+timestep
-hfp2d::Solution FractureFrontLoop(
-    const hfp2d::Solution &Sol_n, il::Array2D<double> &ElasMat,
-    hfp2d::Fluid &fluid, const hfp2d::SolidProperties &rock,
-    const hfp2d::Sources &source, double frac_height, double timestep,
-    hfp2d::SimulationParameters &simulParams, bool mute) {
+hfp2d::Solution FractureFrontLoop(const hfp2d::Solution &Sol_n,
+                                  hfp2d::Fluid &fluid,
+                                  const hfp2d::SolidProperties &rock,
+                                  const hfp2d::Sources &source,
+                                  double frac_height, double timestep,
+                                  hfp2d::SimulationParameters &simulParams,
+                                  bool mute, il::io_t,
+                                  il::Array2D<double> &ElasMat) {
   // INPUTS
   // Sol_n :: solution object containing the solution at time tn
   // ElasMat :: elasticity matrix on the current wellMesh  (might be modified)
@@ -389,7 +392,8 @@ hfp2d::Solution FractureFrontLoop(
 
   il::Array2D<double> tip_Loc_k{n_tips, 2, 0.};  // new (x,y) tips location
 
-  // number of element that is added to the wellMesh in this time step - array - for
+  // number of element that is added to the wellMesh in this time step - array -
+  // for
   // each tips
   il::Array<il::int_t> n_add_elt_tip{n_tips, 0};
 
@@ -417,7 +421,6 @@ hfp2d::Solution FractureFrontLoop(
 
   while (((errorF > simulParams.frac_front_tolerance)) &&
          (k < simulParams.frac_front_max_its)) {
-
     k++;
 
     // solution of ELH at fixed fracture front
@@ -454,7 +457,7 @@ hfp2d::Solution FractureFrontLoop(
       // add element in tip regions if needed (always start from tip_elt_n)
       n_add_elt_tip[i] = 0;  // only 1 tip elt (by default) , check now if
                              // fracture has grown in other elements
-//      double aux = (tipstruct.st - h_ribbon / 2.) - h_ribbon;
+      //      double aux = (tipstruct.st - h_ribbon / 2.) - h_ribbon;
 
       if (((tipstruct.st - h_ribbon / 2.) > h_ribbon) && v_tip_k[i] > 0.) {
         n_add_elt_tip[i] =
@@ -505,7 +508,7 @@ hfp2d::Solution FractureFrontLoop(
       il::int_t ti_e = mesh_n.tipElts(i);
       il::int_t ti_b = mesh_n.tipNodes(i);
       s_o_new[i] = s_t_k[i] - h_ribbon * n_add_elt_tip[i];
-      double fill_f = (s_o_new[i]-h_ribbon/2.) / h_ribbon;
+      double fill_f = (s_o_new[i] - h_ribbon / 2.) / h_ribbon;
 
       if (n_add_elt_tip[i] > 0) {
         // in that case,
@@ -524,7 +527,8 @@ hfp2d::Solution FractureFrontLoop(
           il::abort();
         }
       };
-      // get tip nodes b, and the other node a of the tip element (see in wellMesh)
+      // get tip nodes b, and the other node a of the tip element (see in
+      // wellMesh)
       // get their coordinates,
       // do   b - (b - a)*(1 - fill_f) to get the tip position.
       il::StaticArray<double, 2> a = mesh_k.coordinates(ti_a);
@@ -532,7 +536,7 @@ hfp2d::Solution FractureFrontLoop(
 
       tip_Loc_k(i, 0) = b[0] - (b[0] - a[0]) * (1. - fill_f);
       tip_Loc_k(i, 1) = b[1] - (b[1] - a[1]) * (1. - fill_f);
-       // tip location done
+      // tip location done
 
     }  // end of loops on all tips.
 
@@ -543,9 +547,9 @@ hfp2d::Solution FractureFrontLoop(
     n_elt_k = mesh_k.numberOfElts();  // update this - effect of last tip reg.
 
     if (ntip_r_elt_k_1 != ntip_r_elt_k) {  // if the number of element in tip
-            //region  has changed compared to the previous
-            // iteration  we resize the vector of the solution at the previous
-            // time step ...
+      // region  has changed compared to the previous
+      // iteration  we resize the vector of the solution at the previous
+      // time step ...
       Wn.resize(n_elt_k);
       Pn.resize(n_elt_k);
       Vn.resize(n_elt_k);
@@ -592,7 +596,8 @@ hfp2d::Solution FractureFrontLoop(
       {
         if (mesh_k.numberOfElts() == mesh_n.numberOfElts()) {
           ElasMat.resize(mesh_n.numberDDDofs(), mesh_n.numberDDDofs());
-        } else {  // cannot have less element than in the wellMesh of the solution
+        } else {  // cannot have less element than in the wellMesh of the
+                  // solution
                   // at the previous time step
           std::cout << "incorrect - back propagation ! ";
           il::abort();
@@ -656,6 +661,5 @@ hfp2d::Solution FractureFrontLoop(
 
   //
   return Soln_p_1_k;
-
 }
 }
