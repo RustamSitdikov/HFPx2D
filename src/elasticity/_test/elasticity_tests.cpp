@@ -16,12 +16,15 @@
 #include <il/norm.h>
 
 #include <src/core/Mesh.h>
-#include <src/elasticity/AssemblyDDM.h>
-#include <src/elasticity/PlaneStrainInfinite.h>
-#include <src/elasticity/Simplified3D.h>
+#include <src/Elasticity/AssemblyDDM.h>
+#include <src/Elasticity/PlaneStrainInfinite.h>
+#include <src/Elasticity/Simplified3D.h>
 
 //--------------------------------------------------------------------------
 // P1 Plane-Strain
+
+/// TEST 1
+
 TEST(P1, two_segs_45_a1) {
   // two segments at 90 degree from one another
   // oriented 45 degree from the axis e_x
@@ -140,6 +143,7 @@ TEST(P1, two_segs_45_a1) {
   ASSERT_NEAR(my_sum, 0., 1.e-5);
 }
 
+/// TEST 2
 
 TEST(P1, two_segs_90_45_a1) {
 
@@ -198,10 +202,126 @@ TEST(P1, two_segs_90_45_a1) {
   ASSERT_TRUE(my_sum== 0.);
 }
 
+/// TEST 3
+
+TEST(P1, two_adjacent_segs) {
+  // two adjacents straight segments
+  // just one DD is mobilised
+  //        ._._.        //
+
+  il::Array2D<double> xy{3, 2, 0.};
+  xy(0, 0) = -1.;
+  xy(0, 1) = 0.;
+  xy(1, 0) = 0.;
+  xy(1, 1) = 0.;
+  xy(2, 0) = 1.;
+  xy(2, 1) = 0.;
+
+  il::Array2D<il::int_t> ien{2, 2, 0};
+  ien(0, 0) = 0;
+  ien(0, 1) = 1;
+  ien(1, 0) = 1;
+  ien(1, 1) = 2;
+
+  hfp2d::Mesh mesh(xy, ien, 1);
+
+  hfp2d::ElasticProperties myelas(1., 0.);
+
+  il::Array2D<double> K = hfp2d::basic_assembly(
+          mesh, myelas, hfp2d::normal_shear_stress_kernel_dp1_dd, 0.);
+
+  // we compare the results of the assembly w.t the mma code
+  il::Array2D<double> Kmma{8, 8, 0.};
+  ;
+  Kmma(0, 0) = -0.683664;
+  Kmma(0, 1) = 0.;
+  Kmma(0, 2) = 0.0470442;
+  Kmma(0, 3) = 0.;
+  Kmma(0, 4) = 0.0943392;
+  Kmma(0, 5) = 0.;
+  Kmma(0, 6) = 0.0187761;
+  Kmma(0, 7) = 0.;
+
+  Kmma(1, 0) = 0.;
+  Kmma(1, 1) = -0.683664;
+  Kmma(1, 2) = 0.;
+  Kmma(1, 3) = 0.0470442;
+  Kmma(1, 4) = 0.;
+  Kmma(1, 5) = 0.0943392;
+  Kmma(1, 6) = 0.;
+  Kmma(1, 7) = 0.0187761;
+
+  Kmma(2, 0) = 0.0470442;
+  Kmma(2, 1) = 0.;
+  Kmma(2, 2) = -0.683664;
+  Kmma(2, 3) = 0.;
+  Kmma(2, 4) = 0.379637;
+  Kmma(2, 5) = 0.;
+  Kmma(2, 6) = 0.0315223;
+  Kmma(2, 7) = 0.;
+
+  Kmma(3, 0) = 0.;
+  Kmma(3, 1) = 0.0470442;
+  Kmma(3, 2) = 0.;
+  Kmma(3, 3) = -0.683664;
+  Kmma(3, 4) = 0.;
+  Kmma(3, 5) = 0.379637;
+  Kmma(3, 6) = 0.;
+  Kmma(3, 7) = 0.0315223;
+
+  Kmma(4, 0) = 0.0315223;
+  Kmma(4, 1) = 0.;
+  Kmma(4, 2) = 0.379637;
+  Kmma(4, 3) = 0.;
+  Kmma(4, 4) = -0.683664;
+  Kmma(4, 5) = 0.;
+  Kmma(4, 6) = 0.0470442;
+  Kmma(4, 7) = 0.;
+
+  Kmma(5, 0) = 0.;
+  Kmma(5, 1) = 0.0315223;
+  Kmma(5, 2) = 0.;
+  Kmma(5, 3) = 0.379637;
+  Kmma(5, 4) = 0.;
+  Kmma(5, 5) = -0.683664;
+  Kmma(5, 6) = 0.;
+  Kmma(5, 7) = 0.0470442;
+
+  Kmma(6, 0) = 0.0187761;
+  Kmma(6, 1) = 0.;
+  Kmma(6, 2) = 0.0943392;
+  Kmma(6, 3) = 0.;
+  Kmma(6, 4) = 0.0470442;
+  Kmma(6, 5) = 0.;
+  Kmma(6, 6) = -0.683664;
+  Kmma(6, 7) = 0.;
+
+  Kmma(7, 0) = 0.;
+  Kmma(7, 1) = 0.0187761;
+  Kmma(7, 2) = 0.;
+  Kmma(7, 3) = 0.0943392;
+  Kmma(7, 4) = 0.;
+  Kmma(7, 5) = 0.0470442;
+  Kmma(7, 6) = 0.;
+  Kmma(7, 7) = -0.683664;
+
+  double my_sum = 0.;
+
+  for (il::int_t j = 0; j < K.size(1); j++) {
+    for (il::int_t i = 0; i < K.size(0); i++) {
+      my_sum += K(i, j) + Kmma(i, j);
+    }
+  }
+
+  std::cout << my_sum << "\n";
+
+  ASSERT_NEAR(my_sum, 0., 1.e-5);
+}
+
 //--------------------------------------------------------------------------
 // P0 simplified 3D
 
-
+/// TEST 4
 TEST(P0, two_segs_90_45_a1) {
 
   // two segments at 90 degree from one another

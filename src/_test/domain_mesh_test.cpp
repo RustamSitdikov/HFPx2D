@@ -9,7 +9,6 @@
 
 #include <gtest/gtest.h>
 
-
 #include <src/core/DomainMesh.h>
 
 

@@ -9,7 +9,8 @@
 
 #include <gtest/gtest.h>
 
-#include <src/solvers/SimpleElasticBenchmarks.h>
+#include <src/Solvers/SimpleElasticBenchmarks.h>
+
 ////////////////////////////////////////////////////////////////////////////////
 
 //   TEST griffith crack with 10 P1 elements

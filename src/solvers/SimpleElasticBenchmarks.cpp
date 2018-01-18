@@ -540,9 +540,6 @@ double SimpleGriffithExampleS3D_P0_byNodes(int nelts) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// Simple solver for a json mesh file and constant remote loading for stress
-// - need to project on element to get tn ts (normal and shear traction) -
-
 double SimpleCircleCrackExample_P0_byNodes(hfp2d::Mesh &MyMesh) {
   double Ep = 1.;   // Plane strain Young's modulus
   double nu = 0.0;  // Poisson's ratio
@@ -588,8 +585,10 @@ double SimpleCircleCrackExample_P0_byNodes(hfp2d::Mesh &MyMesh) {
   // use a direct solver
   il::Array<double> dd = il::linearSolve(K, f, il::io, status);
 
-  double A = 10.;
+  // TODO: benchmark with analytical solution
 
-  return A;
+  double res = 10.;
+
+  return res;
 }
 }
