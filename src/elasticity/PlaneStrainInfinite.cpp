@@ -67,13 +67,13 @@ il::StaticArray2D<double, 2, 4> stresses_kernel_dp1_dd(double h, double Ep,
   double xpp1 = xp + 1.;
   double dxpp3 = 2. * xp + 3.;
   double xpm2 = xp - 2.;
-  double r1 = pow(xpm1, 2.) + pow(yp, 2.);
-  double r2 = pow(xpp1, 2.) + pow(yp, 2.);
-  double yp2m1 = pow(yp, 2.) - 1;
-  double yp2p1 = pow(yp, 2.) + 1;
+  double r1 = xpm1*xpm1 + yp*yp;
+  double r2 =  xpp1*xpp1 + yp*yp;
+  double yp2m1 = yp*yp - 1;
+  double yp2p1 = yp*yp + 1;
 
-  double AtanAux1 = atanh((2. * xp) / (pow(xp, 2.) + yp2p1)) * 0.5;
-  double AtanAux2 = atanh((2. * xp) / (pow(xp, 2.) + yp2p1)) * 0.5;
+  double AtanAux1 = atanh((2. * xp) / (xp*xp  + yp2p1)) * 0.5;
+  double AtanAux2 = atanh((2. * xp) / (xp*xp  + yp2p1)) * 0.5;
 
   double AtanAuxxpm1 = atan(xpm1 / yp);
   double AtanAuxxpp1 = atan(xpp1 / yp);
@@ -83,26 +83,25 @@ il::StaticArray2D<double, 2, 4> stresses_kernel_dp1_dd(double h, double Ep,
   // 1 : left node influence, 2 : right coordinates influence
   // s : shear dof, n : normal dof
   // sxx xx stress, sxy xy stress, syy yy stress
-
+// MY COMMMENT HERE 
   double sxys1 =
       AtanAux1 -
-      pow(r1, -1.) * pow(r2, -2.) *
-          (pow(xpm1, 2.) * pow(xpp1, 3.) +
-           2. * xp * (3. + xp) * xpp1 * pow(yp, 2.) + xpm1 * pow(yp, 4.));
+          (1./(r1*r2*r2)) * (
+          (xpm1*xpm1) * pow(xpp1, 3) + 2. * xp * (3. + xp) * xpp1 * yp *yp + xpm1 * pow(yp, 4));
 
-  double syys1 = pow(r1, -1.) * pow(r2, -2.) * (2 * xpm1 * yp * pow(xpp1, 2.) -
-                                                2 * (1 + 3 * xp) * pow(yp, 3.));
+  double syys1 = (1./r1) *(1./(r2*r2))  * (2 * xpm1 * yp *  (xpp1*xpp1) -
+                                                2 * (1 + 3 * xp) * pow(yp, 3));
 
   double syyn1 =
-      AtanAux1 - xpp1 * pow(r2, -2) * (pow(xpp1, 2) + 3 * pow(yp, 2)) +
-      2 * xp * pow(yp, 2) *
-          pow(2 * yp2m1 * pow(xp, 2) + pow(xp, 4) + pow(yp2p1, 2), -1);
+      AtanAux1 - xpp1 * (1/(r2*r2)) * ((xpp1*xpp1) + 3 * (yp*yp)) +
+      2 * xp * (yp*yp) *
+          pow(2 * yp2m1 * (xp*xp) + pow(xp, 4) + (yp2p1*yp2p1), -1);
 
   double sxys2 =
       -AtanAux2 +
-      pow(r1, -2) * pow(r2, -1) *
+      1/(r1*r1) * 1/(r2) *
           (pow(xpm1, 3) * pow(xpp1, 2) +
-           2 * (-3 + xp) * xp * xpm1 * pow(yp, 2) + xpp1 * pow(yp, 4));
+           2 * (-3 + xp) * xp * xpm1 * (yp*yp) + xpp1 * pow(yp, 4));
 
   double syys2 = pow(r1, -2) * pow(r2, -1) *
                  (2 * xpp1 * yp * pow(xpm1, 2) + (2 - 6 * xp) * pow(yp, 3));
