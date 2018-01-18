@@ -10,7 +10,7 @@
 
 #include <il/math.h>
 
-#include <src/wellbore/LoadInputMultistage.h>
+#include <src/input/json/LoadInputMultistage.h>
 
 namespace hfp2d {
 

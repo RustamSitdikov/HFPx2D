@@ -82,9 +82,9 @@ set(SOURCE_FILES
         src/wellbore/SimpleWellFlowSolverBenchmark.cpp
         src/wellbore/SimpleWellFlowSolverBenchmark.h
         src/solvers/MultiFracsSolution.h
-        src/wellbore/LoadInputMultistage.cpp src/wellbore/LoadInputMultistage.h
+        src/input/json/LoadInputMultistage.cpp src/input/json/LoadInputMultistage.h
         src/solvers/HFPropagationP0.cpp src/solvers/HFPropagationP0.h
-        src/solvers/MultiFracsSolver.cpp src/solvers/MultiFracsSolver.h)
+        src/solvers/MultiFracsSolver.cpp src/solvers/MultiFracsSolver.h src/util/RootFinder.cpp src/util/RootFinder.h)
 
 if(APPLE)
 link_directories($ENV{MKLROOT}/lib $ENV{MKLROOT}/../compiler/lib )

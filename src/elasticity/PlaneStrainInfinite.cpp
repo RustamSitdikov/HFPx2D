@@ -83,7 +83,7 @@ il::StaticArray2D<double, 2, 4> stresses_kernel_dp1_dd(double h, double Ep,
   // 1 : left node influence, 2 : right coordinates influence
   // s : shear dof, n : normal dof
   // sxx xx stress, sxy xy stress, syy yy stress
-// MY COMMMENT HERE 
+
   double sxys1 =
       AtanAux1 -
           (1./(r1*r2*r2)) * (

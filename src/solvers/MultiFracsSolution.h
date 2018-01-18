@@ -92,8 +92,14 @@ class MultiFracsSolution {
   il::Array<il::int_t> fracInletElts() const { return frac_influxes_.SourceElt();} ;
 
   il::Array<double> fracFluxes() const { return frac_influxes_.InjectionRate();} ;
+  double fracFluxes(il::int_t k) const { return frac_influxes_.InjectionRate(k);} ;
+
 
   il::Array<double> clusterFluxes() const { return well_outfluxes_.InjectionRate();} ;
+
+  double clusterFluxes(il::int_t k) const { return well_outfluxes_.InjectionRate(k);} ;
+
+  double time() const { return time_;};
 
   //////////////////////////////////////////////////////////////////////////////
   //  METHODS

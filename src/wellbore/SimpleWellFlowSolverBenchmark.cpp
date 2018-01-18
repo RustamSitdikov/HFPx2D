@@ -11,7 +11,7 @@
 
 #include <src/wellbore/SimpleWellFlowSolverBenchmark.h>
 #include <src/wellbore/WellFlowP0.h>
-#include <src/wellbore/LoadInputMultistage.h>
+#include <src/input/json/LoadInputMultistage.h>
 
 #include <src/util/json.hpp>
 
