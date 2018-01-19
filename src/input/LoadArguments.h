@@ -21,9 +21,8 @@
 
 namespace hfp2d {
 
-void loadArguments(int argc, char const *argv[], il::io_t, bool check_input,
-                   bool check_output, bool check_restart,
-                   il::String &input_filename, il::String &restart_filename,
+void loadArguments(int argc, char const *argv[], il::io_t,
+                   il::String &input_filename,
                    il::String &path_output_directory);
 
 void cleanOutputDir(const char *path);

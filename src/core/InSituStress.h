@@ -37,23 +37,21 @@ class InSituStress {
   //        GETTER FUNCTIONS
   //////////////////////////////////////////////////////////////////////////
 
-  inline il::Array2D<double> getLocalInSituStresses() {
+  il::Array2D<double> getLocalInSituStresses() {
     return local_insitu_stresses_;
   }
 
-  inline double getLocalInSituStresses(il::int_t i, il::int_t j) {
+  double getLocalInSituStresses(il::int_t i, il::int_t j) {
     return local_insitu_stresses_(i, j);
   }
 
-  inline il::Array<double> getAmbientPorePressure() {
-    return ambient_pore_pressure_;
-  }
+  il::Array<double> getAmbientPorePressure() { return ambient_pore_pressure_; }
 
-  inline double getAmbientPorePressure(il::int_t i) {
+  double getAmbientPorePressure(il::int_t i) {
     return ambient_pore_pressure_[i];
   }
 
-  inline il::Array<double> getBackgroundShearStress() {
+  il::Array<double> getBackgroundShearStress() {
     il::Array<double> tau_0{this->local_insitu_stresses_.size(0)};
 
     for (int i = 0; i < tau_0.size(); ++i) {
@@ -63,11 +61,11 @@ class InSituStress {
     return tau_0;
   };
 
-  inline double getBackgroundShearStress(il::int_t i) {
+  double getBackgroundShearStress(il::int_t i) {
     return this->local_insitu_stresses_(i, 0);
   };
 
-  inline il::Array<double> getBackgroundNormalStress() {
+  il::Array<double> getBackgroundNormalStress() {
     il::Array<double> sigma_n{this->local_insitu_stresses_.size(0)};
 
     for (int i = 0; i < sigma_n.size(); ++i) {
@@ -76,7 +74,7 @@ class InSituStress {
 
     return sigma_n;
   };
-  inline double getBackgroundNormalStress(il::int_t i) {
+  double getBackgroundNormalStress(il::int_t i) {
     return this->local_insitu_stresses_(i, 1);
   };
 };

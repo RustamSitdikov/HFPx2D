@@ -13,6 +13,7 @@
 namespace hfp2d {
 
 class ElasticProperties {
+
   //////////////////////////////////////////////////////////////////////////
   //        CLASS MEMBERS
   //////////////////////////////////////////////////////////////////////////
@@ -58,22 +59,22 @@ class ElasticProperties {
   //        GETTER FUNCTIONS
   //////////////////////////////////////////////////////////////////////////
   // Long version
-  inline double youngModulus() { return young_; }
-  inline double poissonRatio() { return poiss_; }
-  inline double bulkModulus() { return bulkm_; }
-  inline double lame1Parameter() { return lame1_; }
-  inline double lame2Parameter() { return lame2_; }
-  inline double shearModulus() { return lame2_; }
-  inline double planeStrainE() { return youngPS_; }
+  double youngModulus() { return young_; }
+  double poissonRatio() { return poiss_; }
+  double bulkModulus() { return bulkm_; }
+  double lame1Parameter() { return lame1_; }
+  double lame2Parameter() { return lame2_; }
+  double shearModulus() { return lame2_; }
+  double planeStrainE() { return youngPS_; }
 
   // Short version
-  inline double E() const { return young_; }
-  inline double nu() const { return poiss_; }
-  inline double K() const { return bulkm_; }
-  inline double L1() const { return lame1_; }
-  inline double L2() const { return lame2_; }
-  inline double G() const { return lame2_; }
-  inline double Ep() const { return youngPS_; }
+  double E() const { return young_; }
+  double nu() const { return poiss_; }
+  double K() const { return bulkm_; }
+  double L1() const { return lame1_; }
+  double L2() const { return lame2_; }
+  double G() const { return lame2_; }
+  double Ep() const { return youngPS_; }
 
   //////////////////////////////////////////////////////////////////////////
   //        METHODS

@@ -180,68 +180,68 @@ class Solution {
   //////////////////////////////////////////////////////////////////////////
 
   // get functions
-  inline il::Array<double> openingDD() const { return openingDD_; };
-  inline il::Array<double> shearDD() const { return shearDD_; };
-  inline il::Array<double> pressure() const { return pressure_; };
-  inline il::Array<double> sigmaN() const { return sigma_n_; };
-  inline il::Array<double> tau() const { return tau_; };
+  il::Array<double> openingDD() const { return openingDD_; };
+  il::Array<double> shearDD() const { return shearDD_; };
+  il::Array<double> pressure() const { return pressure_; };
+  il::Array<double> sigmaN() const { return sigma_n_; };
+  il::Array<double> tau() const { return tau_; };
 
-  inline double openingDD(il::int_t i) const { return openingDD_[i]; };
-  inline double shearDD(il::int_t i) const { return shearDD_[i]; };
-  inline double pressure(il::int_t i) const { return pressure_[i]; };
-  inline double sigmaN(il::int_t i) const { return sigma_n_[i]; };
-  inline double tau(il::int_t i) const { return tau_[i]; };
+  double openingDD(il::int_t i) const { return openingDD_[i]; };
+  double shearDD(il::int_t i) const { return shearDD_[i]; };
+  double pressure(il::int_t i) const { return pressure_[i]; };
+  double sigmaN(il::int_t i) const { return sigma_n_[i]; };
+  double tau(il::int_t i) const { return tau_[i]; };
 
-  inline il::Array<int> activeElts() const { return active_set_elements_; };
-  inline il::int_t activeElts(il::int_t i) const {
+  il::Array<int> activeElts() const { return active_set_elements_; };
+  il::int_t activeElts(il::int_t i) const {
     return active_set_elements_[i];
   };
 
-  inline il::Array2D<double> tipsLocation() const { return tipsLocation_; };
-  inline il::Array<double> ribbonsDistance() const { return ribbon_tips_s_; };
+  il::Array2D<double> tipsLocation() const { return tipsLocation_; };
+  il::Array<double> ribbonsDistance() const { return ribbon_tips_s_; };
 
-  inline hfp2d::Mesh currentMesh() const { return currentmesh_; };
+  hfp2d::Mesh currentMesh() const { return currentmesh_; };
 
-  inline double time() const { return time_; };
-  inline double timestep() const { return timestep_; }
+  double time() const { return time_; };
+  double timestep() const { return timestep_; }
 
-  inline double errFront() const { return err_front_; }
-  inline double errOpening() const { return err_openingDD_; }
-  inline double errShear() const { return err_shearDD_; }
-  inline double errPressure() const { return err_P_; }
-  inline il::int_t frontIts() const { return frontIts_; }
-  inline il::int_t ehlIts() const { return ehlIts_; }
+  double errFront() const { return err_front_; }
+  double errOpening() const { return err_openingDD_; }
+  double errShear() const { return err_shearDD_; }
+  double errPressure() const { return err_P_; }
+  il::int_t frontIts() const { return frontIts_; }
+  il::int_t ehlIts() const { return ehlIts_; }
 
   //////////////////////////////////////////////////////////////////////////
   //        METHODS
   //////////////////////////////////////////////////////////////////////////
 
   // some set functions
-  inline void setRibbonDistances(const il::Array<double> &srt) {
+  void setRibbonDistances(const il::Array<double> &srt) {
     ribbon_tips_s_ = srt;
   };
 
-  inline void setTime(const double &time) { time_ = time; };
+  void setTime(const double &time) { time_ = time; };
 
-  inline void setTipsLocation(const il::Array2D<double> &tips_xy) {
+  void setTipsLocation(const il::Array2D<double> &tips_xy) {
     tipsLocation_ = tips_xy;
   };
 
-  inline void setErrorFront(const double errF) { err_front_ = errF; };
+  void setErrorFront(const double errF) { err_front_ = errF; };
 
-  inline void setItsFront(const il::int_t its) { frontIts_ = its; };
+  void setItsFront(const il::int_t its) { frontIts_ = its; };
 
-  inline void setTipsVelocity(const il::Array<double> &tips_vel) {
+  void setTipsVelocity(const il::Array<double> &tips_vel) {
     tips_velocity_ = tips_vel;
   };
 
-  inline void setTimeStep(const double dt) { timestep_ = dt; };
+  void setTimeStep(const double dt) { timestep_ = dt; };
 
-  inline void setActiveElts(const il::Array<int> &act_set_elmnts) {
+  void setActiveElts(const il::Array<int> &act_set_elmnts) {
     active_set_elements_ = act_set_elmnts;
   };
 
-  inline void setFrontPositIters(const il::int_t iters_fract_posit) {
+  void setFrontPositIters(const il::int_t iters_fract_posit) {
     frontIts_ = iters_fract_posit;
   };
 

@@ -24,22 +24,17 @@
 #include <src/elhsolvers/ReynoldsP1.h>
 #include <src/input/LoadArguments.h>
 #include <src/input/LoadInput.h>
-#include "src/input/Geometry/LoadGeometry.h"
 
 namespace hfp2d {
 
 void fluidInjFrictWeakDilatFault(int argc, char const *argv[]) {
-  // Initialization of variable needed to load the code's arguments
-  bool check_input = false;
-  bool check_output = false;
-  bool check_restart = false;
+
+  // Initialization of variable needed to load the code's arguments;
   il::String input_filename;
-  il::String restart_filename;
   il::String path_output_directory;
 
   // Load arguments & create the output directory
-  hfp2d::loadArguments(argc, argv, il::io, check_input, check_output,
-                       check_restart, input_filename, restart_filename,
+  hfp2d::loadArguments(argc, argv, il::io, input_filename,
                        path_output_directory);
 
   // Intantiate mesh object

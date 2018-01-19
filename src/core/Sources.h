@@ -10,6 +10,7 @@
 
 namespace hfp2d {
 class Sources {
+
   //////////////////////////////////////////////////////////////////////////
   //        CLASS MEMBERS
   //////////////////////////////////////////////////////////////////////////
@@ -47,12 +48,12 @@ class Sources {
   //////////////////////////////////////////////////////////////////////////
   //        GETTER FUNCTIONS
   //////////////////////////////////////////////////////////////////////////
-  inline il::Array<double> InjectionRate() const { return injection_rate_; };
-  inline double InjectionRate(il::int_t k) const { return injection_rate_[k]; };
-  inline il::int_t getSourcePoint() const { return source_point_; };
+  il::Array<double> InjectionRate() const { return injection_rate_; };
+  double InjectionRate(il::int_t k) const { return injection_rate_[k]; };
+  il::int_t getSourcePoint() const { return source_point_; };
 
-  inline il::Array<il::int_t> SourceElt() const { return source_elt_; };
-  inline il::int_t SourceElt(il::int_t k) const { return source_elt_[k]; };
+  il::Array<il::int_t> SourceElt() const { return source_elt_; };
+  il::int_t SourceElt(il::int_t k) const { return source_elt_[k]; };
 };
 }
 #endif  // HFPX2DUNITTEST_SOURCES_H

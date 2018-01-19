@@ -1,7 +1,7 @@
 //
 // HFPx2D project.
 //
-// Created by Lorenzo Benedetti on 02.09.17.
+// Created by Federico Ciardo on 02.09.17.
 // Copyright (c) ECOLE POLYTECHNIQUE FEDERALE DE LAUSANNE, Switzerland,
 // Geo-Energy Laboratory, 2016-2017.  All rights reserved.
 // See the LICENSE.TXT file for more details.
@@ -12,23 +12,16 @@
 
 namespace hfp2d {
 
-void loadArguments(int argc, char const *argv[], il::io_t, bool check_input,
-                   bool check_output, bool check_restart,
-                   il::String &input_filename, il::String &restart_filename,
+void loadArguments(int argc, char const *argv[], il::io_t,
+                   il::String &input_filename,
                    il::String &path_output_directory) {
+
   // loadArguments will receive the arguments that were passed to the program
   // from the command line as input.
-  // they are organized as following:
-  // .. argc = argument count, the number of arguments;
-  // .. argv = a set of characters which are the input arguments.
-  //
-  // To determine which argument is which, we will use the switches -i, -o, -r
 
-  if (argc < 5) {
+  if (argc != 3) {
     std::cerr << "ERROR -> Usage of the program is " << std::endl;
-    std::cerr << "  HFPx2D -i input_file -o path_output_directory     for new "
-                 "analyses;"
-              << std::endl;
+    std::cerr << "  HFPx2D input_file path_output_directory " << std::endl;
     std::cerr << "-- Press ENTER to exit...";
     std::cin.get();
     exit(EXIT_FAILURE);
@@ -38,91 +31,46 @@ void loadArguments(int argc, char const *argv[], il::io_t, bool check_input,
   std::stringstream arg_stream;
 
   // Insert arguments in the object
-  for (int i = 0; i < argc; ++i) arg_stream << argv[i] << " ";
+  for (il::int_t i = 0; i < argc; ++i) arg_stream << argv[i] << " ";
 
-  std::string first_arg, second_arg, third_arg, fourth_arg, fifth_arg;
+  // Extract arguments from arg_stream object
+  std::string first_arg, second_arg, third_arg;
   arg_stream >> first_arg;
   arg_stream >> second_arg;
   arg_stream >> third_arg;
-  arg_stream >> fourth_arg;
-  arg_stream >> fifth_arg;
 
-  int status_of_access;
-  if (second_arg == "-i") {
-    input_filename =
-        il::String(il::StringType::Bytes, third_arg.c_str(), third_arg.size());
+  il::int_t status_of_access;
+  input_filename =
+      il::String(il::StringType::Bytes, second_arg.c_str(), second_arg.size());
 
-    status_of_access = access(input_filename.asCString(), F_OK | R_OK);
+  status_of_access = access(input_filename.asCString(), F_OK | R_OK);
 
-    if (status_of_access != 0) {
-      std::cerr << "Error: impossible to access the input file "
-                << input_filename << std::endl;
-      std::cerr << strerror(errno) << std::endl;
-      exit(EXIT_FAILURE);
-    } else {
-      check_input = true;
-    }
-
-  } else if (second_arg == "-r") {
-    restart_filename =
-        il::String(il::StringType::Bytes, third_arg.c_str(), third_arg.size());
-    status_of_access = access(restart_filename.asCString(), F_OK | R_OK);
-
-    if (status_of_access != 0) {
-      std::cerr << "Error: impossible to access the input file "
-                << restart_filename << std::endl;
-      std::cerr << strerror(errno) << std::endl;
-      exit(EXIT_FAILURE);
-    } else {
-      check_restart = true;
-    }
-
-  } else {
-    std::cout << "Wrong argument for input or restart analysis. Please change "
-                 "second argument."
+  if (status_of_access != 0) {
+    std::cerr << "Error: impossible to access the input file " << input_filename
               << std::endl;
-    std::cout << "-- Press ENTER to exit...";
-    std::cin.get();
-    exit(1);
+    std::cerr << strerror(errno) << std::endl;
+    exit(EXIT_FAILURE);
   }
 
-  if (fourth_arg == "-o") {
-    path_output_directory =
-        il::String(il::StringType::Bytes, fifth_arg.c_str(), fifth_arg.size());
-    check_output = true;
-  } else {
-    std::cout << "Wrong fourth argument for output directory. Please change "
-                 "fourth argument."
-              << std::endl;
-    std::cout << "-- Press ENTER to exit...";
-    std::cin.get();
-    exit(1);
+  // Creating the OUTPUT directory defined in the program arguments
+  path_output_directory =
+      il::String(il::StringType::Bytes, third_arg.c_str(), third_arg.size());
+
+  const int output_dir_status = mkdir(path_output_directory.asCString(), 0777);
+
+  if (output_dir_status != 0) {
+    status_of_access =
+        access(path_output_directory.asCString(), F_OK | W_OK | R_OK);
   }
 
-  /// Creating the OUTPUT directory
+  if (status_of_access != 0) {
+    std::cerr << "Error: impossible to create or access the directory "
+              << path_output_directory << std::endl;
+    std::cerr << strerror(errno) << std::endl;
+    exit(EXIT_FAILURE);
 
-  if (check_output) {
-    int output_dir_status = mkdir(path_output_directory.asCString(), 0777);
-    if (output_dir_status != 0) {
-      status_of_access =
-          access(path_output_directory.asCString(), F_OK | W_OK | R_OK);
-    }
-
-    if (status_of_access !=
-        0) {  // if there is an error on access as well, no option left:
-      // we have to stop because there is no way to work on the folder
-      std::cerr << "Error: impossible to create or access the directory "
-                << path_output_directory << std::endl;
-      std::cerr << strerror(errno) << std::endl;
-      exit(EXIT_FAILURE);
-
-    } else {
-      if (!check_restart) {
-        // The directory is accessible and we can work in it.
-        // Let us clean the directory ONLY IF THE ANALYSIS IS NEW !!!
-        cleanOutputDir(path_output_directory.asCString());
-      }
-    }
+  } else {
+    cleanOutputDir(path_output_directory.asCString());
   }
 }
 
