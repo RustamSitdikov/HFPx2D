@@ -282,15 +282,11 @@ class Mesh {  // class for 1D wellMesh of 1D segment elements ?
 
    il::int_t numberPressDofs() {
     il::int_t aux=0;
-    switch (interpolation_order_) {
-      case 0: {
-        aux = dof_handle_pressure_.size(0);  // number of elts
-      }
-      case 1: {
-        aux = coordinates_.size(0);  // number of nodes
-      }
-    }
-    return aux;
+     aux = dof_handle_pressure_.size(0); // p0
+     if (interpolation_order_==1){ //p1
+       aux = coordinates_.size(0);
+     }
+     return aux;
   }
 
    il::int_t numberDDDofs() const {

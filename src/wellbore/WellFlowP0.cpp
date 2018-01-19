@@ -29,7 +29,7 @@
 
 namespace hfp2d {
 
-// bracketing the root (friction factor)
+// bracketing the root
 imf::BracketS bracketingHD(imf::ImplicitFunction fun, IFParametersHD &params,
                            double lw_bound, double up_bound, const int max_iter,
                            bool mute) {

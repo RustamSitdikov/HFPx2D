@@ -10,6 +10,7 @@
 #define HFPX2D_MULTIFRACSSOLVER_H
 
 #include <src/solvers/MultiFracsSolution.h>
+#include <src/util/RootFinder.h>
 
 namespace hfp2d{
 
@@ -25,6 +26,16 @@ hfp2d::MultiFracsSolution wellHFsSolver(
     hfp2d::SolidProperties &rock, hfp2d::SimulationParameters &frac_solver_p,
     hfp2d::SimulationParameters &well_solver_p, double &frac_heigth, bool mute,
     il::io_t, il::Array2D<double> &K);
+
+// parameters structure for the interface to the root finder
+struct IFParamEntryFriction : imf::IFParameters {
+  double dp=0.;  // well pressure - frac entry pressure
+  double fp = 0.0;  // perf. friction coef.
+  double ft = 0.0; // wb tort. friction coef.
+  double beta_t =0; //wb tort. friction exponent
+};
+/////////////////////
+
 
 
 }

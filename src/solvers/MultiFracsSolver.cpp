@@ -147,14 +147,14 @@ int MultipleFracsPropagation() {
       conn(i, 1) = i + 1 + f;
     }
     // floor 7/2 will give 3 which is the 4 elt in the mesh so it's ok
-    source_loc_frac[f] = nelts / 2;
+    source_loc_frac[f] = nelts / 2 + f * nelts;
   }
 
   hfp2d::Mesh fracsMesh(xy, conn, 0);
 
   // zero initial rates entering the fracs
   il::Array<double> frac_rates{nfracs, 0.};
-  hfp2d::Sources well_influxes(source_loc_frac, frac_rates);
+  hfp2d::Sources frac_sources(source_loc_frac, frac_rates);
 
   // in-situ conditions on current mesh .....
   //
@@ -192,20 +192,20 @@ int MultipleFracsPropagation() {
   il::Array<double> pc = wellIniSol.pressureAtElts(cluster_loc);
 
   il::Array<double> snc{nfracs, 0.};
-  for (il::int_t i = 0; i < well_influxes.SourceElt().size(); i++) {
-    snc[i] = in_situ_traction[well_influxes.SourceElt(i) * 2 + 1];
+  for (il::int_t i = 0; i < frac_sources.SourceElt().size(); i++) {
+    snc[i] = in_situ_traction[frac_sources.SourceElt(i) * 2 + 1];
   }
 
   // as long as fluid pressure is lower than the in-situ stress we just loop on
   // the wb flow - pressurizing the well only.
 
   // one step.
-  double dt = 0.1;
+  double dt = 0.05;
 
   int k = 0;
   hfp2d::WellSolution wellSol_n = wellIniSol;
 
-  while (k < 10) {
+  while (k < 100) {
     k++;
 
     hfp2d::WellSolution wellSol_n_p_1 = hfp2d::wellFlowSolverP0(
@@ -250,34 +250,37 @@ int MultipleFracsPropagation() {
     }
   }
 
-  il::blas(-1., ftini, il::io, pfo);
+  il::Array<double> pnet0=pfo;
+
+  il::blas(-1., ftini, il::io, pnet0);
 
   std::cout << " initial elastic problem \n";
   il::Status status;
   // use a direct solver
-  il::Array<double> dd_ini = il::linearSolve(K, pfo, il::io, status);
+  il::Array<double> dd_ini = il::linearSolve(K, pnet0, il::io, status);
   status.ok();
   std::cout << "solved \n";
   for (il::int_t i = 0; i < fracsMesh.numberDDDofs(); i++) {
-    std::cout << "traction " << pfo[i] << " dd " << dd_ini[i] << "\n";
+    std::cout << "net load " << pnet0[i] << " dd " << dd_ini[i] << "\n";
   }
 
   il::Array<double> width{fracsMesh.numberOfElts(), 0.},
-      sheardd{fracsMesh.numberOfElts(), 0.}, pf_o{fracsMesh.numberOfElts(), 0.};
+      sheardd{fracsMesh.numberOfElts(), 0.};
 
   il::Array<double> sn_o{fracsMesh.numberOfElts(), 0.},
-      tau_o{fracsMesh.numberOfElts(), 0.};
+      tau_o{fracsMesh.numberOfElts(), 0.},fluid_pressure_o{fracsMesh.numberOfElts(),0.};
 
   for (il::int_t i = 0; i < fracsMesh.numberOfElts(); i++) {
     sheardd[i] = dd_ini[2 * i];
     width[i] = dd_ini[2 * i + 1];
     sn_o[i] = ftini[2 * i + 1];
     tau_o[i] = ftini[2 * i];
+    fluid_pressure_o[i]=pfo[2*i+1];
   }
 
   // create a solution at the current time of the wellsolution  object.
   hfp2d::Solution fracSol_n = hfp2d::Solution(
-      fracsMesh, wellSol_n.time(), width, sheardd, pf_o, sn_o, tau_o);
+      fracsMesh, wellSol_n.time(), width, sheardd, fluid_pressure_o, sn_o, tau_o);
   il::Array<double> vel0{4, 0.};  // initial tip velocity
   fracSol_n.setTipsVelocity(vel0);
 
@@ -291,13 +294,13 @@ int MultipleFracsPropagation() {
   // we know are ready
   il::Array<double> dpc{nfracs, 0.};
 
-  hfp2d::MultiFracsSolution completeSol_n(fracSol_n, wellSol_n, well_influxes,
+  hfp2d::MultiFracsSolution completeSol_n(fracSol_n, wellSol_n, frac_sources,
                                           well_sources, 0, dpc, 0.);
 
   // time step loop !!!
 
   il::int_t jt = 0;
-  il::int_t nsteps = 2;
+  il::int_t nsteps = 1;
 
   dt = 0.001;
 
@@ -318,7 +321,19 @@ int MultipleFracsPropagation() {
 
   return 0;
 }
+////////////////////////////////////////////////////////////////////////////////
 
+// ENTRY FRICTION Residuals fction
+double entryFrictionResiduals(double s,IFParamEntryFriction &params) {
+
+  double res=params.dp-(params.fp)*(s*s)-(params.ft)*(pow(abs(s),params.beta_t));
+  return res;
+}
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////
 // todo : add Sources in the Solution class ?
 // todo : add wellbore mesh in well solution class ? for simplicity ?
 // such that we have simpler api
@@ -354,14 +369,24 @@ hfp2d::MultiFracsSolution wellHFsSolver(
   il::Array<double> pc_w_k{nclusters, 0.}, pc_f_k{nclusters, 0.};
   il::Array<double> dpc_k{nclusters, 0.}, errQ{nclusters, 0.};
 
+//  il::Array<double> allpf=fracSol_n.pressure();
+
+  IFParamEntryFriction entry_struct;
+
+  double pump_rate = w_inj.wellInjRate();
+  double rr;
+
+
+  std::cout << "+++++++++++++++++++++++++";
+
   // Fixed point iteration scheme
   //
   //
-  double rela_flux = 0.3;  // pass as arguments ?
+  double rela_flux = 0.01;  // pass as arguments ?
   double err = 1.;
   double Tolerance = 1.e-3;
   int k = 0;
-  int kmax = 100;
+  int kmax = 20;
   // note if all the fluxes are zero do not solve for frac flux, just the
   // wellbore
   while ((k < kmax) && (err > Tolerance)) {
@@ -393,22 +418,37 @@ hfp2d::MultiFracsSolution wellHFsSolver(
       dpc_k[i] = pc_w_k[i] - pc_f_k[i];
       // compute new flow rates.... the best would be to root find here ?
 
-      if (Q_in_k[i] == 0.) {  // to ensure we don t have infinite flux.
-        if (w_inj.coefTort(i) != 0.) {
-          Q_in_k[i] = std::pow(std::abs(dpc_k[i]), 1. / w_inj.betaTort(i)) /
-                      w_inj.coefTort(i);
-        } else {
-          Q_in_k[i] = std::sqrt(std::abs(dpc_k[i])) /
-                      w_inj.coefPerf(i);  // ok provided coefPerf is non-zero.
-        }
-      }
+      entry_struct.dp=abs(dpc_k[i]);
+      entry_struct.fp=w_inj.coefPerf(i);
+      entry_struct.ft=w_inj.coefTort(i);
+      entry_struct.beta_t=w_inj.betaTort(i);
+//      std::cout << " Dp " << dpc_k[i] << "\n";
+//      std::cout << entryFrictionResiduals(0.,entry_struct) <<"\n";
+//      std::cout << entryFrictionResiduals(1.*pump_rate,entry_struct) <<"\n";
 
-      Q_in_k[i] = dpc_k[i] / (w_inj.coefPerf(i) * abs(Q_in_k[i]) +
-                              w_inj.coefTort(i) *
-                                  std::pow(abs(Q_in_k[i]), w_inj.betaTort(i) - 1.0));
+      rr = imf::brent((imf::ImplicitFunction)entryFrictionResiduals , entry_struct, 0.0, 1000.*pump_rate,
+                      1e-6, 100, false);
+//      std::cout << " flux " << rr <<  "Dp-F(Q) " <<  entryFrictionResiduals(rr,entry_struct) <<"\n";
+
+      Q_in_k[i]=rr*(dpc_k[i]/abs(dpc_k[i]));
+
+//      if (Q_in_k[i] == 0.) {  // to ensure we don t have infinite flux.
+//        if (w_inj.coefTort(i) != 0.) {
+//          Q_in_k[i] = std::pow(std::abs(dpc_k[i]), 1. / w_inj.betaTort(i)) /
+//                      w_inj.coefTort(i);
+//        } else {
+//          Q_in_k[i] = std::sqrt(std::abs(dpc_k[i])) /
+//                      w_inj.coefPerf(i);  // ok provided coefPerf is non-zero.
+//        }
+//      }
+//
+//      Q_in_k[i] = dpc_k[i] / (w_inj.coefPerf(i) * abs(Q_in_k[i]) +
+//                              w_inj.coefTort(i) *
+//                                  std::pow(abs(Q_in_k[i]), w_inj.betaTort(i) - 1.0));
     }
 
     if (!mute) {
+      std::cout << "-------\n";
       std::cout << "Its " << k << " DP : ";
       for (il::int_t i = 0; i < nclusters; i++) {
         std::cout << i << " : " << dpc_k[i] << " ";

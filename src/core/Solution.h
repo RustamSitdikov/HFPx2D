@@ -99,7 +99,18 @@ class Solution {
   Solution(hfp2d::Mesh &mesh, double t, const il::Array<double> &width,
            const il::Array<double> &sheardd, const il::Array<double> &pressure,
            const il::Array<double> &sigma0, const il::Array<double> &tau0) {
-    // todo should have checks here on dimensions with wellMesh etc.
+
+    il::int_t dd_dof = mesh.numberDDDofs();
+    il::int_t dim_dd_dof = dd_dof/2;
+    il::int_t p_dof = mesh.numberPressDofs();
+
+    // some checks
+    IL_EXPECT_FAST(width.size()==dim_dd_dof);
+    IL_EXPECT_FAST(sheardd.size()==dim_dd_dof);
+    IL_EXPECT_FAST(pressure.size()==p_dof);
+    IL_EXPECT_FAST(tau0.size()==dim_dd_dof);
+    IL_EXPECT_FAST(sigma0.size()==dim_dd_dof);
+
     time_ = t;
     currentmesh_ = mesh;
     openingDD_ = width;
@@ -121,14 +132,24 @@ class Solution {
            double err_front, double err_width, double err_shear, double err_p) {
     // have checks here on dimensions with wellMesh....
 
+    il::int_t dd_dof = mesh.numberDDDofs();
+    il::int_t dim_dd_dof = dd_dof/2;
+    il::int_t p_dof = mesh.numberPressDofs();
+
+    // some checks
+    IL_EXPECT_FAST(width.size()==dim_dd_dof);
+    IL_EXPECT_FAST(sheardd.size()==dim_dd_dof);
+    IL_EXPECT_FAST(pressure.size()==p_dof);
+    IL_EXPECT_FAST(tau0.size()==dim_dd_dof);
+    IL_EXPECT_FAST(sigma0.size()==dim_dd_dof);
+
+
     time_ = t;
     timestep_ = dt;
     currentmesh_ = mesh;
 
     openingDD_ = width;
     shearDD_ = sheardd;
-    //    sigma_n_ = sigma0;
-    //    tau_ = tau0;
     sigma_n_o_ = sigma0;
     tau_o_ = tau0;
 
@@ -152,9 +173,22 @@ class Solution {
            double err_width, double err_shear, double err_p) {
     // have checks here on dimensions with wellMesh....
 
+    il::int_t dd_dof = mesh.numberDDDofs();
+    il::int_t dim_dd_dof = dd_dof/2;
+    il::int_t p_dof = mesh.numberPressDofs();
+
     time_ = t;
     timestep_ = dt;
     currentmesh_ = mesh;
+
+    // some checks
+    IL_EXPECT_FAST(width.size()==dim_dd_dof);
+    IL_EXPECT_FAST(sheardd.size()==dim_dd_dof);
+    IL_EXPECT_FAST(pressure.size()==p_dof);
+    IL_EXPECT_FAST(tau0.size()==dim_dd_dof);
+    IL_EXPECT_FAST(sigma0.size()==dim_dd_dof);
+    IL_EXPECT_FAST(tauC.size()==dim_dd_dof);
+
 
     openingDD_ = width;
     shearDD_ = sheardd;
@@ -211,7 +245,6 @@ class Solution {
 
 
   il::Array<il::int_t> activeElts() const { return active_set_elements_; };
-
   il::Array2D<double> tipsLocation() const { return tipsLocation_; };
   il::Array<double> ribbonsDistance() const { return ribbon_tips_s_; };
   il::Array<double> tipsVelocity() const { return tips_velocity_; };
