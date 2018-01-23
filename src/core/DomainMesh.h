@@ -10,6 +10,7 @@
 #ifndef HFPX2D_DOMAINMESH_H
 #define HFPX2D_DOMAINMESH_H
 
+#include <limits>
 #include <il/Array.h>
 #include <il/Array2D.h>
 
