@@ -335,9 +335,10 @@ int MultipleFracsPropagation() {
 // ENTRY FRICTION Residuals fction
 double entryFrictionResiduals(double s,IFParamEntryFriction &params) {
 
+  double sgn_s = ((s < 0) ? -1.0 : double((s > 0)));
   double res = params.dp
-               - (params.fp)*(s*s)
-               - (params.ft)*(pow(std::fabs(s), params.beta_t));
+               - sgn_s * ((params.fp) * (s * s) * sgn_s
+                          + (params.ft) * (pow(std::fabs(s), params.beta_t)));
   return res;
 }
 
@@ -516,6 +517,7 @@ hfp2d::MultiFracsSolution wellHFsSolver(
       entry_struct.beta_t = w_inj.betaTort(i);
       res_v[i] = entryFrictionResiduals(Q_in_k[i], entry_struct);
     }
+
     // solution...
     // todo: use LU decomposition or inverse of Jacobian
 //    dQ_v = Jacob_LU.solve(res_v);
@@ -523,6 +525,7 @@ hfp2d::MultiFracsSolution wellHFsSolver(
 //    dQ_v = il::linearSolve(Jacob, res_v, il::io, status);
 //    status.abortOnError();
     // todo: compute errors here (?)
+
     // compute new flow rates...
     for (il::int_t i = 0; i < nclusters; i++) {
       Q_in_k[i] -= dQ_v[i];
