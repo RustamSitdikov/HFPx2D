@@ -1,18 +1,9 @@
 //==============================================================================
 //
-// Copyright 2017 The InsideLoop Authors. All Rights Reserved.
+//                                  InsideLoop
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//    http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This file is distributed under the University of Illinois Open Source
+// License. See LICENSE.txt for details.
 //
 //==============================================================================
 
@@ -58,7 +49,9 @@ class HashFunction<int> {
 
     return (y * knuth) >> (64 - p);
 #else
-    return static_cast<std::size_t>(val);
+    IL_UNUSED(val);
+    IL_UNUSED(p);
+    return 0;
 #endif
   }
   static bool isEqual(int val0, int val1) { return val0 == val1; }
@@ -96,7 +89,9 @@ class HashFunction<long> {
 
     return (y * knuth) >> (64 - p);
 #else
-    return static_cast<std::size_t>(val);
+    IL_UNUSED(val);
+    IL_UNUSED(p);
+    return 0;
 #endif
   }
   static bool isEqual(long val0, long val1) { return val0 == val1; }
@@ -135,23 +130,21 @@ class HashFunction<il::String> {
     }
     return hash & mask;
   }
-  static std::size_t hash(const char* s, il::int_t n, int p) {
-    const std::size_t mask = (1 << p) - 1;
+  static std::size_t hash(const char* s, il::int_t n) {
     std::size_t hash = 5381;
     for (il::int_t i = 0; i < n; ++i) {
       hash = ((hash << 5) + hash) + s[i];
     }
-    return hash & mask;
+    return hash;
   }
   template <il::int_t m>
-  static std::size_t hash(const char (&s)[m], int p) {
-    const std::size_t mask = (1 << p) - 1;
+  static std::size_t hash(const char (&s)[m]) {
     const il::int_t n = m - 1;
     std::size_t hash = 5381;
     for (il::int_t i = 0; i < n; ++i) {
       hash = ((hash << 5) + hash) + s[i];
     }
-    return hash & mask;
+    return hash;
   }
   static bool isEqual(const il::String& s0, const il::String& s1) {
     const il::int_t n0 = s0.size();
