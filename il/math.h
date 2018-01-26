@@ -1,18 +1,9 @@
 //==============================================================================
 //
-// Copyright 2017 The InsideLoop Authors. All Rights Reserved.
+//                                  InsideLoop
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//    http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This file is distributed under the University of Illinois Open Source
+// License. See LICENSE.txt for details.
 //
 //==============================================================================
 
@@ -21,7 +12,6 @@
 
 #include <cmath>
 #include <complex>
-
 #include <il/base.h>
 
 namespace il {
@@ -49,25 +39,27 @@ T min(T a, T b, T c, T d) {
   return min(min(a, b), min(c, d));
 }
 
-// template <typename T>
-// T max(T a, T b, T c) {
+
+//template <typename T>
+//T max(T a, T b, T c) {
 //  auto temp = T{max(b, c)};
 //  return a >= temp ? a : temp;
 //}
 //
-// template <typename T>
-// T max(T a, T b, T c, T d) {
+//template <typename T>
+//T max(T a, T b, T c, T d) {
 //  return max(max(a, b), max(c, d));
 //}
+
 
 template <typename T>
 T abs(T x) {
   return x >= 0 ? x : -x;
 }
 
-// Template for pow(x,N) where N is a positive il::int_t constant.
+// Template for pow(x,N) where N is a positive int constant.
 // General case, N is not a power of 2:
-template <bool IsPowerOf2, il::int_t N, typename T>
+template <bool IsPowerOf2, int N, typename T>
 class powN {
  public:
   static T p(T x) {
@@ -80,7 +72,7 @@ class powN {
 };
 
 // Partial template specialization for N a power of 2
-template <il::int_t N, typename T>
+template <int N, typename T>
 class powN<true, N, T> {
  public:
   static T p(T x) {
@@ -109,14 +101,14 @@ class powN<true, 0, T> {
 };
 
 // Function template for x to the power of N
-template <il::int_t N, typename T>
+template <int N, typename T>
 static T ipow(T x) {
   // (N & N-1) == 0 if N is a power of 2
   return powN<(N & (N - 1)) == 0, N, T>::p(x);
 }
 
 template <typename T>
-double ipow(T x, il::int_t n) {
+double ipow(T x, int n) {
   IL_EXPECT_FAST(n >= 0);
   T ans = 1;
   while (n != 0) {
@@ -191,8 +183,8 @@ inline int nextLog2(std::size_t x) {
   //  x |= x >> 8;
   //  x |= x >> 16;
   //  x |= x >> 32;
-  //  const il::int_t index =
-  //      static_cast<il::int_t>((x * 0x07EDD5E59A4E28C2) >> 58);
+  //  const int index =
+  //      static_cast<int>((x * 0x07EDD5E59A4E28C2) >> 58);
   //
   //  return table_log2_64[index];
   std::size_t power = 1;

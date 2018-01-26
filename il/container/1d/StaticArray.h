@@ -1,18 +1,9 @@
 //==============================================================================
 //
-// Copyright 2017 The InsideLoop Authors. All Rights Reserved.
+//                                  InsideLoop
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//    http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This file is distributed under the University of Illinois Open Source
+// License. See LICENSE.txt for details.
 //
 //==============================================================================
 
@@ -24,7 +15,7 @@
 // <initializer_list> is needed for std::initializer_list<T>
 #include <initializer_list>
 
-#include <il/container/1d/ArrayView.h>
+#include <il/base.h>
 
 namespace il {
 
@@ -105,14 +96,6 @@ class StaticArray {
   // }
   */
   il::int_t size() const;
-
-  il::ArrayView<T> view() const;
-
-  il::ArrayView<T> view(il::Range range) const;
-
-  il::ArrayEdit<T> edit();
-
-  il::ArrayEdit<T> edit(il::Range range);
 
   /* \brief Get a pointer to the first element of the array for a const
   // object
@@ -204,36 +187,6 @@ template <typename T, il::int_t n>
 il::int_t StaticArray<T, n>::size() const {
   return n;
 }
-
-template <typename T, il::int_t n>
-il::ArrayView<T> StaticArray<T, n>::view() const {
-  return il::ArrayView<T>{data_, n};
-};
-
-template <typename T, il::int_t n>
-il::ArrayView<T> StaticArray<T, n>::view(il::Range range) const {
-  IL_EXPECT_MEDIUM(static_cast<std::size_t>(range.begin) <
-                   static_cast<std::size_t>(n));
-  IL_EXPECT_MEDIUM(static_cast<std::size_t>(range.end) <=
-                   static_cast<std::size_t>(n));
-
-  return il::ArrayView<T>{data_ + range.begin, range.end - range.begin};
-};
-
-template <typename T, il::int_t n>
-il::ArrayEdit<T> StaticArray<T, n>::edit() {
-  return il::ArrayEdit<T>{data_, n};
-};
-
-template <typename T, il::int_t n>
-il::ArrayEdit<T> StaticArray<T, n>::edit(il::Range range) {
-  IL_EXPECT_MEDIUM(static_cast<std::size_t>(range.begin) <
-                   static_cast<std::size_t>(n));
-  IL_EXPECT_MEDIUM(static_cast<std::size_t>(range.end) <=
-                   static_cast<std::size_t>(n));
-
-  return il::ArrayEdit<T>{data_ + range.begin, range.end - range.begin};
-};
 
 template <typename T, il::int_t n>
 const T* StaticArray<T, n>::data() const {

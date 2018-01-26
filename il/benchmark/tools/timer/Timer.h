@@ -1,18 +1,9 @@
 //==============================================================================
 //
-// Copyright 2017 The InsideLoop Authors. All Rights Reserved.
+//                                  InsideLoop
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//    http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This file is distributed under the University of Illinois Open Source
+// License. See LICENSE.txt for details.
 //
 //==============================================================================
 
@@ -24,11 +15,12 @@
 #include <cstdint>
 #include <cstdlib>
 #include <limits>
-#include <thread>
 
 #include <il/core/base.h>
 
 namespace il {
+
+typedef std::ptrdiff_t int_t;
 
 class Timer {
  private:
@@ -41,8 +33,7 @@ class Timer {
   void start();
   void stop();
   void reset();
-  double time() const;
-  void sleepUntil(double time) const;
+  double elapsed() const;
 };
 
 inline Timer::Timer() : point_begin_{} {
@@ -71,20 +62,7 @@ inline void Timer::reset() {
   launched_ = false;
 }
 
-inline double Timer::time() const { return time_; }
-
-inline void Timer::sleepUntil(double time) const {
-  IL_EXPECT_FAST(launched_);
-  const double time_left =
-      time -
-      1.0e-9 * std::chrono::duration_cast<std::chrono::nanoseconds>(
-                   std::chrono::high_resolution_clock::now() - point_begin_)
-                   .count();
-  if (time_left > 0.0) {
-    std::this_thread::sleep_for(
-        std::chrono::nanoseconds{static_cast<std::size_t>(time_left * 1.0e9)});
-  }
-}
+inline double Timer::elapsed() const { return time_; }
 
 class TimerCycles {
  private:

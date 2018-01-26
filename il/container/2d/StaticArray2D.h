@@ -1,18 +1,9 @@
 //==============================================================================
 //
-// Copyright 2017 The InsideLoop Authors. All Rights Reserved.
+//                                  InsideLoop
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//    http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// This file is distributed under the University of Illinois Open Source
+// License. See LICENSE.txt for details.
 //
 //==============================================================================
 
@@ -22,7 +13,7 @@
 // <initializer_list> is needed for std::initializer_list<T>
 #include <initializer_list>
 
-#include <il/container/2d/Array2DView.h>
+#include <il/base.h>
 
 namespace il {
 
@@ -100,10 +91,6 @@ class StaticArray2D {
   */
   il::int_t size(il::int_t d) const;
 
-  il::Array2DView<T> view() const;
-
-  il::Array2DEdit<T> edit();
-
   /* \brief Get a pointer to the first element of the array for a const
   // object
   // \details One should use this method only when using C-style API
@@ -172,16 +159,6 @@ il::int_t StaticArray2D<T, n0, n1>::size(il::int_t d) const {
 }
 
 template <typename T, il::int_t n0, il::int_t n1>
-il::Array2DView<T> StaticArray2D<T, n0, n1>::view() const {
-  return il::Array2DView<T>{data(), n0, n1, n0, 0, 0};
-}
-
-template <typename T, il::int_t n0, il::int_t n1>
-il::Array2DEdit<T> StaticArray2D<T, n0, n1>::edit() {
-  return il::Array2DEdit<T>{data(), n0, n1, n0, 0, 0};
-}
-
-template <typename T, il::int_t n0, il::int_t n1>
 const T* StaticArray2D<T, n0, n1>::data() const {
   return data_;
 }
@@ -190,7 +167,6 @@ template <typename T, il::int_t n0, il::int_t n1>
 T* StaticArray2D<T, n0, n1>::data() {
   return data_;
 }
-
 }  // namespace il
 
 #endif  // IL_STATICARRAY2D_H

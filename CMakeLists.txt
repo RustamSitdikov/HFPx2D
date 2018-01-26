@@ -9,14 +9,14 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -std=c++11")
 
 # If you want to run another compiler, such as clang
 if (APPLE)
-set(CMAKE_C_COMPILER /usr/bin/clang)
-set(CMAKE_CXX_COMPILER /usr/bin/clang++)
+    set(CMAKE_C_COMPILER /usr/bin/clang)
+    set(CMAKE_CXX_COMPILER /usr/bin/clang++)
 elseif (UNIX)
-set(CMAKE_C_COMPILER /usr/bin/gcc)
-set(CMAKE_CXX_COMPILER /usr/bin/g++)
-
-    elseif(WIN32) # to fill up here ...
-
+    set(CMAKE_C_COMPILER /usr/bin/gcc)
+    set(CMAKE_CXX_COMPILER /usr/bin/g++)
+elseif(WIN32)
+    set(CMAKE_C_COMPILER C:/msys64/mingw64/bin/gcc)
+    set(CMAKE_CXX_COMPILER C:/msys64/mingw64/bin/g++)
 endif()
 
 #  FOR HFPx2D
@@ -87,22 +87,32 @@ set(SOURCE_FILES
         src/solvers/MultiFracsSolver.cpp src/solvers/MultiFracsSolver.h src/util/RootFinder.cpp src/util/RootFinder.h)
 
 if(APPLE)
-link_directories($ENV{MKLROOT}/lib $ENV{MKLROOT}/../compiler/lib )
+    link_directories($ENV{MKLROOT}/lib $ENV{MKLROOT}/../compiler/lib )
+    target_link_libraries(HFPx2D mkl_intel_lp64 mkl_core mkl_intel_thread dl iomp5 pthread m)
+    target_compile_definitions(HFPx2D PRIVATE IL_MKL=1 IL_BLAS=1 IL_OPENMP=1)
 elseif(UNIX)
     link_directories(/opt/intel/mkl/lib/intel64
                      /opt/intel/compilers_and_libraries/linux/lib/intel64)
+    target_link_libraries(HFPx2D mkl_intel_lp64 mkl_core mkl_intel_thread dl iomp5 pthread m)
+    target_compile_definitions(HFPx2D PRIVATE IL_MKL=1 IL_BLAS=1 IL_OPENMP=1)
+elseif(WIN32)
+    # to fill up here ...
 endif()
 
 add_executable(HFPx2D ${SOURCE_FILES}  main.cpp)
-
-target_compile_definitions(HFPx2D PRIVATE IL_MKL=1 IL_BLAS=1 IL_OPENMP=1)
-
-target_link_libraries(HFPx2D mkl_intel_lp64 mkl_core mkl_intel_thread dl iomp5 pthread m)
 
 if(APPLE)
     target_include_directories(HFPx2D PRIVATE ${CMAKE_SOURCE_DIR} $ENV{MKLROOT}/include)
 elseif(UNIX)
     target_include_directories(HFPx2D PRIVATE ${CMAKE_SOURCE_DIR} /opt/intel/mkl/include)
+elseif(WIN32)
+    # to fill up here ...
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DIL_OPENBLAS -DIL_BLAS")
+    set(CMAKE_OPENBLAS_LIBRARIES "openblas")
+
+    target_include_directories(HFPx2D PRIVATE ${CMAKE_SOURCE_DIR})
+    target_link_libraries(HFPx2D ${CMAKE_MKL_LIBRARIES} ${CMAKE_OPENBLAS_LIBRARIES})
 endif()
 
 if(APPLE)
@@ -125,7 +135,11 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DIL_FOLDER='\"${SR_FOLDER}\"'")
 set(UNIT_TEST_FILES src/_test/elastic_benchmarks.cpp
         gtest/src/gtest-all.cc
         src/_test/mesh_test.cpp
-        src/tip/_test/tip_test.cpp src/_test/domain_mesh_test.cpp src/wellbore/SimpleWellFlowSolverBenchmark.cpp src/wellbore/SimpleWellFlowSolverBenchmark.h src/elasticity/_test/elasticity_tests.cpp)
+        src/tip/_test/tip_test.cpp
+        src/_test/domain_mesh_test.cpp
+        src/wellbore/SimpleWellFlowSolverBenchmark.cpp
+        src/wellbore/SimpleWellFlowSolverBenchmark.h
+        src/elasticity/_test/elasticity_tests.cpp)
 
 add_executable(HFPx2DUnitTest ${SOURCE_FILES} ${UNIT_TEST_FILES} test.cpp)
 
@@ -137,7 +151,15 @@ target_link_libraries(HFPx2DUnitTest mkl_intel_lp64 mkl_core mkl_intel_thread dl
 if(APPLE)
     target_include_directories(HFPx2DUnitTest PUBLIC ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/gtest $ENV{MKLROOT}/include)
 elseif(UNIX)
-    target_include_directories(HFPx2DUnitTest PUBLIC ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/gtest  /opt/intel/mkl/include)
+    target_include_directories(HFPx2DUnitTest PUBLIC ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/gtest /opt/intel/mkl/include)
+elseif(WIN32)
+    # to fill up here ...
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DIL_OPENBLAS -DIL_BLAS")
+    set(CMAKE_OPENBLAS_LIBRARIES "openblas")
+
+    target_include_directories(HFPx2DUnitTest  PUBLIC ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/gtest )
+    target_link_libraries(HFPx2DUnitTest  ${CMAKE_MKL_LIBRARIES} ${CMAKE_OPENBLAS_LIBRARIES})
 endif()
 
 
