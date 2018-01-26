@@ -12,6 +12,9 @@
 
 #include <il/base.h>
 #include <il/norm.h>
+#include <il/linear_algebra.h>
+#include <il/linear_algebra/dense/factorization/LU.h>
+#include <il/linear_algebra/dense/factorization/linearSolve.h>
 
 #include <src/core/SimulationParameters.h>
 #include <src/input/json/LoadInputMultistage.h>
@@ -300,9 +303,9 @@ int MultipleFracsPropagation() {
   // time step loop !!!
 
   il::int_t jt = 0;
-  il::int_t nsteps = 1;
+  il::int_t nsteps = 10;
 
-  dt = 0.001;
+  dt = 0.005;
 
   while (jt < nsteps) {
     jt++;
@@ -311,22 +314,32 @@ int MultipleFracsPropagation() {
         completeSol_n, dt, well_mesh, w_inj, fracfluid, rock, SimulFracParam,
         SimulWellFlowParam, frac_heigth, false, il::io, K);
 
-    std::cout << "----------\n";
-    std::cout << " Step " << jt << " time: " << completeSol_n_1.time();
+    std::cout << "----------" << std::endl;
+    std::cout << "Step " << jt << "; time: "
+              << completeSol_n_1.time() << std::endl;
     for (il::int_t i = 0; i < nfracs; i++) {
-      std::cout << "influx in frac: " << i << " = "
-                << completeSol_n_1.clusterFluxes(i) << "\n";
+      std::cout << "influx in frac. " << i << ": "
+                << completeSol_n_1.clusterFluxes(i)
+                << "; DP in frac. " << i << ": "
+                << completeSol_n_1.dpEntries(i)
+                << std::endl;
     }
+    std::cout << "----------" << std::endl;
+    completeSol_n = completeSol_n_1;
   }
 
   return 0;
 }
 ////////////////////////////////////////////////////////////////////////////////
 
-// ENTRY FRICTION Residuals fction
-double entryFrictionResiduals(double s,IFParamEntryFriction &params) {
+// ENTRY FRICTION Residuals
+double entryFrictionResiduals(double s, IFParamEntryFriction &params) {
 
-  double res=params.dp-(params.fp)*(s*s)-(params.ft)*(pow(abs(s),params.beta_t));
+  double sgn_s = ((s < 0) ? -1.0 : double((s > 0)));
+  double res = params.dp
+               - sgn_s * ((params.fp) * (s * s)
+                        + (params.ft)
+                          * (std::pow(std::fabs(s), params.beta_t)));
   return res;
 }
 
@@ -358,8 +371,14 @@ hfp2d::MultiFracsSolution wellHFsSolver_fixedpts(
   hfp2d::Solution fracSol_k = Sol_n.fracSolution();
   hfp2d::WellSolution wellSol_k = Sol_n.wellSolution();
 
+  hfp2d::Solution fracSol_var = Sol_n.fracSolution();
+  hfp2d::WellSolution wellSol_var = Sol_n.wellSolution();
+
   hfp2d::Sources frac_sources_k = Sol_n.fracSources();
   hfp2d::Sources well_sources_k = Sol_n.wellSources();
+
+  hfp2d::Sources frac_sources_var = Sol_n.fracSources();
+  hfp2d::Sources well_sources_var = Sol_n.wellSources();
 
   il::Array<il::int_t> frac_inj_loc = frac_sources_k.SourceElt();
   il::Array<il::int_t> well_out_loc = well_sources_k.SourceElt();
@@ -367,33 +386,52 @@ hfp2d::MultiFracsSolution wellHFsSolver_fixedpts(
   il::Array<double> Q_in_k = Sol_n.fracFluxes();
   il::Array<double> Q_old = Q_in_k;
   il::Array<double> pc_w_k{nclusters, 0.}, pc_f_k{nclusters, 0.};
-  il::Array<double> dpc_k{nclusters, 0.}, errQ{nclusters, 0.};
+  il::Array<double> dpc_k{nclusters, 0.};
+  il::Array<double> errQ{nclusters, 0.}, errDP{nclusters, 0.};
+  double err = 1.;
+  il::Array<double> res_v{nclusters, 0.};
+  il::Array<double> dQ_v{nclusters, 0.};
 
 //  il::Array<double> allpf=fracSol_n.pressure();
 
   IFParamEntryFriction entry_struct;
 
   double pump_rate = w_inj.wellInjRate();
-  double rr;
+//  double rr;
 
+  il::Array2D<double> Jacob{nclusters, nclusters, 0.};
+  il::Status status;
+//  il::LU<il::Array2D<double>> Jacob_LU();
+  il::Array2D<double> Jacob_inv;
 
-  std::cout << "+++++++++++++++++++++++++";
+  if (!mute) {
+    std::cout << "+++++++++++++++++++++++++" << std::endl;
+  }
 
-  // Fixed point iteration scheme
+  //todo: start with non-zero fluxes - solve the ENTRY FRICTION Residuals eqn(?)
+
+  // Quasi-Newton iteration scheme
   //
   //
-  double rela_flux = 0.01;  // pass as arguments ?
-  double err = 1.;
-  double Tolerance = 1.e-3;
-  int k = 0;
+  // todo: pass as arguments OR move to numerical parameters file
+  double dQn = 2.0e-8;
+  int num_J_reuse = 1;
+  double rela_flux = 1.; // 0.01;
+  double Tolerance = 1.e-4;
   int kmax = 20;
-  // note if all the fluxes are zero do not solve for frac flux, just the
-  // wellbore
+
+  int k = 0;
+  // note: if all the fluxes are zero do not solve for frac flux,
+  // just the wellbore
   while ((k < kmax) && (err > Tolerance)) {
     k++;
 
     frac_sources_k.setInjectionRates(Q_in_k);
     well_sources_k.setInjectionRates(Q_in_k);
+
+    if (!mute) {
+        std::cout << "-------" << std::endl;
+    }
 
     // solve for wellbore flow
     wellSol_k = hfp2d::wellFlowSolverP0(wellSol_n, w_mesh, w_inj,
@@ -412,75 +450,139 @@ hfp2d::MultiFracsSolution wellHFsSolver_fixedpts(
     // wellbore side
     pc_w_k = wellSol_k.pressureAtElts(well_out_loc);
 
-    // fracture side and compute new flow rates.
+    // fracture side
     for (il::int_t i = 0; i < nclusters; i++) {
       pc_f_k[i] = fracSol_k.pressure(frac_inj_loc[i]);
       dpc_k[i] = pc_w_k[i] - pc_f_k[i];
-      // compute new flow rates.... the best would be to root find here ?
-
-      entry_struct.dp=abs(dpc_k[i]);
-      entry_struct.fp=w_inj.coefPerf(i);
-      entry_struct.ft=w_inj.coefTort(i);
-      entry_struct.beta_t=w_inj.betaTort(i);
-//      std::cout << " Dp " << dpc_k[i] << "\n";
-//      std::cout << entryFrictionResiduals(0.,entry_struct) <<"\n";
-//      std::cout << entryFrictionResiduals(1.*pump_rate,entry_struct) <<"\n";
-
-      rr = imf::brent((imf::ImplicitFunction)entryFrictionResiduals , entry_struct, 0.0, 1000.*pump_rate,
-                      1e-6, 100, false);
-//      std::cout << " flux " << rr <<  "Dp-F(Q) " <<  entryFrictionResiduals(rr,entry_struct) <<"\n";
-
-      Q_in_k[i]=rr*(dpc_k[i]/abs(dpc_k[i]));
-
-//      if (Q_in_k[i] == 0.) {  // to ensure we don t have infinite flux.
-//        if (w_inj.coefTort(i) != 0.) {
-//          Q_in_k[i] = std::pow(std::abs(dpc_k[i]), 1. / w_inj.betaTort(i)) /
-//                      w_inj.coefTort(i);
-//        } else {
-//          Q_in_k[i] = std::sqrt(std::abs(dpc_k[i])) /
-//                      w_inj.coefPerf(i);  // ok provided coefPerf is non-zero.
-//        }
-//      }
-//
-//      Q_in_k[i] = dpc_k[i] / (w_inj.coefPerf(i) * abs(Q_in_k[i]) +
-//                              w_inj.coefTort(i) *
-//                                  std::pow(abs(Q_in_k[i]), w_inj.betaTort(i) - 1.0));
     }
 
-    if (!mute) {
-      std::cout << "-------\n";
-      std::cout << "Its " << k << " DP : ";
+    // loop over cluster w. small variations of Q_in to estimate Jacobian
+    if ((k-1) % num_J_reuse == 0) {
+      il::Array<double> Q_in_var = Q_in_k;
+      il::Array<double> pc_w_var{nclusters, 0.}, pc_f_var{nclusters, 0.};
       for (il::int_t i = 0; i < nclusters; i++) {
-        std::cout << i << " : " << dpc_k[i] << " ";
+        double dQi = dQn * std::max(
+                std::fabs(Q_in_k[i]),
+                std::fabs(pump_rate));
+
+        // sign(Q_in_k[i])
+        //double sgn_Q = ((Q_in_k[i] < 0) ? -1.0 : double((Q_in_k[i] > 0)));
+        double sgn_Q = ((Q_in_k[i] < 0) ? -1.0 : 1.0);
+
+        dQi = std::fabs(dQi) * sgn_Q;
+
+        Q_in_var[i] = Q_in_k[i] + dQi;
+
+        frac_sources_var.setInjectionRates(Q_in_var);
+        well_sources_var.setInjectionRates(Q_in_var);
+
+        // solve for wellbore flow
+        wellSol_var = hfp2d::wellFlowSolverP0(wellSol_n, w_mesh, w_inj,
+                                          well_sources_var, ffChurchill, dt,
+                                          well_solver_p, true, fracfluid);
+
+        pc_w_var = wellSol_var.pressureAtElts(well_out_loc);
+
+        // solve for fracture propagation with given flux.
+        fracSol_var = hfp2d::FractureFrontLoop(fracSol_n, fracfluid, rock,
+                                           frac_sources_var, frac_heigth, dt,
+                                           frac_solver_p, true, il::io_t(), K);
+
+        // estimate Jacobian
+        for (il::int_t j = 0; j < nclusters; j++) {
+          pc_f_var[j] = fracSol_var.pressure(frac_inj_loc[j]);
+          Jacob(j, i) = ((pc_w_var[j] - pc_f_var[j]) - (dpc_k[j])) / (dQi);
+        }
+
+        Q_in_var[i] = Q_in_k[i];
       }
-      std::cout << "error: " << err << "\n";
+
+      // LU decomposition of Jacobian
+      il::LU<il::Array2D<double>> Jacob_LU(Jacob, il::io, status);
+      status.abortOnError();
+
+      // echo...
+      if (!mute) {
+          std::cout << "-------" << std::endl;
+          std::cout << "Det(J): " << Jacob_LU.determinant() << std::endl;
+//          std::cout << "Cond(J): "
+//                    << Jacob_LU.conditionNumber(il::Norm::L1, ) << std::endl;
+      }
+
+      // inverse Jacobian
+      Jacob_inv = Jacob_LU.inverse();
     }
 
-    // underelaxation of the flux....
-    il::blas((1. - rela_flux), Q_old, rela_flux, il::io, Q_in_k);
-    // compute successive relative difference, L2 norm
+    // residuals...
+    for (il::int_t i = 0; i < nclusters; i++) {
+      entry_struct.dp = dpc_k[i];
+      entry_struct.fp = w_inj.coefPerf(i);
+      entry_struct.ft = w_inj.coefTort(i);
+      entry_struct.beta_t = w_inj.betaTort(i);
+      res_v[i] = entryFrictionResiduals(Q_in_k[i], entry_struct);
+    }
 
+    // solution...
+    // (use LU decomposition or inverse of Jacobian)
+//    dQ_v = Jacob_LU.solve(res_v);
+    dQ_v = il::dot(Jacob_inv, res_v);
+//    dQ_v = il::linearSolve(Jacob, res_v, il::io, status);
+//    status.abortOnError();
+    // todo: compute errors here (?)
+
+    // compute new flow rates...
+    for (il::int_t i = 0; i < nclusters; i++) {
+      Q_in_k[i] -= dQ_v[i];
+    }
+
+    // echo...
+    if (!mute) {
+      std::cout << "-------" << std::endl;
+      std::cout << "Its " << k << "; DP: ";
+      for (il::int_t i = 0; i < nclusters; i++) {
+        std::cout << i << ": " << dpc_k[i] << "; ";
+      }
+      std::cout << "prev. error: " << err << std::endl;
+    }
+
+    // under-relaxation of the flow rates...
+    il::blas((1. - rela_flux), Q_old, rela_flux, il::io, Q_in_k);
+
+    // compute successive relative difference, L2 norm
     for (il::int_t i = 0; i < nclusters; i++) {
       errQ[i] = abs((Q_in_k[i] - Q_old[i]) / Q_in_k[i]);
+      errDP[i] = abs(res_v[i] / dpc_k[i]);
     }
-    Q_old = Q_in_k;
+    err = il::norm(errQ, il::Norm::L2); // + il::norm(errDP, il::Norm::L2);
 
-    err = il::norm(errQ, il::Norm::L2);
+    // echo...
     if (!mute) {
-      std::cout << "Its " << k << " new fluxes: ";
-      for (il::int_t i = 0; i < nclusters; i++) {
-        std::cout << i << " : " << Q_in_k[i] << " ";
-      }
-      std::cout << "error: " << err << "\n";
+        std::cout << "old fluxes: ";
+        for (il::int_t i = 0; i < nclusters; i++) {
+            std::cout << i << ": " << Q_old[i] << "; ";
+        }
+        std::cout << std::endl << "res. of DP: ";
+        for (il::int_t i = 0; i < nclusters; i++) {
+            std::cout << i << ": " << res_v[i] << "; ";
+        }
+        std::cout << std::endl << "new fluxes: ";
+        for (il::int_t i = 0; i < nclusters; i++) {
+            std::cout << i << ": " << Q_in_k[i] << "; ";
+        }
+        std::cout << "error: " << err << std::endl;
     }
+
+    // resume...
+    Q_old = Q_in_k;
   }
 
   if (!mute) {
     if (err < Tolerance) {
-      std::cout << "Well - HFs  converged after " << k << " Its\n";
+      std::cout << "Well - HFs coupling converged after " << k << " its" <<
+                                                                    std::endl;
     } else
-      std::cout << "Well - HFs NOT converged after " << k
-                << " Its, error is: " << err << "\n";
+      std::cout << "Well - HFs coupling NOT converged after " << k
+                << " its; error is: " << err << std::endl;
   }
 
   hfp2d::MultiFracsSolution newSol(fracSol_k, wellSol_k, frac_sources_k,
