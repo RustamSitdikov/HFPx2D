@@ -143,7 +143,6 @@ class Solution {
     IL_EXPECT_FAST(tau0.size()==dim_dd_dof);
     IL_EXPECT_FAST(sigma0.size()==dim_dd_dof);
 
-
     time_ = t;
     timestep_ = dt;
     currentmesh_ = mesh;

@@ -307,7 +307,7 @@ int MultipleFracsPropagation() {
   while (jt < nsteps) {
     jt++;
 
-    MultiFracsSolution completeSol_n_1 = wellHFsSolver(
+    MultiFracsSolution completeSol_n_1 = wellHFsSolver_fixedpts(
         completeSol_n, dt, well_mesh, w_inj, fracfluid, rock, SimulFracParam,
         SimulWellFlowParam, frac_heigth, false, il::io, K);
 
@@ -339,7 +339,7 @@ double entryFrictionResiduals(double s,IFParamEntryFriction &params) {
 // such that we have simpler api
 
 ////////////////////////////////////////////////////////////////////////////////
-hfp2d::MultiFracsSolution wellHFsSolver(
+hfp2d::MultiFracsSolution wellHFsSolver_fixedpts(
     hfp2d::MultiFracsSolution &Sol_n, double dt, hfp2d::WellMesh &w_mesh,
     hfp2d::WellInjection &w_inj, hfp2d::Fluid &fracfluid,
     hfp2d::SolidProperties &rock, hfp2d::SimulationParameters &frac_solver_p,
