@@ -8,17 +8,19 @@
 //
 //
 
+// Inclusion from the project
 #include "LoadArguments.h"
 
 namespace hfp2d {
 
 void loadArguments(int argc, char const *argv[], il::io_t,
-                   il::String &input_filename,
+                   il::String &config_filename,
                    il::String &path_output_directory) {
 
-  // loadArguments will receive the arguments that were passed to the program
-  // from the command line as input.
+  // loadArguments will receive the arguments that are passed to the program
+  // from the command line as input
 
+  // Initial check
   if (argc != 3) {
     std::cerr << "ERROR -> Usage of the program is " << std::endl;
     std::cerr << "  HFPx2D input_file path_output_directory " << std::endl;
@@ -27,32 +29,33 @@ void loadArguments(int argc, char const *argv[], il::io_t,
     exit(EXIT_FAILURE);
   }
 
-  // create an object from stringstream class
+  // Instantiate an object from stringstream class
   std::stringstream arg_stream;
 
   // Insert arguments in the object
   for (il::int_t i = 0; i < argc; ++i) arg_stream << argv[i] << " ";
 
   // Extract arguments from arg_stream object
-  std::string first_arg, second_arg, third_arg;
+  std::string first_arg;
+  std::string second_arg;
+  std::string third_arg;
   arg_stream >> first_arg;
   arg_stream >> second_arg;
   arg_stream >> third_arg;
 
   il::int_t status_of_access;
-  input_filename =
+  config_filename =
       il::String(il::StringType::Bytes, second_arg.c_str(), second_arg.size());
 
-  status_of_access = access(input_filename.asCString(), F_OK | R_OK);
+  status_of_access = access(config_filename.asCString(), F_OK | R_OK);
 
   if (status_of_access != 0) {
-    std::cerr << "Error: impossible to access the input file " << input_filename
+    std::cerr << "Error: impossible to access the input file " << config_filename
               << std::endl;
     std::cerr << strerror(errno) << std::endl;
     exit(EXIT_FAILURE);
   }
 
-  // Creating the OUTPUT directory defined in the program arguments
   path_output_directory =
       il::String(il::StringType::Bytes, third_arg.c_str(), third_arg.size());
 
@@ -76,8 +79,6 @@ void loadArguments(int argc, char const *argv[], il::io_t,
 
 ///// This script removes the files in *path that have only some particular
 /// extensions
-// TODO: clean up, change to the il::String form and check that is still
-// working properly
 void cleanOutputDir(const char *path) {
   // open the stream of files in the directory *path
   DIR *dir_file = opendir(path);
@@ -140,5 +141,5 @@ void cleanOutputDir(const char *path) {
     exit(1);
   }
 
-}  // End of script
+}
 }

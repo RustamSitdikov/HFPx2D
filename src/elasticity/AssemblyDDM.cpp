@@ -50,7 +50,7 @@ il::Array2D<double> basic_assembly(Mesh &mesh, ElasticProperties &elas,
     //   get characteristic of element # e
     hfp2d::SegmentData mysege = mesh.getElementData(e);
     // Rotation matrix of the element w.r. to x-axis.
-    R = hfp2d::rotation_matrix_2D(mysege.theta());
+    R = hfp2d::rotationMatrix2D(mysege.theta());
 
     // vector of dof id of  element e
     for (il::int_t i = 0; i < 2 * (p + 1); ++i) {
@@ -117,7 +117,7 @@ void basic_assembly_add_elts(Mesh &new_mesh, il::int_t n_add,
     //   get characteristic of element # e
     hfp2d::SegmentData mysege = new_mesh.getElementData(e);
     // Rotation matrix of the element w.r. to x-axis.
-    R = hfp2d::rotation_matrix_2D(mysege.theta());
+    R = hfp2d::rotationMatrix2D(mysege.theta());
 
     // vector of dof id of  element e
     for (il::int_t i = 0; i < 2 * (p + 1); ++i) {

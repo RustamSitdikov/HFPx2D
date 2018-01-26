@@ -99,7 +99,7 @@ class SegmentData {
 
     // Returning the collocation point in the global frame
 
-    R = hfp2d::rotation_matrix_2D(theta_);
+    R = hfp2d::rotationMatrix2D(theta_);
 
     for (int i = 0; i < p + 1; ++i) {
       xaux[0] = (size_)*Xcol(i, 0) / 2.;

@@ -111,7 +111,7 @@ il::Array2D<double> buildLMatrix(Mesh &theMesh, const il::Array<double> &slip,
                                  const il::Array<double> &opening,
                                  FluidProperties &FluidProperties,
                                  FractureEvolution &FractureEvolution,
-                                 const double TimeStep);
+                                 double TimeStep);
 
 il::Array2D<double> buildVpMatrix(Mesh &theMesh,
                                   FractureEvolution &FractureEvolution,

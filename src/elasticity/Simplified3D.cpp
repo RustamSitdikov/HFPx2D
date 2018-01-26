@@ -376,7 +376,7 @@ namespace hfp2d {
 
 // switch to the frame of the source element....
       il::StaticArray2D<double, 2, 2> R =
-              hfp2d::rotation_matrix_2D(source_elt.theta());
+              hfp2d::rotationMatrix2D(source_elt.theta());
 
       il::StaticArray<double, 2> xe;
       for (int i = 0; i < 2; ++i) {

@@ -71,8 +71,6 @@ set(SOURCE_FILES
         il/io/toml/toml.cpp
         src/input/Conditions/LoadConditions.cpp
         src/input/Conditions/LoadConditions.h
-        src/input/Sources/LoadSources.cpp
-        src/input/Sources/LoadSources.h
         #src/elhsolvers/ReynoldsP0.cpp
         #src/elhsolvers/ReynoldsP0.h
         #src/solvers/DevLHFMSolver.cpp
@@ -155,10 +153,10 @@ endif()
 # be caught and checked.
 target_compile_options(HFPx2DUnitTest PRIVATE "-DIL_UNIT_TEST")
 
-if(APPLE)
+#if(APPLE)
     # below for some under mac os sierra ;(
-    add_custom_command(TARGET HFPx2DUnitTest
-        POST_BUILD COMMAND
-        /usr/bin/install_name_tool -add_rpath /opt/intel/compilers_and_libraries_2017.0.102/mac/mkl/lib
-        $<TARGET_FILE:HFPx2DUnitTest>)
-endif()
+#    add_custom_command(TARGET HFPx2DUnitTest
+#        POST_BUILD COMMAND
+#        /usr/bin/install_name_tool -add_rpath /opt/intel/compilers_and_libraries_2017.0.102/mac/mkl/lib
+#        $<TARGET_FILE:HFPx2DUnitTest>)
+#endif()

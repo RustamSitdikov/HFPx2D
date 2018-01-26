@@ -26,15 +26,16 @@
 #include <src/input/Conditions/LoadConditions.h>
 #include <src/input/Geometry/LoadGeometry.h>
 #include <src/input/Properties/LoadProperties.h>
-#include <src/input/Sources/LoadSources.h>
 
 namespace hfp2d {
 
-void loadInput(const il::String &input_filename, il::io_t, Mesh &MyMesh,
+void loadInput(const il::String &config_filename, il::io_t, Mesh &MyMesh,
                ElasticProperties &ElasticProperties,
                FluidProperties &FluidProperties, SolidEvolution &SolidEvolution,
                FractureEvolution &FractureEvolution,
-               InSituStress &BackgroundLoadingConditions);
+               InSituStress &BackgroundLoadingConditions,
+               double &const_overpress, double &t_0plus1, double &time_step,
+               double &final_time, bool &expl_impl, bool &quasi_dynamic);
 }
 
 #endif  // HFPX2DUNITTEST_LOADINPUT_H

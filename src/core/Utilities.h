@@ -22,9 +22,9 @@ void set_submatrix(il::Array2D<double> &A, int i0, int i1,
                    const il::StaticArray2D<double, 2, 4> &B);
 
 //   Rotation Matrix
-il::StaticArray2D<double, 2, 2> rotation_matrix_2D(double theta);
+il::StaticArray2D<double, 2, 2> rotationMatrix2D(double theta);
 
-il::Array<int> find_2d_integer(const il::Array2D<int> &arr2D, int seek);
+il::Array<int> find_2d_integer(const il::Array2D<il::int_t> &arr2D, int seek);
 
 il::Array<int> delete_duplicates_integer(const il::Array<int> &arr);
 

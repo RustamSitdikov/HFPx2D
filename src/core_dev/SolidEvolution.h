@@ -54,25 +54,25 @@ class SolidEvolution {
   //        GETTER FUNCTIONS
   //////////////////////////////////////////////////////////////////////////
 
-  inline il::Array<double> getFricCoeff() { return friction_coefficients_; }
+  il::Array<double> getFricCoeff() { return friction_coefficients_; }
 
-  inline double getFricCoeff(il::int_t i) { return friction_coefficients_[i]; }
+  double getFricCoeff(il::int_t i) { return friction_coefficients_[i]; }
 
-  inline il::Array<double> getPeakFricCoeff() {
+  il::Array<double> getPeakFricCoeff() {
     return peak_friction_coefficients_;
   }
-  inline double getPeakFricCoeff(il::int_t i) {
+  double getPeakFricCoeff(il::int_t i) {
     return peak_friction_coefficients_[i];
   }
-  inline il::Array<double> getResidFricCoeff() {
+  il::Array<double> getResidFricCoeff() {
     return residual_friction_coefficients_;
   }
-  inline double getResidFricCoeff(il::int_t i) {
+  double getResidFricCoeff(il::int_t i) {
     return residual_friction_coefficients_[i];
   }
-  inline il::Array<double> getResidSlip() { return residual_slips_; }
-  inline double getResidSlip(il::int_t i) { return residual_slips_[i]; }
-  inline il::String getType() { return type_; }
+  il::Array<double> getResidSlip() { return residual_slips_; }
+  double getResidSlip(il::int_t i) { return residual_slips_[i]; }
+  il::String getType() { return type_; }
 
   //////////////////////////////////////////////////////////////////////////
   //        METHODS
@@ -98,24 +98,24 @@ class SolidEvolution {
 
 
   il::Array<double> linearFricWeakLaw(
-      const il::Array<double> &slip, const SolidEvolution &InitSolidEvolution) {
-    IL_EXPECT_FAST(InitSolidEvolution.peak_friction_coefficients_.size() ==
+      const il::Array<double> &slip, const SolidEvolution &SolidEvolution) {
+    IL_EXPECT_FAST(SolidEvolution.peak_friction_coefficients_.size() ==
                    slip.size());
-    IL_EXPECT_FAST(InitSolidEvolution.residual_friction_coefficients_.size() ==
+    IL_EXPECT_FAST(SolidEvolution.residual_friction_coefficients_.size() ==
                    slip.size());
-    IL_EXPECT_FAST(InitSolidEvolution.residual_slips_.size() == slip.size());
+    IL_EXPECT_FAST(SolidEvolution.residual_slips_.size() == slip.size());
 
     for (il::int_t i = 0; i < slip.size(); ++i) {
-      if (slip[i] < InitSolidEvolution.residual_slips_[i]) {
+      if (slip[i] < SolidEvolution.residual_slips_[i]) {
         friction_coefficients_[i] =
-            InitSolidEvolution.peak_friction_coefficients_[i] -
-            (((InitSolidEvolution.peak_friction_coefficients_[i] -
-               InitSolidEvolution.residual_friction_coefficients_[i]) /
-              InitSolidEvolution.residual_slips_[i]) *
+            SolidEvolution.peak_friction_coefficients_[i] -
+            (((SolidEvolution.peak_friction_coefficients_[i] -
+               SolidEvolution.residual_friction_coefficients_[i]) /
+              SolidEvolution.residual_slips_[i]) *
              slip[i]);
       } else {
         friction_coefficients_[i] =
-            InitSolidEvolution.residual_friction_coefficients_[i];
+            SolidEvolution.residual_friction_coefficients_[i];
       }
     }
     return friction_coefficients_;

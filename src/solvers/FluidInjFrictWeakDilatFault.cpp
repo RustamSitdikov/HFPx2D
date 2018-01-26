@@ -28,85 +28,44 @@
 namespace hfp2d {
 
 void fluidInjFrictWeakDilatFault(int argc, char const *argv[]) {
-
+  /////// LOAD PROGRAM ARGUMENTS ///////
   // Initialization of variable needed to load the code's arguments;
-  il::String input_filename;
+  il::String config_filename;
   il::String path_output_directory;
 
   // Load arguments & create the output directory
-  hfp2d::loadArguments(argc, argv, il::io, input_filename,
+  hfp2d::loadArguments(argc, argv, il::io, config_filename,
                        path_output_directory);
 
+  /////// LOAD INPUT DATA FROM CONFIGURATION FILE (*.toml) ///////
   // Intantiate mesh object
   hfp2d::Mesh MyMesh;
   // Instantiate InSituStress object
   hfp2d::InSituStress BackgroundLoadingConditions;
   // Instantiate ElasticProperties object
-  hfp2d::ElasticProperties ElasticProperties;
+  hfp2d::ElasticProperties ElasticProperties{};
   // Instantiate FluidProperties object
-  hfp2d::FluidProperties FluidProperties;
+  hfp2d::FluidProperties FluidProperties{};
   // Instantiate SolidEvolution object
   hfp2d::SolidEvolution SolidEvolution;
   // Instantiate FractureEvolution object
   hfp2d::FractureEvolution FractureEvolution;
-
-  // Load input data from configuration file (*.toml file) and assign them to
-  // the previously instantiated objects
-  hfp2d::loadInput(input_filename, il::io, MyMesh, ElasticProperties,
-                   FluidProperties, SolidEvolution, FractureEvolution,
-                   BackgroundLoadingConditions);
-
-  // Pore pressure perturbation at nodal points needed to activate the shear
-  // crack (sum of the ambient pore pressure (time t_0) and pore pressure
-  // profile at time t_n+1, with n=0.
-  // Remember: the pore pressure is always evaluated at time t_n+1
-  // (being t_n the current time) as failure must occur!
-  // alpha -> initial fault/fracture diffusivity [Lˆ2/T]
-  // t_0plus1 -> starting time
-  // Dp -> constant overpressure at the middle of the fault
-  double alpha = 10;
-  double Dp;
+  // Initialization of Simulation_Parameters
+  double const_overpress;
   double t_0plus1;
   double time_step;
   double final_time;
-  // Import Simulation_Parameters from configuration file (*.toml)
-  il::Status status{};
-  auto config = il::load<il::MapArray<il::String, il::Dynamic>>(input_filename,
-                                                                il::io, status);
-  status.abortOnError();
-  il::int_t keyFound;
-  keyFound = config.search("Simulation_Parameters");
+  bool expl_impl;
+  bool quasi_dynamic;
 
-  if (config.found(keyFound) && config.value(keyFound).isMapArray()) {
-    const il::MapArray<il::String, il::Dynamic> &SimulationParametersMap =
-        config.value(keyFound).asMapArray();
+  // Load input data from configuration file (*.toml file) and assign them to
+  // the previously instantiated objects
+  hfp2d::loadInput(config_filename, il::io, MyMesh, ElasticProperties,
+                   FluidProperties, SolidEvolution, FractureEvolution,
+                   BackgroundLoadingConditions, const_overpress, t_0plus1,
+                   time_step, final_time, expl_impl, quasi_dynamic);
 
-    Dp = findDouble("constant_overpressure", SimulationParametersMap,
-                    input_filename);
-
-    t_0plus1 =
-        findDouble("initial_time", SimulationParametersMap, input_filename);
-
-    time_step =
-        findDouble("time_step", SimulationParametersMap, input_filename);
-
-    final_time =
-        findDouble("final_time", SimulationParametersMap, input_filename);
-
-  } else {
-    std::cerr << "ERROR: 'Simulation_Parameters' not found in input file "
-              << input_filename << std::endl;
-    exit(EXIT_FAILURE);
-  }
-
-  il::Array<double> press_init_nodes{MyMesh.numberOfNodes(), 0};
-  for (il::int_t j = 0; j < press_init_nodes.size(); ++j) {
-    press_init_nodes[j] =
-        BackgroundLoadingConditions.getAmbientPorePressure(j) +
-        (Dp *
-         (erfc(fabs((MyMesh.coordinates(j, 0)) / sqrt(alpha * t_0plus1)) / 2)));
-  }
-
+  /////// INITIALIZATION OF OTHER VARIABLES ///////
   // Matrix to switch from nodal points to collocation points for all DDs (both
   // opening and shear)
   il::Array2D<double> from_edge_to_coll_dds{MyMesh.numberDDDofs(),
@@ -123,6 +82,15 @@ void fluidInjFrictWeakDilatFault(int argc, char const *argv[]) {
   il::Array2D<double> from_edge_to_coll_press{MyMesh.numberDDDofs(),
                                               MyMesh.numberOfNodes(), 0};
   from_edge_to_coll_press = hfp2d::from_edge_to_col_cg(MyMesh);
+
+  // Dof handle for single DD (either shear DD or opening DD)
+  il::Array2D<il::int_t> dof_single_dd{MyMesh.numberOfElts(),
+                                       (MyMesh.interpolationOrder() + 1), 0};
+  for (il::int_t i = 0; i < MyMesh.numberOfElts(); i++) {
+    for (il::int_t j = 0; j < 1 * (MyMesh.interpolationOrder() + 1); j++) {
+      dof_single_dd(i, j) = i * 1 * (MyMesh.interpolationOrder() + 1) + j;
+    }
+  }
 
   // Call SimulationParameters structure and overwrite its default values
   hfp2d::SimulationParameters SimulationParameters;
@@ -141,23 +109,32 @@ void fluidInjFrictWeakDilatFault(int argc, char const *argv[]) {
   il::int_t source_point = MyMesh.numberOfElts() / 2;
   hfp2d::Sources Source(source_point);
 
-  /// Initialization of solution object at time t_0, with pressure perturbation
-  /// evaluated at t_0plus1
+  /////// INITIALIZATION OF SOLUTION OBJECT ///////
+  // Solution object at time t_0, with pressure perturbation at t_0plus1
   il::Array<double> init_opening{2 * MyMesh.numberOfElts(), 0.};
   il::Array<double> init_slip{2 * MyMesh.numberOfElts(), 0.};
-  double err_frac_position = 2.;
-  double err_opening_dd = 2.;
-  double err_shear_dd = 2.;
-  double err_press = 2.;
-  bool expl_impl = false;  // Set true for explicit/implicit integration scheme
-  bool damping_term = false;  // Set true for QD simulation
+  const double err_frac_position = 2.;
+  const double err_opening_dd = 2.;
+  const double err_shear_dd = 2.;
+  const double err_press = 2.;
   double shear_modulus = 1.;
   double shear_wave_vel = 1.;
   double damping_coeff = shear_modulus / (2 * shear_wave_vel);
   il::int_t init_iter_front_position = 0;
   il::int_t init_iter_ehls = 0;
 
-  // Pore pressure at time t_0 at collocation points
+  // Fault hydraulic diffusivity [L^2/T]
+  double alpha = 10;
+  il::Array<double> press_init_nodes{MyMesh.numberOfNodes(), 0};
+  // Pore pressure at time t_0plus1 at nodal points
+  for (il::int_t j = 0; j < press_init_nodes.size(); ++j) {
+    press_init_nodes[j] =
+        BackgroundLoadingConditions.getAmbientPorePressure(j) +
+        (const_overpress *
+         (erfc(fabs((MyMesh.coordinates(j, 0)) / sqrt(alpha * t_0plus1)) / 2)));
+  }
+
+  // Pore pressure at time t_0plus1 at collocation points
   auto press_init_coll = il::dot(from_edge_to_coll_press, press_init_nodes);
 
   // Get the active set of collocation points at time t_0
@@ -176,14 +153,6 @@ void fluidInjFrictWeakDilatFault(int argc, char const *argv[]) {
   }
 
   // Get active set of elements at time t_0
-  il::Array2D<int> dof_single_dd{MyMesh.numberOfElts(),
-                                 (MyMesh.interpolationOrder() + 1), 0};
-  for (int i = 0; i < MyMesh.numberOfElts(); i++) {
-    for (int j = 0; j < 1 * (MyMesh.interpolationOrder() + 1); j++) {
-      dof_single_dd(i, j) = i * 1 * (MyMesh.interpolationOrder() + 1) + j;
-    }
-  }
-
   il::Array<int> init_set_elements{0};
   init_set_elements.reserve(2 * MyMesh.numberOfElts());
   for (int l = 0, k = 0; l < init_failed_set_collpoints.size(); ++l, ++k) {
@@ -194,7 +163,7 @@ void fluidInjFrictWeakDilatFault(int argc, char const *argv[]) {
   auto init_set_elmnts = hfp2d::delete_duplicates_integer(init_set_elements);
 
   il::Array<int> init_active_set_elements{init_set_elmnts.size()};
-
+  // Enforce the propagation to be element by element
   if (init_failed_set_collpoints.size() ==
       2 * init_active_set_elements.size()) {
     init_active_set_elements = init_set_elmnts;
@@ -214,11 +183,11 @@ void fluidInjFrictWeakDilatFault(int argc, char const *argv[]) {
       err_frac_position, err_opening_dd, err_shear_dd, err_press);
 
   // Initialization of slippage length at time t_0
-  double slipp_length_at_Tn;
+  double slipp_length_at_T0;
   if (init_active_set_elements.size() == 0) {
-    slipp_length_at_Tn = 0.;
+    slipp_length_at_T0 = 0.;
   } else {
-    slipp_length_at_Tn = hfp2d::euclidean_distance(
+    slipp_length_at_T0 = hfp2d::euclidean_distance(
         MyMesh.coordinates(init_active_set_elements[0], 0), 0,
         MyMesh.coordinates(
             init_active_set_elements[init_active_set_elements.size() - 1] + 1,
@@ -226,8 +195,9 @@ void fluidInjFrictWeakDilatFault(int argc, char const *argv[]) {
         0);
   };
 
-  ////////////////////////        Loop in time          ////////////////////////
+  /////// LOOP IN TIME ///////
   std::string filename;
+  double slipp_length_at_Tn = slipp_length_at_T0;
   double slipp_length_at_Tn_plus1;
   double current_crack_velocity;
 
@@ -237,14 +207,15 @@ void fluidInjFrictWeakDilatFault(int argc, char const *argv[]) {
                              MyMesh.coordinates(MyMesh.numberOfNodes() - 1, 0),
                              0)) &&
          (SolutionAtTn.frontIts() < SimulationParameters.frac_front_max_its)) {
+
     std::cout << " --------------------------------" << std::endl;
     std::cout << " Current time t = " << SolutionAtTn.time() << "\n";
 
     hfp2d::Solution SolutionAtTnPlus1 = fractFrontPosition(
         kmat, from_edge_to_coll_dds, from_edge_to_coll_dd,
-        from_edge_to_coll_press, MyMesh, FluidProperties, SimulationParameters,
-        SolidEvolution, FractureEvolution, Source, SolutionAtTn, expl_impl,
-        damping_term, damping_coeff);
+        from_edge_to_coll_press, dof_single_dd, MyMesh, FluidProperties,
+        SimulationParameters, SolidEvolution, FractureEvolution, Source,
+        SolutionAtTn, expl_impl, quasi_dynamic, damping_coeff);
 
     // Calculate the new slippage length (i.e at time T_n+1)
     if (SolutionAtTnPlus1.activeElts().size() == 0) {
@@ -296,12 +267,12 @@ void fluidInjFrictWeakDilatFault(int argc, char const *argv[]) {
 Solution fractFrontPosition(
     il::Array2D<double> &elast_matrix, il::Array2D<double> &fetc_dds,
     il::Array2D<double> &fetc_dd, il::Array2D<double> &fetc_press,
-    Mesh &theMesh, FluidProperties &FluidProperties,
+    il::Array2D<il::int_t> &dof_single_dd, Mesh &theMesh,
+    FluidProperties &FluidProperties,
     SimulationParameters &SimulationParameters, SolidEvolution &SolidEvolution,
     FractureEvolution &FractureEvolution, Sources &Source,
     Solution &SolutionAtTn, bool expl_impl, bool damping_term,
     double damping_coeff) {
-  // TODO: insert il_io in the input!
 
   // Initialization of fracture front loop
   // SolutionAtTn -> solution object at current time Tn
@@ -314,28 +285,29 @@ Solution fractFrontPosition(
   il::Status status;
   il::Norm norm;
   norm = il::Norm::L1;
-  il::int_t cvg_front_posit = 0;  // convergence front position
-  il::int_t iter_front_posit = 0;
-  il::Array<int> dofs_active_elmnts{};
-  dofs_active_elmnts.reserve(theMesh.numberDDDofs());
+  il::int_t cvg_front_posit = 0;   // convergence front position
+  il::int_t iter_front_posit = 0;  // iteration fracture front position
+  il::Array<int> dofs_act_elmts{};
+  dofs_act_elmts.reserve(theMesh.numberDDDofs());
   il::Array<double> incrm_shearDD{2 * theMesh.numberOfElts(), 0.};
   il::Array<double> incrm_openingDD{2 * theMesh.numberOfElts(), 0.};
 
-  while (cvg_front_posit != 1 &&
-         iter_front_posit < SimulationParameters.frac_front_max_its) {
+  while ((cvg_front_posit != 1) &&
+          (iter_front_posit < SimulationParameters.frac_front_max_its)) {
+
     ++iter_front_posit;
 
-    std::cout << "  - Iter for fracture front position = " << iter_front_posit
+    std::cout << "\n  - Iter for fracture front position = " << iter_front_posit
               << "\n"
               << std::endl;
 
     // Find the corresponding DOFs of the active elements
-    for (int elmnt_i = 0, k = 0; elmnt_i < SolutionAtTn_k.activeElts().size();
+    for (il::int_t elmnt_i = 0, k = 0; elmnt_i < SolutionAtTn_k.activeElts().size();
          ++elmnt_i) {
-      dofs_active_elmnts.resize(k + 4);
-      for (int j = 0, l = k; j < theMesh.numberDDDofsPerElt(); ++j, ++l) {
-        dofs_active_elmnts[l] =
-            theMesh.dofDD(SolutionAtTn_k.activeElts(elmnt_i), j);
+      dofs_act_elmts.resize(k + 4);
+      for (il::int_t j = 0, l = k; j < theMesh.numberDDDofsPerElt(); ++j, ++l) {
+        dofs_act_elmts[l] =
+                (int) theMesh.dofDD(SolutionAtTn_k.activeElts(elmnt_i), j);
       }
       k = k + 4;
     }
@@ -345,21 +317,21 @@ Solution fractFrontPosition(
         theMesh, elast_matrix, fetc_dds, fetc_dd, fetc_press, SolutionAtTn,
         SolutionAtTn_k, incrm_shearDD, incrm_openingDD, SimulationParameters,
         FluidProperties, SolidEvolution, FractureEvolution, Source,
-        dofs_active_elmnts, status, norm, damping_term, damping_coeff);
+        dofs_act_elmts, status, norm, damping_term, damping_coeff);
 
     // Update active set of elements
     il::Array<int> new_active_set_elements{};
     new_active_set_elements.reserve(theMesh.numberOfElts());
     new_active_set_elements = SolutionAtTn_kPlus1.activeSetElements(
-        theMesh, SolutionAtTn_kPlus1, SolidEvolution, fetc_press,
+        theMesh, SolutionAtTn_kPlus1, SolidEvolution, fetc_press, dof_single_dd,
         SolutionAtTn.pressure());
 
     auto old_active_set_elements = SolutionAtTn_kPlus1.activeElts();
     if (new_active_set_elements.size() == 0) {
       cvg_front_posit = 1;
     } else {
-      for (il::int_t i = 0; i < new_active_set_elements.size(); ++i) {
-        old_active_set_elements.append(new_active_set_elements[i]);
+      for (auto i : new_active_set_elements) {
+        old_active_set_elements.append(i);
       }
       std::sort(old_active_set_elements.begin(), old_active_set_elements.end());
       SolutionAtTn_kPlus1.setActiveElts(old_active_set_elements);

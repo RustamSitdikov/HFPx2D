@@ -40,7 +40,7 @@ Solution reynoldsP1(Mesh &theMesh, il::Array2D<double> &elast_matrix,
   il::Array<double> BigB{dof_active_elmnts.size() + theMesh.numberOfNodes(),
                          0.};
 
-  // Select the elasticity matrix for shear and opening DDs of slipping DOFs
+  // Select submatrix of elasticity matrix for active Dofs
   il::Array2D<double> elast_submatrix{dof_active_elmnts.size(),
                                       dof_active_elmnts.size(), 0};
   for (il::int_t m = 0; m < elast_submatrix.size(0); ++m) {
@@ -76,6 +76,68 @@ Solution reynoldsP1(Mesh &theMesh, il::Array2D<double> &elast_matrix,
   for (il::int_t l2 = 0; l2 < Fetc_active_dofs.size(0); l2 = l2 + 2) {
     for (il::int_t i = 0; i < Fetc_active_dofs.size(1); ++i) {
       Fetc_active_dofs(l2 + 1, i) = fetc_press(dof_active_elmnts[l2] / 2, i);
+    }
+  }
+
+  // Elasticity matrix for just shear DD
+  il::Array2D<double> elast_matrix_shear{2 * theMesh.numberOfElts(),
+                                         2 * theMesh.numberOfElts(), 0.};
+  for (il::int_t m1 = 0, n1 = 0; m1 < elast_matrix_shear.size(0);
+       ++m1, n1 = n1 + 2) {
+    for (il::int_t i = 0, j = 0; i < elast_matrix_shear.size(1);
+         ++i, j = j + 2) {
+      elast_matrix_shear(m1, i) = -1 * elast_matrix(n1, j);
+    }
+  }
+
+  // Elasticity matrix for just shear DD with damping term
+  if (damping_term) {
+    for (il::int_t i = 0; i < elast_matrix_shear.size(0); ++i) {
+      elast_matrix_shear(i, i) =
+          elast_matrix_shear(i, i) - (damping_coeff / SolutionAtTn.timestep());
+    }
+  }
+
+  // Elasticity matrix for just opening DD
+  il::Array2D<double> elast_matrix_sigmaN{2 * theMesh.numberOfElts(),
+                                          2 * theMesh.numberOfElts(), 0.};
+  for (il::int_t m1 = 0, n1 = 1; m1 < elast_matrix_sigmaN.size(0);
+       ++m1, n1 = n1 + 2) {
+    for (il::int_t i = 0, j = 1; i < elast_matrix_sigmaN.size(1);
+         ++i, j = j + 2) {
+      elast_matrix_sigmaN(m1, i) = -1 * elast_matrix(n1, j);
+    }
+  }
+
+  // Elasticity matrix for just opening DD with damping term
+  if (damping_term) {
+    for (il::int_t i = 0; i < elast_matrix_shear.size(0); ++i) {
+      elast_matrix_sigmaN(i, i) =
+          elast_matrix_sigmaN(i, i) - (damping_coeff / SolutionAtTn.timestep());
+    }
+  }
+
+  il::Array2D<double> dilat_plast{theMesh.numberDDDofs(),
+                                  theMesh.numberDDDofs(), 0.};
+  for (il::int_t l1 = 0; l1 < dof_active_elmnts.size(); l1 = l1 + 2) {
+    dilat_plast(dof_active_elmnts[l1], dof_active_elmnts[l1]) = 0.;
+  }
+
+  il::Array2D<double> dilat_plast_sub{2 * theMesh.numberOfElts(),
+                                      2 * theMesh.numberOfElts(), 0.};
+  for (il::int_t m1 = 0, n1 = 0; m1 < dilat_plast_sub.size(0);
+       ++m1, n1 = n1 + 2) {
+    for (il::int_t i = 0, j = 0; i < dilat_plast_sub.size(1); ++i, j = j + 2) {
+      dilat_plast_sub(m1, i) = dilat_plast(n1, j);
+    }
+  }
+
+  il::Array2D<double> dilat_plast_submatrix{dof_active_elmnts.size(),
+                                            dof_active_elmnts.size(), 0.};
+  for (il::int_t l1 = 0; l1 < dilat_plast_submatrix.size(0); ++l1) {
+    for (il::int_t i = 0; i < dilat_plast_submatrix.size(1); ++i) {
+      dilat_plast_submatrix(l1, i) =
+          dilat_plast(dof_active_elmnts[l1], dof_active_elmnts[i]);
     }
   }
 
@@ -117,6 +179,7 @@ Solution reynoldsP1(Mesh &theMesh, il::Array2D<double> &elast_matrix,
     for (il::int_t i = 0; i < incrm_shearDD_k.size(); ++i) {
       shearDD_k[i] = SolutionAtTn.shearDD(i) + incrm_shearDD_k[i];
     }
+
     // Current slip at collocation points
     shearDD_coll_k = il::dot(fetc_dd, shearDD_k);
 
@@ -124,6 +187,7 @@ Solution reynoldsP1(Mesh &theMesh, il::Array2D<double> &elast_matrix,
     for (il::int_t i = 0; i < incrm_openingDD_k.size(); ++i) {
       openingDD_k[i] = SolutionAtTn.openingDD(i) + incrm_openingDD_k[i];
     }
+
     // Current opening at collocation points
     openingDD_coll_k = il::dot(fetc_dd, openingDD_k);
 
@@ -133,6 +197,9 @@ Solution reynoldsP1(Mesh &theMesh, il::Array2D<double> &elast_matrix,
     for (il::int_t j = 0; j < Nf.size(0); j = j + 2) {
       Nf(j, j) = fric_coeff_k[dof_active_elmnts[j] / 2];
     }
+
+    auto FN = il::dot(Nf, elast_submatrix);
+    auto B = il::dot(FN, dilat_plast_submatrix);
 
     // Finite difference matrix
     L = hfp2d::buildLMatrix(theMesh, shearDD_k, openingDD_k, FluidProperties,
@@ -148,6 +215,12 @@ Solution reynoldsP1(Mesh &theMesh, il::Array2D<double> &elast_matrix,
     /// Assembling the system ///
 
     // Matrix of coefficient
+
+    for (int i = 0; i < elast_submatrix.size(0); ++i) {
+      for (int j = 0; j < elast_submatrix.size(1); ++j) {
+        BigA(i, j) = elast_submatrix(i, j) - B(i, j);
+      }
+    }
 
     auto Npk = il::dot(Nf, Fetc_active_dofs);
     for (il::int_t k2 = 0; k2 < dof_active_elmnts.size(); ++k2) {
@@ -190,10 +263,6 @@ Solution reynoldsP1(Mesh &theMesh, il::Array2D<double> &elast_matrix,
     for (il::int_t k1 = 0; k1 < BigA.size(1); ++k1) {
       BigA(dof_active_elmnts.size() + Source.getSourcePoint(), k1) = 0;
     }
-
-    //    for (il::int_t l1 = 0; l1 < BigA.size(0); ++l1) {
-    //      BigA(l1, dof_active_elmnts.size() + Source.getSourcePoint()) = 0;
-    //    }
 
     BigA(dof_active_elmnts.size() + Source.getSourcePoint(),
          dof_active_elmnts.size() + Source.getSourcePoint()) = 1;
@@ -270,9 +339,9 @@ Solution reynoldsP1(Mesh &theMesh, il::Array2D<double> &elast_matrix,
           (il::norm(diff_incrm_press_k, norm) / il::norm(incrm_press_k, norm));
     }
 
-//    std::cout << "  error on shearDD : " << err_shearDD
-//              << "  error on openingDD: " << err_openingDD
-//              << "  error on pressure: " << err_press << "\n";
+    //    std::cout << "  error on shearDD : " << err_shearDD
+    //              << "  error on openingDD: " << err_openingDD
+    //              << "  error on pressure: " << err_press << "\n";
 
     // Update -> old is new
     incrm_openingDD_k_old = incrm_openingDD_k;
@@ -280,7 +349,7 @@ Solution reynoldsP1(Mesh &theMesh, il::Array2D<double> &elast_matrix,
     incrm_press_k_old = incrm_press_k;
   }
 
-  std::cout<<"\n"<<std::endl;
+  std::cout << "\n" << std::endl;
 
   // Cumulative increment of slip
   for (il::int_t l = 0; l < incrm_shearDD.size(); ++l) {
@@ -292,43 +361,18 @@ Solution reynoldsP1(Mesh &theMesh, il::Array2D<double> &elast_matrix,
     incrm_openingDD[l] = (incrm_openingDD[l] + incrm_openingDD_k[l]);
   }
 
-  // Elasticity matrix for just shear DD
-  il::Array2D<double> elast_matrix_shear{2 * theMesh.numberOfElts(),
-                                         2 * theMesh.numberOfElts(), 0.};
-  for (il::int_t m1 = 0, n1 = 0; m1 < elast_matrix_shear.size(0);
-       ++m1, n1 = n1 + 2) {
-    for (il::int_t i = 0, j = 0; i < elast_matrix_shear.size(1);
-         ++i, j = j + 2) {
-      elast_matrix_shear(m1, i) = -1 * elast_matrix(n1, j);
-    }
-  }
-
-  // Elasticity matrix for just shear DD with damping term
-  if (damping_term) {
-    for (il::int_t i = 0; i < elast_matrix_shear.size(0); ++i) {
-      elast_matrix_shear(i, i) =
-          elast_matrix_shear(i, i) - (damping_coeff / SolutionAtTn.timestep());
-    }
-  }
-
-  // Elasticity matrix for just opening DD
-  il::Array2D<double> elast_matrix_sigmaN{2 * theMesh.numberOfElts(),
-                                          2 * theMesh.numberOfElts(), 0.};
-  for (il::int_t m1 = 0, n1 = 1; m1 < elast_matrix_sigmaN.size(0);
-       ++m1, n1 = n1 + 2) {
-    for (il::int_t i = 0, j = 1; i < elast_matrix_sigmaN.size(1);
-         ++i, j = j + 2) {
-      elast_matrix_sigmaN(m1, i) = -1 * elast_matrix(n1, j);
-    }
-  }
-
   // Calculate increment of shear stress due to increment of shear DD
   il::Array<double> incrm_shear_stress{2 * theMesh.numberOfElts(), 0.};
   incrm_shear_stress = il::dot(elast_matrix_shear, incrm_shearDD);
 
-  // Calculate increment of normal stress due to increment of opening DD
+  // Calculate increment of normal stress due to dilatancy
+  auto opening_dil = il::dot(dilat_plast_sub, incrm_shearDD);
   il::Array<double> incrm_normal_stress{2 * theMesh.numberOfElts(), 0.};
-  incrm_normal_stress = il::dot(elast_matrix_sigmaN, incrm_openingDD);
+  incrm_normal_stress = il::dot(elast_matrix_sigmaN, opening_dil);
+  for (il::int_t k3 = 0; k3 < dof_active_elmnts.size(); k3 = k3 + 2) {
+    incrm_normal_stress[dof_active_elmnts[k3] / 2] =
+        -1. * incrm_normal_stress[dof_active_elmnts[k3] / 2];
+  }
 
   // Calculate new shear stress (due to increment of shear stress)
   il::Array<double> tau_new{2 * theMesh.numberOfElts(), 0.};
@@ -347,7 +391,7 @@ Solution reynoldsP1(Mesh &theMesh, il::Array2D<double> &elast_matrix,
   // Calculate new normal stress (due to increment of normal stress)
   il::Array<double> sigmaN_new{2 * theMesh.numberOfElts(), 0.};
   for (il::int_t j2 = 0; j2 < sigmaN_new.size(); ++j2) {
-    sigmaN_new[j2] = SolutionAtTn.sigmaN(j2) + incrm_normal_stress[j2];
+    sigmaN_new[j2] = SolutionAtTn.sigmaN(j2) - incrm_normal_stress[j2];
   }
 
   // New pore pressure profile

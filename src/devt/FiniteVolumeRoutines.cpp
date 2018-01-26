@@ -69,7 +69,7 @@ il::Array2D<double> buildLMatrix(Mesh &theMesh, const il::Array<double> &slip,
                                  const il::Array<double> &opening,
                                  FluidProperties &FluidProperties,
                                  FractureEvolution &FractureEvolution,
-                                 const double TimeStep) {
+                                 double TimeStep) {
   il::Array<double> Kk;
   Kk = shearConductivitiesP1Newtonian(theMesh, FluidProperties,
                                       FractureEvolution, slip, opening);
@@ -78,7 +78,7 @@ il::Array2D<double> buildLMatrix(Mesh &theMesh, const il::Array<double> &slip,
   il::Array2D<il::int_t> ed;
   il::int_t ni;
   il::int_t ej;
-  il::int_t dofj;
+  il::int_t dofj=0;
   il::Array<il::int_t> t;
   il::Array2D<il::int_t> dofhandle_press{theMesh.numberOfElts(),
                                          theMesh.interpolationOrder() + 1, 0};
@@ -89,7 +89,7 @@ il::Array2D<double> buildLMatrix(Mesh &theMesh, const il::Array<double> &slip,
 
   // Loop over the pressure nodes
   for (il::int_t i = 0; i < LL.size(0); ++i) {
-    ed = position_2d_array(dofhandle_press, ((double)i));
+    ed = position_2d_array(dofhandle_press, i);
     ni = ed.size(0);
 
     for (il::int_t j = 0; j < ni; ++j) {
@@ -162,13 +162,13 @@ il::Array2D<double> buildVpMatrix(Mesh &theMesh,
   il::int_t ni;
   il::int_t ej;
   il::int_t hj;
-  il::int_t dofj;
+  il::int_t dofj=0;
   il::Array<il::int_t> t;
 
   /// Assembling procedure ///
-  for (il::int_t m = 0; m < Vp.size(0); ++m) {
-    ed = position_2d_array(theMesh.connectivity(), ((double)m));
-    hi = position_2d_array(h, ((double)(2 * m)));
+  for (int m = 0; m < Vp.size(0); ++m) {
+    ed = position_2d_array(theMesh.connectivity(), m);
+    hi = position_2d_array(h, (2 * m));
     ni = ed.size(0);
 
     for (il::int_t i = 0; i < ni; ++i) {
@@ -251,12 +251,12 @@ il::Array2D<double> buildVdMatrix(Mesh &theMesh,
   il::Array<il::int_t> t;
 
   il::int_t dofwi;
-  il::int_t dofwj;
+  il::int_t dofwj=0;
 
   /// Assembling procedure ///
-  for (il::int_t i = 0; i < Vd.size(0); ++i) {
-    ed = position_2d_array(theMesh.connectivity(), ((double)i));
-    hi = position_2d_array(h, ((double)(2 * i)));
+  for (int i = 0; i < Vd.size(0); ++i) {
+    ed = position_2d_array(theMesh.connectivity(), i);
+    hi = position_2d_array(h, (2 * i));
     ni = ed.size(0);
 
     for (il::int_t j = 0; j < ni; ++j) {

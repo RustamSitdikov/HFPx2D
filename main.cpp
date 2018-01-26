@@ -16,6 +16,7 @@
 //////////////////////// Numerical code /////////////////////////////////
 
 int main(int argc, char const *argv[]) {
+
   std::cout << "\n";
   std::cout << " ->    Begin of simulation    <-";
   std::cout << "\n\n";

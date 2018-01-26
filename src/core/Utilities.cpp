@@ -45,7 +45,7 @@ void set_submatrix(il::Array2D<double> &A, int i0, int i1,
 
 ////////////////////////////////////////////////////////////////////////////////
 //   Rotation Matrix
-il::StaticArray2D<double, 2, 2> rotation_matrix_2D(double theta) {
+il::StaticArray2D<double, 2, 2> rotationMatrix2D(double theta) {
   il::StaticArray2D<double, 2, 2> R;
 
   R(0, 0) = cos(1. * theta);
@@ -62,7 +62,7 @@ il::StaticArray2D<double, 2, 2> rotation_matrix_2D(double theta) {
 // arr2D -> array2D in which we want to find the index of  given value
 // seek -> value for which we want to find out the index
 // It return an array that contain the {N.row, N.col} of the seek value
-il::Array<int> find_2d_integer(const il::Array2D<int> &arr2D, int seek) {
+il::Array<int> find_2d_integer(const il::Array2D<il::int_t> &arr2D, int seek) {
   il::Array<int> outp{2};
 
   for (int i = 0; i < arr2D.size(0); ++i) {

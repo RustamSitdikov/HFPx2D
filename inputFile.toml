@@ -75,3 +75,7 @@
     time_step = 0.00001
 
     final_time = 0.4
+
+    expl_impl = false  # set "true" for explicit-implicit time integration scheme
+
+    QD = false   # set "true" for Quasi-Dynamic simulation (including damping term)

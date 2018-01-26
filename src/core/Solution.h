@@ -182,7 +182,7 @@ class Solution {
   // get functions
   il::Array<double> openingDD() const { return openingDD_; };
   il::Array<double> shearDD() const { return shearDD_; };
-  il::Array<double> pressure() const { return pressure_; };
+  const il::Array<double>& pressure() const { return pressure_; };
   il::Array<double> sigmaN() const { return sigma_n_; };
   il::Array<double> tau() const { return tau_; };
 
@@ -193,9 +193,7 @@ class Solution {
   double tau(il::int_t i) const { return tau_[i]; };
 
   il::Array<int> activeElts() const { return active_set_elements_; };
-  il::int_t activeElts(il::int_t i) const {
-    return active_set_elements_[i];
-  };
+  il::int_t activeElts(il::int_t i) const { return active_set_elements_[i]; };
 
   il::Array2D<double> tipsLocation() const { return tipsLocation_; };
   il::Array<double> ribbonsDistance() const { return ribbon_tips_s_; };
@@ -248,7 +246,9 @@ class Solution {
   il::Array<int> activeSetElements(Mesh &theMesh, Solution &SolutionAtTn,
                                    SolidEvolution &SolidEvolution,
                                    il::Array2D<double> &from_edge_to_coll_press,
-                                   il::Array<double> press_old) {
+                                   il::Array2D<il::int_t> &dof_single_dd,
+                                   const il::Array<double> &press_old) {
+
     // Move pore pressure from nodal points to coll points because elasticity
     // is evaluated at collocation points (-> MC criterion is evaluated at
     // collocation points!)
@@ -257,21 +257,12 @@ class Solution {
     // Get the set of 'failed' collocation points by checking the MC criterion
     il::Array<int> failed_set_collpoints{0};
     failed_set_collpoints.reserve(2 * theMesh.numberOfElts());
-    for (il::int_t j = 0, k = 0; j < 2 * theMesh.numberOfElts(); ++j) {
+    for (int j = 0, k = 0; j < 2 * theMesh.numberOfElts(); ++j) {
       if (SolutionAtTn.tau(j) > SolidEvolution.getFricCoeff(j) *
                                     (SolutionAtTn.sigmaN(j) - press_coll[j])) {
         failed_set_collpoints.resize(k + 1);
         failed_set_collpoints[k] = j;
         k = k + 1;
-      }
-    }
-
-    // Get active set of elements
-    il::Array2D<int> dof_single_dd{theMesh.numberOfElts(),
-                                   (theMesh.interpolationOrder() + 1), 0};
-    for (int i = 0; i < theMesh.numberOfElts(); i++) {
-      for (int j = 0; j < 1 * (theMesh.interpolationOrder() + 1); j++) {
-        dof_single_dd(i, j) = i * 1 * (theMesh.interpolationOrder() + 1) + j;
       }
     }
 

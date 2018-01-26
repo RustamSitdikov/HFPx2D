@@ -38,12 +38,14 @@ InSituStress loadConditions(
 
     for (int coll_k = 0; coll_k < theLoadedMesh.interpolationOrder() + 1;
          ++coll_k) {
+
       insitu_stress_distribution(dof_single_dd(elmt_k, coll_k), 0) =
-          (far_field_vert_stress * abs(sin(mysege.theta()))) +
-          (far_field_horiz_stress * abs(cos(mysege.theta())));
+          (far_field_vert_stress * sin(mysege.theta())) +
+          (far_field_horiz_stress * cos(mysege.theta()));
       insitu_stress_distribution(dof_single_dd(elmt_k, coll_k), 1) =
-          (far_field_vert_stress * abs(cos(mysege.theta()))) +
-          (far_field_horiz_stress * abs(sin(mysege.theta())));
+          (far_field_vert_stress * cos(mysege.theta())) +
+          (far_field_horiz_stress * sin(mysege.theta()));
+
     }
   }
 
