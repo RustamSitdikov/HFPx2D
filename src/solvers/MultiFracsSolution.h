@@ -62,17 +62,17 @@ class MultiFracsSolution {
     well_outfluxes_ =  well_outfluxes;
 
     il::int_t  nc = frac_influxes.SourceElt().size();
-    for (il::int_t i=0;i<nc;i++){
+    for (il::int_t i=0; i<nc; i++){
       IL_EXPECT_FAST(frac_influxes.InjectionRate(i)==well_outfluxes.InjectionRate(i));
     }
 
-    IL_EXPECT_FAST(dp.size()==frac_influxes_.InjectionRate().size());
+    IL_EXPECT_FAST(dp.size() == frac_influxes_.InjectionRate().size());
 
 
-    dp_entries_=dp;
+    dp_entries_ = dp;
 
-    err_fluxes_=err_f;
-    Its_well_frac_coupling_=its;
+    err_fluxes_ = err_f;
+    Its_well_frac_coupling_ = its;
 
   };
 
@@ -94,10 +94,11 @@ class MultiFracsSolution {
   il::Array<double> fracFluxes() const { return frac_influxes_.InjectionRate();} ;
   double fracFluxes(il::int_t k) const { return frac_influxes_.InjectionRate(k);} ;
 
-
   il::Array<double> clusterFluxes() const { return well_outfluxes_.InjectionRate();} ;
-
   double clusterFluxes(il::int_t k) const { return well_outfluxes_.InjectionRate(k);} ;
+
+  il::Array<double> dpEntries() const { return dp_entries_;} ;
+  double dpEntries(il::int_t k) const { return dp_entries_[k];} ;
 
   double time() const { return time_;};
 
