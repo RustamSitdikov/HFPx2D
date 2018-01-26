@@ -13,7 +13,7 @@
 #include <il/base.h>
 #include <il/norm.h>
 #include <il/linear_algebra.h>
-#include <il/linear_algebra/dense/factorization/LU.h>
+//#include <il/linear_algebra/dense/factorization/LU.h>
 #include <il/linear_algebra/dense/factorization/linearSolve.h>
 
 #include <src/core/SimulationParameters.h>
@@ -402,7 +402,7 @@ hfp2d::MultiFracsSolution wellHFsSolver(
   il::Array2D<double> Jacob{nclusters, nclusters, 0.};
   il::Status status;
 //  il::LU<il::Array2D<double>> Jacob_LU();
-  il::Array2D<double> Jacob_inv;
+//  il::Array2D<double> Jacob_inv;
 
   if (!mute) {
     std::cout << "+++++++++++++++++++++++++" << std::endl;
@@ -503,20 +503,20 @@ hfp2d::MultiFracsSolution wellHFsSolver(
         Q_in_var[i] = Q_in_k[i];
       }
 
-      // LU decomposition of Jacobian
-      il::LU<il::Array2D<double>> Jacob_LU(Jacob, il::io, status);
-      status.abortOnError();
-
-      // echo...
-      if (!mute) {
-          std::cout << "-------" << std::endl;
-          std::cout << "Det(J): " << Jacob_LU.determinant() << std::endl;
-//          std::cout << "Cond(J): "
-//                    << Jacob_LU.conditionNumber(il::Norm::L1, ) << std::endl;
-      }
-
-      // inverse Jacobian
-      Jacob_inv = Jacob_LU.inverse();
+//      // LU decomposition of Jacobian
+//      il::LU<il::Array2D<double>> Jacob_LU(Jacob, il::io, status);
+//      status.abortOnError();
+//
+//      // echo...
+//      if (!mute) {
+//          std::cout << "-------" << std::endl;
+//          std::cout << "Det(J): " << Jacob_LU.determinant() << std::endl;
+////          std::cout << "Cond(J): "
+////                    << Jacob_LU.conditionNumber(il::Norm::L1, ) << std::endl;
+//      }
+//
+//      // inverse Jacobian
+//      Jacob_inv = Jacob_LU.inverse();
     }
 
     // residuals...
@@ -532,9 +532,9 @@ hfp2d::MultiFracsSolution wellHFsSolver(
     // solution...
     // (use LU decomposition or inverse of Jacobian)
 //    dQ_v = Jacob_LU.solve(res_v);
-    dQ_v = il::dot(Jacob_inv, res_v);
-//    dQ_v = il::linearSolve(Jacob, res_v, il::io, status);
-//    status.abortOnError();
+//    dQ_v = il::dot(Jacob_inv, res_v);
+    dQ_v = il::linearSolve(Jacob, res_v, il::io, status);
+    status.abortOnError();
 
     // compute new flow rates...
     for (il::int_t i = 0; i < nclusters; i++) {
