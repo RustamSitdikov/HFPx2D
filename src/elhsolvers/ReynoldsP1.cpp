@@ -117,6 +117,7 @@ Solution reynoldsP1(Mesh &theMesh, il::Array2D<double> &elast_matrix,
     }
   }
 
+  // TODO: put dilat_plast in configuration file
   il::Array2D<double> dilat_plast{theMesh.numberDDDofs(),
                                   theMesh.numberDDDofs(), 0.};
   for (il::int_t l1 = 0; l1 < dof_active_elmnts.size(); l1 = l1 + 2) {

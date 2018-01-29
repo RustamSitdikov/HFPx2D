@@ -21,6 +21,7 @@ il::Array<double> edgeConductivitiesP1Newtonian(
     Mesh &theMesh, FluidProperties &FluidProperties,
     il::Array<double> &permeab_middle, const il::Array<double> &dilat_middle,
     const il::Array<double> &opening_middle) {
+
   il::Array<double> edge_cond_p1_newt{theMesh.numberOfElts(), 0};
 
   for (il::int_t i = 0; i < edge_cond_p1_newt.size(); ++i) {
@@ -44,19 +45,19 @@ il::Array<double> shearConductivitiesP1Newtonian(
     Mesh &theMesh, FluidProperties &FluidProperties,
     FractureEvolution &FractureEvolution, const il::Array<double> &slip,
     const il::Array<double> &opening) {
-  il::Array<double> wm_mid;  // mechanical opening
-  il::Array<double> d_mid;
-  il::Array<double> wh_mid;  // hydraulic opening or hydraulic width
-  il::Array<double> rho_mid{theMesh.numberOfElts(), 0.};
-  il::Array<double> kf_mid;
+  il::Array<double> wm_mid{theMesh.numberOfElts(), 0.};
+  il::Array<double> wh_mid{theMesh.numberOfElts(), 0.};
+  il::Array<double> kf_mid{theMesh.numberOfElts(), 0.};
+  il::Array<double> whi{2 * theMesh.numberOfElts(), 0.};
+  il::Array<double> kfi{2 * theMesh.numberOfElts(), 0.};
 
   wm_mid = average(opening);
-  d_mid = average(slip);
-  wh_mid = FractureEvolution.linearDilatancyMiddle(d_mid, FractureEvolution);
-  for (int k = 0; k < theMesh.numberOfElts(); ++k) {
-    rho_mid[k] = FluidProperties.fluidDensity();
-  }
-  kf_mid = FractureEvolution.linearPermeabilityMiddle(d_mid, FractureEvolution);
+
+  whi = FractureEvolution.linearDilatancy(slip, FractureEvolution);
+  wh_mid = average(whi);
+
+  kfi = FractureEvolution.linearPermeability(slip, FractureEvolution);
+  kf_mid = average(kfi);
 
   auto Out = edgeConductivitiesP1Newtonian(theMesh, FluidProperties, kf_mid,
                                            wh_mid, wm_mid);
@@ -78,7 +79,7 @@ il::Array2D<double> buildLMatrix(Mesh &theMesh, const il::Array<double> &slip,
   il::Array2D<il::int_t> ed;
   il::int_t ni;
   il::int_t ej;
-  il::int_t dofj=0;
+  il::int_t dofj = 0;
   il::Array<il::int_t> t;
   il::Array2D<il::int_t> dofhandle_press{theMesh.numberOfElts(),
                                          theMesh.interpolationOrder() + 1, 0};
@@ -162,7 +163,7 @@ il::Array2D<double> buildVpMatrix(Mesh &theMesh,
   il::int_t ni;
   il::int_t ej;
   il::int_t hj;
-  il::int_t dofj=0;
+  il::int_t dofj = 0;
   il::Array<il::int_t> t;
 
   /// Assembling procedure ///
@@ -251,7 +252,7 @@ il::Array2D<double> buildVdMatrix(Mesh &theMesh,
   il::Array<il::int_t> t;
 
   il::int_t dofwi;
-  il::int_t dofwj=0;
+  il::int_t dofwj = 0;
 
   /// Assembling procedure ///
   for (int i = 0; i < Vd.size(0); ++i) {

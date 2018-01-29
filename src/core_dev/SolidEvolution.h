@@ -4,7 +4,7 @@
 //
 // This file is part of HFPx2DUnitTest.
 //
-// Created by lorenzo on 9/18/17.
+// Created by Federico Ciardo on 9/18/17.
 // Copyright (c) ECOLE POLYTECHNIQUE FEDERALE DE LAUSANNE, Switzerland,
 // Geo-Energy Laboratory, 2016-2017.  All rights reserved.
 // See the LICENSE.TXT file for more details.
@@ -58,18 +58,20 @@ class SolidEvolution {
 
   double getFricCoeff(il::int_t i) { return friction_coefficients_[i]; }
 
-  il::Array<double> getPeakFricCoeff() {
-    return peak_friction_coefficients_;
-  }
+  il::Array<double> getPeakFricCoeff() { return peak_friction_coefficients_; }
+
   double getPeakFricCoeff(il::int_t i) {
     return peak_friction_coefficients_[i];
   }
+
   il::Array<double> getResidFricCoeff() {
     return residual_friction_coefficients_;
   }
+
   double getResidFricCoeff(il::int_t i) {
     return residual_friction_coefficients_[i];
   }
+
   il::Array<double> getResidSlip() { return residual_slips_; }
   double getResidSlip(il::int_t i) { return residual_slips_[i]; }
   il::String getType() { return type_; }
@@ -78,7 +80,7 @@ class SolidEvolution {
   //        METHODS
   //////////////////////////////////////////////////////////////////////////
 
-  inline void setSolidEvolution(const il::Array<double> &current_fric_coeff,
+  void setSolidEvolution(const il::Array<double> &current_fric_coeff,
                          const il::Array<double> &peak_fric_coeff,
                          const il::Array<double> &res_fric_coeff,
                          const il::Array<double> &res_slip,
@@ -92,13 +94,12 @@ class SolidEvolution {
     maximum_openings_ = max_openings;
   }
 
-    inline void setFrictionCoefficient(const il::Array<double> &fric_coeff){
-      friction_coefficients_ = fric_coeff;
-    };
+  void setFrictionCoefficient(const il::Array<double> &fric_coeff) {
+    friction_coefficients_ = fric_coeff;
+  };
 
-
-  il::Array<double> linearFricWeakLaw(
-      const il::Array<double> &slip, const SolidEvolution &SolidEvolution) {
+  il::Array<double> linearFricWeakLaw(const il::Array<double> &slip,
+                                      const SolidEvolution &SolidEvolution) {
     IL_EXPECT_FAST(SolidEvolution.peak_friction_coefficients_.size() ==
                    slip.size());
     IL_EXPECT_FAST(SolidEvolution.residual_friction_coefficients_.size() ==

@@ -56,28 +56,28 @@ class FractureEvolution {
   //        GETTER FUNCTIONS
   //////////////////////////////////////////////////////////////////////////
 
-  inline il::Array<double> getInitPermeab() { return initial_permeabilitys_; }
-  inline double getInitPermeab(il::int_t i) {
+  il::Array<double> getInitPermeab() { return initial_permeabilitys_; }
+  double getInitPermeab(il::int_t i) {
     return initial_permeabilitys_[i];
   };
 
-  inline il::Array<double> getIncrPermeab() { return increment_permeabilitys_; }
+  il::Array<double> getIncrPermeab() { return increment_permeabilitys_; }
 
-  inline double getIncrPermeab(il::int_t i) {
+  double getIncrPermeab(il::int_t i) {
     return increment_permeabilitys_[i];
   };
-  inline il::Array<double> getResidSlip() { return residual_slips_; }
-  inline double getResidSlip(il::int_t i) { return residual_slips_[i]; };
-  inline il::Array<double> getInitHydrWidth() {
+  il::Array<double> getResidSlip() { return residual_slips_; }
+  double getResidSlip(il::int_t i) { return residual_slips_[i]; };
+  il::Array<double> getInitHydrWidth() {
     return initial_hydraulic_widths_;
   }
-  inline double getInitHydrWidth(il::int_t i) {
+  double getInitHydrWidth(il::int_t i) {
     return initial_hydraulic_widths_[i];
   };
-  inline il::Array<double> getIncrHydrWidth() {
+  il::Array<double> getIncrHydrWidth() {
     return increment_hydraulic_widths_;
   }
-  inline double getIncrHydrWidth(il::int_t i) {
+  double getIncrHydrWidth(il::int_t i) {
     return increment_hydraulic_widths_[i];
   };
   il::String getType() { return type_; }
@@ -100,7 +100,8 @@ class FractureEvolution {
 
   il::Array<double> linearDilatancy(const il::Array<double> &slip,
                                     FractureEvolution &FractureEvolution) {
-    il::Array<double> new_hydr_width{slip.size(), 0};
+
+    il::Array<double> new_hydr_width{slip.size(), 0.};
 
     IL_EXPECT_FAST(new_hydr_width.size() == slip.size());
     IL_EXPECT_FAST(FractureEvolution.initial_permeabilitys_.size() ==
@@ -123,52 +124,6 @@ class FractureEvolution {
       } else {
         new_hydr_width[i] = FractureEvolution.initial_hydraulic_widths_[i] +
                             FractureEvolution.increment_hydraulic_widths_[i];
-      }
-    }
-
-    return new_hydr_width;
-  };
-
-  il::Array<double> linearDilatancyMiddle(
-      const il::Array<double> &slip_middle, FractureEvolution &FractureEvolution) {
-    il::Array<double> new_hydr_width{slip_middle.size(), 0};
-
-    IL_EXPECT_FAST(new_hydr_width.size() == slip_middle.size());
-    IL_EXPECT_FAST(FractureEvolution.initial_permeabilitys_.size() / 2 ==
-                   slip_middle.size());
-    IL_EXPECT_FAST(FractureEvolution.increment_permeabilitys_.size() / 2 ==
-                   slip_middle.size());
-    IL_EXPECT_FAST(FractureEvolution.initial_hydraulic_widths_.size() / 2 ==
-                   slip_middle.size());
-    IL_EXPECT_FAST(FractureEvolution.increment_hydraulic_widths_.size() / 2 ==
-                   slip_middle.size());
-    IL_EXPECT_FAST(FractureEvolution.residual_slips_.size() / 2 ==
-                   slip_middle.size());
-
-    for (int i = 0, k = 0; i < new_hydr_width.size(); ++i, k = k + 2) {
-      if (slip_middle[i] < ((FractureEvolution.residual_slips_[k] +
-                             FractureEvolution.residual_slips_[k + 1]) /
-                            2)) {
-        new_hydr_width[i] =
-            ((FractureEvolution.initial_hydraulic_widths_[k] +
-              FractureEvolution.initial_hydraulic_widths_[k + 1]) /
-             2) +
-            (slip_middle[i] *
-             (((FractureEvolution.increment_hydraulic_widths_[k] +
-                FractureEvolution.increment_hydraulic_widths_[k + 1]) /
-               2) /
-              ((FractureEvolution.residual_slips_[k] +
-                FractureEvolution.residual_slips_[k + 1]) /
-               2)));
-
-      } else {
-        new_hydr_width[i] =
-            ((FractureEvolution.initial_hydraulic_widths_[k] +
-              FractureEvolution.initial_hydraulic_widths_[k + 1]) /
-             2) +
-            ((FractureEvolution.increment_hydraulic_widths_[k] +
-              FractureEvolution.increment_hydraulic_widths_[k + 1]) /
-             2);
       }
     }
 
@@ -198,36 +153,6 @@ class FractureEvolution {
     return new_deriv_hydr_width;
   };
 
-  il::Array<double> derivativeLinearDilatancyMiddle(
-      const il::Array<double> &slip_middle, FractureEvolution &FractureEvolution) {
-    il::Array<double> new_deriv_hydr_width{slip_middle.size(), 0};
-
-    IL_EXPECT_FAST(new_deriv_hydr_width.size() == slip_middle.size());
-    IL_EXPECT_FAST(FractureEvolution.increment_hydraulic_widths_.size() / 2 ==
-                   slip_middle.size());
-    IL_EXPECT_FAST(FractureEvolution.residual_slips_.size() / 2 ==
-                   slip_middle.size());
-
-    for (int i = 0, k = 0; i < new_deriv_hydr_width.size(); ++i, k = k + 2) {
-      if (slip_middle[i] < ((FractureEvolution.residual_slips_[k] +
-                             FractureEvolution.residual_slips_[k + 1]) /
-                            2)) {
-        new_deriv_hydr_width[i] =
-            ((FractureEvolution.increment_hydraulic_widths_[k] +
-              FractureEvolution.increment_hydraulic_widths_[k + 1]) /
-             2) /
-            ((FractureEvolution.residual_slips_[k] +
-              FractureEvolution.residual_slips_[k + 1]) /
-             2);
-
-      } else {
-        new_deriv_hydr_width[i] = 0;
-      }
-    }
-
-    return new_deriv_hydr_width;
-  };
-
   il::Array<double> exponentialDilatancy(const il::Array<double> &slip,
                                          FractureEvolution &FractureEvolution) {
     il::Array<double> new_hydr_width{slip.size(), 0};
@@ -247,32 +172,6 @@ class FractureEvolution {
     return new_hydr_width;
   };
 
-  il::Array<double> exponentialDilatancyMiddle(
-      const il::Array<double> &slip_middle, FractureEvolution &FractureEvolution) {
-    il::Array<double> new_hydr_width{slip_middle.size(), 0};
-
-    IL_EXPECT_FAST(new_hydr_width.size() == slip_middle.size());
-    IL_EXPECT_FAST(FractureEvolution.increment_hydraulic_widths_.size() ==
-                   slip_middle.size());
-    IL_EXPECT_FAST(FractureEvolution.residual_slips_.size() ==
-                   slip_middle.size());
-
-    for (int i = 0, k = 0; i < new_hydr_width.size(); ++i, k = k + 2) {
-      new_hydr_width[i] =
-          ((FractureEvolution.increment_hydraulic_widths_[k] +
-            FractureEvolution.increment_hydraulic_widths_[k + 1]) /
-           2) +
-          (((FractureEvolution.increment_hydraulic_widths_[k] +
-             FractureEvolution.increment_hydraulic_widths_[k + 1]) /
-            2) *
-           (1 -
-            exp(-slip_middle[i] / ((FractureEvolution.residual_slips_[k] +
-                                    FractureEvolution.residual_slips_[k + 1]) /
-                                   2))));
-    }
-    return new_hydr_width;
-  };
-
   il::Array<double> derivativeExponentialDilatancy(
       const il::Array<double> &slip, FractureEvolution &FractureEvolution) {
     il::Array<double> new_deriv_hydr_width{slip.size(), 0};
@@ -287,32 +186,6 @@ class FractureEvolution {
           (FractureEvolution.increment_hydraulic_widths_[i] /
            FractureEvolution.residual_slips_[i]) *
           (exp(-slip[i] / FractureEvolution.residual_slips_[i]));
-    }
-
-    return new_deriv_hydr_width;
-  };
-
-  il::Array<double> derivativeExponentialDilatancyMiddle(
-      const il::Array<double> &slip_middle, FractureEvolution &FractureEvolution) {
-    il::Array<double> new_deriv_hydr_width{slip_middle.size(), 0};
-
-    IL_EXPECT_FAST(new_deriv_hydr_width.size() == slip_middle.size());
-    IL_EXPECT_FAST(FractureEvolution.increment_hydraulic_widths_.size() / 2 ==
-                   slip_middle.size());
-    IL_EXPECT_FAST(FractureEvolution.residual_slips_.size() / 2 ==
-                   slip_middle.size());
-
-    for (int i = 0, k = 0; i < new_deriv_hydr_width.size(); ++i, k = k + 2) {
-      new_deriv_hydr_width[i] =
-          (((FractureEvolution.increment_hydraulic_widths_[k] +
-             FractureEvolution.increment_hydraulic_widths_[k + 1]) /
-            2) /
-           ((FractureEvolution.residual_slips_[k] +
-             FractureEvolution.residual_slips_[k + 1]) /
-            2)) *
-          (exp(-slip_middle[i] / ((FractureEvolution.residual_slips_[k] +
-                                   FractureEvolution.residual_slips_[k + 1]) /
-                                  2)));
     }
 
     return new_deriv_hydr_width;
@@ -342,42 +215,6 @@ class FractureEvolution {
     return new_permeab;
   };
 
-  il::Array<double> linearPermeabilityMiddle(
-      const il::Array<double> &slip_middle, FractureEvolution &FractureEvolution) {
-    il::Array<double> new_permeab{slip_middle.size(), 0};
-
-    IL_EXPECT_FAST(new_permeab.size() == slip_middle.size());
-    IL_EXPECT_FAST(FractureEvolution.increment_hydraulic_widths_.size() / 2 ==
-                   slip_middle.size());
-    IL_EXPECT_FAST(FractureEvolution.residual_slips_.size() / 2 ==
-                   slip_middle.size());
-
-    for (int i = 0, k = 0; i < new_permeab.size(); ++i, k = k + 2) {
-      if (slip_middle[i] < ((FractureEvolution.getResidSlip(k) +
-                             FractureEvolution.getResidSlip(k + 1)) /
-                            2)) {
-        new_permeab[i] =
-            ((FractureEvolution.getInitPermeab(k) +
-              FractureEvolution.getInitPermeab(k + 1)) /
-             2) +
-            (slip_middle[i] * (((FractureEvolution.getIncrPermeab(k) +
-                                 FractureEvolution.getIncrPermeab(k + 1)) /
-                                2) /
-                               ((FractureEvolution.getResidSlip(k) +
-                                 FractureEvolution.getResidSlip(k + 1)) /
-                                2)));
-
-      } else {
-        new_permeab[i] = ((FractureEvolution.getInitPermeab(k) +
-                           FractureEvolution.getInitPermeab(k + 1)) /
-                          2) +
-                         ((FractureEvolution.getIncrPermeab(k) +
-                           FractureEvolution.getIncrPermeab(k + 1)) /
-                          2);
-      }
-    }
-    return new_permeab;
-  };
 
   il::Array<double> exponentialPermeability(
       const il::Array<double> &slip, FractureEvolution &FractureEvolution) {
@@ -398,31 +235,6 @@ class FractureEvolution {
     return new_permeab;
   };
 
-  il::Array<double> exponentialPermeabilityMiddle(
-      const il::Array<double> &slip_middle, FractureEvolution &FractureEvolution) {
-    il::Array<double> new_permeab{slip_middle.size(), 0};
-
-    IL_EXPECT_FAST(new_permeab.size() == slip_middle.size());
-    IL_EXPECT_FAST(FractureEvolution.increment_hydraulic_widths_.size() / 2 ==
-                   slip_middle.size());
-    IL_EXPECT_FAST(FractureEvolution.residual_slips_.size() / 2 ==
-                   slip_middle.size());
-
-    for (int i = 0, k = 0; i < new_permeab.size(); ++i, k = k + 2) {
-      new_permeab[i] =
-          ((FractureEvolution.getInitPermeab(k) +
-            FractureEvolution.getInitPermeab(k + 1)) /
-           2) +
-          (((FractureEvolution.getIncrPermeab(k) +
-             FractureEvolution.getIncrPermeab(k + 1)) /
-            2) *
-           (1 - exp(-slip_middle[i] / ((FractureEvolution.getResidSlip(k) +
-                                        FractureEvolution.getResidSlip(k + 1)) /
-                                       2))));
-    }
-
-    return new_permeab;
-  };
 };
 }
 
