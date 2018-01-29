@@ -315,6 +315,12 @@ Solution fractFrontPosition(
       k = k + 4;
     }
 
+    if (dofs_act_elmts.size() == 0) {
+      std::cout
+          << " SHEAR CRACK IS NOT ACTIVATED BUT PORE PRESSURE EVOLVE IN TIME !"
+          << std::endl;
+    }
+
     // Call the Reynolds solver for P1 elements
     SolutionAtTn_kPlus1 = hfp2d::reynoldsP1(
         theMesh, elast_matrix, fetc_dds, fetc_dd, fetc_press, SolutionAtTn,
