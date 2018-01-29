@@ -32,7 +32,7 @@ Solution fractFrontPosition(
     SimulationParameters &SimulationParameters, SolidEvolution &SolidEvolution,
     FractureEvolution &FractureEvolution, Sources &Source,
     Solution &SolutionAtTn, bool expl_impl, bool damping_term,
-    double damping_coeff);
+    double damping_coeff, double dilat_plast);
 }
 
 #endif  // HFPX2D_FLUIDINJFRICTWEAKDILATFAULT_H
