@@ -33,7 +33,6 @@ Solution reynoldsP1(Mesh &theMesh, il::Array2D<double> &elast_matrix,
                     il::Array<int> &dof_active_elmnts, il::Status &status,
                     il::Norm &norm, bool damping_term, double damping_coeff,
                     double dilat_plast) {
-
   //// IMPLICIT SOLUTION OF THE COUPLED PROBLEM ////
   // Initialization of the system BigA*BigX = BigB
   il::Array2D<double> BigA{dof_active_elmnts.size() + theMesh.numberOfNodes(),
@@ -245,7 +244,8 @@ Solution reynoldsP1(Mesh &theMesh, il::Array2D<double> &elast_matrix,
     }
 
     for (il::int_t q = 0; q < Vd.size(0); ++q) {
-      for (il::int_t i = 0; i < dof_active_elmnts.size(); ++i) {
+      for (il::int_t i = 0; i < dof_active_elmnts.size();
+           ++i) {
         BigA(dof_active_elmnts.size() + q, i) = Vd(q, dof_active_elmnts[i]);
       }
     }

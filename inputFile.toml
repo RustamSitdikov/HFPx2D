@@ -56,13 +56,13 @@
  
     initial_hydraulic_width = 0.6
  
-    increment_hydraulic_width = 0.12
+    increment_hydraulic_width = 0.3
  
 [Loading_Conditions]
  
     far_field_vertical_stress = 1.0
  
-    far_field_horizontal_stress = 0.75
+    far_field_horizontal_stress = 0.55
  
     ambient_pore_pressure = 0.0
 
@@ -70,11 +70,11 @@
 
     constant_overpressure = 0.5
 
-    initial_time = 0.00003
+    initial_time = 0.001
 
-    initial_time_step = 0.00001
+    initial_time_step = 0.001
 
-    time_step_max = 0.00001
+    time_step_max = 0.001
 
     final_time = 0.4
 
