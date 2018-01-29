@@ -33,7 +33,6 @@ Solution reynoldsP1(Mesh &theMesh, il::Array2D<double> &elast_matrix,
                     il::Array<int> &dof_active_elmnts, il::Status &status,
                     il::Norm &norm, bool damping_term, double damping_coeff,
                     double dilat_plast) {
-
   //// IMPLICIT SOLUTION OF THE COUPLED PROBLEM ////
   // Initialization of the system BigA*BigX = BigB
   il::Array2D<double> BigA{dof_active_elmnts.size() + theMesh.numberOfNodes(),
@@ -120,9 +119,10 @@ Solution reynoldsP1(Mesh &theMesh, il::Array2D<double> &elast_matrix,
   }
 
   il::Array2D<double> dilat_plast_matrix{theMesh.numberDDDofs(),
-                                  theMesh.numberDDDofs(), 0.};
+                                         theMesh.numberDDDofs(), 0.};
   for (il::int_t l1 = 0; l1 < dof_active_elmnts.size(); l1 = l1 + 2) {
-    dilat_plast_matrix(dof_active_elmnts[l1], dof_active_elmnts[l1]) = dilat_plast;
+    dilat_plast_matrix(dof_active_elmnts[l1], dof_active_elmnts[l1]) =
+        dilat_plast;
   }
 
   il::Array2D<double> dilat_plast_sub{2 * theMesh.numberOfElts(),
@@ -170,6 +170,9 @@ Solution reynoldsP1(Mesh &theMesh, il::Array2D<double> &elast_matrix,
   il::Array<double> fric_coeff_k{2 * theMesh.numberOfElts(), 0.};
   il::Array2D<double> Nf{dof_active_elmnts.size(), dof_active_elmnts.size(),
                          0.};
+  il::Array2D<double> Npk;
+  il::Array2D<double> FN;
+  il::Array2D<double> B;
 
   while ((k < SimulationParameters.ehl_max_its) &&
          (err_shearDD > SimulationParameters.ehl_tolerance ||
@@ -200,16 +203,22 @@ Solution reynoldsP1(Mesh &theMesh, il::Array2D<double> &elast_matrix,
       Nf(j, j) = fric_coeff_k[dof_active_elmnts[j] / 2];
     }
 
-    auto FN = il::dot(Nf, elast_submatrix);
-    auto B = il::dot(FN, dilat_plast_submatrix);
+    if (dof_active_elmnts.size() != 0) {
+      FN = il::dot(Nf, elast_submatrix);
+      B = il::dot(FN, dilat_plast_submatrix);
+    }
 
     // Finite difference matrix
     L = hfp2d::buildLMatrix(theMesh, shearDD_k, openingDD_k, FluidProperties,
                             FractureEvolution, SolutionAtTn.timestep());
 
     // Dilatancy matrix
-    Vd = hfp2d::buildVdMatrix(theMesh, FractureEvolution, FluidProperties,
-                              shearDD_k);
+    if (dof_active_elmnts.size() == 0) {
+      Vd = il::Array2D<double>{0, 0, 0};
+    } else {
+      Vd = hfp2d::buildVdMatrix(theMesh, FractureEvolution, FluidProperties,
+                                shearDD_k);
+    }
 
     // Pressure matrix
     Vp = buildVpMatrix(theMesh, FractureEvolution, FluidProperties, shearDD_k);
@@ -224,7 +233,10 @@ Solution reynoldsP1(Mesh &theMesh, il::Array2D<double> &elast_matrix,
       }
     }
 
-    auto Npk = il::dot(Nf, Fetc_active_dofs);
+    if (dof_active_elmnts.size() != 0) {
+      Npk = il::dot(Nf, Fetc_active_dofs);
+    }
+
     for (il::int_t k2 = 0; k2 < dof_active_elmnts.size(); ++k2) {
       for (il::int_t i = 0; i < theMesh.numberOfNodes(); ++i) {
         BigA(k2, dof_active_elmnts.size() + i) = Npk(k2, i);
@@ -341,9 +353,9 @@ Solution reynoldsP1(Mesh &theMesh, il::Array2D<double> &elast_matrix,
           (il::norm(diff_incrm_press_k, norm) / il::norm(incrm_press_k, norm));
     }
 
-    //    std::cout << "  error on shearDD : " << err_shearDD
-    //              << "  error on openingDD: " << err_openingDD
-    //              << "  error on pressure: " << err_press << "\n";
+    //        std::cout << "  error on shearDD : " << err_shearDD
+    //                  << "  error on openingDD: " << err_openingDD
+    //                  << "  error on pressure: " << err_press << "\n";
 
     // Update -> old is new
     incrm_openingDD_k_old = incrm_openingDD_k;
