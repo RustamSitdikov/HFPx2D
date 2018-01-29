@@ -303,9 +303,9 @@ int MultipleFracsPropagation() {
   // time step loop !!!
 
   il::int_t jt = 0;
-  il::int_t nsteps = 10;
+  il::int_t nsteps = 100;
 
-  dt = 0.005;
+  dt = 0.02;
 
   while (jt < nsteps) {
     jt++;
@@ -417,7 +417,7 @@ hfp2d::MultiFracsSolution wellHFsSolver_fixedpts(
   double dQn = 2.0e-8;
   int num_J_reuse = 1;
   double rela_flux = 1.; // 0.01;
-  double Tolerance = 1.e-4;
+  double Tolerance = 1.e-6;
   int kmax = 20;
 
   int k = 0;
@@ -461,15 +461,14 @@ hfp2d::MultiFracsSolution wellHFsSolver_fixedpts(
       il::Array<double> Q_in_var = Q_in_k;
       il::Array<double> pc_w_var{nclusters, 0.}, pc_f_var{nclusters, 0.};
       for (il::int_t i = 0; i < nclusters; i++) {
-        double dQi = dQn * std::max(
-                std::fabs(Q_in_k[i]),
-                std::fabs(pump_rate));
-
+        double abs_Q = std::fabs(Q_in_k[i]);
+        // todo: scale it properly
+        double scl_Q = ((Q_in_k[i] == 0.) ?
+                        std::fabs(pump_rate) / nclusters : abs_Q);
         // sign(Q_in_k[i])
         //double sgn_Q = ((Q_in_k[i] < 0) ? -1.0 : double((Q_in_k[i] > 0)));
         double sgn_Q = ((Q_in_k[i] < 0) ? -1.0 : 1.0);
-
-        dQi = std::fabs(dQi) * sgn_Q;
+        double dQi = std::fabs(dQn * scl_Q) * sgn_Q;
 
         Q_in_var[i] = Q_in_k[i] + dQi;
 
@@ -492,6 +491,13 @@ hfp2d::MultiFracsSolution wellHFsSolver_fixedpts(
         for (il::int_t j = 0; j < nclusters; j++) {
           pc_f_var[j] = fracSol_var.pressure(frac_inj_loc[j]);
           Jacob(j, i) = ((pc_w_var[j] - pc_f_var[j]) - (dpc_k[j])) / (dQi);
+        }
+        // Well - HF coupling (ENTRY FRICTION derivatives)
+        // todo: check the sign!
+        if (Q_in_k[i] != 0.){
+          Jacob(i, i) -= 2. * w_inj.coefPerf(i) * abs_Q
+                         + w_inj.coefTort(i) * sgn_Q
+                           * std::pow(abs_Q, w_inj.betaTort(i) - 1.);
         }
 
         Q_in_var[i] = Q_in_k[i];
@@ -519,7 +525,8 @@ hfp2d::MultiFracsSolution wellHFsSolver_fixedpts(
       entry_struct.fp = w_inj.coefPerf(i);
       entry_struct.ft = w_inj.coefTort(i);
       entry_struct.beta_t = w_inj.betaTort(i);
-      res_v[i] = entryFrictionResiduals(Q_in_k[i], entry_struct);
+      // todo: check the sign!
+      res_v[i] = -entryFrictionResiduals(Q_in_k[i], entry_struct);
     }
 
     // solution...
@@ -528,11 +535,10 @@ hfp2d::MultiFracsSolution wellHFsSolver_fixedpts(
     dQ_v = il::dot(Jacob_inv, res_v);
 //    dQ_v = il::linearSolve(Jacob, res_v, il::io, status);
 //    status.abortOnError();
-    // todo: compute errors here (?)
 
     // compute new flow rates...
     for (il::int_t i = 0; i < nclusters; i++) {
-      Q_in_k[i] -= dQ_v[i];
+      Q_in_k[i] += dQ_v[i] * rela_flux;
     }
 
     // echo...
@@ -545,8 +551,8 @@ hfp2d::MultiFracsSolution wellHFsSolver_fixedpts(
       std::cout << "prev. error: " << err << std::endl;
     }
 
-    // under-relaxation of the flow rates...
-    il::blas((1. - rela_flux), Q_old, rela_flux, il::io, Q_in_k);
+//    // under-relaxation of the flow rates...
+//    il::blas((1. - rela_flux), Q_old, rela_flux, il::io, Q_in_k);
 
     // compute successive relative difference, L2 norm
     for (il::int_t i = 0; i < nclusters; i++) {
