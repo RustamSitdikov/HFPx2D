@@ -19,7 +19,8 @@ void loadInput(const il::String &config_filename, il::io_t, Mesh &MyMesh,
                FractureEvolution &FractureEvolution,
                InSituStress &BackgroundLoadingConditions,
                double &const_overpress, double &t_0plus1, double &time_step,
-               double &final_time, bool &expl_impl, bool &quasi_dynamic) {
+               double &time_step_max, double &final_time, bool &expl_impl,
+               bool &quasi_dynamic, double &dilat_plast) {
   ///  **** Read the input data from TOML configuration file **** ///
 
   // set a status variable
@@ -104,15 +105,20 @@ void loadInput(const il::String &config_filename, il::io_t, Mesh &MyMesh,
         findDouble("initial_time", SimulationParametersMap, config_filename);
 
     time_step =
-        findDouble("time_step", SimulationParametersMap, config_filename);
+        findDouble("initial_time_step", SimulationParametersMap, config_filename);
+
+    time_step_max =
+        findDouble("time_step_max", SimulationParametersMap, config_filename);
 
     final_time =
         findDouble("final_time", SimulationParametersMap, config_filename);
 
     expl_impl = findBool("expl_impl", SimulationParametersMap, config_filename);
 
-    quasi_dynamic =
-        findBool("QD", SimulationParametersMap, config_filename);
+    quasi_dynamic = findBool("QD", SimulationParametersMap, config_filename);
+
+    dilat_plast =
+            findDouble("dilat_plast", SimulationParametersMap, config_filename);
 
   } else {
     std::cerr << "ERROR: 'Simulation_Parameters' not found in input file "

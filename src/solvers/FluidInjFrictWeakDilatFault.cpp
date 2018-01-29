@@ -54,16 +54,19 @@ void fluidInjFrictWeakDilatFault(int argc, char const *argv[]) {
   double const_overpress;
   double t_0plus1;
   double time_step;
+  double time_step_max;
   double final_time;
   bool expl_impl;
   bool quasi_dynamic;
+  double dilat_plast;
 
   // Load input data from configuration file (*.toml file) and assign them to
   // the previously instantiated objects
   hfp2d::loadInput(config_filename, il::io, MyMesh, ElasticProperties,
                    FluidProperties, SolidEvolution, FractureEvolution,
                    BackgroundLoadingConditions, const_overpress, t_0plus1,
-                   time_step, final_time, expl_impl, quasi_dynamic);
+                   time_step, time_step_max, final_time, expl_impl,
+                   quasi_dynamic, dilat_plast);
 
   /////// INITIALIZATION OF OTHER VARIABLES ///////
   // Matrix to switch from nodal points to collocation points for all DDs (both
@@ -183,17 +186,8 @@ void fluidInjFrictWeakDilatFault(int argc, char const *argv[]) {
       err_frac_position, err_opening_dd, err_shear_dd, err_press);
 
   // Initialization of slippage length at time t_0
-  double slipp_length_at_T0;
-  if (init_active_set_elements.size() == 0) {
-    slipp_length_at_T0 = 0.;
-  } else {
-    slipp_length_at_T0 = hfp2d::euclidean_distance(
-        MyMesh.coordinates(init_active_set_elements[0], 0), 0,
-        MyMesh.coordinates(
-            init_active_set_elements[init_active_set_elements.size() - 1] + 1,
-            0),
-        0);
-  };
+  // No slip as initial condition prior the pressurization -> Sl = 0
+  double slipp_length_at_T0 = 0.;
 
   /////// LOOP IN TIME ///////
   std::string filename;
@@ -207,15 +201,14 @@ void fluidInjFrictWeakDilatFault(int argc, char const *argv[]) {
                              MyMesh.coordinates(MyMesh.numberOfNodes() - 1, 0),
                              0)) &&
          (SolutionAtTn.frontIts() < SimulationParameters.frac_front_max_its)) {
-
     std::cout << " --------------------------------" << std::endl;
-    std::cout << " Current time t = " << SolutionAtTn.time() << "\n";
+    std::cout << " Current time t = " << SolutionAtTn.time() << std::endl;
 
     hfp2d::Solution SolutionAtTnPlus1 = fractFrontPosition(
         kmat, from_edge_to_coll_dds, from_edge_to_coll_dd,
         from_edge_to_coll_press, dof_single_dd, MyMesh, FluidProperties,
         SimulationParameters, SolidEvolution, FractureEvolution, Source,
-        SolutionAtTn, expl_impl, quasi_dynamic, damping_coeff);
+        SolutionAtTn, expl_impl, quasi_dynamic, damping_coeff, dilat_plast);
 
     // Calculate the new slippage length (i.e at time T_n+1)
     if (SolutionAtTnPlus1.activeElts().size() == 0) {
@@ -231,14 +224,12 @@ void fluidInjFrictWeakDilatFault(int argc, char const *argv[]) {
     }
 
     // Calculate the current crack velocity
-    if (slipp_length_at_Tn_plus1 - slipp_length_at_Tn == 0) {
-      current_crack_velocity = 0.;
-    } else {
-      current_crack_velocity = (slipp_length_at_Tn_plus1 - slipp_length_at_Tn) /
-                               SolutionAtTn.timestep();
-    }
+    current_crack_velocity = (slipp_length_at_Tn_plus1 - slipp_length_at_Tn) /
+                             SolutionAtTn.timestep();
+//    std::cout << "Current velocity -> " << current_crack_velocity << std::endl;
 
-    if ((current_crack_velocity > ((2 * 0.02) / SolutionAtTn.timestep())) &&
+    if ((current_crack_velocity >
+         ((2 * MyMesh.allEltSize()[0]) / SolutionAtTn.timestep())) &&
         (SolutionAtTnPlus1.ehlIts() > SimulationParameters.ehl_max_its / 4)) {
       std::cout
           << "############# Turn into Explicit/Implicit scheme #############"
@@ -247,13 +238,29 @@ void fluidInjFrictWeakDilatFault(int argc, char const *argv[]) {
       expl_impl = true;
     }
 
-    // Write solution at current time T_n to .Json file
+    // Write solution at TnPlus1 to .Json file (solution which contains pressure
+    // and active set of elements at TnPlus2 and so on..)
     filename = path_output_directory.asCString() +
                std::string{"/Solution_at_time_"} +
                std::to_string(SolutionAtTn.time()) + std::string{".json"};
     SolutionAtTnPlus1.writeToFile(filename);
 
-    // Set new time
+    // Set new time step and new time based on current crack velocity
+    if (current_crack_velocity > 0.0) {
+      double dt_new = 2 * MyMesh.allEltSize()[0] / current_crack_velocity;
+      if (dt_new > 3. * SolutionAtTnPlus1.timestep()) {
+        SolutionAtTnPlus1.setTimeStep(3. * SolutionAtTnPlus1.timestep());
+      } else {
+        if (dt_new < 0.9 * SolutionAtTnPlus1.timestep()) {
+          SolutionAtTnPlus1.setTimeStep(0.9 * SolutionAtTnPlus1.timestep());
+        } else {
+          SolutionAtTnPlus1.setTimeStep(dt_new);
+        }
+      }
+    } else {
+      SolutionAtTnPlus1.setTimeStep(time_step_max);
+    }
+
     SolutionAtTnPlus1.setTime(SolutionAtTn.time() +
                               SolutionAtTnPlus1.timestep());
 
@@ -272,14 +279,11 @@ Solution fractFrontPosition(
     SimulationParameters &SimulationParameters, SolidEvolution &SolidEvolution,
     FractureEvolution &FractureEvolution, Sources &Source,
     Solution &SolutionAtTn, bool expl_impl, bool damping_term,
-    double damping_coeff) {
-
+    double damping_coeff, double dilat_plast) {
   // Initialization of fracture front loop
   // SolutionAtTn -> solution object at current time Tn
-  // SolutionAtTn_k -> current solution object at iteration k of fracture
-  // front loop
-  // SolutionAtTn_kPlus1 -> solution object at iteration k+1 of fracture front
-  // loop
+  // SolutionAtTn_k -> current solution object at iter k of fracture front loop
+  // SolutionAtTn_kPlus1 -> solution object at iter k+1 of fracture front loop
   hfp2d::Solution SolutionAtTn_k = SolutionAtTn;
   hfp2d::Solution SolutionAtTn_kPlus1;
   il::Status status;
@@ -291,23 +295,23 @@ Solution fractFrontPosition(
   dofs_act_elmts.reserve(theMesh.numberDDDofs());
   il::Array<double> incrm_shearDD{2 * theMesh.numberOfElts(), 0.};
   il::Array<double> incrm_openingDD{2 * theMesh.numberOfElts(), 0.};
+  il::Array<int> new_active_set_elements{};
+  new_active_set_elements.reserve(theMesh.numberOfElts());
 
   while ((cvg_front_posit != 1) &&
-          (iter_front_posit < SimulationParameters.frac_front_max_its)) {
-
+         (iter_front_posit < SimulationParameters.frac_front_max_its)) {
     ++iter_front_posit;
 
     std::cout << "\n  - Iter for fracture front position = " << iter_front_posit
-              << "\n"
               << std::endl;
 
     // Find the corresponding DOFs of the active elements
-    for (il::int_t elmnt_i = 0, k = 0; elmnt_i < SolutionAtTn_k.activeElts().size();
-         ++elmnt_i) {
+    for (il::int_t elmnt_i = 0, k = 0;
+         elmnt_i < SolutionAtTn_k.activeElts().size(); ++elmnt_i) {
       dofs_act_elmts.resize(k + 4);
       for (il::int_t j = 0, l = k; j < theMesh.numberDDDofsPerElt(); ++j, ++l) {
         dofs_act_elmts[l] =
-                (int) theMesh.dofDD(SolutionAtTn_k.activeElts(elmnt_i), j);
+            (int)theMesh.dofDD(SolutionAtTn_k.activeElts(elmnt_i), j);
       }
       k = k + 4;
     }
@@ -317,11 +321,9 @@ Solution fractFrontPosition(
         theMesh, elast_matrix, fetc_dds, fetc_dd, fetc_press, SolutionAtTn,
         SolutionAtTn_k, incrm_shearDD, incrm_openingDD, SimulationParameters,
         FluidProperties, SolidEvolution, FractureEvolution, Source,
-        dofs_act_elmts, status, norm, damping_term, damping_coeff);
+        dofs_act_elmts, status, norm, damping_term, damping_coeff, dilat_plast);
 
     // Update active set of elements
-    il::Array<int> new_active_set_elements{};
-    new_active_set_elements.reserve(theMesh.numberOfElts());
     new_active_set_elements = SolutionAtTn_kPlus1.activeSetElements(
         theMesh, SolutionAtTn_kPlus1, SolidEvolution, fetc_press, dof_single_dd,
         SolutionAtTn.pressure());

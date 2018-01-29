@@ -31,7 +31,9 @@ Solution reynoldsP1(Mesh &theMesh, il::Array2D<double> &elast_matrix,
                     SolidEvolution &SolidEvolution,
                     FractureEvolution &FractureEvolution, Sources &Source,
                     il::Array<int> &dof_active_elmnts, il::Status &status,
-                    il::Norm &norm, bool damping_term, double damping_coeff) {
+                    il::Norm &norm, bool damping_term, double damping_coeff,
+                    double dilat_plast) {
+
   //// IMPLICIT SOLUTION OF THE COUPLED PROBLEM ////
   // Initialization of the system BigA*BigX = BigB
   il::Array2D<double> BigA{dof_active_elmnts.size() + theMesh.numberOfNodes(),
@@ -117,11 +119,10 @@ Solution reynoldsP1(Mesh &theMesh, il::Array2D<double> &elast_matrix,
     }
   }
 
-  // TODO: put dilat_plast in configuration file
-  il::Array2D<double> dilat_plast{theMesh.numberDDDofs(),
+  il::Array2D<double> dilat_plast_matrix{theMesh.numberDDDofs(),
                                   theMesh.numberDDDofs(), 0.};
   for (il::int_t l1 = 0; l1 < dof_active_elmnts.size(); l1 = l1 + 2) {
-    dilat_plast(dof_active_elmnts[l1], dof_active_elmnts[l1]) = 0.;
+    dilat_plast_matrix(dof_active_elmnts[l1], dof_active_elmnts[l1]) = dilat_plast;
   }
 
   il::Array2D<double> dilat_plast_sub{2 * theMesh.numberOfElts(),
@@ -129,7 +130,7 @@ Solution reynoldsP1(Mesh &theMesh, il::Array2D<double> &elast_matrix,
   for (il::int_t m1 = 0, n1 = 0; m1 < dilat_plast_sub.size(0);
        ++m1, n1 = n1 + 2) {
     for (il::int_t i = 0, j = 0; i < dilat_plast_sub.size(1); ++i, j = j + 2) {
-      dilat_plast_sub(m1, i) = dilat_plast(n1, j);
+      dilat_plast_sub(m1, i) = dilat_plast_matrix(n1, j);
     }
   }
 
@@ -138,7 +139,7 @@ Solution reynoldsP1(Mesh &theMesh, il::Array2D<double> &elast_matrix,
   for (il::int_t l1 = 0; l1 < dilat_plast_submatrix.size(0); ++l1) {
     for (il::int_t i = 0; i < dilat_plast_submatrix.size(1); ++i) {
       dilat_plast_submatrix(l1, i) =
-          dilat_plast(dof_active_elmnts[l1], dof_active_elmnts[i]);
+          dilat_plast_matrix(dof_active_elmnts[l1], dof_active_elmnts[i]);
     }
   }
 

@@ -62,7 +62,7 @@
  
     far_field_vertical_stress = 1.0
  
-    far_field_horizontal_stress = 0.75
+    far_field_horizontal_stress = 0.55
  
     ambient_pore_pressure = 0.0
 
@@ -70,12 +70,16 @@
 
     constant_overpressure = 0.5
 
-    initial_time = 0.00003
+    initial_time = 0.001
 
-    time_step = 0.00001
+    initial_time_step = 0.001
+
+    time_step_max = 0.001
 
     final_time = 0.4
 
     expl_impl = false  # set "true" for explicit-implicit time integration scheme
 
     QD = false   # set "true" for Quasi-Dynamic simulation (including damping term)
+
+    dilat_plast = 0.0

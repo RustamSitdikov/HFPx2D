@@ -182,7 +182,7 @@ class Solution {
   // get functions
   il::Array<double> openingDD() const { return openingDD_; };
   il::Array<double> shearDD() const { return shearDD_; };
-  const il::Array<double>& pressure() const { return pressure_; };
+  const il::Array<double> &pressure() const { return pressure_; };
   il::Array<double> sigmaN() const { return sigma_n_; };
   il::Array<double> tau() const { return tau_; };
 
@@ -248,7 +248,6 @@ class Solution {
                                    il::Array2D<double> &from_edge_to_coll_press,
                                    il::Array2D<il::int_t> &dof_single_dd,
                                    const il::Array<double> &press_old) {
-
     // Move pore pressure from nodal points to coll points because elasticity
     // is evaluated at collocation points (-> MC criterion is evaluated at
     // collocation points!)

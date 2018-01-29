@@ -35,7 +35,8 @@ void loadInput(const il::String &config_filename, il::io_t, Mesh &MyMesh,
                FractureEvolution &FractureEvolution,
                InSituStress &BackgroundLoadingConditions,
                double &const_overpress, double &t_0plus1, double &time_step,
-               double &final_time, bool &expl_impl, bool &quasi_dynamic);
+               double &time_step_max, double &final_time, bool &expl_impl,
+               bool &quasi_dynamic, double &dilat_plast);
 }
 
 #endif  // HFPX2DUNITTEST_LOADINPUT_H
