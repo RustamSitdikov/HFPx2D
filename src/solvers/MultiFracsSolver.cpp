@@ -462,13 +462,13 @@ hfp2d::MultiFracsSolution wellHFsSolver(
       il::Array<double> pc_w_var{nclusters, 0.}, pc_f_var{nclusters, 0.};
       for (il::int_t i = 0; i < nclusters; i++) {
         double abs_Q = std::fabs(Q_in_k[i]);
-        double dQi = dQn * std::max(abs_Q, std::fabs(pump_rate));
-
+        // todo: scale it properly
+        double scl_Q = ((Q_in_k[i] == 0.) ?
+                        std::fabs(pump_rate) / nclusters : abs_Q);
         // sign(Q_in_k[i])
         //double sgn_Q = ((Q_in_k[i] < 0) ? -1.0 : double((Q_in_k[i] > 0)));
         double sgn_Q = ((Q_in_k[i] < 0) ? -1.0 : 1.0);
-
-        dQi = std::fabs(dQi) * sgn_Q;
+        double dQi = std::fabs(dQn * scl_Q) * sgn_Q;
 
         Q_in_var[i] = Q_in_k[i] + dQi;
 
