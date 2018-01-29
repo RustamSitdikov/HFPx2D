@@ -226,7 +226,6 @@ void fluidInjFrictWeakDilatFault(int argc, char const *argv[]) {
     // Calculate the current crack velocity
     current_crack_velocity = (slipp_length_at_Tn_plus1 - slipp_length_at_Tn) /
                              SolutionAtTn.timestep();
-//    std::cout << "Current velocity -> " << current_crack_velocity << std::endl;
 
     if ((current_crack_velocity >
          ((2 * MyMesh.allEltSize()[0]) / SolutionAtTn.timestep())) &&
