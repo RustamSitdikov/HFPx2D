@@ -288,8 +288,6 @@ class Solution {
     json json_dof_handle_pres = json::array();
     json json_mat_id = json::array();
 
-    std::cout << " === weite \n";
-    std::cout << currentmesh_.numberOfElts() <<" " << currentmesh_.connectivity().size(0) << currentmesh_.matid().size() <<"\n";
     for (il::int_t m = 0; m < currentmesh_.numberOfElts(); ++m) {
       json_connectivity[m] = {currentmesh_.connectivity(m, 0),
                               currentmesh_.connectivity(m, 1)};

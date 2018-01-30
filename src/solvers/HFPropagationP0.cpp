@@ -235,7 +235,7 @@ int ParallelHFs() {
 
   il::int_t jt = 0;
 
-  il::int_t nsteps = 7;
+  il::int_t nsteps = 10;
 
   //  il::Array<il::int_t> tip_region_elt_k=wellMesh.tipElts();
   //  il::Array<double>    tip_region_width_k{4,0.};
@@ -279,7 +279,7 @@ int ParallelHFs() {
       //    "\n";
 
       std::cout << " n elts " << fracSol_n.currentMesh().numberOfElts() << "\n";
-      std::cout << " nn " << fracSol_n.currentMesh().connectivity().size(0) <<"\n";
+//      std::cout << " nn " << fracSol_n.currentMesh().connectivity().size(0) <<"\n";
 
       std::cout << " ----++++-----++++-------\n";
       filename = dir + basefilename + std::to_string(jt) + ".json";
@@ -408,8 +408,6 @@ hfp2d::Solution FractureFrontLoop(const hfp2d::Solution &Sol_n,
   // for
   // each tips
   il::Array<il::int_t> n_add_elt_tip{n_tips, 0};
-
-  std::cout << " n tips ? " << n_tips << "  " << n_add_elt_tip.size()<< "\n";
 
   double ribbon_width, h_ribbon;  // for ribbon width and ribbon elt size.
 
