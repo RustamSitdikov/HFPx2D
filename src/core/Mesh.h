@@ -58,7 +58,7 @@ class Mesh {  // class for 1D wellMesh of 1D segment elements ?
   il::Array2D<il::int_t> dof_handle_pressure_;
 
   // Identifier number of the fracture - size: number of elements
-  //  il::Array<il::int_t> fracture_id_; //   not needed.....
+  il::Array<il::int_t> fracture_id_; //
 
   // Material identifier - size: number of elements
   il::Array<il::int_t> material_id_;
@@ -82,8 +82,7 @@ class Mesh {  // class for 1D wellMesh of 1D segment elements ?
   // todo: naming of the different entities are not consistent AND TOO LONG
 
   //   Mesh()default;
-  Mesh(){};  // TODO: remove empty initialization of wellMesh class variables if
-             // possible.
+  Mesh(){};
 
   // Basic constructor with  coordinates and connectivity array and
   // interpolation order
@@ -137,17 +136,24 @@ class Mesh {  // class for 1D wellMesh of 1D segment elements ?
     // built tip nodes table...
     tipnodes_ = buildTipNodes(node_adj_elt_);
     tipelts_ = buildTipElts(node_adj_elt_, tipnodes_);
+    // built fracture_id_ ?...
+    il::Array<il::int_t> fractureID{nelts,0}; // default just one fracture if not passed.
+    fracture_id_=fractureID;
+
   };
 
-  // case where the matid vector is provided
+  // case where the matid vector and the fracture_ID vector are provided
   // constructor with interpolation order and coordinates and connectivity array
   Mesh(const il::Array2D<double> &Coordinates,
        const il::Array2D<il::int_t> &Connectivity,
-       const il::Array<il::int_t> &MatID, const il::int_t interpolationOrder) {
+       const il::Array<il::int_t> &MatID,
+       const il::Array<il::int_t> &FractureID,
+       const il::int_t interpolationOrder) {
     // check validity of inputs
 
     IL_EXPECT_FAST(Coordinates.size(0) > 1 && Coordinates.size(1) == 2);
     IL_EXPECT_FAST(Connectivity.size(0) == MatID.size());
+    IL_EXPECT_FAST(Connectivity.size(0) == FractureID.size());
 
     // P0 and P1 elements only for now
     IL_EXPECT_FAST(interpolationOrder == 0 || interpolationOrder == 1);
@@ -158,6 +164,7 @@ class Mesh {  // class for 1D wellMesh of 1D segment elements ?
     connectivity_ = Connectivity;
     interpolation_order_ = interpolationOrder;
     material_id_ = MatID;
+    fracture_id_=FractureID;
 
     il::int_t nelts = connectivity_.size(0);
     il::int_t p = interpolation_order_;
@@ -203,10 +210,12 @@ class Mesh {  // class for 1D wellMesh of 1D segment elements ?
 
   // nodal coordinates related.
    il::Array2D<double> coordinates() const { return coordinates_; };
+
   // Read a particular element of the coordinates coordinates
    double coordinates(il::int_t k, il::int_t i) const {
     return coordinates_(k, i);
   }
+
   // Read the X coordinate of a coordinates
    double X(il::int_t k) const { return coordinates_(k, 0); }
   // Read the Y coordinate of a coordinates
@@ -268,6 +277,14 @@ class Mesh {  // class for 1D wellMesh of 1D segment elements ?
     return (*std::max_element(material_id_.begin(), material_id_.end()) + 1);
   }
 
+  // fracture ID related
+  il::Array<il::int_t> fracid() const { return fracture_id_; };
+  il::int_t fracid(il::int_t k) const { return fracture_id_[k]; }
+
+  il::int_t numberOfFractures() const {
+    return (*std::max_element(fracture_id_.begin(), fracture_id_.end()) + 1);
+  }
+
   // interpolation order
    il::int_t interpolationOrder() const { return interpolation_order_; }
 
@@ -278,7 +295,7 @@ class Mesh {  // class for 1D wellMesh of 1D segment elements ?
     return dof_handle_pressure_.size(1);
   }
 
-   il::int_t numberPressDofs() {
+   il::int_t numberPressDofs() const {
     il::int_t aux=0;
      aux = dof_handle_pressure_.size(0); // p0
      if (interpolation_order_==1){ //p1
@@ -305,6 +322,7 @@ class Mesh {  // class for 1D wellMesh of 1D segment elements ?
   //   Methods
   ////////////////////////////////////////////////////////////////////////////////////////////
 
+
   hfp2d::SegmentData getElementData(il::int_t ne);
 
   // a method to get the size of a given element.
@@ -325,6 +343,15 @@ class Mesh {  // class for 1D wellMesh of 1D segment elements ?
   // kick angle
   void addNTipElts(il::int_t t_e, il::int_t the_tip_node, il::int_t n_add,
                    double kink_angle);
+
+  void reorderTip(){ // todo 
+    il::Array<il::int_t> tip_fid{tipelts_.size(),0};
+    for (il::int_t i=0;i<tipelts_.size();i++){
+      tip_fid[i]=fracture_id_[tipelts_[i]];
+    }
+
+  };
+
 };
 }
 

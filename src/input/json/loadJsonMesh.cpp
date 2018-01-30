@@ -32,6 +32,7 @@ hfp2d::Mesh loadJsonMesh(json &j) {
   int n_present = j.count("Node coordinates");     //
   int c_present = j.count("Connectivity");         //
   int m_present = j.count("Material ID");          //
+  int f_present = j.count("Fracture ID");          //
 
   il::int_t inter = 0;  // default
   if (p_present == 1) {
@@ -72,7 +73,7 @@ hfp2d::Mesh loadJsonMesh(json &j) {
     //              << "\n";
   }
 
-  il::Array<il::int_t> mat{ne};
+  il::Array<il::int_t> mat{ne,0};
 
   if (m_present == 1) {  // if a material ID vector is present.
     il::int_t nm = j["Material ID"].size();
@@ -81,9 +82,20 @@ hfp2d::Mesh loadJsonMesh(json &j) {
       mat[i] = j["Material ID"][i];
       //      std::cout << "mat id" << mat[i] <<" \n";
     }
+
   }
 
-  hfp2d::Mesh loadedmesh(nodes, conn, mat, inter);
+  il::Array<il::int_t> fID{ne,0};
+
+  if (f_present == 1) {  // if a fracture ID vector is present.
+    il::int_t nf = j["Fracture ID"].size();
+    IL_EXPECT_FAST(nf == ne);
+    for (il::int_t i = 0; i < ne; i++) {
+      fID[i] = j["Fracture ID"][i];
+    }
+  }
+
+  hfp2d::Mesh loadedmesh(nodes, conn, mat, fID, inter );
 
   return loadedmesh;
 }

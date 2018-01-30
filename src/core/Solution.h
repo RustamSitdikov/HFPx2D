@@ -210,7 +210,7 @@ class Solution {
 
   // some set functions
   void setRibbonDistances(const il::Array<double> &srt) {
-    IL_EXPECT_FAST(srt.size()==currentmesh_.tipElts().size())
+    IL_EXPECT_FAST(srt.size()==currentmesh_.tipElts().size());
     ribbon_tips_s_ = srt;
   };
 
@@ -224,7 +224,7 @@ class Solution {
   void setItsFront(const il::int_t its) { frontIts_ = its; };
 
   void setTipsVelocity(const il::Array<double> &tips_vel) {
-    IL_EXPECT_FAST(tips_vel.size()==currentmesh_.tipElts().size())
+    IL_EXPECT_FAST(tips_vel.size()==currentmesh_.tipElts().size());
     tips_velocity_ = tips_vel;
   };
 

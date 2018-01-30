@@ -230,21 +230,23 @@ hfp2d::SegmentData Mesh::getElementData(const il::int_t ne) {
 void Mesh::addNTipElts(const il::int_t t_e, const il::int_t the_tip_node,
                        const il::int_t n_add, double kink_angle) {
   // add n_add elements in the Mesh object ahead of the nodes the_tip_node
-  // (global numbering) of
-  // element t_e
-  // with a kink_angle   with respect to element t_e
+  // (global numbering) of element t_e
+  //  with a kink_angle   with respect to element t_e
   //  The size of the added elements are equal to the size of element of t_e
-  // the kick_angle should be given in the local tip coordinates system.....
+  //  the kick_angle should be given in the local tip coordinates system.....
   //
-  // api could be changed ...
+  //  API could be changed ...
 
   // we need the segment data .....
   hfp2d::SegmentData tipEltData = Mesh::getElementData(t_e);
 
-  il::StaticArray<il::int_t, 2> tipEltConn = connectivity(t_e);
-  double h = tipEltData.size(), global_prop_angle;
+  il::int_t fracNumber = fracid(t_e);
 
-  il::int_t local_tip_node;
+  il::StaticArray<il::int_t, 2> tipEltConn = connectivity(t_e);
+  double h = tipEltData.size();
+  double global_prop_angle=0.;
+
+  il::int_t local_tip_node=0;
   il::StaticArray<double, 2> local_dir;
 
   // we need to know how if the tip nodes is the first or second nodes of the
@@ -282,21 +284,25 @@ void Mesh::addNTipElts(const il::int_t t_e, const il::int_t the_tip_node,
   }
 
   // reconstructing the whole coordinates array (sub-optimal)
-  il::Array2D<double> new_all_coor(numberOfNodes() + n_add, 2);
+  // could use resize()
+  il::int_t nelts_old=numberOfElts();
+  il::int_t nnodes_old=numberOfNodes();
 
-  for (il::int_t i = 0; i < numberOfNodes(); i++) {
+  il::Array2D<double> new_all_coor(nnodes_old + n_add, 2);
+
+  for (il::int_t i = 0; i < nnodes_old; i++) {
     new_all_coor(i, 0) = coordinates(i, 0);
     new_all_coor(i, 1) = coordinates(i, 1);
   }
   //
   for (il::int_t i = 0; i < n_add; i++) {
-    new_all_coor(i + numberOfNodes(), 0) = new_nodes(i, 0);
-    new_all_coor(i + numberOfNodes(), 1) = new_nodes(i, 1);
+    new_all_coor(i + nnodes_old, 0) = new_nodes(i, 0);
+    new_all_coor(i + nnodes_old, 1) = new_nodes(i, 1);
   }
 
   // duplicating the old connectivity table....
-  il::Array2D<il::int_t> new_conn(numberOfElts() + n_add, 2);
-  for (il::int_t i = 0; i < numberOfElts(); i++) {
+  il::Array2D<il::int_t> new_conn(nelts_old + n_add, 2);
+  for (il::int_t i = 0; i < nelts_old; i++) {
     new_conn(i, 0) = connectivity(i, 0);
     new_conn(i, 1) = connectivity(i, 1);
   }
@@ -304,11 +310,11 @@ void Mesh::addNTipElts(const il::int_t t_e, const il::int_t the_tip_node,
   // the same).
   for (il::int_t i = 0; i < n_add; i++) {
     if (i == 0) {
-      new_conn(i + numberOfElts(), 0) = connectivity(t_e, local_tip_node);
-      new_conn(i + numberOfElts(), 1) = numberOfNodes() + i;
+      new_conn(i + nelts_old, 0) = connectivity(t_e, local_tip_node);
+      new_conn(i + nelts_old, 1) = nnodes_old + i;
     } else {
-      new_conn(i + numberOfElts(), 0) = numberOfNodes() + i - 1;
-      new_conn(i + numberOfElts(), 1) = numberOfNodes() + i;
+      new_conn(i + nelts_old, 0) = nnodes_old + i - 1;
+      new_conn(i + nelts_old, 1) = nnodes_old + i;
     }
   };
 
@@ -316,19 +322,23 @@ void Mesh::addNTipElts(const il::int_t t_e, const il::int_t the_tip_node,
   coordinates_ = new_all_coor;
   connectivity_ = new_conn;
 
-  //  the other changes....
-  // this is for uniform material only
-
- // il::Array<il::int_t> material_id_(connectivity_.size(0),1);
-
-   material_id_.resize(connectivity_.size(0));
-
   il::int_t nelts = connectivity_.size(0);
   il::int_t p = interpolation_order_;
 
-  // COULD to be optimized below.... here we re-built everything from scratch...
-  // anyway copy would be needed....
+  // Material ID UPdate
+  // this is for uniform material only
 
+  material_id_.resize(nelts);
+
+  fracture_id_.resize(nelts);
+  for (il::int_t i=0;i<n_add;i++){
+    fracture_id_[i+nelts_old]=fracNumber;
+  };
+
+
+  // DOF HANDLES
+  // COULD  be optimized below.... here we re-built everything from scratch...
+  // anyway copy would be needed....
   /// Discontinuous Polynomial DOF handles
   il::Array2D<il::int_t> id_dd{nelts, 2 * (p + 1), 0};
   for (il::int_t i = 0; i < nelts; i++) {
@@ -358,6 +368,7 @@ void Mesh::addNTipElts(const il::int_t t_e, const il::int_t the_tip_node,
   // rebuilt tip nodes table...
   tipnodes_ = buildTipNodes(node_adj_elt_);
   tipelts_ = buildTipElts(node_adj_elt_, tipnodes_);
+
 }
 
 }

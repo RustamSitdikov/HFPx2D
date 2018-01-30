@@ -225,17 +225,17 @@ int ParallelHFs() {
   il::int_t ea = 0;
   hfp2d::SimulationParameters SimulParam;
 
-  SimulParam.frac_front_max_its = 40;
+  SimulParam.frac_front_max_its = 50;
   SimulParam.frac_front_tolerance = 1.e-3;
   SimulParam.ehl_relaxation = 0.95;
   SimulParam.ehl_tolerance = 1.e-6;
 
-  double dt = 0.01;
-  double dt_min = 0.0001;
+  double dt = 0.002;
+  double dt_min = 0.00001;
 
   il::int_t jt = 0;
 
-  il::int_t nsteps = 10;
+  il::int_t nsteps = 300;
 
   //  il::Array<il::int_t> tip_region_elt_k=wellMesh.tipElts();
   //  il::Array<double>    tip_region_width_k{4,0.};
@@ -269,7 +269,8 @@ int ParallelHFs() {
     if (Soln1.errFront() < 0.01) {
       fracSol_n = Soln1;
 
-      std::cout << " steps # " << jt << " time  " << fracSol_n.time() << "\n";
+      std::cout << " steps # " << jt << " time  " << fracSol_n.time() << "Time step: " << fracSol_n.timestep() << "\n";
+      std::cout << " Error on frac front " << fracSol_n.errFront() << "\n";
       std::cout << " P at source " << fracSol_n.pressure()[the_source.SourceElt(0)]
                 << "\n";
       std::cout << " w at source " << fracSol_n.openingDD()[the_source.SourceElt(0)]
@@ -281,12 +282,20 @@ int ParallelHFs() {
       std::cout << " n elts " << fracSol_n.currentMesh().numberOfElts() << "\n";
 //      std::cout << " nn " << fracSol_n.currentMesh().connectivity().size(0) <<"\n";
 
-      std::cout << " ----++++-----++++-------\n";
       filename = dir + basefilename + std::to_string(jt) + ".json";
 
       fracSol_n.writeToFile(filename);
 
+      // adjust time step
+      for (il::int_t i=0;i< mesh.tipElts().size();i++){
+        std::cout << " tip " << i << " velocity " << fracSol_n.tipsVelocity()[i];
+      }
+      std::cout << "\n";
+
+      std::cout << " ----++++-----++++-------\n";
+
       mean_tip_v = il::norm(fracSol_n.tipsVelocity(), il::Norm::L2);
+
       if ((mean_tip_v > 0.0)) {  //&& (fracSol_n.tipsLocation()(1,0)>1.5)
         double dt_new = 1.25 * mesh.eltSize(ea) / mean_tip_v;
         // modify to more clever ?
@@ -302,6 +311,9 @@ int ParallelHFs() {
       }
     } else {  // reject time step
       std::cout << "Reject time step - non-convergence on fracture fronts \n";
+      std::cout << " steps # " << jt << " time  " << Soln1.time() << "Time step: " << Soln1.timestep() << "\n";
+      std::cout << " Error on frac front " << Soln1.errFront() << " after " << Soln1.frontIts() << " its" << "\n";
+
       if (dt / 2. >= dt_min) {
         dt = dt / 2.;
         std::cout << "Reduce time steps. ";
@@ -661,13 +673,12 @@ hfp2d::Solution FractureFrontLoop(const hfp2d::Solution &Sol_n,
   };
 
   // end of iteration of fracture front position
+
+  if (!mute){
   std::cout << "end of fracture front loop iterations after " << k
             << " its, errorF=" << errorF << " new number of elts "
             << mesh_k.numberOfElts() <<   " error w EHL "<< Soln_p_1_k.errOpening() <<"\n";
-
-  std::cout << Soln_p_1_k.currentMesh().numberOfElts() << "\n";
-
-  std::cout << " n elts " << Soln_p_1_k.currentMesh().numberOfElts() << "\n";
+  }
 
   // update last pieces of the solution object...
 

@@ -80,5 +80,41 @@ TEST(Mesh, test_mesh_object) {
               (mesh.interpolationOrder() == 0) && (mesh.tipElts(0) == 0) &&
               (mesh.tipElts(1) == 3) && (mesh.tipNodes(0) == 0) &&
               (mesh.tipNodes(1) == 4) && (mesh.eltSize(e) == 1.) &&
-              (mesh.allEltSize()[0] == 1.));
+              (mesh.allEltSize()[0] == 1.) && (mesh.numberOfFractures() == 1));
+}
+
+// test add elements
+TEST(Mesh, add_elt) {
+  // test the addition of 2 elements at 90 degree from the left tip
+
+  // create the Mesh.
+  il::int_t nelts = 2;
+
+  il::Array2D<double> xy{nelts + 1, 2, 0.};
+
+  // create a basic 1D Mesh
+  for (il::int_t i = 0; i < nelts + 1; ++i) {
+    xy(i, 0) = -1.0 + 1. * i;
+    xy(i, 1) = 0.;
+  };
+
+  il::Array2D<il::int_t> myconn{nelts, 2, 0};
+  for (il::int_t i = 0; i < nelts; ++i) {
+    myconn(i, 0) = i;
+    myconn(i, 1) = i + 1;
+  };
+
+  il::int_t e = 0;
+
+  hfp2d::Mesh mesh(xy, myconn, 0);
+
+  mesh.addNTipElts(1, 2, 2, il::pi / 2.);
+
+  ASSERT_TRUE(
+      (mesh.numberOfElts() == nelts + 2) &&
+      (mesh.coordinates(nelts + 1, 1) == 1) &&
+      (mesh.coordinates(nelts + 2, 1) == 2) &&
+      (mesh.coordinates(nelts + 2, 0) == mesh.coordinates(nelts + 1, 0)) &&
+      (mesh.fracid(nelts + 1) == mesh.fracid(nelts)) &&
+      (mesh.fracid(nelts + 1) == 0));
 }
