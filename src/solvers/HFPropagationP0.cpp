@@ -20,72 +20,101 @@
 #include <src/ehlsolvers/ReynoldsP0.h>
 #include <src/elasticity/AssemblyDDM.h>
 #include <src/elasticity/Simplified3D.h>
+#include <src/input/json/LoadInputMultistage.h>
+#include <src/input/json/loadJsonMesh.h>
 #include <src/solvers/HFPropagationP0.h>
-
 #include <src/tip/tipAsymptote.h>
+#include <src/util/json.hpp>
 
 namespace hfp2d {
 
-int TwoParallelHFs(int nelts, double dist) {
-  // Test for Reynolds solver
-  // 2 fractures parallel separated by dist
-  // nelts per frac (numberOfElts should be odd for symmetry)
+using json = nlohmann::json;
 
-  // for now for debug we hardcode numberOfElts = 3  so injection is in elt
-  // 1 and elt
-  // 4
+int ParallelHFs() {
+  std::string wellfilename = "../Debug/ParallelHFTests.json";
 
-  // step 1 create wellMesh
-  int p = 0;
-  double h = 2. / (nelts);  //  element size
+  std::ifstream input(wellfilename);  // ?
+  json js;
+  input >> js;
 
-  // il::Array<double> x{numberOfElts + 1}; // Not needed
-  int Ntot = 2 * nelts;
+  if ((js.count("Fractures mesh") != 1)) {
+    std::cout << "No Fractures mesh in json input file ";
+    il::abort();
+  }
+  json j_fmesh = js["Fractures mesh"];
 
-  il::Array2D<double> xy{Ntot + 2, 2, 0.0};
-  il::Array2D<il::int_t> myconn{Ntot, 2, 0};
-  il::Array2D<il::int_t> id_DD{Ntot, 2 * (p + 1), 0};
-  il::Array2D<il::int_t> id_press{Ntot, p + 1, 0};
-  il::Array<il::int_t> fracID{Ntot, 1};
-  il::Array<il::int_t> matID{Ntot, 1};
-  il::Array<il::int_t> condID{Ntot, 1};  // not needed
+  hfp2d::Mesh mesh = loadJsonMesh(j_fmesh);
 
-  double Ep = 1.;  // Plane strain Young's modulus
+  std::cout << " Mesh loaded " << mesh.numberOfElts() << "\n";
 
-  //  Array2D M(i, j) -> M(i + 1, j) (Ordre Fortran)
-  //  Array2C M(i, j) -> M(i, j + 1) (Ordre C)
+  if ((js.count("Model parameters") != 1)) {
+    std::cout << "No parameters in input file ";
+    il::abort();
+  }
+  json j_params = js["Model parameters"];
 
-  // create a basic 1D wellMesh .... first fracture
-  for (il::int_t i = 0; i < nelts + 1; ++i) {
-    xy(i, 0) = -1. + i * h;
-    xy(i, 1) = 0.;
-  };
-  for (il::int_t i = nelts + 1; i < Ntot + 2; ++i) {
-    xy(i, 0) = -1. + (i - (nelts + 1)) * h;
-    xy(i, 1) = dist;
-  };
+  if ((js.count("Simulation parameters") != 1)) {
+    std::cout << "No Simulation parameters in input file ";
+    il::abort();
+  }
+  json j_simul = js["Simulation parameters"];
 
-  for (il::int_t i = 0; i < nelts; ++i) {
-    myconn(i, 0) = i;
-    myconn(i, 1) = i + 1;
-  };
-
-  for (il::int_t i = nelts; i < Ntot; ++i) {
-    myconn(i, 0) = i + 1;
-    myconn(i, 1) = i + 2;
-  };
-
-  for (il::int_t i = 0; i < Ntot; i++) {
-    for (il::int_t j = 0; j < 2 * (p + 1); j++) {
-      id_DD(i, j) = i * 2 * (p + 1) + j;
-    }
+  if (j_params.count("Fluid properties") != 1) {
+    std::cout << "No fluid properties input in  model parameters";
+    il::abort();
   }
 
-  for (il::int_t i = 0; i < Ntot; i++) {
-    id_press(i, 0) = i;
+  hfp2d::Fluid fracfluid = loadFluidProperties(j_params["Fluid properties"]);
+
+  if (j_params.count("Rock properties") != 1) {
+    std::cout << "No rock properties input in  model parameters";
+    il::abort();
+  }
+  json j_rock = j_params["Rock properties"];
+  hfp2d::SolidProperties rock = loadSolidProperties(j_rock);
+
+  if (j_params.count("Fracture height") != 1) {
+    std::cout << "No Fracture height input in  model parameters";
+    il::abort();
+  }
+  auto frac_heigth = j_params["Fracture height"].get<double>();
+
+  if (j_params.count("Number of fractures") != 1) {
+    std::cout << "No Number of fractures  input in  model parameters";
+    il::abort();
+  }
+  auto nfracs = j_params["Number of fractures"].get<long>();
+
+  il::int_t nelts = mesh.numberOfElts() / nfracs;
+  // we must ensure that the number of elements is odd.
+  if (!(nelts % 2)) {
+    std::cout << "  Number of elts per fracture is not odd !";
+    il::abort();
   }
 
-  hfp2d::Mesh mesh(xy, myconn, p);
+  if (j_params.count("In-situ conditions") != 1) {
+    std::cout << "No In-situ conditions input in  model parameters";
+    il::abort();
+  }
+  json j_insitu = j_params["In-situ conditions"];
+  hfp2d::InSituConditions inSituStress = loadInSitu(j_insitu);
+
+
+  if (j_params.count("Injection rate") != 1) {
+    std::cout << "No Injection rate  input in  model parameters";
+    il::abort();
+  }
+  auto Qo = j_params["Injection rate"].get<double>();
+
+  il::Array<double> Rates{nfracs, Qo};
+
+  il::Array<il::int_t> elt_source{nfracs, 0};
+  for (il::int_t i = 0; i < nfracs; i++) {
+    elt_source[i] = i * nelts + (nelts - 1) / 2;
+    std::cout <<  elt_source[i] << " "  << Rates[i] <<"\n";
+  }
+
+  hfp2d::Sources the_source = Sources(elt_source, Rates);
 
   // background wellMesh 2 Quads
   il::Array2D<double> nodesB{6, 2, 0.};
@@ -113,105 +142,87 @@ int TwoParallelHFs(int nelts, double dist) {
 
   il::Array<il::int_t> matidB{2, 0};
   matidB[1] = 1;
-
   hfp2d::DomainMesh bckmesh(nodesB, connB, matidB);
-
   il::Array<double> myxt(2, 0.);
   myxt[0] = 1.;
   myxt[1] = 0.;
-
   il::int_t kk = bckmesh.locate(myxt);
-
   auto node_CONN = mesh.nodeEltConnectivity();
 
   // Parameters
+  il::int_t Ntot = mesh.numberOfElts();
 
-  hfp2d::ElasticProperties myelas(10.e9, 0.);
-  // initial stress field uniform to test.
-  il::Array<double> sig_o{Ntot, 1e6}, tau_o{Ntot, 0.};
-
-  // initial fluid pressure
-  il::Array<double> pf_o{Ntot,
-                         1.2e6};  // slightly above sig_o to have initial width
   // create source obj. - hardcoded for now....
-  il::Array<double> Qo{2, 0.0001};
-
-  il::Array<il::int_t> elt_source{2, 0};
-  elt_source[0] = (nelts - 1) / 2;
-  elt_source[1] = nelts + (nelts - 1) / 2;
-
-  hfp2d::Sources the_source = Sources(elt_source, Qo);
   //  std::cout << elt_source[0] << " " << Qo[0] << "\n";
 
-  // fluid properties.
-  double mu = 0.1;
-  hfp2d::Fluid water(1., mu, 5.e-10);
-  // create rock properties obj
-  double k1c = 0.5e6;
-  il::Array<double> wh_o{1, 1.e-9}, toughness{1, k1c}, Carter{1, 0.};
-  hfp2d::SolidProperties the_rock =
-      SolidProperties(myelas, toughness, wh_o, Carter);
-
-  double frac_heigth = 1000.;
+ // build matrix.
+  hfp2d::ElasticProperties myelas = rock.ElasticProperties();
 
   il::Array2D<double> K = hfp2d::basic_assembly(
-      mesh, myelas, hfp2d::normal_shear_stress_kernel_s3d_dp0_dd,
-      frac_heigth);  // large pseudo-heigth to reproduce plane-strain kernel
+      mesh, myelas, hfp2d::normal_shear_stress_kernel_s3d_dp0_dd, frac_heigth);
 
-  AddTipCorrectionP0(mesh, myelas, 0, K);
-  AddTipCorrectionP0(mesh, myelas, nelts - 1, K);
-
-  AddTipCorrectionP0(mesh, myelas, nelts, K);
-  AddTipCorrectionP0(mesh, myelas, Ntot - 1, K);
-
-  // solve the initial elastic system
-  il::Array<double> fini{2 * Ntot, 0.};
-  il::int_t j = 0;
-  std::cout << "e !!!" << (Ntot + Ntot) << "\n";
-  for (il::int_t i = 0; i < (Ntot + Ntot); i = i + 2) {
-    fini[i] = tau_o[j];
-    fini[i + 1] = (pf_o[j] - sig_o[j]);
-    j++;
+  // add tip correction for P0 for each tips in the mesh
+  for (il::int_t i = 0; i < mesh.tipElts().size(); i++) {
+    AddTipCorrectionP0(mesh, myelas, mesh.tipElts(i), K);
   }
 
-  il::int_t ea = 2;
 
-  std::cout << "elt size" << mesh.eltSize(ea) << "w " << h << "\n";
 
-  std::cout << " size of K" << K.size(0) << " by " << K.size(1) << "\n";
-  std::cout << " size of f" << fini.size() << "\n";
+  // initial net loading.
+  il::Array<double> ftini{mesh.numberDDDofs(), 0.},
+      pfo{mesh.numberDDDofs(), 0.};
+  ftini = inSituStress.uniformAllInSituTractions(mesh);
+  for (il::int_t i = 0; i < nfracs; i++) {
+    for (il::int_t j = 0; j < nelts; j++) {
+      pfo[i * 2 * nelts + 2 * j + 1] =  ftini[1]*(1.005)  ;
+    }
+  }
 
+  il::Array<double> pnet0 = pfo;
+
+  il::blas(-1., ftini, il::io, pnet0);
+
+  std::cout << " initial elastic problem \n";
   il::Status status;
   // use a direct solver
-  il::Array<double> dd_ini = il::linearSolve(K, fini, il::io, status);
+  il::Array<double> dd_ini = il::linearSolve(K, pnet0, il::io, status);
   status.ok();
   std::cout << "solved \n";
-
-  double ki = (myelas.Ep() * dd_ini[3] / std::sqrt(3 * h / 2.) /
-               std::sqrt(32. / il::pi));
-
-  //  for (il::int_t i = 0; i < 2 * Ntot; i++) {
-  //    std::cout << " dd " << dd_ini[i] << "\n";
-  //  }
+  for (il::int_t i = 0; i < mesh.numberDDDofs(); i++) {
+    std::cout << "net load " << pnet0[i] << " dd " << dd_ini[i] << "\n";
+  }
 
   il::Array<double> width{mesh.numberOfElts(), 0.},
       sheardd{mesh.numberOfElts(), 0.};
+
+  il::Array<double> sn_o{mesh.numberOfElts(), 0.},
+      tau_o{mesh.numberOfElts(), 0.},
+      fluid_pressure_o{mesh.numberOfElts(), 0.};
+
   for (il::int_t i = 0; i < mesh.numberOfElts(); i++) {
     sheardd[i] = dd_ini[2 * i];
     width[i] = dd_ini[2 * i + 1];
+    sn_o[i] = ftini[2 * i + 1];
+    tau_o[i] = ftini[2 * i];
+    fluid_pressure_o[i] = pfo[2 * i + 1];
   }
 
-  // create a solution at time t=0 object.
-  hfp2d::Solution Soln =
-      hfp2d::Solution(mesh, 0., width, sheardd, pf_o, sig_o, tau_o);
+  // create a solution at the current time of the wellsolution  object.
+  hfp2d::Solution fracSol_n =
+      hfp2d::Solution(mesh, 0., width, sheardd,
+                      fluid_pressure_o, sn_o, tau_o);
+  il::Array<double> vel0{nfracs*2, 0.};  // initial tip velocity
+  fracSol_n.setTipsVelocity(vel0);
 
-  il::Array<double> s0{4, 3 * h / 2.};
 
-  il::Array<double> vel0{4, 0.};
+  il::Array<double> s0{2 * nfracs, 0.};  // initial ribbont tip distance
+  for (il::int_t i = 0; i < mesh.tipElts().size(); i++) {
+    il::int_t e = mesh.tipElts(i);
+    s0[i] = 1.5 * mesh.eltSize(e);
+  }
+  fracSol_n.setRibbonDistances(s0);
 
-  Soln.setTipsVelocity(vel0);
-  Soln.setRibbonDistances(s0);
-
+  il::int_t ea = 0;
   hfp2d::SimulationParameters SimulParam;
 
   SimulParam.frac_front_max_its = 40;
@@ -219,59 +230,65 @@ int TwoParallelHFs(int nelts, double dist) {
   SimulParam.ehl_relaxation = 0.95;
   SimulParam.ehl_tolerance = 1.e-6;
 
-  double dt = 0.05;
+  double dt = 0.01;
   double dt_min = 0.0001;
 
   il::int_t jt = 0;
-  il::int_t nsteps = 300;
+
+  il::int_t nsteps = 7;
 
   //  il::Array<il::int_t> tip_region_elt_k=wellMesh.tipElts();
   //  il::Array<double>    tip_region_width_k{4,0.};
 
   std::string dir = "../Results/";
-  std::string basefilename = "KGD-2HF-M-18.5-";
+  std::string basefilename = "KGD-3HF-M-1.5-";
   std::string filename;
 
   double mean_tip_v;
-  double Mbar = std::pow(myelas.Ep(), 3.) * (12 * mu) * Qo[1] /
-                (std::pow((std::sqrt(32. / il::pi) * k1c), 4.));
+
+  double Mbar = std::pow(myelas.Ep(), 3) * (12. * fracfluid.fluidViscosity()) *
+                Qo / (std::pow((std::sqrt(32. / il::pi) * rock.KIc(ea)), 4.));
 
   std::cout << "Dimensionless Viscosity " << Mbar << "\n";
 
   while (jt < nsteps) {
     jt++;
     //
-    //    Solution Soln1=hfp2d::ReynoldsSolverP0(Soln, K, water, the_rock,
+    //    Solution Soln1=hfp2d::ReynoldsSolverP0(fracSol_n, K, water, the_rock,
     //    the_source,
     //                                         dt, false, tip_region_elt_k,
     //                                         tip_region_width_k,
     //                                         SimulParam,true);
 
     Solution Soln1 =
-        hfp2d::FractureFrontLoop(Soln, water, the_rock, the_source, frac_heigth,
+        hfp2d::FractureFrontLoop(fracSol_n, fracfluid, rock, the_source, frac_heigth,
                                  dt, SimulParam, true, il::io, K);
 
     // accept time steps ?
 
     if (Soln1.errFront() < 0.01) {
-      Soln = Soln1;
-      std::cout << " steps # " << jt << " time  " << Soln.time() << "\n";
-      std::cout << " P at source " << Soln.pressure()[the_source.SourceElt(0)]
+      fracSol_n = Soln1;
+
+      std::cout << " steps # " << jt << " time  " << fracSol_n.time() << "\n";
+      std::cout << " P at source " << fracSol_n.pressure()[the_source.SourceElt(0)]
                 << "\n";
-      std::cout << " w at source " << Soln.openingDD()[the_source.SourceElt(0)]
+      std::cout << " w at source " << fracSol_n.openingDD()[the_source.SourceElt(0)]
                 << "\n";
 
       //    std::cout << "size of K: " << K.size(0) << " by " << K.size(1) <<
       //    "\n";
 
-      std::cout << "n elts " << Soln.currentMesh().numberOfElts() << "\n";
-      std::cout << " ---------\n";
-      filename = dir + basefilename + std::to_string(jt) + ".json";
-      Soln.writeToFile(filename);
+      std::cout << " n elts " << fracSol_n.currentMesh().numberOfElts() << "\n";
+      std::cout << " nn " << fracSol_n.currentMesh().connectivity().size(0) <<"\n";
 
-      mean_tip_v = il::norm(Soln.tipsVelocity(), il::Norm::L2);
-      if ((mean_tip_v > 0.0)) {  //&& (Soln.tipsLocation()(1,0)>1.5)
-        double dt_new = 1.25 * h / mean_tip_v;
+      std::cout << " ----++++-----++++-------\n";
+      filename = dir + basefilename + std::to_string(jt) + ".json";
+
+      fracSol_n.writeToFile(filename);
+
+      mean_tip_v = il::norm(fracSol_n.tipsVelocity(), il::Norm::L2);
+      if ((mean_tip_v > 0.0)) {  //&& (fracSol_n.tipsLocation()(1,0)>1.5)
+        double dt_new = 1.25 * mesh.eltSize(ea) / mean_tip_v;
         // modify to more clever ?
         if (dt_new > 3. * dt) {
           dt = 3. * dt;
@@ -307,11 +324,6 @@ int TwoParallelHFs(int nelts, double dist) {
 
 // write a routine - for well + n fracs benchmark
 // with json inputs.
-
-// write a routine for the solution of the well-flow / frac prop over a time
-// step
-//
-//
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -397,6 +409,8 @@ hfp2d::Solution FractureFrontLoop(const hfp2d::Solution &Sol_n,
   // each tips
   il::Array<il::int_t> n_add_elt_tip{n_tips, 0};
 
+  std::cout << " n tips ? " << n_tips << "  " << n_add_elt_tip.size()<< "\n";
+
   double ribbon_width, h_ribbon;  // for ribbon width and ribbon elt size.
 
   bool imp_tip = false;  // boolean for ELH with imposed or not tip width.
@@ -419,9 +433,16 @@ hfp2d::Solution FractureFrontLoop(const hfp2d::Solution &Sol_n,
   double errorF = 1.;
   bool firstime_elas_mod = true;
 
+  if (!mute) {
+    std::cout << "++++ Fracture Front loop ++++ \n";
+  }
   while (((errorF > simulParams.frac_front_tolerance)) &&
          (k < simulParams.frac_front_max_its)) {
     k++;
+
+    if (!mute) {
+      std::cout << "its " << k <<  " error " << errorF << "n elts " << Sol_n_k.currentMesh().numberOfElts() <<  " \n";
+    }
 
     // solution of ELH at fixed fracture front
     Soln_p_1_k = hfp2d::ReynoldsSolverP0(Sol_n_k, ElasMat, fluid, rock, source,
@@ -644,9 +665,11 @@ hfp2d::Solution FractureFrontLoop(const hfp2d::Solution &Sol_n,
   // end of iteration of fracture front position
   std::cout << "end of fracture front loop iterations after " << k
             << " its, errorF=" << errorF << " new number of elts "
-            << mesh_k.numberOfElts() << "\n";
+            << mesh_k.numberOfElts() <<   " error w EHL "<< Soln_p_1_k.errOpening() <<"\n";
 
-  std::cout << " n elts" << Sol_n_k.currentMesh().numberOfElts() << "\n";
+  std::cout << Soln_p_1_k.currentMesh().numberOfElts() << "\n";
+
+  std::cout << " n elts " << Soln_p_1_k.currentMesh().numberOfElts() << "\n";
 
   // update last pieces of the solution object...
 

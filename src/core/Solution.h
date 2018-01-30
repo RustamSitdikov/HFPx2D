@@ -210,10 +210,12 @@ class Solution {
 
   // some set functions
   void setRibbonDistances(const il::Array<double> &srt) {
+    IL_EXPECT_FAST(srt.size()==currentmesh_.tipElts().size())
     ribbon_tips_s_ = srt;
   };
 
   void setTipsLocation(const il::Array2D<double> &tips_xy) {
+    IL_EXPECT_FAST(tips_xy.size(0)==currentmesh_.tipElts().size());
     tipsLocation_ = tips_xy;
   };
 
@@ -222,12 +224,15 @@ class Solution {
   void setItsFront(const il::int_t its) { frontIts_ = its; };
 
   void setTipsVelocity(const il::Array<double> &tips_vel) {
+    IL_EXPECT_FAST(tips_vel.size()==currentmesh_.tipElts().size())
     tips_velocity_ = tips_vel;
   };
 
   void setTimeStep(const double dt) { timestep_ = dt; };
 
   void setActiveElts(const il::Array<il::int_t> &act_set_elmnts) {
+   // IL_EXPECT_FAST(act_set_elmnts.size()==)
+
     active_set_elements_ = act_set_elmnts;
   }
 
@@ -283,6 +288,8 @@ class Solution {
     json json_dof_handle_pres = json::array();
     json json_mat_id = json::array();
 
+    std::cout << " === weite \n";
+    std::cout << currentmesh_.numberOfElts() <<" " << currentmesh_.connectivity().size(0) << currentmesh_.matid().size() <<"\n";
     for (il::int_t m = 0; m < currentmesh_.numberOfElts(); ++m) {
       json_connectivity[m] = {currentmesh_.connectivity(m, 0),
                               currentmesh_.connectivity(m, 1)};

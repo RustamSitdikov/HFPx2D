@@ -9,13 +9,13 @@
 #ifndef HFPX2D_LOADJSONMESH_H
 #define HFPX2D_LOADJSONMESH_H
 
-#include <src/core/Mesh.h>
+//#include <src/core/Mesh.h>
 
 namespace hfp2d{
 
+using json = nlohmann::json;
 
-
-hfp2d::Mesh loadJsonMesh(const std::string &meshfilename);
+hfp2d::Mesh loadJsonMesh(json &j);
 
 
 

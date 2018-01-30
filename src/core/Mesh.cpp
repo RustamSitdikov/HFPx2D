@@ -316,9 +316,10 @@ void Mesh::addNTipElts(const il::int_t t_e, const il::int_t the_tip_node,
   coordinates_ = new_all_coor;
   connectivity_ = new_conn;
 
+
   //  the other changes....
   // this is for uniform material only
-  il::Array<il::int_t> material_id_(connectivity_.size(0), 1);
+  il::Array<il::int_t> material_id_(connectivity_.size(0));
 
   il::int_t nelts = connectivity_.size(0);
   il::int_t p = interpolation_order_;

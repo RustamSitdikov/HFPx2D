@@ -117,11 +117,11 @@ int main() {
   //  std::cout << "\n\n ----- Simple Griffith crack examples ----- \n\n" <<
   //  std::endl;
 
-  int nelts = 11;
+  int nelts = 5;
   double dist = 1e8;
   //
   //
-  // int ret = hfp2d::TwoParallelHFs(nelts,dist);
+   int ret = hfp2d::ParallelHFs();
 
   // std::cout << "return " << ret;
   // double ret1 =  hfp2d::SimpleGriffithExampleS3D_P0_byNodes(10);
@@ -135,9 +135,9 @@ int main() {
   //  std::cout << "\n rel error L2 norm in Constant Elements (with tip
   //  correction): " << ret2 << "\n";
 
-  int test= hfp2d::WellboreFlowBenchmark();
+  //int test= hfp2d::WellboreFlowBenchmark();
 
-  test = hfp2d::MultipleFracsPropagation();
+  //test = hfp2d::MultipleFracsPropagation();
 
   //std::cout << " end of code \n\n\n";
 

@@ -7,6 +7,12 @@ project(HFPx2D CXX)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -std=c++11")
 
+
+set(IL_OPENMP 0)
+set(IL_BLAS 1)
+set(IL_MKL 1)
+set(IL_OPENBLAS 0)
+
 # If you want to run another compiler, such as clang
 if (APPLE)
     set(CMAKE_C_COMPILER /usr/bin/clang)
@@ -86,34 +92,46 @@ set(SOURCE_FILES
         src/solvers/HFPropagationP0.cpp src/solvers/HFPropagationP0.h
         src/solvers/MultiFracsSolver.cpp src/solvers/MultiFracsSolver.h src/util/RootFinder.cpp src/util/RootFinder.h)
 
+
+if (IL_MKL)
 if(APPLE)
+
     link_directories($ENV{MKLROOT}/lib $ENV{MKLROOT}/../compiler/lib )
-    target_link_libraries(HFPx2D mkl_intel_lp64 mkl_core mkl_intel_thread dl iomp5 pthread m)
-    target_compile_definitions(HFPx2D PRIVATE IL_MKL=1 IL_BLAS=1 IL_OPENMP=1)
+
 elseif(UNIX)
     link_directories(/opt/intel/mkl/lib/intel64
                      /opt/intel/compilers_and_libraries/linux/lib/intel64)
-    target_link_libraries(HFPx2D mkl_intel_lp64 mkl_core mkl_intel_thread dl iomp5 pthread m)
-    target_compile_definitions(HFPx2D PRIVATE IL_MKL=1 IL_BLAS=1 IL_OPENMP=1)
 elseif(WIN32)
     # to fill up here ...
+
+endif()
 endif()
 
 add_executable(HFPx2D ${SOURCE_FILES}  main.cpp)
+
+if (IL_MKL)
+    target_link_libraries(HFPx2D mkl_intel_lp64 mkl_core mkl_intel_thread dl iomp5 pthread m)
+    target_compile_definitions(HFPx2D PRIVATE IL_MKL=1 IL_BLAS=1 IL_OPENMP=1)
+endif()
+
+if(WIN32) # OPEN _ BLAS under windwos
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")  #openMP windows ?
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DIL_OPENBLAS -DIL_BLAS")
+    set(CMAKE_OPENBLAS_LIBRARIES "openblas")
+
+    target_link_libraries(HFPx2D ${CMAKE_MKL_LIBRARIES} ${CMAKE_OPENBLAS_LIBRARIES})
+endif()
+
 
 if(APPLE)
     target_include_directories(HFPx2D PRIVATE ${CMAKE_SOURCE_DIR} $ENV{MKLROOT}/include)
 elseif(UNIX)
     target_include_directories(HFPx2D PRIVATE ${CMAKE_SOURCE_DIR} /opt/intel/mkl/include)
 elseif(WIN32)
-    # to fill up here ...
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DIL_OPENBLAS -DIL_BLAS")
-    set(CMAKE_OPENBLAS_LIBRARIES "openblas")
-
     target_include_directories(HFPx2D PRIVATE ${CMAKE_SOURCE_DIR})
-    target_link_libraries(HFPx2D ${CMAKE_MKL_LIBRARIES} ${CMAKE_OPENBLAS_LIBRARIES})
 endif()
+
+
 
 if(APPLE)
 # below for some under mac os sierra ;(

@@ -19,10 +19,10 @@ namespace hfp2d {
 
 using json = nlohmann::json;
 
-hfp2d::Mesh loadJsonMesh(const std::string &meshfilename) {
-  std::ifstream input(meshfilename);  // ?
-  json j;
-  input >> j;
+hfp2d::Mesh loadJsonMesh(json &j) {
+ // std::ifstream input(meshfilename);  // ?const std::string &meshfilename
+//  json j;
+//  input >> j;
 
   //  il::Array2D<double> nodes =j["Node coordinates"];
   //

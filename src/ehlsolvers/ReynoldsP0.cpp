@@ -372,6 +372,7 @@ Solution ReynoldsSolverP0(
               << " rel. err. dw: " << il::norm(err_Dw, il::Norm::L2)
               << " rel. err dp: " << il::norm(err_Dp, il::Norm::L2)
               << " norm of residuals: " << res_norm << "\n";
+    std::cout << "----------------------------\n";
   };
 
 
@@ -384,8 +385,9 @@ Solution ReynoldsSolverP0(
 
   return hfp2d::Solution(
       meshn, soln.time() + timestep, timestep, Wn, Vn, Pn, sig0, tau0,
-      soln.frontIts(), k, soln.errFront(), il::norm(err_Dv, il::Norm::L2),
-      il::norm(err_Dw, il::Norm::L2), il::norm(err_Dp, il::Norm::L2));
+      soln.frontIts(), k, soln.errFront(),
+      il::norm(err_Dw, il::Norm::L2),il::norm(err_Dv, il::Norm::L2),
+      il::norm(err_Dp, il::Norm::L2));
 
 };
 }

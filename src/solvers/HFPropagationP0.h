@@ -18,7 +18,7 @@
 
 namespace hfp2d {
 
-int TwoParallelHFs(int nelts, double dist);
+int ParallelHFs();
 
 hfp2d::Solution FractureFrontLoop(const hfp2d::Solution &Sol_n,
                                   hfp2d::Fluid &fluid,
