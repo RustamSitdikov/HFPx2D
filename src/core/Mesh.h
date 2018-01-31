@@ -18,6 +18,7 @@
 // Inclusion from Inside Loop library
 #include <il/Array.h>
 #include <il/Array2D.h>
+#include <il/linear_algebra/dense/norm.h>
 
 // Inclusion from hfp2d
 #include <src/core/SegmentData.h>
@@ -33,7 +34,6 @@ il::Array<il::int_t> buildTipNodes(
 il::Array<il::int_t> buildTipElts(
     const il::Array2D<il::int_t> &node_connectivity,
     const il::Array<il::int_t> &tipnodes);
-
 
 ///// 1D mesh class
 class Mesh {  // class for 1D wellMesh of 1D segment elements ?
@@ -58,7 +58,7 @@ class Mesh {  // class for 1D wellMesh of 1D segment elements ?
   il::Array2D<il::int_t> dof_handle_pressure_;
 
   // Identifier number of the fracture - size: number of elements
-  il::Array<il::int_t> fracture_id_; //
+  il::Array<il::int_t> fracture_id_;  //
 
   // Material identifier - size: number of elements
   il::Array<il::int_t> material_id_;
@@ -137,9 +137,10 @@ class Mesh {  // class for 1D wellMesh of 1D segment elements ?
     tipnodes_ = buildTipNodes(node_adj_elt_);
     tipelts_ = buildTipElts(node_adj_elt_, tipnodes_);
     // built fracture_id_ ?...
-    il::Array<il::int_t> fractureID{nelts,0}; // default just one fracture if not passed.
-    fracture_id_=fractureID;
-
+    // default just one fracture if not passed ?-> todo generalize the
+    // construction to automatic detection of # fracture ?
+    il::Array<il::int_t> fractureID{nelts, 0};
+    fracture_id_ = fractureID;
   };
 
   // case where the matid vector and the fracture_ID vector are provided
@@ -163,13 +164,47 @@ class Mesh {  // class for 1D wellMesh of 1D segment elements ?
     coordinates_ = Coordinates;
     connectivity_ = Connectivity;
     interpolation_order_ = interpolationOrder;
+
+    // check that the entries of FractureID are within a range 0 to N by step
+    // of one without blank
+    il::Array<il::int_t> checkMat = MatID;
+    std::sort(checkMat.begin(), checkMat.end());
+    auto last = std::unique(checkMat.begin(), checkMat.end());
+    IL_EXPECT_FAST(checkMat[0] == 0);
+    il::int_t nmat = 0;
+    for (il::int_t i = 0; i < checkMat.size(); i++) {
+      if (checkMat[i] == i) {
+        nmat = nmat + 1;
+      } else {
+        break;
+      }
+    }
+    auto nmat2 = (*std::max_element(MatID.begin(), MatID.end()) + 1);
+    IL_EXPECT_FAST(nmat == nmat2);
     material_id_ = MatID;
-    fracture_id_=FractureID;
+
+    // check that the entries of FractureID are within a range0 to N by step
+    // of one without blank
+    il::Array<il::int_t> checkFrac = FractureID;
+    std::sort(checkFrac.begin(), checkFrac.end());
+    last = std::unique(checkFrac.begin(), checkFrac.end());
+    IL_EXPECT_FAST(checkFrac[0] == 0);
+    il::int_t nfracs = 0;
+    for (il::int_t i = 0; i < checkFrac.size(); i++) {
+      if (checkFrac[i] == i) {
+        nfracs = nfracs + 1;
+      } else {
+        break;
+      }
+    }
+    auto nfrac2 = (*std::max_element(FractureID.begin(), FractureID.end()) + 1);
+    IL_EXPECT_FAST(nfracs == nfrac2);
+    fracture_id_ = FractureID;
 
     il::int_t nelts = connectivity_.size(0);
     il::int_t p = interpolation_order_;
 
-    /// Discontinuous Polynomial DOF handles
+    // Discontinuous Polynomial DOF handle for DD
     il::Array2D<il::int_t> id_dd{nelts, 2 * (p + 1), 0};
     for (il::int_t i = 0; i < nelts; i++) {
       for (il::int_t j = 0; j < 2 * (p + 1); j++) {
@@ -178,7 +213,7 @@ class Mesh {  // class for 1D wellMesh of 1D segment elements ?
     }
     dof_handle_dd_ = id_dd;  /// dof
 
-    /// //    dof(element, local nnodes number)
+    ///  Continous scalar polynomial for Pressure
     // actually this is the connectivity_ array for  p =1 and
     // a simple elt number of P0
     if (interpolation_order_ == 0) {
@@ -198,30 +233,74 @@ class Mesh {  // class for 1D wellMesh of 1D segment elements ?
     // built tip nodes table...
     tipnodes_ = buildTipNodes(node_adj_elt_);
     tipelts_ = buildTipElts(node_adj_elt_, tipnodes_);
+    IL_EXPECT_FAST(tipnodes_.size()==nfracs*2);
+    IL_EXPECT_FAST(tipelts_.size()==nfracs*2);
+
+    //order them as function of the fractureID such that it is easier
+    // to track the tips
+    il::int_t  jf=0;
+    il::int_t  nl=0;// local node
+    il::Array<il::int_t> orderedTipNodes{2*nfracs,-1}; // init with -1
+    il::Array<il::int_t> orderedTipElts{2*nfracs,-1};
+    il::StaticArray<double,2> tipcoor1;
+    il::StaticArray<double,2> tipcoor2;
+    double dist1=0; double dist2=0.;
+    il::int_t iaux; il::int_t nl2=1;
+    for (il::int_t i=0;i<tipnodes_.size();i++ ){
+      tipcoor1=coordinates(tipnodes_[i]);
+      dist1 = il::norm(tipcoor1,il::Norm::L2);
+      jf=fracture_id_[tipelts_[i]];
+      nl=0;
+      if ((orderedTipElts[jf*2]!=-1))
+      {  // already a node stored
+        tipcoor2=coordinates(orderedTipElts[jf*2]);
+        dist2 = il::norm(tipcoor2,il::Norm::L2);
+        if (dist1>dist2){
+          nl=1;
+        } else {
+          if (dist1==dist2){
+            if (tipcoor1[0]>tipcoor2[0]){
+              nl=1;
+            }
+          }
+        }
+        if (nl==0) {
+          iaux = orderedTipElts[jf*2];
+          orderedTipElts[jf*2+1]=iaux;
+          iaux = orderedTipNodes[jf*2];
+          orderedTipNodes[jf*2+1]=iaux;
+        }
+      };
+
+      orderedTipElts[jf*2+nl]=tipelts_[i];
+      orderedTipNodes[jf*2+nl]=tipnodes_[i];
+    }
+    tipnodes_=orderedTipNodes;
+    tipelts_=orderedTipElts;
   };
 
   //////////////////////////////////////////////////////////////////////////
   //        get functions  - i.e. public interfaces
   //////////////////////////////////////////////////////////////////////////
 
-   il::int_t numberOfElts() const { return connectivity_.size(0); };
+  il::int_t numberOfElts() const { return connectivity_.size(0); };
 
-   il::int_t numberOfNodes() const { return coordinates_.size(0); };
+  il::int_t numberOfNodes() const { return coordinates_.size(0); };
 
   // nodal coordinates related.
-   il::Array2D<double> coordinates() const { return coordinates_; };
+  il::Array2D<double> coordinates() const { return coordinates_; };
 
   // Read a particular element of the coordinates coordinates
-   double coordinates(il::int_t k, il::int_t i) const {
+  double coordinates(il::int_t k, il::int_t i) const {
     return coordinates_(k, i);
   }
 
   // Read the X coordinate of a coordinates
-   double X(il::int_t k) const { return coordinates_(k, 0); }
+  double X(il::int_t k) const { return coordinates_(k, 0); }
   // Read the Y coordinate of a coordinates
-   double Y(il::int_t k) const { return coordinates_(k, 1); }
+  double Y(il::int_t k) const { return coordinates_(k, 1); }
 
-   il::StaticArray<double, 2> coordinates(il::int_t k) const {
+  il::StaticArray<double, 2> coordinates(il::int_t k) const {
     il::StaticArray<double, 2> temp;
     temp[0] = coordinates_(k, 0);
     temp[1] = coordinates_(k, 1);
@@ -229,9 +308,9 @@ class Mesh {  // class for 1D wellMesh of 1D segment elements ?
   };
 
   // connectivity related
-   il::Array2D<il::int_t> connectivity() const { return connectivity_; };
+  il::Array2D<il::int_t> connectivity() const { return connectivity_; };
   // get the connectivity of an element -> A StaticArray of size 2 here !
-   il::StaticArray<il::int_t, 2> connectivity(il::int_t k) const {
+  il::StaticArray<il::int_t, 2> connectivity(il::int_t k) const {
     il::StaticArray<il::int_t, 2> temp;
     for (il::int_t i = 0; i < connectivity_.size(1); i++) {
       temp[i] = connectivity_(k, i);
@@ -240,20 +319,18 @@ class Mesh {  // class for 1D wellMesh of 1D segment elements ?
   };
 
   //
-   il::int_t connectivity(il::int_t e, il::int_t i) const {
+  il::int_t connectivity(il::int_t e, il::int_t i) const {
     // element e, local coordinates i - return global nodes
     return connectivity_(e, i);
   }
 
   // nodal connectivity related
-   il::Array2D<il::int_t> nodeEltConnectivity() const {
-    return node_adj_elt_;
-  };
+  il::Array2D<il::int_t> nodeEltConnectivity() const { return node_adj_elt_; };
   il::int_t nodeEltConnectivity(il::int_t k, il::int_t l) const {
     return node_adj_elt_(k, l);
   };
 
-   il::Array<il::int_t> nodeEltConnectivity(il::int_t k) const {
+  il::Array<il::int_t> nodeEltConnectivity(il::int_t k) const {
     il::Array<il::int_t> temp(node_adj_elt_.size(1));
     for (il::int_t i = 0; i < node_adj_elt_.size(1); i++) {
       temp[i] = node_adj_elt_(k, i);
@@ -262,18 +339,20 @@ class Mesh {  // class for 1D wellMesh of 1D segment elements ?
   };
 
   // get tip nodes
-   il::Array<il::int_t> tipNodes() const { return tipnodes_; };
-   il::int_t tipNodes(il::int_t k) const { return tipnodes_[k]; };
+  il::Array<il::int_t> tipNodes() const { return tipnodes_; };
+  il::int_t tipNodes(il::int_t k) const { return tipnodes_[k]; };
 
   // get tip elts
-   il::Array<il::int_t> tipElts() const { return tipelts_; };
-   il::int_t tipElts(il::int_t k) const { return tipelts_[k]; };
+  il::Array<il::int_t> tipElts() const { return tipelts_; };
+  il::int_t tipElts(il::int_t k) const { return tipelts_[k]; };
 
   // material ID related
-   il::Array<il::int_t> matid() const { return material_id_; };
-   il::int_t matid(il::int_t k) const { return material_id_[k]; }
+  il::Array<il::int_t> matid() const { return material_id_; };
+  il::int_t matid(il::int_t k) const { return material_id_[k]; }
 
-   il::int_t numberOfMaterials() const {
+  // todo check that material_id_ and frature_id_ contains entries in the whole
+  // range 0 to N (no blank)
+  il::int_t numberOfMaterials() const {  // assume entries from 0 to N
     return (*std::max_element(material_id_.begin(), material_id_.end()) + 1);
   }
 
@@ -281,39 +360,39 @@ class Mesh {  // class for 1D wellMesh of 1D segment elements ?
   il::Array<il::int_t> fracid() const { return fracture_id_; };
   il::int_t fracid(il::int_t k) const { return fracture_id_[k]; }
 
-  il::int_t numberOfFractures() const {
+  il::int_t numberOfFractures() const {  // assume entries from 0 to N
     return (*std::max_element(fracture_id_.begin(), fracture_id_.end()) + 1);
   }
 
   // interpolation order
-   il::int_t interpolationOrder() const { return interpolation_order_; }
+  il::int_t interpolationOrder() const { return interpolation_order_; }
 
   // dofs related.....
-   il::int_t numberDDDofsPerElt() const { return dof_handle_dd_.size(1); }
+  il::int_t numberDDDofsPerElt() const { return dof_handle_dd_.size(1); }
 
-   il::int_t numberPressDofsPerElt() const {
+  il::int_t numberPressDofsPerElt() const {
     return dof_handle_pressure_.size(1);
   }
 
-   il::int_t numberPressDofs() const {
-    il::int_t aux=0;
-     aux = dof_handle_pressure_.size(0); // p0
-     if (interpolation_order_==1){ //p1
-       aux = coordinates_.size(0);
-     }
-     return aux;
+  il::int_t numberPressDofs() const {
+    il::int_t aux = 0;
+    aux = dof_handle_pressure_.size(0);  // p0
+    if (interpolation_order_ == 1) {     // p1
+      aux = coordinates_.size(0);
+    }
+    return aux;
   }
 
-   il::int_t numberDDDofs() const {
+  il::int_t numberDDDofs() const {
     return (numberOfElts() * (interpolation_order_ + 1) * 2);
   }
 
-   il::int_t dofPress(il::int_t k, il::int_t i) const {
+  il::int_t dofPress(il::int_t k, il::int_t i) const {
     // coordinates k, dof i -> return global equation iD
     return dof_handle_pressure_(k, i);
   }
 
-   il::int_t dofDD(il::int_t k, il::int_t i) const {
+  il::int_t dofDD(il::int_t k, il::int_t i) const {
     // coordinates k, dof i -> return global equation iD
     return dof_handle_dd_(k, i);  // element , dof dim.
   }
@@ -321,7 +400,6 @@ class Mesh {  // class for 1D wellMesh of 1D segment elements ?
   ////////////////////////////////////////////////////////////////////////////////////////////
   //   Methods
   ////////////////////////////////////////////////////////////////////////////////////////////
-
 
   hfp2d::SegmentData getElementData(il::int_t ne);
 
@@ -344,14 +422,12 @@ class Mesh {  // class for 1D wellMesh of 1D segment elements ?
   void addNTipElts(il::int_t t_e, il::int_t the_tip_node, il::int_t n_add,
                    double kink_angle);
 
-  void reorderTip(){ // todo 
-    il::Array<il::int_t> tip_fid{tipelts_.size(),0};
-    for (il::int_t i=0;i<tipelts_.size();i++){
-      tip_fid[i]=fracture_id_[tipelts_[i]];
+  void reorderTip() {  // todo
+    il::Array<il::int_t> tip_fid{tipelts_.size(), 0};
+    for (il::int_t i = 0; i < tipelts_.size(); i++) {
+      tip_fid[i] = fracture_id_[tipelts_[i]];
     }
-
   };
-
 };
 }
 

@@ -235,7 +235,7 @@ int ParallelHFs() {
 
   il::int_t jt = 0;
 
-  il::int_t nsteps = 300;
+  il::int_t nsteps = 100;
 
   //  il::Array<il::int_t> tip_region_elt_k=wellMesh.tipElts();
   //  il::Array<double>    tip_region_width_k{4,0.};

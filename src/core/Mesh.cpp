@@ -7,9 +7,9 @@
 // See the LICENSE.TXT file for more details.
 //
 //
+#include <il/linear_algebra/dense/norm.h>
 
 #include <src/core/Mesh.h>
-
 #include <src/core/SegmentData.h>
 
 namespace hfp2d {
@@ -32,7 +32,6 @@ il::Array2D<il::int_t> getNodalEltConnectivity(
   // this will not work for the case of more than 2 elements sharing the
   // coordinates.
   // we don t care of that case for now.
-
 
   // format is col1: element1, col2: element2 etc.   (note we don t store the
   // corresponding coordinates here....)
@@ -122,6 +121,9 @@ il::Array<il::int_t> buildTipElts(
 }
 ////////////////////////////////////////////////////////////////////////////////
 
+
+
+
 ////////////////////////////////////////////////////////////////////////////////
 //          METHODS
 ////////////////////////////////////////////////////////////////////////////////
@@ -209,12 +211,10 @@ il::Array<il::int_t> Mesh::getRibbonElements() {
 
 ////////////////////////////////////////////////////////////////////////////////
 // could do a method returning the element and nodes of a given fracture
-/// this is honestly not really needed for now.....
 
 ////////////////////////////////////////////////////////////////////////////////
 // Function returning the segment characteristic object for element ne
 hfp2d::SegmentData Mesh::getElementData(const il::int_t ne) {
-
   il::StaticArray2D<double, 2, 2> Xs;
   Xs(0, 0) = coordinates_(connectivity_(ne, 0), 0);
   Xs(0, 1) = coordinates_(connectivity_(ne, 0), 1);
@@ -226,7 +226,7 @@ hfp2d::SegmentData Mesh::getElementData(const il::int_t ne) {
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-// adding elements function...
+// adding elements metod...
 void Mesh::addNTipElts(const il::int_t t_e, const il::int_t the_tip_node,
                        const il::int_t n_add, double kink_angle) {
   // add n_add elements in the Mesh object ahead of the nodes the_tip_node
@@ -244,9 +244,9 @@ void Mesh::addNTipElts(const il::int_t t_e, const il::int_t the_tip_node,
 
   il::StaticArray<il::int_t, 2> tipEltConn = connectivity(t_e);
   double h = tipEltData.size();
-  double global_prop_angle=0.;
+  double global_prop_angle = 0.;
 
-  il::int_t local_tip_node=0;
+  il::int_t local_tip_node = 0;
   il::StaticArray<double, 2> local_dir;
 
   // we need to know how if the tip nodes is the first or second nodes of the
@@ -285,8 +285,8 @@ void Mesh::addNTipElts(const il::int_t t_e, const il::int_t the_tip_node,
 
   // reconstructing the whole coordinates array (sub-optimal)
   // could use resize()
-  il::int_t nelts_old=numberOfElts();
-  il::int_t nnodes_old=numberOfNodes();
+  il::int_t nelts_old = numberOfElts();
+  il::int_t nnodes_old = numberOfNodes();
 
   il::Array2D<double> new_all_coor(nnodes_old + n_add, 2);
 
@@ -330,11 +330,11 @@ void Mesh::addNTipElts(const il::int_t t_e, const il::int_t the_tip_node,
 
   material_id_.resize(nelts);
 
+  // fracture id update...
   fracture_id_.resize(nelts);
-  for (il::int_t i=0;i<n_add;i++){
-    fracture_id_[i+nelts_old]=fracNumber;
+  for (il::int_t i = 0; i < n_add; i++) {
+    fracture_id_[i + nelts_old] = fracNumber;
   };
-
 
   // DOF HANDLES
   // COULD  be optimized below.... here we re-built everything from scratch...
@@ -351,14 +351,13 @@ void Mesh::addNTipElts(const il::int_t t_e, const il::int_t the_tip_node,
   //   dof(element, local nnodes number)
   // actually this is the connectivity_ array for  p =1 and
   // a simple elt number of P0
-  if (interpolation_order_==0){
-    il::Array2D<il::int_t> id_press{nelts,1};
+  if (interpolation_order_ == 0) {
+    il::Array2D<il::int_t> id_press{nelts, 1};
     for (il::int_t e = 0; e < nelts; e++) {
       id_press(e, 0) = e;
     };
     dof_handle_pressure_ = id_press;
-  }
-  else { // case 1
+  } else {  // case 1
     dof_handle_pressure_ = connectivity_;
   };
 
@@ -369,6 +368,49 @@ void Mesh::addNTipElts(const il::int_t t_e, const il::int_t the_tip_node,
   tipnodes_ = buildTipNodes(node_adj_elt_);
   tipelts_ = buildTipElts(node_adj_elt_, tipnodes_);
 
-}
+  auto nfracs = numberOfFractures();
+  IL_EXPECT_FAST(tipnodes_.size()==nfracs*2);
+  IL_EXPECT_FAST(tipelts_.size()==nfracs*2);
+  //order them as function of the fractureID such that it is easier
+  // to track the tips
+  il::int_t  jf=0;
+  il::int_t  nl=0;// local node
+  il::Array<il::int_t> orderedTipNodes{2*nfracs,-1}; // init with -1
+  il::Array<il::int_t> orderedTipElts{2*nfracs,-1};
+  il::StaticArray<double,2> tipcoor1;
+  il::StaticArray<double,2> tipcoor2;
+  double dist1=0; double dist2=0.;
+  il::int_t iaux; il::int_t nl2=1;
+  for (il::int_t i=0;i<tipnodes_.size();i++ ){
+    tipcoor1=coordinates(tipnodes_[i]);
+    dist1 = il::norm(tipcoor1,il::Norm::L2);
+    jf=fracture_id_[tipelts_[i]];
+    nl=0;
+    if ((orderedTipElts[jf*2]!=-1))
+    {  // already a node stored
+      tipcoor2=coordinates(orderedTipElts[jf*2]);
+      dist2 = il::norm(tipcoor2,il::Norm::L2);
+      if (dist1>dist2){
+        nl=1;
+      } else {
+        if (dist1==dist2){
+          if (tipcoor1[0]>tipcoor2[0]){
+            nl=1;
+          }
+        }
+      }
+      if (nl==0) {
+        iaux = orderedTipElts[jf*2];
+        orderedTipElts[jf*2+1]=iaux;
+        iaux = orderedTipNodes[jf*2];
+        orderedTipNodes[jf*2+1]=iaux;
+      }
+    };
 
+    orderedTipElts[jf*2+nl]=tipelts_[i];
+    orderedTipNodes[jf*2+nl]=tipnodes_[i];
+  }
+  tipnodes_=orderedTipNodes;
+  tipelts_=orderedTipElts;
+}
 }
