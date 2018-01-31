@@ -269,14 +269,14 @@ Solution reynoldsP1(Mesh &theMesh, il::Array2D<double> &elast_matrix,
     }
 
     for (il::int_t n = 0; n < dof_active_elmnts.size(); n = n + 2) {
-      BigB[n] = -((fric_coeff_k[dof_active_elmnts[n] / 2] *
-                   (SolutionAtTn_k.sigmaN(dof_active_elmnts[n] / 2) -
-                    press_coll[dof_active_elmnts[n] / 2])) -
-                  SolutionAtTn_k.tau(dof_active_elmnts[n] / 2));
-//        BigB[n] = -((fric_coeff_k[dof_active_elmnts[n] / 2] *
-//                     (SolutionAtTn_k.sigmaN(dof_active_elmnts[n] / 2) -
-//                      press_coll[dof_active_elmnts[n] / 2])) +
-//                    tau_prev[n] - 0.55);
+//      BigB[n] = -((fric_coeff_k[dof_active_elmnts[n] / 2] *
+//                   (SolutionAtTn_k.sigmaN(dof_active_elmnts[n] / 2) -
+//                    press_coll[dof_active_elmnts[n] / 2])) -
+//                  SolutionAtTn_k.tau(dof_active_elmnts[n] / 2));
+        BigB[n] = -((fric_coeff_k[dof_active_elmnts[n] / 2] *
+                     (SolutionAtTn_k.sigmaN(dof_active_elmnts[n] / 2) -
+                      press_coll[dof_active_elmnts[n] / 2])) +
+                    tau_prev[n] - 0.55);
     }
 
     auto Lp = il::dot(L, SolutionAtTn.pressure());

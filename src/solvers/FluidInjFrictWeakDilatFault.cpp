@@ -122,7 +122,8 @@ void fluidInjFrictWeakDilatFault(int argc, char const *argv[]) {
   const double err_press = 2.;
   double shear_modulus = 1.;
   double shear_wave_vel = 1.;
-  double damping_coeff = shear_modulus / (2 * shear_wave_vel);
+  //  double damping_coeff = shear_modulus / (2 * shear_wave_vel);
+  double damping_coeff = 0.;
   il::int_t init_iter_front_position = 0;
   il::int_t init_iter_ehls = 0;
 
