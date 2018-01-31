@@ -32,7 +32,8 @@ Solution reynoldsP1(Mesh &theMesh, il::Array2D<double> &elast_matrix,
                     FractureEvolution &FractureEvolution, Sources &Source,
                     il::Array<int> &dof_active_elmnts, il::Status &status,
                     il::Norm &norm, bool damping_term, double damping_coeff,
-                    double dilat_plast) {
+                    double dilat_plast,
+                    hfp2d::InSituStress &BackgroundLoadingConditions) {
   //// IMPLICIT SOLUTION OF THE COUPLED PROBLEM ////
   // Initialization of the system BigA*BigX = BigB
   il::Array2D<double> BigA{dof_active_elmnts.size() + theMesh.numberOfNodes(),
@@ -276,7 +277,8 @@ Solution reynoldsP1(Mesh &theMesh, il::Array2D<double> &elast_matrix,
       BigB[n] = -1. * ((fric_coeff_k[dof_active_elmnts[n] / 2] *
                         (SolutionAtTn_k.sigmaN(dof_active_elmnts[n] / 2) -
                          press_coll[dof_active_elmnts[n] / 2])) -
-                       tau_prev[n] - 0.55);
+                       tau_prev[n] -
+                       BackgroundLoadingConditions.getBackgroundShearStress(0));
     }
 
     auto Lp = il::dot(L, SolutionAtTn.pressure());

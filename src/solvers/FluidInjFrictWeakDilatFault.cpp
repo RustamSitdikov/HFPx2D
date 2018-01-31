@@ -208,7 +208,8 @@ void fluidInjFrictWeakDilatFault(int argc, char const *argv[]) {
         kmat, from_edge_to_coll_dds, from_edge_to_coll_dd,
         from_edge_to_coll_press, dof_single_dd, MyMesh, FluidProperties,
         SimulationParameters, SolidEvolution, FractureEvolution, Source,
-        SolutionAtTn, expl_impl, quasi_dynamic, damping_coeff, dilat_plast);
+        SolutionAtTn, expl_impl, quasi_dynamic, damping_coeff, dilat_plast,
+        BackgroundLoadingConditions);
 
     // Calculate the new slippage length (i.e at time T_n+1)
     if (SolutionAtTnPlus1.activeElts().size() == 0) {
@@ -278,7 +279,8 @@ Solution fractFrontPosition(
     SimulationParameters &SimulationParameters, SolidEvolution &SolidEvolution,
     FractureEvolution &FractureEvolution, Sources &Source,
     Solution &SolutionAtTn, bool expl_impl, bool damping_term,
-    double damping_coeff, double dilat_plast) {
+    double damping_coeff, double dilat_plast,
+    hfp2d::InSituStress &BackgroundLoadingConditions) {
   // Initialization of fracture front loop
   // SolutionAtTn -> solution object at current time Tn
   // SolutionAtTn_k -> current solution object at iter k of fracture front loop
@@ -326,7 +328,8 @@ Solution fractFrontPosition(
         theMesh, elast_matrix, fetc_dds, fetc_dd, fetc_press, SolutionAtTn,
         SolutionAtTn_k, incrm_shearDD, incrm_openingDD, SimulationParameters,
         FluidProperties, SolidEvolution, FractureEvolution, Source,
-        dofs_act_elmts, status, norm, damping_term, damping_coeff, dilat_plast);
+        dofs_act_elmts, status, norm, damping_term, damping_coeff, dilat_plast,
+        BackgroundLoadingConditions);
 
     // Update active set of elements
     new_active_set_elements = SolutionAtTn_kPlus1.activeSetElements(

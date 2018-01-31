@@ -31,7 +31,8 @@ Solution reynoldsP1(Mesh &theMesh, il::Array2D<double> &elast_matrix,
                     FractureEvolution &FractureEvolution, Sources &Source,
                     il::Array<int> &dof_active_elmnts, il::Status &status,
                     il::Norm &norm, bool damping_term, double damping_coeff,
-                    double dilat_plast);
+                    double dilat_plast,
+                    hfp2d::InSituStress &BackgroundLoadingConditions);
 }
 
 #endif  // HFPX2D_REYNOLDSP1_H

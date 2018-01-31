@@ -13,6 +13,7 @@
 // Inclusion from the project
 #include <src/core/ElasticProperties.h>
 #include <src/core/FluidProperties.h>
+#include <src/core/InSituStress.h>
 #include <src/core/Mesh.h>
 #include <src/core/SimulationParameters.h>
 #include <src/core/Solution.h>
@@ -32,7 +33,8 @@ Solution fractFrontPosition(
     SimulationParameters &SimulationParameters, SolidEvolution &SolidEvolution,
     FractureEvolution &FractureEvolution, Sources &Source,
     Solution &SolutionAtTn, bool expl_impl, bool damping_term,
-    double damping_coeff, double dilat_plast);
+    double damping_coeff, double dilat_plast,
+    hfp2d::InSituStress &BackgroundLoadingConditions);
 }
 
 #endif  // HFPX2D_FLUIDINJFRICTWEAKDILATFAULT_H
