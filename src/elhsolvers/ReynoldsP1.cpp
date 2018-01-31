@@ -51,15 +51,6 @@ Solution reynoldsP1(Mesh &theMesh, il::Array2D<double> &elast_matrix,
     }
   }
 
-    il::Array2D<double> elast_submatrix_shear{dof_active_elmnts.size()/2,
-                                        dof_active_elmnts.size()/2, 0};
-    for (il::int_t m = 0, n=0; m < elast_submatrix_shear.size(0); ++m, n=n+2) {
-        for (il::int_t i = 0, p=0; i < elast_submatrix_shear.size(1); ++i, p=p+2) {
-            elast_submatrix_shear(m, i) =
-                    elast_submatrix(n,p);
-        }
-    }
-
   // For Quasi-Dynamic formulation of elasticity, add damping term to the
   // diagonal -> "Spatio-Temporal Complexity of Slip on a Fault" - J.Rice (1993)
   if (damping_term) {
@@ -182,8 +173,7 @@ Solution reynoldsP1(Mesh &theMesh, il::Array2D<double> &elast_matrix,
   il::Array2D<double> Npk;
   il::Array2D<double> FN;
   il::Array2D<double> B;
-  il::Array<double> tot_slipk{dof_active_elmnts.size(), 0};
-    il::Array<double> rhd{dof_active_elmnts.size()/2, 0};
+  il::Array<double> tot_slipk{dof_active_elmnts.size(), 0.};
 
   while ((k < SimulationParameters.ehl_max_its) &&
          (err_shearDD > SimulationParameters.ehl_tolerance ||
@@ -225,7 +215,7 @@ Solution reynoldsP1(Mesh &theMesh, il::Array2D<double> &elast_matrix,
 
     // Dilatancy matrix
     if (dof_active_elmnts.size() == 0) {
-      Vd = il::Array2D<double>{0, 0, 0};
+      Vd = il::Array2D<double>{0, 0, 0.};
     } else {
       Vd = hfp2d::buildVdMatrix(theMesh, FractureEvolution, FluidProperties,
                                 shearDD_k);
@@ -269,7 +259,7 @@ Solution reynoldsP1(Mesh &theMesh, il::Array2D<double> &elast_matrix,
 
     // Right hand-side vector
     for (il::int_t l2 = 0; l2 < dof_active_elmnts.size(); l2 = l2 + 2) {
-      tot_slipk[l2] = shearDD_k[dof_active_elmnts[l2]/2];
+      tot_slipk[l2] = -1 * shearDD_k[dof_active_elmnts[l2] / 2];
     }
 
     // Current increment of shear stress due to movement of slipping nodes
@@ -279,14 +269,14 @@ Solution reynoldsP1(Mesh &theMesh, il::Array2D<double> &elast_matrix,
     }
 
     for (il::int_t n = 0; n < dof_active_elmnts.size(); n = n + 2) {
-//      BigB[n] = -((fric_coeff_k[dof_active_elmnts[n] / 2] *
-//                   (SolutionAtTn_k.sigmaN(dof_active_elmnts[n] / 2) -
-//                    press_coll[dof_active_elmnts[n] / 2])) -
-//                  SolutionAtTn_k.tau(dof_active_elmnts[n] / 2));
-        BigB[n] = -((fric_coeff_k[dof_active_elmnts[n] / 2] *
-                     (SolutionAtTn_k.sigmaN(dof_active_elmnts[n] / 2) -
-                      press_coll[dof_active_elmnts[n] / 2])) +
-                    tau_prev[n] - 0.55);
+      //      BigB[n] = -((fric_coeff_k[dof_active_elmnts[n] / 2] *
+      //                   (SolutionAtTn_k.sigmaN(dof_active_elmnts[n] / 2) -
+      //                    press_coll[dof_active_elmnts[n] / 2])) -
+      //                  SolutionAtTn_k.tau(dof_active_elmnts[n] / 2));
+      BigB[n] = -1. * ((fric_coeff_k[dof_active_elmnts[n] / 2] *
+                        (SolutionAtTn_k.sigmaN(dof_active_elmnts[n] / 2) -
+                         press_coll[dof_active_elmnts[n] / 2])) -
+                       tau_prev[n] - 0.55);
     }
 
     auto Lp = il::dot(L, SolutionAtTn.pressure());
@@ -299,24 +289,18 @@ Solution reynoldsP1(Mesh &theMesh, il::Array2D<double> &elast_matrix,
     /// Boundary conditions ///
 
     for (il::int_t k1 = 0; k1 < BigA.size(1); ++k1) {
-      BigA(dof_active_elmnts.size() + Source.getSourcePoint(), k1) = 0;
+      BigA(dof_active_elmnts.size() + Source.getSourcePoint(), k1) = 0.;
     }
 
     BigA(dof_active_elmnts.size() + Source.getSourcePoint(),
-         dof_active_elmnts.size() + Source.getSourcePoint()) = 1;
+         dof_active_elmnts.size() + Source.getSourcePoint()) = 1.;
 
-    BigB[dof_active_elmnts.size() + Source.getSourcePoint()] = 0;
-
-      for (int l = 0, p=0; l < rhd.size(); ++l, p=p+2) {
-          rhd[l] = BigB[p];
-      }
+    BigB[dof_active_elmnts.size() + Source.getSourcePoint()] = 0.;
 
     /// Solve the system ///
 
     BigX = il::linearSolve(BigA, BigB, il::io, status);
     status.abortOnError();
-
-    auto RES = il::linearSolve(elast_submatrix_shear,rhd,il::io,status);
 
     ///  Under relaxation technique & updating ///
 
@@ -383,9 +367,9 @@ Solution reynoldsP1(Mesh &theMesh, il::Array2D<double> &elast_matrix,
           (il::norm(diff_incrm_press_k, norm) / il::norm(incrm_press_k, norm));
     }
 
-    //        std::cout << "  error on shearDD : " << err_shearDD
-    //                  << "  error on openingDD: " << err_openingDD
-    //                  << "  error on pressure: " << err_press << "\n";
+    //    std::cout << "  error on shearDD : " << err_shearDD
+    //              << "  error on openingDD: " << err_openingDD
+    //              << "  error on pressure: " << err_press << "\n";
 
     // Update -> old is new
     incrm_openingDD_k_old = incrm_openingDD_k;
@@ -393,7 +377,9 @@ Solution reynoldsP1(Mesh &theMesh, il::Array2D<double> &elast_matrix,
     incrm_press_k_old = incrm_press_k;
   }
 
-  std::cout << "\n" << std::endl;
+  std::cout << "\n error on Dd_shear : " << err_shearDD << "  || "
+            << " error on Dd_opening : " << err_shearDD << "  || "
+            << " error on Dp: " << err_press << "\n";
 
   // Cumulative increment of slip
   for (il::int_t l = 0; l < incrm_shearDD.size(); ++l) {
