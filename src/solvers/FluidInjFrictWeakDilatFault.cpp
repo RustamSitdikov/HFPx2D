@@ -99,7 +99,7 @@ void fluidInjFrictWeakDilatFault(int argc, char const *argv[]) {
   hfp2d::SimulationParameters SimulationParameters;
   SimulationParameters.ehl_max_its = 200;
   SimulationParameters.ehl_tolerance = 1.e-6;
-  SimulationParameters.ehl_relaxation = 1.;
+  SimulationParameters.ehl_relaxation = 0.7;
   SimulationParameters.frac_front_max_its = 50;
   SimulationParameters.frac_front_tolerance = 1.e-3;
 

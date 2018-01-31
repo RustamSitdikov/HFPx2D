@@ -173,6 +173,7 @@ Solution reynoldsP1(Mesh &theMesh, il::Array2D<double> &elast_matrix,
   il::Array2D<double> Npk;
   il::Array2D<double> FN;
   il::Array2D<double> B;
+  il::Array<double> tot_slipk{dof_active_elmnts.size(), 0};
 
   while ((k < SimulationParameters.ehl_max_its) &&
          (err_shearDD > SimulationParameters.ehl_tolerance ||
@@ -244,8 +245,7 @@ Solution reynoldsP1(Mesh &theMesh, il::Array2D<double> &elast_matrix,
     }
 
     for (il::int_t q = 0; q < Vd.size(0); ++q) {
-      for (il::int_t i = 0; i < dof_active_elmnts.size();
-           ++i) {
+      for (il::int_t i = 0; i < dof_active_elmnts.size(); ++i) {
         BigA(dof_active_elmnts.size() + q, i) = Vd(q, dof_active_elmnts[i]);
       }
     }
@@ -258,12 +258,25 @@ Solution reynoldsP1(Mesh &theMesh, il::Array2D<double> &elast_matrix,
     }
 
     // Right hand-side vector
+    for (il::int_t l2 = 0; l2 < dof_active_elmnts.size(); l2 = l2 + 2) {
+      tot_slipk[l2] = shearDD_k[dof_active_elmnts[l2]/2];
+    }
+
+    // Current increment of shear stress due to movement of slipping nodes
+    il::Array<double> tau_prev{elast_submatrix.size(0), 0};
+    if (dof_active_elmnts.size() != 0) {
+      tau_prev = il::dot(elast_submatrix, tot_slipk);
+    }
 
     for (il::int_t n = 0; n < dof_active_elmnts.size(); n = n + 2) {
       BigB[n] = -((fric_coeff_k[dof_active_elmnts[n] / 2] *
                    (SolutionAtTn_k.sigmaN(dof_active_elmnts[n] / 2) -
                     press_coll[dof_active_elmnts[n] / 2])) -
                   SolutionAtTn_k.tau(dof_active_elmnts[n] / 2));
+//        BigB[n] = -((fric_coeff_k[dof_active_elmnts[n] / 2] *
+//                     (SolutionAtTn_k.sigmaN(dof_active_elmnts[n] / 2) -
+//                      press_coll[dof_active_elmnts[n] / 2])) +
+//                    tau_prev[n] - 0.55);
     }
 
     auto Lp = il::dot(L, SolutionAtTn.pressure());
