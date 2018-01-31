@@ -27,12 +27,12 @@
 // Multiple platforms
 ////////////////////////////////////////////////////////////////////////////////
 
-#if defined(WIN32) || defined(_WIN32) || \
-    defined(__WIN32) && !defined(__CYGWIN__)
-#define IL_WINDOWS
-#else
+//#if defined(WIN32) || defined(_WIN32) || \
+//    defined(__WIN32) && !defined(__CYGWIN__)
+//#define IL_WINDOWS
+//#else
 #define IL_UNIX
-#endif
+//#endif
 
 #if _WIN32 || _WIN64
 #if _WIN64

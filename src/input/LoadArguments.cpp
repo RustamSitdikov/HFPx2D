@@ -45,7 +45,7 @@ void loadArguments(int argc, char const *argv[], il::io_t,
 
   il::int_t status_of_access;
   config_filename =
-      il::String(il::StringType::Bytes, second_arg.c_str(), second_arg.size());
+      il::String(il::StringType::Ascii, second_arg.c_str(), second_arg.size());
 
   status_of_access = access(config_filename.asCString(), F_OK | R_OK);
 
@@ -57,7 +57,7 @@ void loadArguments(int argc, char const *argv[], il::io_t,
   }
 
   path_output_directory =
-      il::String(il::StringType::Bytes, third_arg.c_str(), third_arg.size());
+      il::String(il::StringType::Ascii, third_arg.c_str(), third_arg.size());
 
   const int output_dir_status = mkdir(path_output_directory.asCString(), 0777);
 
