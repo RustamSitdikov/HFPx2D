@@ -154,7 +154,7 @@ Solution reynoldsP1(Mesh &theMesh, il::Array2D<double> &elast_matrix,
   double err_shearDD = 2.;
   double err_openingDD = 2.;
   double err_press = 2.;
-  il::Array<double> BigX{BigA.size(0), 0};
+  il::Array<double> BigX{BigA.size(0), 0.};
   il::Array<double> incrm_shearDD_k{2 * theMesh.numberOfElts(), 0.};
   il::Array<double> incrm_shearDD_k_old{2 * theMesh.numberOfElts(), 0.};
   il::Array<double> diff_incrm_shearDD_k{2 * theMesh.numberOfElts(), 0.};
@@ -175,7 +175,8 @@ Solution reynoldsP1(Mesh &theMesh, il::Array2D<double> &elast_matrix,
   il::Array2D<double> FN;
   il::Array2D<double> B;
   il::Array<double> tot_slipk{dof_active_elmnts.size(), 0.};
-  il::Array<double> curr_incr_tau{elast_submatrix.size(0), 0};
+  il::Array<double> curr_incr_tau{elast_submatrix.size(0), 0.};
+  il::Array<double> curr_tau{curr_incr_tau.size(), 0.};
 
   while ((k < SimulationParameters.ehl_max_its) &&
          (err_shearDD > SimulationParameters.ehl_tolerance ||
@@ -260,13 +261,19 @@ Solution reynoldsP1(Mesh &theMesh, il::Array2D<double> &elast_matrix,
     }
 
     // Right hand-side vector
+
     for (il::int_t l2 = 0; l2 < dof_active_elmnts.size(); l2 = l2 + 2) {
-      tot_slipk[l2] = -1 * shearDD_k[dof_active_elmnts[l2] / 2];
+      tot_slipk[l2] = -1. * shearDD_k[dof_active_elmnts[l2] / 2];
     }
 
     // Current increment of shear stress due to movement of slipping nodes
     if (dof_active_elmnts.size() != 0) {
       curr_incr_tau = il::dot(elast_submatrix, tot_slipk);
+
+      for (il::int_t i = 0; i < curr_tau.size(); i = i + 2) {
+        curr_tau[i] = curr_incr_tau[i] +
+                      BackgroundLoadingConditions.getBackgroundShearStress(0);
+      }
     }
 
     for (il::int_t n = 0; n < dof_active_elmnts.size(); n = n + 2) {
@@ -278,8 +285,7 @@ Solution reynoldsP1(Mesh &theMesh, il::Array2D<double> &elast_matrix,
       BigB[n] = -1. * ((fric_coeff_k[dof_active_elmnts[n] / 2] *
                         (SolutionAtTn_k.sigmaN(dof_active_elmnts[n] / 2) -
                          press_coll[dof_active_elmnts[n] / 2])) -
-                       curr_incr_tau[n] -
-                       BackgroundLoadingConditions.getBackgroundShearStress(0));
+                       curr_tau[n]);
     }
 
     auto Lp = il::dot(L, SolutionAtTn.pressure());
@@ -309,14 +315,14 @@ Solution reynoldsP1(Mesh &theMesh, il::Array2D<double> &elast_matrix,
 
     for (il::int_t q = 0; q < dof_active_elmnts.size(); q = q + 2) {
       incrm_shearDD_k[dof_active_elmnts[q] / 2] =
-          (1 - SimulationParameters.ehl_relaxation) *
+          (1. - SimulationParameters.ehl_relaxation) *
               incrm_shearDD_k_old[dof_active_elmnts[q] / 2] +
           SimulationParameters.ehl_relaxation * BigX[q];
     }
 
     for (il::int_t q = 1; q <= dof_active_elmnts.size(); q = q + 2) {
       incrm_openingDD_k[dof_active_elmnts[q] / 2] =
-          (1 - SimulationParameters.ehl_relaxation) *
+          (1. - SimulationParameters.ehl_relaxation) *
               incrm_openingDD_k_old[dof_active_elmnts[q] / 2] +
           SimulationParameters.ehl_relaxation * BigX[q];
     }
@@ -370,9 +376,9 @@ Solution reynoldsP1(Mesh &theMesh, il::Array2D<double> &elast_matrix,
           (il::norm(diff_incrm_press_k, norm) / il::norm(incrm_press_k, norm));
     }
 
-    //    std::cout << "  error on shearDD : " << err_shearDD
-    //              << "  error on openingDD: " << err_openingDD
-    //              << "  error on pressure: " << err_press << "\n";
+//    std::cout << "  error on shearDD : " << err_shearDD
+//              << "  error on openingDD: " << err_openingDD
+//              << "  error on pressure: " << err_press << "\n";
 
     // Update -> old is new
     incrm_openingDD_k_old = incrm_openingDD_k;
@@ -386,12 +392,12 @@ Solution reynoldsP1(Mesh &theMesh, il::Array2D<double> &elast_matrix,
 
   // Cumulative increment of slip
   for (il::int_t l = 0; l < incrm_shearDD.size(); ++l) {
-    incrm_shearDD[l] = (incrm_shearDD[l] + incrm_shearDD_k[l]);
+    incrm_shearDD[l] = incrm_shearDD[l] + incrm_shearDD_k[l];
   }
 
   // Cumulative increment of opening
   for (il::int_t l = 0; l < incrm_openingDD.size(); ++l) {
-    incrm_openingDD[l] = (incrm_openingDD[l] + incrm_openingDD_k[l]);
+    incrm_openingDD[l] = incrm_openingDD[l] + incrm_openingDD_k[l];
   }
 
   // Calculate increment of shear stress due to increment of shear DD
