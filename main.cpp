@@ -121,9 +121,9 @@ int main() {
   double dist = 1e8;
   //
 
-//  std::cout << "-----------------" << std::endl;
-//  std::cout << "Parallel HFs test" << std::endl;
-//  int ret = hfp2d::ParallelHFs();
+  std::cout << "-----------------" << std::endl;
+  std::cout << "Parallel HFs test" << std::endl;
+  int ret = hfp2d::ParallelHFs();
 
   // std::cout << "return " << ret;
   // double ret1 =  hfp2d::SimpleGriffithExampleS3D_P0_byNodes(10);
