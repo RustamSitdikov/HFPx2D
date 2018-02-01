@@ -1,0 +1,83 @@
+GENERAL CODE STUFF
+
+- P1 FV utilities -> Resp. Federico
+    + some google test needed
+
+- tip -> Resp. Dmitry
+- wellbore -> Resp. Dmitry
+
+core/
+    DomainMesh -> tb further testeed, more test needed
+    ElasticProperties -> stable  (some cleaning to be done)
+    Fluid -> stable / newtonian only so far
+    InSituConditions -> needs further work for non-uniform case, some test needed
+    Mesh -> somehow stable (some cleaning to be done), more tests
+    SegmentData -> Stable, some unit test needed
+    SimulationParameters -> Stable
+    SolidProperties -> some stuff may be addded ?
+    Solution -> some stuff will be added, make sure to also add things in the json output
+    Sources -> stable, test
+
+core_dev /
+    SolidEvolution
+
+ehlsolvers/
+        ReynoldsP0 -> leak-off need to be added, solver with constraints need to be written
+        ReynoldsP1 -> constraints, leak-off ?, currently single fracture -> needs to extend it to multiple fracs + intersecting.
+
+elasticity
+    need to code an observation routine -> obtain stress at a point due to a DD solution (or a at a number of points).
+    AssemblyDDM -> stable
+    PlaneStrainInfinite -> stable
+    Simplified3D -> stable
+
+input/
+    Q : keep the toml routines -> all in one folder.
+    json  : we need to re-arrange the different base routines add more
+
+Solvers/
+
+    ModeII crack -> Federico
+    HFPropagationP0-> Brice  for HF propagation, need to be extended to curving (Dmitry)
+    MultiFracsSolution ->  solution class for Multistage fracturing
+    MultiFracSolver -> Brice, Dmitry
+    SimpleElasticBenchmarks -> tb renamed as Griffith
+    need to write a simple Elastic Solver with json inputs/outputs
+
+
+NOTES - Multi-HF-algo Development
+
+Elasticity benchmark
+- Simplified 3D benchmarks compared with 3D code
+- 1 rectangular crack -> induced stress in the mid plane.
+     - convergence tests
+- 1 curved rectangular crack -> induced stress in the plane
+- 2 parallel cracks
+- 2 curved cracks
+
+
+HF Benchmarks:
+1- plane-strain case  - fractures far-apart from each other :: viscosity and toughness
+todo: 2-PKN like (transition kgd-> pkn)
+
+things to be done.
+
+tip asymptote package
+ - add leak-off tip volume
+
+Development FracturesFrontLoop
+- add leak-off
+
+- Reynolds Multi-HF
+    - width constraints (case for example when starting pumping and the pressure is below sigma_n_o)
+        -> convergence on pressure increment only (if width constraint are active)
+
+- Coupling with wellbore-flow
+    - try staggered loop above the fracture front loop - try with 2 fractures
+    - json inputs stuff...
+
+- Background mesh for mat properties and in-situ conditions
+
+- test stress jumps
+- test toughness jumps
+
