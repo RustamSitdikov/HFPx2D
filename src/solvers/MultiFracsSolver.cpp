@@ -92,7 +92,7 @@ int MultipleFracsPropagation() {
     std::cout << "No Fracture height input in  model parameters";
     il::abort();
   }
-  auto frac_heigth = j_params["Fracture height"].get<double>();
+  auto frac_height = j_params["Fracture height"].get<double>();
 
   // ----------
   // Create Initial fracture mesh
@@ -177,10 +177,16 @@ int MultipleFracsPropagation() {
   SimulFracParam.ehl_relaxation = 0.95;
   SimulFracParam.ehl_tolerance = 1.e-6;
 
-  // for pipe flow
+  // for pipe (well) flow
   hfp2d::SimulationParameters SimulWellFlowParam;
   SimulWellFlowParam.ehl_relaxation = 1.0;
   SimulWellFlowParam.ehl_tolerance = 1.e-6;
+
+  // for well-frac coupling
+  hfp2d::SimulationParameters SimulCouplParam;
+  SimulCouplParam.ehl_max_its = 20;
+  SimulCouplParam.ehl_relaxation = 1.0;
+  SimulCouplParam.ehl_tolerance = 1.e-6;
 
   // Create Initial state.....
 
@@ -236,7 +242,7 @@ int MultipleFracsPropagation() {
 
   il::Array2D<double> K = hfp2d::basic_assembly(
       fracsMesh, elasprop, hfp2d::normal_shear_stress_kernel_s3d_dp0_dd,
-      frac_heigth);
+      frac_height);
 
   // add tip correction for P0 for each tips in the mesh
   for (il::int_t i = 0; i < fracsMesh.tipElts().size(); i++) {
@@ -297,8 +303,10 @@ int MultipleFracsPropagation() {
   // we know are ready
   il::Array<double> dpc{nfracs, 0.};
 
-  hfp2d::MultiFracsSolution completeSol_n(fracSol_n, wellSol_n, frac_sources,
-                                          well_sources, 0, dpc, 0.);
+  hfp2d::MultiFracsSolution completeSol_n(fracSol_n, wellSol_n,
+                                          frac_sources, well_sources,
+                                          frac_height,
+                                          0, dpc, 0.);
 
   double max_time = 1.;
   if ( j_simul.count("Maximum time") ==1 ) {
@@ -323,12 +331,14 @@ int MultipleFracsPropagation() {
 
   // time step loop !!!
 
-  while ( (jt < max_steps)  && (completeSol_n.time() < max_time) ) {
+  while ( (jt < max_steps) && (completeSol_n.time() < max_time) ) {
     jt++;
 
     MultiFracsSolution completeSol_n_1 = wellHFsSolver_fixedpts(
-        completeSol_n, dt, well_mesh, w_inj, fracfluid, rock, SimulFracParam,
-        SimulWellFlowParam, frac_heigth, false, il::io, K);
+        completeSol_n, dt, well_mesh, w_inj, fracfluid, rock,
+        SimulFracParam, SimulWellFlowParam, SimulCouplParam,
+        frac_height,
+        false, il::io, K);
 
     std::cout << "----------" << std::endl;
     std::cout << "Step " << jt << "; time: " << completeSol_n_1.time()
@@ -366,10 +376,16 @@ double entryFrictionResiduals(double s, IFParamEntryFriction &params) {
 
 ////////////////////////////////////////////////////////////////////////////////
 hfp2d::MultiFracsSolution wellHFsSolver_fixedpts(
-    hfp2d::MultiFracsSolution &Sol_n, double dt, hfp2d::WellMesh &w_mesh,
-    hfp2d::WellInjection &w_inj, hfp2d::Fluid &fracfluid,
-    hfp2d::SolidProperties &rock, hfp2d::SimulationParameters &frac_solver_p,
-    hfp2d::SimulationParameters &well_solver_p, double &frac_heigth, bool mute,
+    hfp2d::MultiFracsSolution &Sol_n, double dt,
+    hfp2d::WellMesh &w_mesh,
+    hfp2d::WellInjection &w_inj,
+    hfp2d::Fluid &fracfluid,
+    hfp2d::SolidProperties &rock,
+    hfp2d::SimulationParameters &frac_solver_p,
+    hfp2d::SimulationParameters &well_solver_p,
+    hfp2d::SimulationParameters &coupling_p,
+    double frac_height,
+    bool mute,
     il::io_t, il::Array2D<double> &K) {
   // We solve here the coupling between wellbore flow, fluid partitioning
   // between fractures
@@ -396,12 +412,20 @@ hfp2d::MultiFracsSolution wellHFsSolver_fixedpts(
   il::Array<il::int_t> frac_inj_loc = frac_sources_k.SourceElt();
   il::Array<il::int_t> well_out_loc = well_sources_k.SourceElt();
 
-  il::Array<double> Q_in_k = Sol_n.fracFluxes();
-  il::Array<double> Q_old = Q_in_k;
+  // current well-to-fracs fluxes (in m^3/s)
+  il::Array<double> rates_cur = Sol_n.clusterFluxes();
+  // this is used in iteration loop to estimete errors
+  il::Array<double> rates_old = rates_cur;
+  // rate entering the fracture = rate escaping the well / fracture height
+  il::Array<double> rates_per_height{nclusters, 0.};
+  // pressures on well and frac side
   il::Array<double> pc_w_k{nclusters, 0.}, pc_f_k{nclusters, 0.};
+  // pressure drops between well and fracs
   il::Array<double> dpc_k{nclusters, 0.};
+  // errors of fluxes and pressure drops
   il::Array<double> errQ{nclusters, 0.}, errDP{nclusters, 0.};
   double err = 1.;
+  // residuals
   il::Array<double> res_v{nclusters, 0.};
   il::Array<double> dQ_v{nclusters, 0.};
 
@@ -417,9 +441,6 @@ hfp2d::MultiFracsSolution wellHFsSolver_fixedpts(
   //  il::LU<il::Array2D<double>> Jacob_LU();
   il::Array2D<double> Jacob_inv;
 
-  // remember that the rate entering the fracture is rate / fracture heigth
-  il::Array<double> rates_per_height{nclusters,0.};
-
   if (!mute) {
     std::cout << "+++++++++++++++++++++++++" << std::endl;
   }
@@ -433,23 +454,23 @@ hfp2d::MultiFracsSolution wellHFsSolver_fixedpts(
   // todo: pass as arguments OR move to numerical parameters file
   double dQn = 2.0e-8;
   int num_J_reuse = 1;
-  double rela_flux = 1.;  // 0.01;
-  double Tolerance = 1.e-6;
-  int kmax = 20;
+  double rela_flux = coupling_p.ehl_relaxation;
+  double coupl_tolerance = coupling_p.ehl_tolerance;
+  int max_iters = coupling_p.ehl_max_its;
 
 
   int k = 0;
   // note: if all the fluxes are zero do not solve for frac flux,
   // just the wellbore
-  while ((k < kmax) && (err > Tolerance)) {
+  while ((k < max_iters) && (err > coupl_tolerance)) {
     k++;
 
-    for (il::int_t i=0;i<nclusters;i++){
-      rates_per_height[i]=Q_in_k[i]/frac_heigth;
+    for (il::int_t i = 0; i < nclusters; i++) {
+      rates_per_height[i] = rates_cur[i] / frac_height;
     }
+    // rate entering the fracture = rate escaping the well / fracture height
     frac_sources_k.setInjectionRates(rates_per_height);
-
-    well_sources_k.setInjectionRates(Q_in_k);
+    well_sources_k.setInjectionRates(rates_cur);
 
     if (!mute) {
       std::cout << "-------" << std::endl;
@@ -461,9 +482,9 @@ hfp2d::MultiFracsSolution wellHFsSolver_fixedpts(
                                         well_solver_p, true, fracfluid);
 
     // solve for fracture propagation with given flux.
-    // if (il::norm(Q_in_k, il::Norm::L2) != 0.) {
+    // if (il::norm(rates_cur, il::Norm::L2) != 0.) {
     fracSol_k = hfp2d::FractureFrontLoop(fracSol_n, fracfluid, rock,
-                                         frac_sources_k, frac_heigth, dt,
+                                         frac_sources_k, frac_height, dt,
                                          frac_solver_p, true, il::io_t(), K);
     //}
     // would need to have some checks for convergences of the solvers.....
@@ -480,22 +501,26 @@ hfp2d::MultiFracsSolution wellHFsSolver_fixedpts(
 
     // loop over cluster w. small variations of Q_in to estimate Jacobian
     if ((k - 1) % num_J_reuse == 0) {
-      il::Array<double> Q_in_var = Q_in_k;
+      il::Array<double> rates_var = rates_cur;
       il::Array<double> pc_w_var{nclusters, 0.}, pc_f_var{nclusters, 0.};
       for (il::int_t i = 0; i < nclusters; i++) {
-        double abs_Q = std::fabs(Q_in_k[i]);
+        double abs_Q = std::fabs(rates_cur[i]);
         // todo: scale it properly
         double scl_Q =
-            ((Q_in_k[i] == 0.) ? std::fabs(pump_rate) / nclusters : abs_Q);
-        // sign(Q_in_k[i])
-        // double sgn_Q = ((Q_in_k[i] < 0) ? -1.0 : double((Q_in_k[i] > 0)));
-        double sgn_Q = ((Q_in_k[i] < 0) ? -1.0 : 1.0);
+            ((rates_cur[i] == 0.) ? std::fabs(pump_rate) / nclusters : abs_Q);
+        // sign(rates_cur[i])
+        // double sgn_Q = ((rates_cur[i] < 0) ? -1.0 : double((rates_cur[i] > 0)));
+        double sgn_Q = ((rates_cur[i] < 0) ? -1.0 : 1.0);
         double dQi = std::fabs(dQn * scl_Q) * sgn_Q;
 
-        Q_in_var[i] = Q_in_k[i] + dQi;
+        rates_var[i] = rates_cur[i] + dQi;
 
-        frac_sources_var.setInjectionRates(Q_in_var);
-        well_sources_var.setInjectionRates(Q_in_var);
+        for (il::int_t i = 0; i < nclusters; i++) {
+          rates_per_height[i] = rates_var[i] / frac_height;
+        }
+        // rate entering the fracture = rate escaping the well / fracture height
+        frac_sources_var.setInjectionRates(rates_per_height);
+        well_sources_var.setInjectionRates(rates_var);
 
         // solve for wellbore flow
         wellSol_var = hfp2d::wellFlowSolverP0(wellSol_n, w_mesh, w_inj,
@@ -506,7 +531,7 @@ hfp2d::MultiFracsSolution wellHFsSolver_fixedpts(
 
         // solve for fracture propagation with given flux.
         fracSol_var = hfp2d::FractureFrontLoop(
-            fracSol_n, fracfluid, rock, frac_sources_var, frac_heigth, dt,
+            fracSol_n, fracfluid, rock, frac_sources_var, frac_height, dt,
             frac_solver_p, true, il::io_t(), K);
 
         // estimate Jacobian
@@ -516,13 +541,13 @@ hfp2d::MultiFracsSolution wellHFsSolver_fixedpts(
         }
         // Well - HF coupling (ENTRY FRICTION derivatives)
         // todo: check the sign!
-        if (Q_in_k[i] != 0.) {
+        if (rates_cur[i] != 0.) {
           Jacob(i, i) -= 2. * w_inj.coefPerf(i) * abs_Q +
                          w_inj.coefTort(i) * sgn_Q *
                              std::pow(abs_Q, w_inj.betaTort(i) - 1.);
         }
 
-        Q_in_var[i] = Q_in_k[i];
+        rates_var[i] = rates_cur[i];
       }
 
       // LU decomposition of Jacobian
@@ -549,7 +574,7 @@ hfp2d::MultiFracsSolution wellHFsSolver_fixedpts(
       entry_struct.ft = w_inj.coefTort(i);
       entry_struct.beta_t = w_inj.betaTort(i);
       // todo: check the sign!
-      res_v[i] = -entryFrictionResiduals(Q_in_k[i], entry_struct);
+      res_v[i] = -entryFrictionResiduals(rates_cur[i], entry_struct);
     }
 
     // solution...
@@ -561,7 +586,7 @@ hfp2d::MultiFracsSolution wellHFsSolver_fixedpts(
 
     // compute new flow rates...
     for (il::int_t i = 0; i < nclusters; i++) {
-      Q_in_k[i] += dQ_v[i] * rela_flux;
+      rates_cur[i] += dQ_v[i] * rela_flux;
     }
 
     // echo...
@@ -575,11 +600,11 @@ hfp2d::MultiFracsSolution wellHFsSolver_fixedpts(
     }
 
     //    // under-relaxation of the flow rates...
-    //    il::blas((1. - rela_flux), Q_old, rela_flux, il::io, Q_in_k);
+    //    il::blas((1. - rela_flux), rates_old, rela_flux, il::io, rates_cur);
 
     // compute successive relative difference, L2 norm
     for (il::int_t i = 0; i < nclusters; i++) {
-      errQ[i] = abs((Q_in_k[i] - Q_old[i]) / Q_in_k[i]);
+      errQ[i] = abs((rates_cur[i] - rates_old[i]) / rates_cur[i]);
       errDP[i] = abs(res_v[i] / dpc_k[i]);
     }
     err = il::norm(errQ, il::Norm::L2);  // + il::norm(errDP, il::Norm::L2);
@@ -588,7 +613,7 @@ hfp2d::MultiFracsSolution wellHFsSolver_fixedpts(
     if (!mute) {
       std::cout << "old fluxes: ";
       for (il::int_t i = 0; i < nclusters; i++) {
-        std::cout << i << ": " << Q_old[i] << "; ";
+        std::cout << i << ": " << rates_old[i] << "; ";
       }
       std::cout << std::endl << "res. of DP: ";
       for (il::int_t i = 0; i < nclusters; i++) {
@@ -596,17 +621,17 @@ hfp2d::MultiFracsSolution wellHFsSolver_fixedpts(
       }
       std::cout << std::endl << "new fluxes: ";
       for (il::int_t i = 0; i < nclusters; i++) {
-        std::cout << i << ": " << Q_in_k[i] << "; ";
+        std::cout << i << ": " << rates_cur[i] << "; ";
       }
       std::cout << "error: " << err << std::endl;
     }
 
     // resume...
-    Q_old = Q_in_k;
+    rates_old = rates_cur;
   }
 
   if (!mute) {
-    if (err < Tolerance) {
+    if (err < coupl_tolerance) {
       std::cout << "Well - HFs coupling converged after " << k << " its"
                 << std::endl;
     } else
@@ -615,7 +640,7 @@ hfp2d::MultiFracsSolution wellHFsSolver_fixedpts(
   }
 
   hfp2d::MultiFracsSolution newSol(fracSol_k, wellSol_k, frac_sources_k,
-                                   well_sources_k, k, dpc_k, err);
+                                   well_sources_k, frac_height, k, dpc_k, err);
 
   return newSol;
 }
