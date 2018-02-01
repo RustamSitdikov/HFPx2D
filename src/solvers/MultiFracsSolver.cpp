@@ -302,8 +302,6 @@ int MultipleFracsPropagation() {
   hfp2d::MultiFracsSolution completeSol_n(fracSol_n, wellSol_n, frac_sources,
                                           well_sources, 0, dpc, 0.);
 
-
-
   double max_time = 1.;
   if ( j_simul.count("Maximum time") ==1 ) {
     max_time = j_simul["Maximum time"].get<double>();
@@ -417,6 +415,9 @@ hfp2d::MultiFracsSolution wellHFsSolver_fixedpts(
   //  il::LU<il::Array2D<double>> Jacob_LU();
   il::Array2D<double> Jacob_inv;
 
+  // remember that the rate entering the fracture is rate / fracture heigth
+  il::Array<double> rates_per_height{nclusters,0.};
+
   if (!mute) {
     std::cout << "+++++++++++++++++++++++++" << std::endl;
   }
@@ -434,14 +435,17 @@ hfp2d::MultiFracsSolution wellHFsSolver_fixedpts(
   double Tolerance = 1.e-6;
   int kmax = 20;
 
+
   int k = 0;
   // note: if all the fluxes are zero do not solve for frac flux,
   // just the wellbore
   while ((k < kmax) && (err > Tolerance)) {
     k++;
 
-
-    frac_sources_k.setInjectionRates(Q_in_k);
+    for (il::int_t i=0;i<nclusters;i++){
+      rates_per_height[i]=Q_in_k[i]/frac_heigth;
+    }
+    frac_sources_k.setInjectionRates(rates_per_height);
 
     well_sources_k.setInjectionRates(Q_in_k);
 
