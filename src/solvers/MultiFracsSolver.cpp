@@ -302,14 +302,32 @@ int MultipleFracsPropagation() {
   hfp2d::MultiFracsSolution completeSol_n(fracSol_n, wellSol_n, frac_sources,
                                           well_sources, 0, dpc, 0.);
 
-  // time step loop !!!
+
+
+  double max_time = 1.;
+  if ( j_simul.count("Maximum time") ==1 ) {
+    max_time = j_simul["Maximum time"].get<double>();
+  }
+  il::int_t max_steps = 150;
+  if ( j_simul.count("Maximum number of steps") ==1 ) {
+    max_steps = j_simul["Maximum number of steps"].get<long>();
+  }
+
+  double dt = 0.002;
+  if ( j_simul.count("Time step") ==1 ) {
+    dt = j_simul["Time step"].get<double>();
+  }
+
+  double dt_min = 0.00001;
+  if ( j_simul.count("Minimum time step") ==1 ) {
+    dt = j_simul["Minimum time step"].get<double>();
+  }
 
   il::int_t jt = 0;
-  il::int_t nsteps = 100;
 
-  dt = 0.02;
+  // time step loop !!!
 
-  while (jt < nsteps) {
+  while ( (jt < max_steps)  && (completeSol_n.time() < max_time) ) {
     jt++;
 
     MultiFracsSolution completeSol_n_1 = wellHFsSolver_fixedpts(
@@ -422,7 +440,9 @@ hfp2d::MultiFracsSolution wellHFsSolver_fixedpts(
   while ((k < kmax) && (err > Tolerance)) {
     k++;
 
+
     frac_sources_k.setInjectionRates(Q_in_k);
+
     well_sources_k.setInjectionRates(Q_in_k);
 
     if (!mute) {
