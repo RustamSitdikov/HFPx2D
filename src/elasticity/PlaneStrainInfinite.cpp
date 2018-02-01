@@ -352,7 +352,7 @@ il::StaticArray<double, 4> stresses_kernel_dp1_dd_nodal(il::int_t local_node_i,
 
     double syyn1 =
         AtanAux1 - xpp1 * (1./(r2*r2)) * ((xpp1*xpp1) + 3 * (yp*yp)) +
-        2 * xp * pow(yp, 2) * (1./
+        2 * xp * yp *yp * (1./
             (2 * yp2m1 * (xp*xp) + (xp*xp*xp*xp) + (yp2p1*yp2p1)));
 
     if (yp != 0.)  // case of observation point on the unit sgement line
