@@ -28,11 +28,11 @@ hfp2d::Mesh loadJsonMesh(json &j) {
   //
   // check if present.
 
-  int p_present = j.count("Interpolation order");  //
-  int n_present = j.count("Node coordinates");     //
-  int c_present = j.count("Connectivity");         //
-  int m_present = j.count("Material ID");          //
-  int f_present = j.count("Fracture ID");          //
+  long p_present = j.count("Interpolation order");  //
+  long n_present = j.count("Node coordinates");     //
+  long c_present = j.count("Connectivity");         //
+  long m_present = j.count("Material ID");          //
+  long f_present = j.count("Fracture ID");          //
 
   il::int_t inter = 0;  // default
   if (p_present == 1) {
