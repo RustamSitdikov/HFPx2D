@@ -18,7 +18,7 @@
 
 #include <src/core/ElasticProperties.h>
 #include <src/core/Mesh.h>
-#include <src/core/Utilities.h>
+#include <src/core/SegmentData.h>
 
 namespace hfp2d {
 
