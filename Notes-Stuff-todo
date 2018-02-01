@@ -25,13 +25,14 @@ ehlsolvers/
         ReynoldsP0 -> leak-off need to be added, solver with constraints need to be written
         ReynoldsP1 -> constraints, leak-off ?, currently single fracture -> needs to extend it to multiple fracs + intersecting.
 
-elasticity
+elasticity/
     need to code an observation routine -> obtain stress at a point due to a DD solution (or a at a number of points).
     AssemblyDDM -> stable
     PlaneStrainInfinite -> stable
     Simplified3D -> stable
 
 input/
+
     Q : keep the toml routines -> all in one folder.
     json  : we need to re-arrange the different base routines add more
 
