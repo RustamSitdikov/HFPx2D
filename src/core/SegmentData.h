@@ -13,10 +13,22 @@
 #include <il/Array2D.h>
 #include <il/linear_algebra.h>
 
-#include <src/core/Utilities.h>
-
 
 namespace hfp2d{
+
+//   Rotation Matrix
+il::StaticArray2D<double, 2, 2> rotationMatrix2D(double theta);
+
+inline il::StaticArray2D<double, 2, 2> rotationMatrix2D(double theta) {
+  il::StaticArray2D<double, 2, 2> R;
+
+  R(0, 0) = cos(1. * theta);
+  R(0, 1) = -1. * sin(1. * theta);
+  R(1, 0) = sin(theta);
+  R(1, 1) = cos(theta);
+
+  return R;
+}
 
 
 class SegmentData {
