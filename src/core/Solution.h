@@ -332,6 +332,12 @@ class Solution {
       json_normal_stress_o[m] = sigma_n_o_[m];
     }
 
+    json json_active_set_elmts = json::array();
+    for (il::int_t m = 0; m < active_set_elements_.size(); ++m) {
+      json_active_set_elmts[m] = active_set_elements_[m];
+    }
+
+
     // tips structure etc.
     json json_tip_pos = json::array();
     json json_tip_vel = json::array();
@@ -373,7 +379,8 @@ class Solution {
                   {"Initial shear traction", json_shear_stress_o},
                   {"Initial normal traction", json_normal_stress_o},
                   {"Shear traction", json_shear_stress},
-                  {"Normal traction", json_normal_stress}};
+                  {"Normal traction", json_normal_stress},
+                  {"Active set elements", json_active_set_elmts}};
 
     return j_obj;
   }
