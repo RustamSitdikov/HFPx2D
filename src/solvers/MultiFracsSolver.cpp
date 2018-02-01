@@ -340,13 +340,14 @@ int MultipleFracsPropagation() {
         frac_height,
         false, il::io, K);
 
-    std::cout << "-----------------" << std::endl;
+    std::cout << "-------------------------" << std::endl;
     std::cout << "Step " << jt << "; time: " << completeSol_n_1.time()
               << std::endl;
     for (il::int_t i = 0; i < nfracs; i++) {
-      std::cout << "influx in frac. " << i << ": "
-                << completeSol_n_1.clusterFluxes(i) << "; DP in frac. " << i
-                << ": " << completeSol_n_1.dpEntries(i) << std::endl;
+      std::cout << "influx in frac. " << i+1 << ": "
+                << completeSol_n_1.clusterFluxes(i)
+                << "; DP in frac. " << i+1 << ": "
+                << completeSol_n_1.dpEntries(i) << std::endl;
     }
 //    std::cout << "----------" << std::endl;
     completeSol_n = completeSol_n_1;
@@ -452,7 +453,7 @@ hfp2d::MultiFracsSolution wellHFsSolver_fixedpts(
   //
   //
   // todo: pass as arguments OR move to numerical parameters file
-  double dQn = 2.0e-8;
+  double dQn = 2.0e-8; // or sqrt of machine precision
   int num_J_reuse = 1;
   double rela_flux = coupling_p.ehl_relaxation;
   double coupl_tolerance = coupling_p.ehl_tolerance;
