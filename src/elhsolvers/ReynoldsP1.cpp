@@ -33,7 +33,7 @@ Solution reynoldsP1(Mesh &theMesh, il::Array2D<double> &elast_matrix,
                     il::Array<int> &dof_active_elmnts, il::Status &status,
                     il::Norm &norm, bool damping_term, double damping_coeff,
                     double dilat_plast,
-                    hfp2d::InSituStress &BackgroundLoadingConditions) {
+                    InSituStress &BackgroundLoadingConditions) {
   //// IMPLICIT SOLUTION OF THE COUPLED PROBLEM ////
   // Initialization of the system BigA*BigX = BigB
   il::Array2D<double> BigA{dof_active_elmnts.size() + theMesh.numberOfNodes(),
@@ -175,6 +175,7 @@ Solution reynoldsP1(Mesh &theMesh, il::Array2D<double> &elast_matrix,
   il::Array2D<double> FN;
   il::Array2D<double> B;
   il::Array<double> tot_slipk{dof_active_elmnts.size(), 0.};
+  il::Array<double> curr_incr_tau{elast_submatrix.size(0), 0};
 
   while ((k < SimulationParameters.ehl_max_its) &&
          (err_shearDD > SimulationParameters.ehl_tolerance ||
@@ -264,20 +265,20 @@ Solution reynoldsP1(Mesh &theMesh, il::Array2D<double> &elast_matrix,
     }
 
     // Current increment of shear stress due to movement of slipping nodes
-    il::Array<double> tau_prev{elast_submatrix.size(0), 0};
     if (dof_active_elmnts.size() != 0) {
-      tau_prev = il::dot(elast_submatrix, tot_slipk);
+      curr_incr_tau = il::dot(elast_submatrix, tot_slipk);
     }
 
     for (il::int_t n = 0; n < dof_active_elmnts.size(); n = n + 2) {
-      //      BigB[n] = -((fric_coeff_k[dof_active_elmnts[n] / 2] *
-      //                   (SolutionAtTn_k.sigmaN(dof_active_elmnts[n] / 2) -
-      //                    press_coll[dof_active_elmnts[n] / 2])) -
-      //                  SolutionAtTn_k.tau(dof_active_elmnts[n] / 2));
+      //            BigB[n] = -1.* ((fric_coeff_k[dof_active_elmnts[n] / 2] *
+      //                         (SolutionAtTn_k.sigmaN(dof_active_elmnts[n] /
+      //                         2) -
+      //                          press_coll[dof_active_elmnts[n] / 2])) -
+      //                        SolutionAtTn_k.tau(dof_active_elmnts[n] / 2));
       BigB[n] = -1. * ((fric_coeff_k[dof_active_elmnts[n] / 2] *
                         (SolutionAtTn_k.sigmaN(dof_active_elmnts[n] / 2) -
                          press_coll[dof_active_elmnts[n] / 2])) -
-                       tau_prev[n] -
+                       curr_incr_tau[n] -
                        BackgroundLoadingConditions.getBackgroundShearStress(0));
     }
 

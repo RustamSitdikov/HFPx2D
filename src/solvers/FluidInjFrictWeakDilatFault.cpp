@@ -41,7 +41,7 @@ void fluidInjFrictWeakDilatFault(int argc, char const *argv[]) {
   // Intantiate mesh object
   hfp2d::Mesh MyMesh;
   // Instantiate InSituStress object
-  hfp2d::InSituStress BackgroundLoadingConditions;
+  hfp2d::InSituStress BackgroundLoadingConditions{};
   // Instantiate ElasticProperties object
   hfp2d::ElasticProperties ElasticProperties{};
   // Instantiate FluidProperties object
@@ -280,7 +280,7 @@ Solution fractFrontPosition(
     FractureEvolution &FractureEvolution, Sources &Source,
     Solution &SolutionAtTn, bool expl_impl, bool damping_term,
     double damping_coeff, double dilat_plast,
-    hfp2d::InSituStress &BackgroundLoadingConditions) {
+    InSituStress &BackgroundLoadingConditions) {
   // Initialization of fracture front loop
   // SolutionAtTn -> solution object at current time Tn
   // SolutionAtTn_k -> current solution object at iter k of fracture front loop

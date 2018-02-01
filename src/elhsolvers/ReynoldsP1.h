@@ -13,6 +13,7 @@
 #include <il/linear_algebra/dense/norm.h>
 
 // Inclusion from the project
+#include <src/core/InSituStress.h>
 #include <src/solvers/FluidInjFrictWeakDilatFault.h>
 
 #ifndef HFPX2D_REYNOLDSP1_H
@@ -32,7 +33,7 @@ Solution reynoldsP1(Mesh &theMesh, il::Array2D<double> &elast_matrix,
                     il::Array<int> &dof_active_elmnts, il::Status &status,
                     il::Norm &norm, bool damping_term, double damping_coeff,
                     double dilat_plast,
-                    hfp2d::InSituStress &BackgroundLoadingConditions);
+                    InSituStress &BackgroundLoadingConditions);
 }
 
 #endif  // HFPX2D_REYNOLDSP1_H
