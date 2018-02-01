@@ -27,7 +27,8 @@ class SolidProperties {
                                           // wellMesh)
   // todo :: add fracture energy array....
 
-  il::Array<double> wh_o_;  // residual hydraulic width when the mechanical
+  il::Array<double> wh_o_;  // residual/initial hydraulic width
+                            // when the mechanical
                             // width is zero (should match the number of
                             // differents material in the matid vector of the
                             // wellMesh

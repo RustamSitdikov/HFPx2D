@@ -390,11 +390,11 @@ void Mesh::addNTipElts(const il::int_t t_e, const il::int_t the_tip_node,
     {  // already a node stored
       tipcoor2=coordinates(orderedTipElts[jf*2]);
       dist2 = il::norm(tipcoor2,il::Norm::L2);
-      if (dist1>dist2){
+      if (tipcoor1[0]>tipcoor2[0]){
         nl=1;
       } else {
-        if (dist1==dist2){
-          if (tipcoor1[0]>tipcoor2[0]){
+        if (tipcoor1[0]==tipcoor2[0]){
+          if (tipcoor1[1]>tipcoor2[1]){
             nl=1;
           }
         }
