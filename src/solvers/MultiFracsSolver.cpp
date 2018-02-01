@@ -340,7 +340,7 @@ int MultipleFracsPropagation() {
         frac_height,
         false, il::io, K);
 
-    std::cout << "----------" << std::endl;
+    std::cout << "-----------------" << std::endl;
     std::cout << "Step " << jt << "; time: " << completeSol_n_1.time()
               << std::endl;
     for (il::int_t i = 0; i < nfracs; i++) {
@@ -348,7 +348,7 @@ int MultipleFracsPropagation() {
                 << completeSol_n_1.clusterFluxes(i) << "; DP in frac. " << i
                 << ": " << completeSol_n_1.dpEntries(i) << std::endl;
     }
-    std::cout << "----------" << std::endl;
+//    std::cout << "----------" << std::endl;
     completeSol_n = completeSol_n_1;
     // todo time step acceptance test
     // todo adaptative time-step
@@ -472,9 +472,9 @@ hfp2d::MultiFracsSolution wellHFsSolver_fixedpts(
     frac_sources_k.setInjectionRates(rates_per_height);
     well_sources_k.setInjectionRates(rates_cur);
 
-    if (!mute) {
-      std::cout << "-------" << std::endl;
-    }
+//    if (!mute) {
+//      std::cout << "-------" << std::endl;
+//    }
 
     // solve for wellbore flow
     wellSol_k = hfp2d::wellFlowSolverP0(wellSol_n, w_mesh, w_inj,
