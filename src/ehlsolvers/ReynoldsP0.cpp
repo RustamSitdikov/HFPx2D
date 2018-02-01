@@ -37,7 +37,6 @@ il::Array<double> EdgeConductivitiesP0Newtonian(
   il::Array<double> Cond{edgeAdj.size(0), 0};
   // loop on the inner edges
 
-
   for (il::int_t i = 0; i < edgeAdj.size(0); i++) {
   // harmonic mean   2*w_l^3*w_r^3/(w_l^3 + w_r^3)
     cl = pow(hydraulic_width[edgeAdj(i, 0)], 3.);

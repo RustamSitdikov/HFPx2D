@@ -252,9 +252,7 @@ int MultipleFracsPropagation() {
       pfo[i * 2 * nelts + 2 * j + 1] = pc[i];
     }
   }
-
   il::Array<double> pnet0 = pfo;
-
   il::blas(-1., ftini, il::io, pnet0);
 
   std::cout << " initial elastic problem \n";
@@ -289,7 +287,7 @@ int MultipleFracsPropagation() {
   il::Array<double> vel0{4, 0.};  // initial tip velocity
   fracSol_n.setTipsVelocity(vel0);
 
-  il::Array<double> s0{4, 0.};  // initial ribbont tip distance
+  il::Array<double> s0{4, 0.};  // initial ribbon tip distance
   for (il::int_t i = 0; i < fracsMesh.tipElts().size(); i++) {
     il::int_t e = fracsMesh.tipElts(i);
     s0[i] = 1.5 * fracsMesh.eltSize(e);
@@ -302,14 +300,30 @@ int MultipleFracsPropagation() {
   hfp2d::MultiFracsSolution completeSol_n(fracSol_n, wellSol_n, frac_sources,
                                           well_sources, 0, dpc, 0.);
 
-  // time step loop !!!
+  double max_time = 1.;
+  if ( j_simul.count("Maximum time") ==1 ) {
+    max_time = j_simul["Maximum time"].get<double>();
+  }
+  il::int_t max_steps = 150;
+  if ( j_simul.count("Maximum number of steps") ==1 ) {
+    max_steps = j_simul["Maximum number of steps"].get<long>();
+  }
+
+  dt = 0.002;
+  if ( j_simul.count("Time step") ==1 ) {
+    dt = j_simul["Time step"].get<double>();
+  }
+
+  double dt_min = 0.00001;
+  if ( j_simul.count("Minimum time step") ==1 ) {
+    dt_min = j_simul["Minimum time step"].get<double>();
+  }
 
   il::int_t jt = 0;
-  il::int_t nsteps = 100;
 
-  dt = 0.02;
+  // time step loop !!!
 
-  while (jt < nsteps) {
+  while ( (jt < max_steps)  && (completeSol_n.time() < max_time) ) {
     jt++;
 
     MultiFracsSolution completeSol_n_1 = wellHFsSolver_fixedpts(
@@ -326,6 +340,10 @@ int MultipleFracsPropagation() {
     }
     std::cout << "----------" << std::endl;
     completeSol_n = completeSol_n_1;
+    // todo time step acceptance test
+    // todo adaptative time-step
+    // saving of solution.
+
   }
 
   return 0;
@@ -399,6 +417,9 @@ hfp2d::MultiFracsSolution wellHFsSolver_fixedpts(
   //  il::LU<il::Array2D<double>> Jacob_LU();
   il::Array2D<double> Jacob_inv;
 
+  // remember that the rate entering the fracture is rate / fracture heigth
+  il::Array<double> rates_per_height{nclusters,0.};
+
   if (!mute) {
     std::cout << "+++++++++++++++++++++++++" << std::endl;
   }
@@ -416,13 +437,18 @@ hfp2d::MultiFracsSolution wellHFsSolver_fixedpts(
   double Tolerance = 1.e-6;
   int kmax = 20;
 
+
   int k = 0;
   // note: if all the fluxes are zero do not solve for frac flux,
   // just the wellbore
   while ((k < kmax) && (err > Tolerance)) {
     k++;
 
-    frac_sources_k.setInjectionRates(Q_in_k);
+    for (il::int_t i=0;i<nclusters;i++){
+      rates_per_height[i]=Q_in_k[i]/frac_heigth;
+    }
+    frac_sources_k.setInjectionRates(rates_per_height);
+
     well_sources_k.setInjectionRates(Q_in_k);
 
     if (!mute) {

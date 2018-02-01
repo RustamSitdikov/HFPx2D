@@ -318,6 +318,9 @@ void Mesh::addNTipElts(const il::int_t t_e, const il::int_t the_tip_node,
     }
   };
 
+  il::int_t new_tip_elt = nelts_old+n_add - 1;
+  il::int_t new_tip_node = nnodes_old+n_add -1 ;
+
   // now UPDATE THE MESH....
   coordinates_ = new_all_coor;
   connectivity_ = new_conn;
@@ -364,53 +367,67 @@ void Mesh::addNTipElts(const il::int_t t_e, const il::int_t the_tip_node,
   // rebuild the nodal connected table...
   node_adj_elt_ = getNodalEltConnectivity(coordinates_.size(0), connectivity_);
 
+  // look
+
   // rebuilt tip nodes table...
-  tipnodes_ = buildTipNodes(node_adj_elt_);
-  tipelts_ = buildTipElts(node_adj_elt_, tipnodes_);
-
-  auto nfracs = numberOfFractures();
-  IL_EXPECT_FAST(tipnodes_.size()==nfracs*2);
-  IL_EXPECT_FAST(tipelts_.size()==nfracs*2);
-  //order them as function of the fractureID such that it is easier
-  // to track the tips
-  il::int_t  jf=0;
-  il::int_t  nl=0;// local node
-  il::Array<il::int_t> orderedTipNodes{2*nfracs,-1}; // init with -1
-  il::Array<il::int_t> orderedTipElts{2*nfracs,-1};
-  il::StaticArray<double,2> tipcoor1;
-  il::StaticArray<double,2> tipcoor2;
-  double dist1=0; double dist2=0.;
-  il::int_t iaux; il::int_t nl2=1;
-  for (il::int_t i=0;i<tipnodes_.size();i++ ){
-    tipcoor1=coordinates(tipnodes_[i]);
-    dist1 = il::norm(tipcoor1,il::Norm::L2);
-    jf=fracture_id_[tipelts_[i]];
-    nl=0;
-    if ((orderedTipElts[jf*2]!=-1))
-    {  // already a node stored
-      tipcoor2=coordinates(orderedTipElts[jf*2]);
-      dist2 = il::norm(tipcoor2,il::Norm::L2);
-      if (tipcoor1[0]>tipcoor2[0]){
-        nl=1;
-      } else {
-        if (tipcoor1[0]==tipcoor2[0]){
-          if (tipcoor1[1]>tipcoor2[1]){
-            nl=1;
-          }
-        }
+  // find the index of this tip in the tipelts_
+  //
+  il::int_t j=0;
+  for (il::int_t i=0;i<tipelts_.size();i++){
+      if (tipelts_[i]==t_e){
+        j=i;
+        break;
       }
-      if (nl==0) {
-        iaux = orderedTipElts[jf*2];
-        orderedTipElts[jf*2+1]=iaux;
-        iaux = orderedTipNodes[jf*2];
-        orderedTipNodes[jf*2+1]=iaux;
-      }
-    };
-
-    orderedTipElts[jf*2+nl]=tipelts_[i];
-    orderedTipNodes[jf*2+nl]=tipnodes_[i];
   }
-  tipnodes_=orderedTipNodes;
-  tipelts_=orderedTipElts;
+  tipnodes_[j] = new_tip_node;
+  tipelts_[j] = new_tip_elt;
+
+//  tipnodes_ = buildTipNodes(node_adj_elt_);
+//  tipelts_ = buildTipElts(node_adj_elt_, tipnodes_);
+//
+//  auto nfracs = numberOfFractures();
+//  IL_EXPECT_FAST(tipnodes_.size()==nfracs*2);
+//  IL_EXPECT_FAST(tipelts_.size()==nfracs*2);
+//  //order them as function of the fractureID such that it is easier
+//  // to track the tips
+//  il::int_t  jf=0;
+//  il::int_t  nl=0;// local node
+//  il::Array<il::int_t> orderedTipNodes{2*nfracs,-1}; // init with -1
+//  il::Array<il::int_t> orderedTipElts{2*nfracs,-1};
+//  il::StaticArray<double,2> tipcoor1;
+//  il::StaticArray<double,2> tipcoor2;
+//  double dist1=0; double dist2=0.;
+//  il::int_t iaux; il::int_t nl2=1;
+//  for (il::int_t i=0;i<tipnodes_.size();i++ ){
+//    tipcoor1=coordinates(tipnodes_[i]);
+//    dist1 = il::norm(tipcoor1,il::Norm::L2);
+//    jf=fracture_id_[tipelts_[i]];
+//    nl=0;
+//    if ((orderedTipElts[jf*2]!=-1))
+//    {  // already a node stored
+//      tipcoor2=coordinates(orderedTipElts[jf*2]);
+//      dist2 = il::norm(tipcoor2,il::Norm::L2);
+//      if (tipcoor1[0]>tipcoor2[0]){
+//        nl=1;
+//      } else {
+//        if (tipcoor1[0]==tipcoor2[0]){
+//          if (tipcoor1[1]>tipcoor2[1]){
+//            nl=1;
+//          }
+//        }
+//      }
+//      if (nl==0) {
+//        iaux = orderedTipElts[jf*2];
+//        orderedTipElts[jf*2+1]=iaux;
+//        iaux = orderedTipNodes[jf*2];
+//        orderedTipNodes[jf*2+1]=iaux;
+//      }
+//    };
+//
+//    orderedTipElts[jf*2+nl]=tipelts_[i];
+//    orderedTipNodes[jf*2+nl]=tipnodes_[i];
+//  }
+//  tipnodes_=orderedTipNodes;
+//  tipelts_=orderedTipElts;
 }
 }

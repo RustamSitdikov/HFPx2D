@@ -11,11 +11,11 @@
 #define HFPX2D_MULTIFRACSSOLUTION_H
 
 #include <fstream>
-
 #include <src/core/Solution.h>
 #include <src/core/Sources.h>
 #include <src/wellbore/WellSolution.h>
 #include <src/util/json.hpp>
+
 
 namespace hfp2d {
 

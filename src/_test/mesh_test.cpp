@@ -119,5 +119,47 @@ TEST(Mesh, add_elt) {
       (mesh.fracid(nelts + 1) == 0));
 }
 
+// test add elements
+TEST(Mesh, add_elt_both_tip) {
+  // test the addition of 2 elements at 90 degree from the left tip
+   // check the addition of elts in both tip and check
+  // consistency of tip position independent of the order of addition
+  // create the Mesh.
+  il::int_t nelts = 2;
 
-// todo Mesh tests for FractureID, MatID related as well as tip ordering related.
+  il::Array2D<double> xy{nelts + 1, 2, 0.};
+
+  // create a basic 1D Mesh
+  for (il::int_t i = 0; i < nelts + 1; ++i) {
+    xy(i, 0) = -1.0 + 1. * i;
+    xy(i, 1) = 0.;
+  };
+
+  il::Array2D<il::int_t> myconn{nelts, 2, 0};
+  for (il::int_t i = 0; i < nelts; ++i) {
+    myconn(i, 0) = i;
+    myconn(i, 1) = i + 1;
+  };
+
+  il::int_t e = 0;
+
+  hfp2d::Mesh mesh(xy, myconn, 0);
+  hfp2d::Mesh mesh2(xy, myconn, 0);
+
+  mesh.addNTipElts(1, 2, 2, il::pi / 2.);
+  mesh.addNTipElts(0, 0, 2, il::pi / 2.);
+
+  mesh2.addNTipElts(0, 0, 2, il::pi / 2.);
+  mesh2.addNTipElts(1, 2, 2, il::pi / 2.);
+//  mesh2.tipElts(0) == mesh.tipElts(1) &&
+//      mesh2.tipElts(1) == mesh.tipElts(0) &&
+  ASSERT_TRUE(
+          mesh2.coordinates(mesh2.tipElts(0),0)==mesh.coordinates(mesh.tipElts(0),0) &&
+      mesh2.coordinates(mesh2.tipElts(0),1)==mesh.coordinates(mesh.tipElts(0),1) &&
+              mesh2.coordinates(mesh2.tipElts(1),0)==mesh.coordinates(mesh.tipElts(1),0) &&
+              mesh2.coordinates(mesh2.tipElts(1),1)==mesh.coordinates(mesh.tipElts(1),1)
+  );
+}
+
+// todo Mesh tests for FractureID, MatID related as well as tip ordering
+// related.

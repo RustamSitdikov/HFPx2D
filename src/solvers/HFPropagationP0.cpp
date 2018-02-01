@@ -53,11 +53,6 @@ int ParallelHFs() {
   }
   json j_params = js["Model parameters"];
 
-  if ((js.count("Simulation parameters") != 1)) {
-    std::cout << "No Simulation parameters in input file ";
-    il::abort();
-  }
-  json j_simul = js["Simulation parameters"];
 
   if (j_params.count("Fluid properties") != 1) {
     std::cout << "No fluid properties input in  model parameters";
@@ -166,8 +161,6 @@ int ParallelHFs() {
     AddTipCorrectionP0(mesh, myelas, mesh.tipElts(i), K);
   }
 
-
-
   // initial net loading.
   il::Array<double> ftini{mesh.numberDDDofs(), 0.},
       pfo{mesh.numberDDDofs(), 0.};
@@ -223,22 +216,37 @@ int ParallelHFs() {
   fracSol_n.setRibbonDistances(s0);
 
   il::int_t ea = 0;
-  hfp2d::SimulationParameters SimulParam;
 
+  hfp2d::SimulationParameters SimulParam; // hardcoded here ....
   SimulParam.frac_front_max_its = 50;
   SimulParam.frac_front_tolerance = 1.e-3;
   SimulParam.ehl_relaxation = 0.95;
   SimulParam.ehl_tolerance = 1.e-6;
 
+  if ((js.count("Simulation parameters") != 1)) {
+    std::cout << "No Simulation parameters in input file ";
+    il::abort();
+  }
+  json j_simul = js["Simulation parameters"];
+
+  double max_time = 1.;
+  if ( j_simul.count("Maximum time") ==1 ) {
+    max_time = j_simul["Maximum time"].get<double>();
+  }
+  il::int_t max_steps = 150;
+  if ( j_simul.count("Maximum number of steps") ==1 ) {
+    max_steps = j_simul["Maximum number of steps"].get<long>();
+  }
+
   double dt = 0.002;
+  if ( j_simul.count("Time step") ==1 ) {
+    dt = j_simul["Time step"].get<double>();
+  }
+
   double dt_min = 0.00001;
-
-  il::int_t jt = 0;
-
-  il::int_t nsteps = 100;
-
-  //  il::Array<il::int_t> tip_region_elt_k=wellMesh.tipElts();
-  //  il::Array<double>    tip_region_width_k{4,0.};
+  if ( j_simul.count("Minimum time step") ==1 ) {
+    dt = j_simul["Minimum time step"].get<double>();
+  }
 
   std::string dir = "../Results/";
   std::string basefilename = "KGD-3HF-M-1.5-";
@@ -251,7 +259,8 @@ int ParallelHFs() {
 
   std::cout << "Dimensionless Viscosity " << Mbar << "\n";
 
-  while (jt < nsteps) {
+  il::int_t jt = 0;
+  while ( (jt < max_steps)  && (fracSol_n.time() < max_time) ) {
     jt++;
     //
     //    Solution Soln1=hfp2d::ReynoldsSolverP0(fracSol_n, K, water, the_rock,
@@ -264,20 +273,16 @@ int ParallelHFs() {
         hfp2d::FractureFrontLoop(fracSol_n, fracfluid, rock, the_source, frac_heigth,
                                  dt, SimulParam, true, il::io, K);
 
-    // accept time steps ?
-
+    // accept time step if the error is below 0.01 (hardcoded value for now, should be named relaxed_tolerance ?)
     if (Soln1.errFront() < 0.01) {
       fracSol_n = Soln1;
 
-      std::cout << " steps # " << jt << " time  " << fracSol_n.time() << "Time step: " << fracSol_n.timestep() << "\n";
-      std::cout << " Error on frac front " << fracSol_n.errFront() << "\n";
+      std::cout << " Steps # " << jt << " Time: " << fracSol_n.time() << " Time step: " << fracSol_n.timestep() << "\n";
+      std::cout << " Error on frac front " << fracSol_n.errFront() << " after " << fracSol_n.frontIts() << " iterations" << "\n";
       std::cout << " P at source " << fracSol_n.pressure()[the_source.SourceElt(0)]
                 << "\n";
       std::cout << " w at source " << fracSol_n.openingDD()[the_source.SourceElt(0)]
                 << "\n";
-
-      //    std::cout << "size of K: " << K.size(0) << " by " << K.size(1) <<
-      //    "\n";
 
       std::cout << " n elts " << fracSol_n.currentMesh().numberOfElts() << "\n";
 //      std::cout << " nn " << fracSol_n.currentMesh().connectivity().size(0) <<"\n";
@@ -287,36 +292,39 @@ int ParallelHFs() {
       fracSol_n.writeToFile(filename);
 
       // adjust time step
-      for (il::int_t i=0;i< mesh.tipElts().size();i++){
-        std::cout << " tip " << i << " velocity " << fracSol_n.tipsVelocity()[i];
-      }
-      std::cout << "\n";
+//      for (il::int_t i=0;i< mesh.tipElts().size();i++){
+//        std::cout << " tip " << i << " velocity " << fracSol_n.tipsVelocity()[i];
+//      }
+//      std::cout << "\n";
 
       std::cout << " ----++++-----++++-------\n";
 
       mean_tip_v = il::norm(fracSol_n.tipsVelocity(), il::Norm::L2);
 
       if ((mean_tip_v > 0.0)) {  //&& (fracSol_n.tipsLocation()(1,0)>1.5)
-        double dt_new = 1.25 * mesh.eltSize(ea) / mean_tip_v;
+        double dt_new = 1. * mesh.eltSize(ea) / mean_tip_v;
         // modify to more clever ?
-        if (dt_new > 3. * dt) {
-          dt = 3. * dt;
+        if (dt_new > 2.5 * dt) {
+          dt = 2.5 * dt;
         } else {
-          if (dt_new < dt * 0.9) {
-            dt = 0.9 * dt;
+          if (dt_new < dt * 0.8) {
+            dt = 0.8 * dt;
           } else {
             dt = dt_new;
           };
         }
       }
-    } else {  // reject time step
+
+    } else {
+
+      // reject time step
       std::cout << "Reject time step - non-convergence on fracture fronts \n";
       std::cout << " steps # " << jt << " time  " << Soln1.time() << "Time step: " << Soln1.timestep() << "\n";
       std::cout << " Error on frac front " << Soln1.errFront() << " after " << Soln1.frontIts() << " its" << "\n";
 
       if (dt / 2. >= dt_min) {
         dt = dt / 2.;
-        std::cout << "Reduce time steps. ";
+        std::cout << "Reducing time steps in order to re-try";
         jt--;
       } else {
         std::cout << "Error on frac. front too large with small time steps. - "
@@ -446,6 +454,7 @@ hfp2d::Solution FractureFrontLoop(const hfp2d::Solution &Sol_n,
   if (!mute) {
     std::cout << "++++ Fracture Front loop ++++ \n";
   }
+
   while (((errorF > simulParams.frac_front_tolerance)) &&
          (k < simulParams.frac_front_max_its)) {
     k++;
@@ -545,8 +554,8 @@ hfp2d::Solution FractureFrontLoop(const hfp2d::Solution &Sol_n,
         // in that case,
         //  we know that the corresponding new tip element is just the last one
         // inserted in mesh_k, i.e. the one that has been just added
-        ti_e = mesh_k.tipElts(n_tips - 1);
-        ti_b = mesh_k.tipNodes(n_tips - 1);
+        ti_e = mesh_k.tipElts(i);
+        ti_b = mesh_k.tipNodes(i);
       }
       il::int_t ti_a;
       if (mesh_k.connectivity(ti_e, 0) == ti_b) {
@@ -559,9 +568,9 @@ hfp2d::Solution FractureFrontLoop(const hfp2d::Solution &Sol_n,
         }
       };
       // get tip nodes b, and the other node a of the tip element (see in
-      // wellMesh)
+      // Mesh)
       // get their coordinates,
-      // do   b - (b - a)*(1 - fill_f) to get the tip position.
+      // do   b - (b - a)*(1 - fill_f) to get the tip location.
       il::StaticArray<double, 2> a = mesh_k.coordinates(ti_a);
       il::StaticArray<double, 2> b = mesh_k.coordinates(ti_b);
 
@@ -596,8 +605,8 @@ hfp2d::Solution FractureFrontLoop(const hfp2d::Solution &Sol_n,
              i++) {
           Wn[i] = 0.;
           Vn[i] = 0.;
-          sig0[i] = sig0[0];  // constant only -> here would need to call the
-                              // initial stress fction
+          sig0[i] = sig0[0];  // constant only ->
+          // todo here would need to call the initial stress fction
           tau0[i] = tau0[0];
           Pn[i] = 0.;
         }
