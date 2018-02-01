@@ -261,7 +261,7 @@ int MultipleFracsPropagation() {
   il::Array<double> pnet0 = pfo;
   il::blas(-1., ftini, il::io, pnet0);
 
-  std::cout << " initial elastic problem \n";
+  std::cout << "initial elastic problem ";
   il::Status status;
   // use a direct solver
   il::Array<double> dd_ini = il::linearSolve(K, pnet0, il::io, status);
@@ -556,6 +556,10 @@ hfp2d::MultiFracsSolution wellHFsSolver_fixedpts(
 
       // echo...
       if (!mute) {
+        std::cout << "fracture front loop its: " << fracSol_k.frontIts()
+                  << "; front error: " << fracSol_k.errFront()
+                  << "; new number of elts: " << fracSol_k.currentMesh().numberOfElts()
+                  << "; error w EHL "<< fracSol_k.errOpening() << std::endl;
         std::cout << "-------" << std::endl;
         std::cout << "Det(J): " << Jacob_LU.determinant() << std::endl;
         //          std::cout << "Cond(J): "
@@ -592,9 +596,9 @@ hfp2d::MultiFracsSolution wellHFsSolver_fixedpts(
     // echo...
     if (!mute) {
       std::cout << "-------" << std::endl;
-      std::cout << "Its " << k << "; DP: ";
+      std::cout << "coupling iter-n " << k << "; DP: ";
       for (il::int_t i = 0; i < nclusters; i++) {
-        std::cout << i << ": " << dpc_k[i] << "; ";
+        std::cout << i+1 << ": " << dpc_k[i] << "; ";
       }
       std::cout << "prev. error: " << err << std::endl;
     }
@@ -613,15 +617,15 @@ hfp2d::MultiFracsSolution wellHFsSolver_fixedpts(
     if (!mute) {
       std::cout << "old fluxes: ";
       for (il::int_t i = 0; i < nclusters; i++) {
-        std::cout << i << ": " << rates_old[i] << "; ";
+        std::cout << i+1 << ": " << rates_old[i] << "; ";
       }
       std::cout << std::endl << "res. of DP: ";
       for (il::int_t i = 0; i < nclusters; i++) {
-        std::cout << i << ": " << res_v[i] << "; ";
+        std::cout << i+1 << ": " << res_v[i] << "; ";
       }
       std::cout << std::endl << "new fluxes: ";
       for (il::int_t i = 0; i < nclusters; i++) {
-        std::cout << i << ": " << rates_cur[i] << "; ";
+        std::cout << i+1 << ": " << rates_cur[i] << "; ";
       }
       std::cout << "error: " << err << std::endl;
     }

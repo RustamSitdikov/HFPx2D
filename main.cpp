@@ -121,8 +121,9 @@ int main() {
   double dist = 1e8;
   //
 
-  std::cout << "Parallel HFs test\n";
-  int ret = hfp2d::ParallelHFs();
+//  std::cout << "-----------------" << std::endl;
+//  std::cout << "Parallel HFs test" << std::endl;
+//  int ret = hfp2d::ParallelHFs();
 
   // std::cout << "return " << ret;
   // double ret1 =  hfp2d::SimpleGriffithExampleS3D_P0_byNodes(10);
@@ -136,10 +137,12 @@ int main() {
   //  std::cout << "\n rel error L2 norm in Constant Elements (with tip
   //  correction): " << ret2 << "\n";
 
-  std::cout << "Wellbore flow test\n";
+  std::cout << "------------------" << std::endl;
+  std::cout << "Wellbore flow test" << std::endl;
   int test= hfp2d::WellboreFlowBenchmark();
 
-  std::cout << "Well-HF coupling test\n";
+  std::cout << "---------------------" << std::endl;
+  std::cout << "Well-HF coupling test" << std::endl;
   test = hfp2d::MultipleFracsPropagation();
 
   //std::cout << " end of code \n\n\n";
@@ -149,7 +152,7 @@ int main() {
 //
 //   hfp2d::Mesh mymesh=hfp2d::loadJsonMesh(meshfilename);
 
-  std::cout << "end of code\n";
+  std::cout << "end of code" << std::endl;
 
 
   return 0;
