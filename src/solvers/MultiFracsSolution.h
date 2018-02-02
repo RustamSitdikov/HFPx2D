@@ -69,7 +69,7 @@ class MultiFracsSolution {
       // rate entering the fracture = rate escaping the well / fracture height
       double inj_rate_err = std::fabs(frac_inj_rate * frac_height - well_out_rate);
       IL_EXPECT_FAST(inj_rate_err <= err_f); // todo: make tolerance a parameter
-//      IL_EXPECT_FAST(frac_influxes.InjectionRate(i)==well_outfluxes.InjectionRate(i));
+//      IL_EXPECT_FAST(frac_influxes.InjectionRate(i)==well_outfluxes.InjectionRate(i)/frac_heigth);
     }
 
     IL_EXPECT_FAST(dp.size() == frac_influxes_.InjectionRate().size());

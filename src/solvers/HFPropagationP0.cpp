@@ -30,8 +30,8 @@ namespace hfp2d {
 
 using json = nlohmann::json;
 
-int ParallelHFs() {
-  std::string wellfilename = "../Debug/ParallelHFTests.json";
+int ParallelHFs(std::string &filename) {
+  std::string wellfilename = "../Debug/ParallelHFTestsMvertex.json";
 
   std::ifstream input(wellfilename);  // ?
   json js;
@@ -248,9 +248,12 @@ int ParallelHFs() {
     dt = j_simul["Minimum time step"].get<double>();
   }
 
-  std::string dir = "../Results/";
-  std::string basefilename = "KGD-3HF-M-1.5-";
-  std::string filename;
+  std::string basefilename = "HFs_given_rate"; // default name
+  if (js.count("Results files name core")==1){
+    basefilename =js["Results files name core"].get<std::string>();
+  }
+
+  std::string resfilename;
 
   double mean_tip_v;
 
@@ -287,9 +290,9 @@ int ParallelHFs() {
       std::cout << " n elts " << fracSol_n.currentMesh().numberOfElts() << "\n";
 //      std::cout << " nn " << fracSol_n.currentMesh().connectivity().size(0) <<"\n";
 
-      filename = dir + basefilename + std::to_string(jt) + ".json";
+      resfilename =   basefilename + std::to_string(jt) + ".json";
 
-      fracSol_n.writeToFile(filename);
+      fracSol_n.writeToFile(resfilename);
 
       // adjust time step
 //      for (il::int_t i=0;i< mesh.tipElts().size();i++){

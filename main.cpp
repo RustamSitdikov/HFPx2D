@@ -123,7 +123,9 @@ int main() {
 
   std::cout << "-----------------" << std::endl;
   std::cout << "Parallel HFs test" << std::endl;
-  int ret = hfp2d::ParallelHFs();
+  std::string filename = "../Debug/ParallelHFTestsMvertex.json";
+
+  int ret = hfp2d::ParallelHFs(filename);
 
   // std::cout << "return " << ret;
   // double ret1 =  hfp2d::SimpleGriffithExampleS3D_P0_byNodes(10);
