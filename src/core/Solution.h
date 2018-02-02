@@ -60,12 +60,9 @@ class Solution {
   // state variable
   il::Array<double> state_1_;
 
-  // TODO: change type to il::int_t
-  il::Array<int> active_set_elements_;  // active set of elements ->
-                                        // Remember: an element is
-                                        // 'active' if and only if both
-                                        // two collocation points fail the
-                                        // M-C criterion
+  il::Array<int> active_set_elements_;
+
+  il::Array<int> active_set_coll_points_;
 
   il::Array2D<double> tipsLocation_;  // 2D coordinate of the location of the
   // tips (i.e. may be inside one element in

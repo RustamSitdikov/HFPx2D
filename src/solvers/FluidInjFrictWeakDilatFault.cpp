@@ -163,6 +163,7 @@ void fluidInjFrictWeakDilatFault(int argc, char const *argv[]) {
     init_set_elements[l] =
         hfp2d::find_2d_integer(dof_single_dd, init_failed_set_collpoints[l])[0];
   }
+
   auto init_set_elmnts = hfp2d::delete_duplicates_integer(init_set_elements);
 
   il::Array<int> init_active_set_elements{init_set_elmnts.size()};
@@ -339,6 +340,7 @@ Solution fractFrontPosition(
         SolutionAtTn_kPlus1.pressure());
 
     auto old_active_set_elements = SolutionAtTn_kPlus1.activeElts();
+
     if (new_active_set_elements.size() == 0) {
       cvg_front_posit = 1;
     } else {

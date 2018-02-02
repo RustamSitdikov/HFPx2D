@@ -303,10 +303,6 @@ Solution reynoldsP1(Mesh &theMesh, il::Array2D<double> &elast_matrix,
       BigA(dof_active_elmnts.size() + Source.getSourcePoint(), k1) = 0.;
     }
 
-    for (il::int_t l1 = 0; l1 < BigA.size(0); ++l1) {
-      BigA(l1, dof_active_elmnts.size() + Source.getSourcePoint()) = 0.;
-    }
-
     BigA(dof_active_elmnts.size() + Source.getSourcePoint(),
          dof_active_elmnts.size() + Source.getSourcePoint()) = 1.;
 
@@ -402,7 +398,8 @@ Solution reynoldsP1(Mesh &theMesh, il::Array2D<double> &elast_matrix,
     incrm_press_k_old = incrm_press_k;
   }
 
-  std::cout << "\n error on Dd_shear : " << err_shearDD << "  || "
+  std::cout << "\n Iter to satisfy non-linear system : " << k << "  || "
+            << " error on Dd_shear : " << err_shearDD << "  || "
             << " error on Dd_opening : " << err_openingDD << "  || "
             << " error on Dp: " << err_press << "\n";
 
