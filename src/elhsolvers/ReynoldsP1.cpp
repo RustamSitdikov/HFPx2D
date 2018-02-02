@@ -77,7 +77,7 @@ Solution reynoldsP1(Mesh &theMesh, il::Array2D<double> &elast_matrix,
                                        SolutionAtTn.pressure().size(), 0.};
   for (il::int_t l2 = 0; l2 < Fetc_active_dofs.size(0); l2 = l2 + 2) {
     for (il::int_t i = 0; i < Fetc_active_dofs.size(1); ++i) {
-      Fetc_active_dofs(l2 + 1, i) = fetc_press(dof_active_elmnts[l2] / 2, i);
+      Fetc_active_dofs(l2, i) = -1. * fetc_press(dof_active_elmnts[l2] / 2, i);
     }
   }
 

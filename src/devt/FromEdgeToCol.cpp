@@ -118,7 +118,7 @@ il::Array2D<double> from_edge_to_col_dg(Mesh &theMesh) {
 // Remember: the elasticity is evaluated at collocation points
 // The collocation points are located in the reference unit element at location
 // {-1/sqrt(2) , +1/sqrt(2)}
-// It returns a matrix (size 4Nelts x Nelts+1) that, if multiplied by nodal
+// It returns a matrix (size 2Nelts x Nelts+1) that, if multiplied by nodal
 // pressure values (size Nnodes), it returns the pressure values at
 // collocation points
 /// Note that all the dofs are considered -> not optimal
