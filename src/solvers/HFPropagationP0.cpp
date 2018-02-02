@@ -72,7 +72,7 @@ int ParallelHFs() {
     std::cout << "No Fracture height input in  model parameters";
     il::abort();
   }
-  auto frac_heigth = j_params["Fracture height"].get<double>();
+  auto frac_height = j_params["Fracture height"].get<double>();
 
   if (j_params.count("Number of fractures") != 1) {
     std::cout << "No Number of fractures  input in  model parameters";
@@ -154,7 +154,7 @@ int ParallelHFs() {
   hfp2d::ElasticProperties myelas = rock.ElasticProperties();
 
   il::Array2D<double> K = hfp2d::basic_assembly(
-      mesh, myelas, hfp2d::normal_shear_stress_kernel_s3d_dp0_dd, frac_heigth);
+      mesh, myelas, hfp2d::normal_shear_stress_kernel_s3d_dp0_dd, frac_height);
 
   // add tip correction for P0 for each tips in the mesh
   for (il::int_t i = 0; i < mesh.tipElts().size(); i++) {
@@ -270,7 +270,7 @@ int ParallelHFs() {
     //                                         SimulParam,true);
 
     Solution Soln1 =
-        hfp2d::FractureFrontLoop(fracSol_n, fracfluid, rock, the_source, frac_heigth,
+        hfp2d::FractureFrontLoop(fracSol_n, fracfluid, rock, the_source, frac_height,
                                  dt, SimulParam, true, il::io, K);
 
     // accept time step if the error is below 0.01 (hardcoded value for now, should be named relaxed_tolerance ?)
@@ -363,7 +363,7 @@ hfp2d::Solution FractureFrontLoop(const hfp2d::Solution &Sol_n,
   // fluid :: fluid object containing the fluid properties
   // rock :: solid properties object
   // source :: injection object
-  // frac_heigth :: value of the constant fracture heigth
+  // frac_height :: value of the constant fracture height
   // timestep :: double, value of current time step
   // simulParams :: structure containing the solvers parameters
 

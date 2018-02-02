@@ -329,7 +329,7 @@ double SimpleGriffithExampleS3D_P0(int nelts) {
 
   il::Array2D<double> K = hfp2d::basic_assembly(
       mesh, myelas, hfp2d::normal_shear_stress_kernel_s3d_dp0_dd,
-      1000.);  // large pseudo-heigth to reproduce plane-strain kernel
+      1000.);  // large pseudo-height to reproduce plane-strain kernel
 
   AddTipCorrectionP0(mesh, myelas, 0, K);
   AddTipCorrectionP0(mesh, myelas, nelts - 1, K);
@@ -404,7 +404,7 @@ double SimpleGriffithExampleS3D_P0_AddMesh(int nelts) {
 
   il::Array2D<double> K = hfp2d::basic_assembly(
       mesh, myelas, hfp2d::normal_shear_stress_kernel_s3d_dp0_dd,
-      1000.);  // large pseudo-heigth to reproduce plane-strain kernel
+      1000.);  // large pseudo-height to reproduce plane-strain kernel
 
   // add a nelts anpther element to wellMesh.
   il::int_t t1 = mesh.tipElts(0), t2 = mesh.tipElts(1);
@@ -491,7 +491,7 @@ double SimpleGriffithExampleS3D_P0_byNodes(int nelts) {
 
   il::Array2D<double> K = hfp2d::basic_assembly_nodal(
       mesh, myelas, hfp2d::normal_shear_stress_kernel_s3d_dp0_dd_nodal,
-      1000.);  // large pseudo-heigth to reproduce plane-strain kernel
+      1000.);  // large pseudo-height to reproduce plane-strain kernel
 
   AddTipCorrectionP0(mesh, myelas, 0, K);
   AddTipCorrectionP0(mesh, myelas, nelts - 1, K);
