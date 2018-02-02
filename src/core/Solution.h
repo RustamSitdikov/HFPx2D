@@ -370,7 +370,7 @@ class Solution {
     json j_obj = {{"Time", time_},
                   {"Time step", timestep_},
                   {"Its frac. front", frontIts_},
-                  {"Error Fracture front", err_front_},
+                  {"Error fracture front", err_front_},
                   {"Its EHL", ehlIts_},
                   {"Error EHL pressure", err_P_},
                   {"Error EHL opening", err_openingDD_},
