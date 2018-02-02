@@ -205,7 +205,8 @@ Solution ReynoldsSolverP0(
     Xi( j+ 2*n_elts, 2*j+1) = AllCellSizes[j];
   }
 
-  // RHS part that does not change....
+  // RHS part that does not change...
+  // todo: add dimensions match check (?)
   il::Array<double> Fn_elas = il::dot(ElasMat, DDn);
   il::Array<double> Gamma{tot_dofs,0.};  // tangent rhs add
 

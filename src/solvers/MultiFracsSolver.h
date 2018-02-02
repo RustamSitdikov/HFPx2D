@@ -32,7 +32,7 @@ hfp2d::MultiFracsSolution wellHFsSolver_fixedpts(
     hfp2d::SimulationParameters &coupling_p,
     double frac_height,
     bool mute,
-    il::io_t, il::Array2D<double> &K);
+    il::io_t, il::Array2D<double> &K, bool accept);
 
 // parameters structure for the interface to the root finder
 struct IFParamEntryFriction : imf::IFParameters {
