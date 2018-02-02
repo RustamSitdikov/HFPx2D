@@ -183,7 +183,7 @@ void fluidInjFrictWeakDilatFault(int argc, char const *argv[]) {
       MyMesh, t_0plus1, time_step, init_opening, init_slip, press_init_nodes,
       BackgroundLoadingConditions.getBackgroundNormalStress(),
       BackgroundLoadingConditions.getBackgroundShearStress(),
-      init_active_set_elements, init_iter_front_position, init_iter_ehls,
+      init_failed_set_collpoints, init_iter_front_position, init_iter_ehls,
       err_frac_position, err_opening_dd, err_shear_dd, err_press);
 
   // Initialization of slippage length at time t_0
@@ -228,18 +228,6 @@ void fluidInjFrictWeakDilatFault(int argc, char const *argv[]) {
     // Calculate the current crack velocity
     current_crack_velocity = (slipp_length_at_Tn_plus1 - slipp_length_at_Tn) /
                              SolutionAtTn.timestep();
-
-    //    if ((current_crack_velocity >
-    //         ((2 * MyMesh.allEltSize()[0]) / SolutionAtTn.timestep())) &&
-    //        (SolutionAtTnPlus1.ehlIts() > SimulationParameters.ehl_max_its /
-    //        4)) {
-    //      std::cout
-    //          << "############# Turn into Explicit/Implicit scheme
-    //          #############"
-    //          << "\n"
-    //          << std::endl;
-    //      expl_impl = true;
-    //    }
 
     // Write solution at TnPlus1 to .Json file (solution which contains pressure
     // and active set of elements at TnPlus2 and so on..)
@@ -310,14 +298,21 @@ Solution fractFrontPosition(
               << std::endl;
 
     // Find the corresponding DOFs of the active elements
-    for (il::int_t elmnt_i = 0, k = 0;
-         elmnt_i < SolutionAtTn_k.activeElts().size(); ++elmnt_i) {
-      dofs_act_elmts.resize(k + 4);
-      for (il::int_t j = 0, l = k; j < theMesh.numberDDDofsPerElt(); ++j, ++l) {
-        dofs_act_elmts[l] =
-            (int)theMesh.dofDD(SolutionAtTn_k.activeElts(elmnt_i), j);
-      }
-      k = k + 4;
+//    for (il::int_t elmnt_i = 0, k = 0;
+//         elmnt_i < SolutionAtTn_k.activeElts().size(); ++elmnt_i) {
+//      dofs_act_elmts.resize(k + 4);
+//      for (il::int_t j = 0, l = k; j < theMesh.numberDDDofsPerElt(); ++j, ++l) {
+//        dofs_act_elmts[l] =
+//            (int)theMesh.dofDD(SolutionAtTn_k.activeElts(elmnt_i), j);
+//      }
+//      k = k + 4;
+//    }
+    for (il::int_t l3 = 0, k2 = 0; l3 < SolutionAtTn_k.activeElts().size();
+         ++l3) {
+      dofs_act_elmts.resize(k2 + 2);
+      dofs_act_elmts[k2] = (int) (2 * SolutionAtTn_k.activeElts(l3));
+      dofs_act_elmts[k2 + 1] = (int) (2 * SolutionAtTn_k.activeElts(l3) + 1);
+      k2 = k2 + 2;
     }
 
     if (dofs_act_elmts.size() == 0) {

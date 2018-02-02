@@ -69,7 +69,7 @@ Solution reynoldsP1(Mesh &theMesh, il::Array2D<double> &elast_matrix,
   }
 
   // Current pore-pressure at collocation point
-  auto press_coll = il::dot(fetc_press, SolutionAtTn.pressure());
+  auto press_coll = il::dot(fetc_press, SolutionAtTn_k.pressure());
 
   // Select just the "active" part of the matrix to switch from nodal
   // points to collocation points
@@ -188,7 +188,7 @@ Solution reynoldsP1(Mesh &theMesh, il::Array2D<double> &elast_matrix,
 
     // Current nodal slip
     for (il::int_t i = 0; i < incrm_shearDD_k.size(); ++i) {
-      shearDD_k[i] = SolutionAtTn.shearDD(i) + incrm_shearDD_k[i];
+      shearDD_k[i] = SolutionAtTn_k.shearDD(i) + incrm_shearDD_k[i];
     }
 
     // Current slip at collocation points
@@ -196,7 +196,7 @@ Solution reynoldsP1(Mesh &theMesh, il::Array2D<double> &elast_matrix,
 
     // Current opening
     for (il::int_t i = 0; i < incrm_openingDD_k.size(); ++i) {
-      openingDD_k[i] = SolutionAtTn.openingDD(i) + incrm_openingDD_k[i];
+      openingDD_k[i] = SolutionAtTn_k.openingDD(i) + incrm_openingDD_k[i];
     }
 
     // Current opening at collocation points
@@ -405,13 +405,11 @@ Solution reynoldsP1(Mesh &theMesh, il::Array2D<double> &elast_matrix,
 
   // Cumulative increment of slip
   for (il::int_t l = 0; l < incrm_shearDD.size(); ++l) {
-    //    incrm_shearDD[l] = incrm_shearDD[l] + incrm_shearDD_k[l];
     incrm_shearDD[l] = incrm_shearDD[l] + incr_shear_dd_k[l];
   }
 
   // Cumulative increment of opening
   for (il::int_t l = 0; l < incrm_openingDD.size(); ++l) {
-    //    incrm_openingDD[l] = incrm_openingDD[l] + incrm_openingDD_k[l];
     incrm_openingDD[l] = incrm_openingDD[l] + incr_opening_dd_k[l];
   }
 
@@ -431,7 +429,7 @@ Solution reynoldsP1(Mesh &theMesh, il::Array2D<double> &elast_matrix,
   // New pore pressure profile
   il::Array<double> pore_press_new{theMesh.numberOfNodes(), 0.};
   for (il::int_t m2 = 0; m2 < pore_press_new.size(); ++m2) {
-    pore_press_new[m2] = SolutionAtTn.pressure(m2) + incrm_press_k[m2];
+    pore_press_new[m2] = SolutionAtTn_k.pressure(m2) + incrm_press_k[m2];
   }
 
   auto press_coll_new = il::dot(fetc_press, pore_press_new);
