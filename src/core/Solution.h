@@ -247,19 +247,19 @@ class Solution {
                                    SolidEvolution &SolidEvolution,
                                    il::Array2D<double> &from_edge_to_coll_press,
                                    il::Array2D<il::int_t> &dof_single_dd,
-                                   const il::Array<double> &press_old) {
-
+                                   const il::Array<double> &curr_press) {
     // Move pore pressure from nodal points to coll points because elasticity
     // is evaluated at collocation points (-> MC criterion is evaluated at
     // collocation points!)
-    auto press_coll = il::dot(from_edge_to_coll_press, press_old);
+    auto curr_press_coll = il::dot(from_edge_to_coll_press, curr_press);
 
     // Get the set of 'failed' collocation points by checking the MC criterion
     il::Array<int> failed_set_collpoints{0};
     failed_set_collpoints.reserve(2 * theMesh.numberOfElts());
     for (int j = 0, k = 0; j < 2 * theMesh.numberOfElts(); ++j) {
-      if (SolutionAtTn.tau(j) > SolidEvolution.getFricCoeff(j) *
-                                    (SolutionAtTn.sigmaN(j) - press_coll[j])) {
+      if (SolutionAtTn.tau(j) >
+          SolidEvolution.getFricCoeff(j) *
+              (SolutionAtTn.sigmaN(j) - curr_press_coll[j])) {
         failed_set_collpoints.resize(k + 1);
         failed_set_collpoints[k] = j;
         k = k + 1;

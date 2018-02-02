@@ -228,15 +228,17 @@ void fluidInjFrictWeakDilatFault(int argc, char const *argv[]) {
     current_crack_velocity = (slipp_length_at_Tn_plus1 - slipp_length_at_Tn) /
                              SolutionAtTn.timestep();
 
-//    if ((current_crack_velocity >
-//         ((2 * MyMesh.allEltSize()[0]) / SolutionAtTn.timestep())) &&
-//        (SolutionAtTnPlus1.ehlIts() > SimulationParameters.ehl_max_its / 4)) {
-//      std::cout
-//          << "############# Turn into Explicit/Implicit scheme #############"
-//          << "\n"
-//          << std::endl;
-//      expl_impl = true;
-//    }
+    //    if ((current_crack_velocity >
+    //         ((2 * MyMesh.allEltSize()[0]) / SolutionAtTn.timestep())) &&
+    //        (SolutionAtTnPlus1.ehlIts() > SimulationParameters.ehl_max_its /
+    //        4)) {
+    //      std::cout
+    //          << "############# Turn into Explicit/Implicit scheme
+    //          #############"
+    //          << "\n"
+    //          << std::endl;
+    //      expl_impl = true;
+    //    }
 
     // Write solution at TnPlus1 to .Json file (solution which contains pressure
     // and active set of elements at TnPlus2 and so on..)
@@ -246,21 +248,20 @@ void fluidInjFrictWeakDilatFault(int argc, char const *argv[]) {
     SolutionAtTnPlus1.writeToFile(filename);
 
     // Set new time step and new time based on current crack velocity
-        if (current_crack_velocity > 0.0) {
-          double dt_new = 2 * MyMesh.allEltSize()[0] / current_crack_velocity;
-          if (dt_new > 3. * SolutionAtTnPlus1.timestep()) {
-            SolutionAtTnPlus1.setTimeStep(3. * SolutionAtTnPlus1.timestep());
-          } else {
-            if (dt_new < 0.9 * SolutionAtTnPlus1.timestep()) {
-              SolutionAtTnPlus1.setTimeStep(0.9 *
-              SolutionAtTnPlus1.timestep());
-            } else {
-              SolutionAtTnPlus1.setTimeStep(dt_new);
-            }
-          }
+    if (current_crack_velocity > 0.0) {
+      double dt_new = 2 * MyMesh.allEltSize()[0] / current_crack_velocity;
+      if (dt_new > 3. * SolutionAtTnPlus1.timestep()) {
+        SolutionAtTnPlus1.setTimeStep(3. * SolutionAtTnPlus1.timestep());
+      } else {
+        if (dt_new < 0.9 * SolutionAtTnPlus1.timestep()) {
+          SolutionAtTnPlus1.setTimeStep(0.9 * SolutionAtTnPlus1.timestep());
         } else {
-          SolutionAtTnPlus1.setTimeStep(time_step_max);
+          SolutionAtTnPlus1.setTimeStep(dt_new);
         }
+      }
+    } else {
+      SolutionAtTnPlus1.setTimeStep(time_step_max);
+    }
 
     SolutionAtTnPlus1.setTime(SolutionAtTn.time() +
                               SolutionAtTnPlus1.timestep());
@@ -335,7 +336,7 @@ Solution fractFrontPosition(
     // Update active set of elements
     new_active_set_elements = SolutionAtTn_kPlus1.activeSetElements(
         theMesh, SolutionAtTn_kPlus1, SolidEvolution, fetc_press, dof_single_dd,
-        SolutionAtTn.pressure());
+        SolutionAtTn_kPlus1.pressure());
 
     auto old_active_set_elements = SolutionAtTn_kPlus1.activeElts();
     if (new_active_set_elements.size() == 0) {
