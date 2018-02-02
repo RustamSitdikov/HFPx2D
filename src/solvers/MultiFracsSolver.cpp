@@ -493,8 +493,11 @@ hfp2d::MultiFracsSolution wellHFsSolver_fixedpts(
         double dQi = std::fabs(dQn * scl_Q) * sgn_Q;
 
         Q_in_var[i] = Q_in_k[i] + dQi;
+        for (il::int_t i=0;i<nclusters;i++){
+          rates_per_height[i]=Q_in_var[i]/frac_heigth;
+        }
 
-        frac_sources_var.setInjectionRates(Q_in_var);
+        frac_sources_var.setInjectionRates(rates_per_height);
         well_sources_var.setInjectionRates(Q_in_var);
 
         // solve for wellbore flow
