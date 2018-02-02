@@ -14,9 +14,7 @@
 #include <il/linear_algebra.h>
 
 
-
 namespace hfp2d{
-
 
 //   Rotation Matrix
 il::StaticArray2D<double, 2, 2> rotationMatrix2D(double theta);
