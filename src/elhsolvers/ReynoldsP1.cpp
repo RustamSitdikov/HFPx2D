@@ -279,11 +279,6 @@ Solution reynoldsP1(Mesh &theMesh, il::Array2D<double> &elast_matrix,
     }
 
     for (il::int_t n = 0; n < dof_active_elmnts.size(); n = n + 2) {
-      //            BigB[n] = -1.* ((fric_coeff_k[dof_active_elmnts[n] / 2] *
-      //                         (SolutionAtTn_k.sigmaN(dof_active_elmnts[n] /
-      //                         2) -
-      //                          press_coll[dof_active_elmnts[n] / 2])) -
-      //                        SolutionAtTn_k.tau(dof_active_elmnts[n] / 2));
       BigB[n] = -1. * ((fric_coeff_k[dof_active_elmnts[n] / 2] *
                         (SolutionAtTn_k.sigmaN(dof_active_elmnts[n] / 2) -
                          press_coll[dof_active_elmnts[n] / 2])) -
@@ -429,7 +424,7 @@ Solution reynoldsP1(Mesh &theMesh, il::Array2D<double> &elast_matrix,
   // New pore pressure profile
   il::Array<double> pore_press_new{theMesh.numberOfNodes(), 0.};
   for (il::int_t m2 = 0; m2 < pore_press_new.size(); ++m2) {
-    pore_press_new[m2] = SolutionAtTn_k.pressure(m2) + incrm_press_k[m2];
+    pore_press_new[m2] = SolutionAtTn.pressure(m2) + incrm_press_k[m2];
   }
 
   auto press_coll_new = il::dot(fetc_press, pore_press_new);

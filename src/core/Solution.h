@@ -261,30 +261,29 @@ class Solution {
       }
     }
 
-//    il::Array<int> set_elements{0};
-//    set_elements.reserve(2 * theMesh.numberOfElts());
-//    for (int l = 0, k = 0; l < failed_set_collpoints.size(); ++l) {
-//      set_elements.resize(k + 1);
-//      set_elements[l] =
-//          hfp2d::find_2d_integer(dof_single_dd, failed_set_collpoints[l])[0];
-//      k = k + 1;
-//    }
-//
-//    auto active_set_elmnts = hfp2d::delete_duplicates_integer(set_elements);
-//
-//    il::Array<int> active_set_elements{active_set_elmnts.size()};
-//
-//    if (failed_set_collpoints.size() == 2 * active_set_elements.size()) {
-//      active_set_elements = active_set_elmnts;
-//    } else {
-//      active_set_elements.resize(active_set_elmnts.size() - 2);
-//      for (int i = 0, k = 1; i < active_set_elements.size(); ++i, ++k) {
-//        active_set_elements[i] = active_set_elmnts[k];
-//      }
-//    }
+    il::Array<int> set_elements{0};
+    set_elements.reserve(2 * theMesh.numberOfElts());
+    for (int l = 0, k = 0; l < failed_set_collpoints.size(); ++l) {
+      set_elements.resize(k + 1);
+      set_elements[l] =
+          hfp2d::find_2d_integer(dof_single_dd, failed_set_collpoints[l])[0];
+      k = k + 1;
+    }
 
-//    return active_set_elements;
-      return failed_set_collpoints;
+    auto active_set_elmnts = hfp2d::delete_duplicates_integer(set_elements);
+
+    il::Array<int> active_set_elements{active_set_elmnts.size()};
+
+    if (failed_set_collpoints.size() == 2 * active_set_elements.size()) {
+      active_set_elements = active_set_elmnts;
+    } else {
+      active_set_elements.resize(active_set_elmnts.size() - 2);
+      for (int i = 0, k = 1; i < active_set_elements.size(); ++i, ++k) {
+        active_set_elements[i] = active_set_elmnts[k];
+      }
+    }
+
+    return active_set_elements;
   };
 
   /// write solution to file  -> json format
