@@ -7,7 +7,6 @@ namespace hfp2d {
 il::String findString(const il::String &keyword,
                       const il::MapArray<il::String, il::Dynamic> &inputMap,
                       const il::String &inputFileName) {
-
   il::int_t foundKey;
   il::String foundString;
 

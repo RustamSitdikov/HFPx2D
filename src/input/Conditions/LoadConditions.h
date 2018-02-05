@@ -17,5 +17,6 @@ namespace hfp2d {
 
 InSituStress loadConditions(Mesh &theLoadedMesh, const il::String &inputFileName,
                     const il::MapArray<il::String, il::Dynamic> &ConditionsMap);
+
 }
 #endif  // HFPX2DUNITTEST_LOADCONDITIONS_H

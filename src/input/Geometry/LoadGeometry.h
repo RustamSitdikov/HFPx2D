@@ -27,6 +27,7 @@ Mesh loadGeometry(const il::String &inputFileName,
 il::int_t findInterpOrder(
     const il::MapArray<il::String, il::Dynamic> &meshCreationMap,
     const il::String &inputFileName);
+
 il::int_t findNumFractures(
     const il::MapArray<il::String, il::Dynamic> &meshCreationMap,
     const il::String &inputFileName);

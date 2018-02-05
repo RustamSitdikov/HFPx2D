@@ -30,7 +30,6 @@ double findDouble(const il::String &keyword,
 bool findBool(const il::String &keyword,
               const il::MapArray<il::String, il::Dynamic> &inputMap,
               const il::String &inputFileName);
-
 }
 
 #endif //HFPX2DUNITTEST_FINDUTILITIES_H
