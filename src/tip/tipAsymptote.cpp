@@ -86,8 +86,7 @@ double delta_c(double k_h, double c_h) {
 }
 
 double g_un_1(double k_h, double c_h) {
-  double b_h = con_mc * c_h;
-//  double delta = con_m * (1.0 + b_h) * g_un_0(k_h, c_h);
+//  double delta = con_m * (1.0 + con_mc * c_h) * g_un_0(k_h, c_h);
   double delta = delta_c(k_h, c_h);
   double c_1_d = c_1(delta);
   double b_12_d = b_12(delta);
@@ -173,7 +172,6 @@ double res_u_1_m(double s, TipParameters &taParam) {
       // use universal tip asymptote
       double s_u = g_un_1(k_h, c_h);
 //      return s_u - s_h;
-      double b_h = con_mc * c_h;
       double delta = delta_c(k_h, c_h);;
       double b_12_d = b_12(delta);
       double b_h_d = c_h * b_12_d;
