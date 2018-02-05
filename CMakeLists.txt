@@ -86,6 +86,8 @@ set(SOURCE_FILES
         src/util/json.hpp
         src/devt/IterativeSolvers.cpp
         src/devt/IterativeSolvers.h
+        src/solvers/SimpleElasticBenchmarks.cpp
+        src/solvers/SimpleElasticBenchmarks.h
         # src/input/Sources/loadSources.cpp
         #src/input/Sources/loadSources.h
         )
@@ -132,7 +134,7 @@ set(UNIT_TEST_FILES
         src/_test/domain_mesh_test.cpp
         src/tip/_test/tip_test.cpp
         src/_test/FV_test.cpp
-        src/elasticity/_test/elasticity_tests.cpp)
+        src/elasticity/_test/elasticity_tests.cpp src/_test/elastic_benchmarks.cpp)
 
 add_executable(HFPx2DUnitTest ${SOURCE_FILES} ${UNIT_TEST_FILES} test.cpp)
 
