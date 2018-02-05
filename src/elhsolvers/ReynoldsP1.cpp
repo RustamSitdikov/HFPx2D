@@ -176,7 +176,9 @@ Solution reynoldsP1(Mesh &theMesh, il::Array2D<double> &elast_matrix,
   il::Array2D<double> B;
   il::Array<double> tot_slipk{dof_active_elmnts.size(), 0.};
   il::Array<double> curr_incr_tau{elast_submatrix.size(0), 0.};
+  il::Array<double> curr_incr_sigmaN{elast_submatrix.size(0), 0.};
   il::Array<double> curr_tau{curr_incr_tau.size(), 0.};
+  il::Array<double> curr_sigmaN{curr_incr_tau.size(), 0.};
   il::Array<double> incr_shear_dd_k{incrm_shearDD_k.size(), 0.};
   il::Array<double> incr_opening_dd_k{incrm_openingDD_k.size(), 0.};
 
@@ -278,11 +280,24 @@ Solution reynoldsP1(Mesh &theMesh, il::Array2D<double> &elast_matrix,
       }
     }
 
+    // Current increment of normal stress due to dilatancy mobilized by slipping
+    // nodes
+    auto curr_incr_dil_opening = il::dot(dilat_plast_submatrix, tot_slipk);
+    if (dof_active_elmnts.size() != 0) {
+      curr_incr_sigmaN = il::dot(elast_submatrix, curr_incr_dil_opening);
+
+      for (il::int_t i = 0; i < curr_tau.size(); i = i + 2) {
+        curr_sigmaN[i] =
+            (curr_incr_sigmaN[i]) +
+            BackgroundLoadingConditions.getBackgroundNormalStress(0);
+      }
+    }
+
     for (il::int_t n = 0; n < dof_active_elmnts.size(); n = n + 2) {
-      BigB[n] = -1. * ((fric_coeff_k[dof_active_elmnts[n] / 2] *
-                        (SolutionAtTn_k.sigmaN(dof_active_elmnts[n] / 2) -
-                         press_coll[dof_active_elmnts[n] / 2])) -
-                       curr_tau[n]);
+      BigB[n] =
+          -1. * ((fric_coeff_k[dof_active_elmnts[n] / 2] *
+                  (curr_sigmaN[n] - press_coll[dof_active_elmnts[n] / 2])) -
+                 curr_tau[n]);
     }
 
     auto Lp = il::dot(L, SolutionAtTn.pressure());
@@ -421,6 +436,12 @@ Solution reynoldsP1(Mesh &theMesh, il::Array2D<double> &elast_matrix,
         -1. * incrm_normal_stress[dof_active_elmnts[k3] / 2];
   }
 
+  // Calculate new normal stress (due to increment of normal stress)
+  il::Array<double> sigmaN_new{2 * theMesh.numberOfElts(), 0.};
+  for (il::int_t j2 = 0; j2 < sigmaN_new.size(); ++j2) {
+    sigmaN_new[j2] = SolutionAtTn.sigmaN(j2) - incrm_normal_stress[j2];
+  }
+
   // New pore pressure profile
   il::Array<double> pore_press_new{theMesh.numberOfNodes(), 0.};
   for (il::int_t m2 = 0; m2 < pore_press_new.size(); ++m2) {
@@ -439,14 +460,8 @@ Solution reynoldsP1(Mesh &theMesh, il::Array2D<double> &elast_matrix,
   for (il::int_t j3 = 0; j3 < dof_active_elmnts.size(); j3 = j3 + 2) {
     tau_new[dof_active_elmnts[j3] / 2] =
         fabs(fric_coeff_k[dof_active_elmnts[j3] / 2] *
-             (SolutionAtTn_k.sigmaN(dof_active_elmnts[j3] / 2) -
+             (sigmaN_new[dof_active_elmnts[j3] / 2] -
               press_coll_new[dof_active_elmnts[j3] / 2]));
-  }
-
-  // Calculate new normal stress (due to increment of normal stress)
-  il::Array<double> sigmaN_new{2 * theMesh.numberOfElts(), 0.};
-  for (il::int_t j2 = 0; j2 < sigmaN_new.size(); ++j2) {
-    sigmaN_new[j2] = SolutionAtTn.sigmaN(j2) - incrm_normal_stress[j2];
   }
 
   // New slip vector (shear DD)

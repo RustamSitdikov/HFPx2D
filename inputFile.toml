@@ -56,7 +56,7 @@
  
     initial_hydraulic_width = 0.6
  
-    increment_hydraulic_width = 0.0
+    increment_hydraulic_width = 0.12
  
 [Loading_Conditions]
  
@@ -82,4 +82,4 @@
 
     QD = false   # set "true" for Quasi-Dynamic simulation (including damping term)
 
-    dilat_plast = 0.0
+    dilat_plast = 0.3  # increment_hydraulic_width / residual_slip
