@@ -118,7 +118,7 @@ void loadProperties(const Mesh &theLoadedMesh, const il::String &input_filename,
 
           for (il::int_t elmt_k = 0; elmt_k < theLoadedMesh.numberOfElts();
                ++elmt_k) {
-            if (theLoadedMesh.matid(elmt_k) == materialID) {
+            if (theLoadedMesh.matid(elmt_k) == (materialID-1)) {
               for (il::int_t j = 0; j < theLoadedMesh.numberDDDofsPerElt() / 2;
                    ++j) {
                 vector_peak_fric_coeff[dof_single_dd(elmt_k, j)] =
@@ -142,7 +142,7 @@ void loadProperties(const Mesh &theLoadedMesh, const il::String &input_filename,
 
           for (il::int_t elmt_k = 0; elmt_k < theLoadedMesh.numberOfElts();
                ++elmt_k) {
-            if (theLoadedMesh.matid(elmt_k) == materialID) {
+            if (theLoadedMesh.matid(elmt_k) == (materialID-1)) {
               for (il::int_t j = 0; j < theLoadedMesh.numberDDDofsPerElt() / 2;
                    ++j) {
                 vector_singleFailureStress[dof_single_dd(elmt_k, j)] =
@@ -174,7 +174,7 @@ void loadProperties(const Mesh &theLoadedMesh, const il::String &input_filename,
 
           for (il::int_t elmt_k = 0; elmt_k < theLoadedMesh.numberOfElts();
                ++elmt_k) {
-            if (theLoadedMesh.matid(elmt_k) == materialID) {
+            if (theLoadedMesh.matid(elmt_k) == (materialID-1)) {
               for (il::int_t j = 0; j < theLoadedMesh.numberDDDofsPerElt() / 2;
                    ++j) {
                 vector_peak_fric_coeff[dof_single_dd(elmt_k, j)] =
@@ -227,7 +227,7 @@ void loadProperties(const Mesh &theLoadedMesh, const il::String &input_filename,
 
         for (il::int_t elmt_k = 0; elmt_k < theLoadedMesh.numberOfElts();
              ++elmt_k) {
-          if (theLoadedMesh.matid(elmt_k) == materialID) {
+          if (theLoadedMesh.matid(elmt_k) == (materialID-1)) {
             for (il::int_t j = 0; j < theLoadedMesh.numberDDDofsPerElt() / 2;
                  ++j) {
               vector_initial_permeab[dof_single_dd(elmt_k, j)] =
@@ -251,7 +251,7 @@ void loadProperties(const Mesh &theLoadedMesh, const il::String &input_filename,
 
         for (il::int_t elmt_k = 0; elmt_k < theLoadedMesh.numberOfElts();
              ++elmt_k) {
-          if (theLoadedMesh.matid(elmt_k) == materialID) {
+          if (theLoadedMesh.matid(elmt_k) == (materialID-1)) {
             for (il::int_t j = 0; j < theLoadedMesh.numberDDDofsPerElt() / 2;
                  ++j) {
               vector_initial_permeab[dof_single_dd(elmt_k, j)] =

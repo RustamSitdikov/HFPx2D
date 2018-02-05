@@ -243,6 +243,7 @@ class Solution {
                                    il::Array2D<double> &from_edge_to_coll_press,
                                    il::Array2D<il::int_t> &dof_single_dd,
                                    const il::Array<double> &curr_press) {
+
     // Move pore pressure from nodal points to coll points because elasticity
     // is evaluated at collocation points (-> MC criterion is evaluated at
     // collocation points!)

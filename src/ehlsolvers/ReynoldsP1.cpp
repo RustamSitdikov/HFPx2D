@@ -322,7 +322,7 @@ Solution reynoldsP1(Mesh &theMesh, il::Array2D<double> &elast_matrix,
 
     BigX = il::linearSolve(BigA, BigB, il::io, status);
     status.abortOnError();
-
+ 
     ///  Under relaxation technique & updating ///
 
     for (il::int_t l = 0; l < dof_active_elmnts.size(); l = l + 2) {

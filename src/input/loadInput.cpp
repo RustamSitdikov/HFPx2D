@@ -35,7 +35,7 @@ void loadInput(const il::String &config_filename, il::io_t, Mesh &MyMesh,
   il::int_t keyFound;
 
   ////////// GEOMETRY KEYWORD //////////
-  keyFound = config.search("geometry");
+  keyFound = config.search("Geometry");
 
   // If "geometry" is found and it is a map
   if (config.found(keyFound) && config.value(keyFound).isMapArray()) {
@@ -47,13 +47,13 @@ void loadInput(const il::String &config_filename, il::io_t, Mesh &MyMesh,
     MyMesh = loadGeometry(config_filename, meshCreationMap);
 
   } else {
-    std::cerr << "ERROR: 'geometry' not found in input file " << config_filename
+    std::cerr << "ERROR: 'Geometry' not found in input file " << config_filename
               << std::endl;
     exit(EXIT_FAILURE);
   }
 
   ////////// PROPERTIES KEYWORD //////////
-  keyFound = config.search("properties");
+  keyFound = config.search("Properties");
 
   // If "properties" is found and it is a map
   if (config.found(keyFound) && config.value(keyFound).isMapArray()) {
@@ -66,7 +66,7 @@ void loadInput(const il::String &config_filename, il::io_t, Mesh &MyMesh,
                    FluidProperties, SolidEvolution, FractureEvolution);
 
   } else {
-    std::cerr << "ERROR: 'properties' not found in input file "
+    std::cerr << "ERROR: 'Properties' not found in input file "
               << config_filename << std::endl;
     exit(EXIT_FAILURE);
   }
