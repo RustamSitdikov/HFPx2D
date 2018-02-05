@@ -12,7 +12,6 @@ void loadProperties(const Mesh &theLoadedMesh, const il::String &input_filename,
                     FluidProperties &FluidProperties,
                     SolidEvolution &SolidEvolution,
                     FractureEvolution &FractureEvolution) {
-  
   //// Elastic Properties
   // We have to load the elastic properties for each material, and placing it
   // into the respective slot in the Properties class.
