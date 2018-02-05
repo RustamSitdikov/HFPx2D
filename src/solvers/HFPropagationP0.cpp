@@ -230,32 +230,32 @@ int ParallelHFs(std::string &filename) {
   json j_simul = js["Simulation parameters"];
 
   double max_time = 1.;
-  if ( j_simul.count("Maximum time") ==1 ) {
+  if ( j_simul.count("Maximum time") == 1 ) {
     max_time = j_simul["Maximum time"].get<double>();
   }
   il::int_t max_steps = 150;
-  if ( j_simul.count("Maximum number of steps") ==1 ) {
+  if ( j_simul.count("Maximum number of steps") == 1 ) {
     max_steps = j_simul["Maximum number of steps"].get<long>();
   }
 
   double dt = 0.002;
-  if ( j_simul.count("Time step") ==1 ) {
+  if ( j_simul.count("Time step") == 1 ) {
     dt = j_simul["Time step"].get<double>();
   }
 
   double dt_min = 0.00001;
-  if ( j_simul.count("Minimum time step") ==1 ) {
+  if ( j_simul.count("Minimum time step") == 1 ) {
     dt = j_simul["Minimum time step"].get<double>();
   }
 
   std::string basefilename = "HFs_given_rate"; // default name
-  if (js.count("Results files name core")==1){
-    basefilename =js["Results files name core"].get<std::string>();
+  if (js.count("Results files name core") == 1){
+    basefilename = js["Results files name core"].get<std::string>();
   }
 
   std::string resfilename;
 
-  double mean_tip_v;
+  double max_tip_v;
 
   double Mbar = std::pow(myelas.Ep(), 3) * (12. * fracfluid.fluidViscosity()) *
                 Qo / (std::pow((std::sqrt(32. / il::pi) * rock.KIc(ea)), 4.));
@@ -290,7 +290,7 @@ int ParallelHFs(std::string &filename) {
       std::cout << " n elts " << fracSol_n.currentMesh().numberOfElts() << "\n";
 //      std::cout << " nn " << fracSol_n.currentMesh().connectivity().size(0) <<"\n";
 
-      resfilename =   basefilename + std::to_string(jt) + ".json";
+      resfilename = basefilename + std::to_string(jt) + ".json";
 
       fracSol_n.writeToFile(resfilename);
 
@@ -302,10 +302,10 @@ int ParallelHFs(std::string &filename) {
 
       std::cout << " ----++++-----++++-------\n";
 
-      mean_tip_v = il::norm(fracSol_n.tipsVelocity(), il::Norm::L2);
+      max_tip_v = il::norm(fracSol_n.tipsVelocity(), il::Norm::L2);
 
-      if ((mean_tip_v > 0.0)) {  //&& (fracSol_n.tipsLocation()(1,0)>1.5)
-        double dt_new = 1. * mesh.eltSize(ea) / mean_tip_v;
+      if ((max_tip_v > 0.0)) {  //&& (fracSol_n.tipsLocation()(1,0)>1.5)
+        double dt_new = 1. * mesh.eltSize(ea) / max_tip_v;
         // modify to more clever ?
         if (dt_new > 2.5 * dt) {
           dt = 2.5 * dt;
@@ -314,7 +314,7 @@ int ParallelHFs(std::string &filename) {
             dt = 0.8 * dt;
           } else {
             dt = dt_new;
-          };
+          }
         }
       }
 
