@@ -17,7 +17,7 @@
 
     # The .hpfm mesh file provides:
     # - nodes coordinates
-    # - mesh connectivity
+    # - wellMesh connectivity
     # - interpolation order
     # - dof handles for both displacements and pressure
     # - fracture and material IDs

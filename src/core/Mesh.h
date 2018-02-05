@@ -58,10 +58,10 @@ class Mesh {  // class for 1D wellMesh of 1D segment elements ?
   il::Array2D<il::int_t> dof_handle_pressure_;
 
   // Identifier number of the fracture - size: number of elements
-  il::Array<il::int_t> fracture_id_;  //
+  il::Array<int> fracture_id_;  //
 
   // Material identifier - size: number of elements
-  il::Array<il::int_t> material_id_;
+  il::Array<int> material_id_;
 
   // a structure  with nodes and corresponding adjacent elements .....
   // row node #, columms element sharing that nodes, if  entry is -1 then
@@ -139,17 +139,15 @@ class Mesh {  // class for 1D wellMesh of 1D segment elements ?
     // built fracture_id_ ?...
     // default just one fracture if not passed ?-> todo generalize the
     // construction to automatic detection of # fracture ?
-    il::Array<il::int_t> fractureID{nelts, 0};
+    il::Array<int> fractureID{nelts, 0};
     fracture_id_ = fractureID;
   };
 
   // case where the matid vector and the fracture_ID vector are provided
   // constructor with interpolation order and coordinates and connectivity array
   Mesh(const il::Array2D<double> &Coordinates,
-       const il::Array2D<il::int_t> &Connectivity,
-       const il::Array<il::int_t> &MatID,
-       const il::Array<il::int_t> &FractureID,
-       const il::int_t interpolationOrder) {
+       const il::Array2D<il::int_t> &Connectivity, const il::Array<int> &MatID,
+       const il::Array<int> &FractureID, const il::int_t interpolationOrder) {
     // check validity of inputs
 
     IL_EXPECT_FAST(Coordinates.size(0) > 1 && Coordinates.size(1) == 2);
@@ -167,7 +165,7 @@ class Mesh {  // class for 1D wellMesh of 1D segment elements ?
 
     // check that the entries of FractureID are within a range 0 to N by step
     // of one without blank
-    il::Array<il::int_t> checkMat = MatID;
+    il::Array<int> checkMat = MatID;
     std::sort(checkMat.begin(), checkMat.end());
     auto last = std::unique(checkMat.begin(), checkMat.end());
     IL_EXPECT_FAST(checkMat[0] == 0);
@@ -185,7 +183,7 @@ class Mesh {  // class for 1D wellMesh of 1D segment elements ?
 
     // check that the entries of FractureID are within a range0 to N by step
     // of one without blank
-    il::Array<il::int_t> checkFrac = FractureID;
+    il::Array<int> checkFrac = FractureID;
     std::sort(checkFrac.begin(), checkFrac.end());
     last = std::unique(checkFrac.begin(), checkFrac.end());
     IL_EXPECT_FAST(checkFrac[0] == 0);
@@ -348,7 +346,7 @@ class Mesh {  // class for 1D wellMesh of 1D segment elements ?
   il::int_t tipElts(il::int_t k) const { return tipelts_[k]; };
 
   // material ID related
-  il::Array<il::int_t> matid() const { return material_id_; };
+  il::Array<int> matid() const { return material_id_; };
   il::int_t matid(il::int_t k) const { return material_id_[k]; }
 
   // todo check that material_id_ and frature_id_ contains entries in the whole
@@ -358,8 +356,8 @@ class Mesh {  // class for 1D wellMesh of 1D segment elements ?
   }
 
   // fracture ID related
-  il::Array<il::int_t> fracid() const { return fracture_id_; };
-  il::int_t fracid(il::int_t k) const { return fracture_id_[k]; }
+  il::Array<int> fracid() const { return fracture_id_; };
+  int fracid(il::int_t k) const { return fracture_id_[k]; }
 
   il::int_t numberOfFractures() const {  // assume entries from 0 to N
     return (*std::max_element(fracture_id_.begin(), fracture_id_.end()) + 1);

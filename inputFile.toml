@@ -20,7 +20,7 @@
  
     number_of_elements = 1000
  
-    material_ID = 1
+    material_ID = 0
  
 ############  PROPERTIES  ############
  

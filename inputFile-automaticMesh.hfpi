@@ -33,7 +33,7 @@
         x_1 = 0.0
         y_1 = 0.0
 
-        # end of the mesh
+        # end of the wellMesh
         x_2 = 0.0
         y_2 = 5.0
 

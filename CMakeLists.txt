@@ -44,11 +44,9 @@ set(SOURCE_FILES
         src/elasticity/Simplified3D.h
         src/elasticity/PlaneStrainInfinite.cpp
         src/elasticity/PlaneStrainInfinite.h
-        src/solvers/SimpleElastic.cpp
-        src/solvers/SimpleElastic.h
         src/core/SimulationParameters.h
-        src/input/LoadArguments.cpp
-        src/input/LoadArguments.h
+        src/input/loadArguments.cpp
+        src/input/loadArguments.h
         src/input/loadInput.cpp
         src/input/loadInput.h
         src/input/Geometry/AutoLineMeshUtilities.cpp
@@ -65,8 +63,8 @@ set(SOURCE_FILES
         src/input/Geometry/AutoLineMeshInfo.h
         src/input/Properties/LoadSingleMaterial.cpp
         src/input/Properties/LoadSingleMaterial.h
-        src/input/FindUtilities.cpp
-        src/input/FindUtilities.h
+        src/input/findUtilities.cpp
+        src/input/findUtilities.h
         il/io/toml/toml.h
         il/io/toml/toml.cpp
         src/input/Conditions/LoadConditions.cpp
@@ -81,13 +79,16 @@ set(SOURCE_FILES
         src/core/InSituStress.h
         src/devt/FromEdgeToCol.cpp
         src/devt/FromEdgeToCol.h
-        src/elhsolvers/ReynoldsP1.cpp
-        src/elhsolvers/ReynoldsP1.h
+        src/ehlsolvers/ReynoldsP1.cpp
+        src/ehlsolvers/ReynoldsP1.h
         src/devt/FiniteVolumeRoutines.cpp
         src/devt/FiniteVolumeRoutines.h
         src/util/json.hpp
         src/devt/IterativeSolvers.cpp
-        src/devt/IterativeSolvers.h)
+        src/devt/IterativeSolvers.h
+        # src/input/Sources/loadSources.cpp
+        #src/input/Sources/loadSources.h
+        )
 
 if(APPLE)
 link_directories($ENV{MKLROOT}/lib $ENV{MKLROOT}/../compiler/lib )
@@ -126,9 +127,9 @@ set(SR_FOLDER "${CMAKE_SOURCE_DIR}/src")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DIL_FOLDER='\"${SR_FOLDER}\"'")
 
 set(UNIT_TEST_FILES
-        src/_test/elastic_test.cpp
         gtest/src/gtest-all.cc
         src/_test/mesh_test.cpp
+        src/_test/domain_mesh_test.cpp
         src/tip/_test/tip_test.cpp
         src/_test/FV_test.cpp
         src/elasticity/_test/elasticity_tests.cpp)
