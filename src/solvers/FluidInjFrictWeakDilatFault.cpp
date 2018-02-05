@@ -28,6 +28,7 @@
 namespace hfp2d {
 
 void fluidInjFrictWeakDilatFault(int argc, char const *argv[]) {
+
   /////// LOAD PROGRAM ARGUMENTS ///////
   // Initialization of variable needed to load the code's arguments;
   il::String config_filename;
