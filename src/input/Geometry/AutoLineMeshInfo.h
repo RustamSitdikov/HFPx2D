@@ -15,7 +15,7 @@
 #include <iostream>
 
 // Inclusion from the project
-#include <src/input/FindUtilities.h>
+#include <src/input/findUtilities.h>
 
 double findX1(const il::String &inputFileName,
               const il::int_t fractureID,

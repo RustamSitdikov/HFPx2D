@@ -17,7 +17,7 @@
 // Inclusion from the project
 #include <src/devt/FiniteVolumeRoutines.h>
 #include <src/devt/IterativeSolvers.h>
-#include <src/elhsolvers/ReynoldsP1.h>
+#include <src/ehlsolvers/ReynoldsP1.h>
 
 namespace hfp2d {
 

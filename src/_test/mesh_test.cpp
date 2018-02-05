@@ -78,8 +78,8 @@ TEST(Mesh, test_mesh_object) {
               (mesh.numberOfElts() == myconn.size(0)) &&
               (mesh.numberOfNodes() == xy.size(0)) &&
               (mesh.interpolationOrder() == 0) && (mesh.tipElts(0) == 0) &&
-              (mesh.tipElts(1) == 3) && (mesh.tip_nodes(0) == 0) &&
-              (mesh.tip_nodes(1) == 4) && (mesh.eltSize(e) == 1) &&
+              (mesh.tipElts(1) == 3) && (mesh.tipNodes(0) == 0) &&
+              (mesh.tipNodes(1) == 4) && (mesh.eltSize(e) == 1) &&
               (mesh.allEltSize()[0] == 1.));
 }
 

@@ -15,8 +15,8 @@
 #include <iostream>
 
 // Inclusion from the project
-#include <src/input/Geometry/AutoLineMeshCreation.h>
-#include <src/input/Geometry/LoadMeshFile.h>
+#include <src/input/geometry/AutoLineMeshCreation.h>
+#include <src/input/geometry/LoadMeshFile.h>
 #include <src/core/Mesh.h>
 
 namespace hfp2d {

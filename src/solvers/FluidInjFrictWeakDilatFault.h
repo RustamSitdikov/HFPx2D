@@ -19,7 +19,7 @@
 #include <src/core/Sources.h>
 #include <src/core_dev/FractureEvolution.h>
 #include <src/core_dev/SolidEvolution.h>
-#include <src/elhsolvers/ReynoldsP1.h>
+#include <src/ehlsolvers/ReynoldsP1.h>
 
 namespace hfp2d {
 

@@ -49,15 +49,12 @@ Mesh autoLineMesh(const il::String &inputFileName, const il::int_t fractureID,
 // Creating the vectors of fracture ID and material ID
 #pragma omp parallel for
   for (il::int_t i = 0; i < elementsConnectivity.size(0); i++) {
-    vectorMaterialID[i] = materialID;
-    vectorFractureID[i] = fractureID;
+    vectorMaterialID[i] = (int) materialID;
+    vectorFractureID[i] = (int) fractureID;
   }
 
   ///// Create Mesh /////
-
-  /// Note that vectorMateriaID is a simply array of int materialID
-  /// -> homogeneous material (materialID should be a vector!)
-  Mesh theMesh(nodesCoordinates, elementsConnectivity, vectorMaterialID,
+  Mesh theMesh(nodesCoordinates, elementsConnectivity,
                interpOrder);
 
   return theMesh;

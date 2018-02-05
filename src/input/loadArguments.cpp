@@ -9,7 +9,7 @@
 //
 
 // Inclusion from the project
-#include "LoadArguments.h"
+#include "loadArguments.h"
 
 namespace hfp2d {
 

@@ -21,9 +21,9 @@
 #include <src/devt/FromEdgeToCol.h>
 #include <src/elasticity/AssemblyDDM.h>
 #include <src/elasticity/PlaneStrainInfinite.h>
-#include <src/elhsolvers/ReynoldsP1.h>
-#include <src/input/LoadArguments.h>
-#include <src/input/LoadInput.h>
+#include <src/ehlsolvers/ReynoldsP1.h>
+#include <src/input/loadArguments.h>
+#include <src/input/loadInput.h>
 
 namespace hfp2d {
 

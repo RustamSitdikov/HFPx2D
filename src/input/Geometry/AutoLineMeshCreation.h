@@ -22,9 +22,9 @@
 
 // Inclusion from the projec
 #include "src/core/Mesh.h"
-#include "src/input/Geometry/AutoLineMeshUtilities.h"
-#include "src/input/Geometry/AutoLineMeshInfo.h"
-#include "src/input/FindUtilities.h"
+#include "src/input/geometry/AutoLineMeshUtilities.h"
+#include "src/input/geometry/AutoLineMeshInfo.h"
+#include "src/input/findUtilities.h"
 
 namespace hfp2d {
 

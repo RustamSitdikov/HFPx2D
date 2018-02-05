@@ -23,9 +23,9 @@
 #include <src/core/SimulationParameters.h>
 #include <src/core/Sources.h>
 #include <src/core_dev/FractureEvolution.h>
-#include <src/input/Conditions/LoadConditions.h>
-#include <src/input/Geometry/LoadGeometry.h>
-#include <src/input/Properties/LoadProperties.h>
+#include <src/input/conditions/LoadConditions.h>
+#include <src/input/geometry/LoadGeometry.h>
+#include <src/input/properties/LoadProperties.h>
 
 namespace hfp2d {
 

@@ -9,7 +9,7 @@
 //
 
 // Inclusion from the project
-#include "LoadInput.h"
+#include "loadInput.h"
 
 namespace hfp2d {
 
