@@ -317,7 +317,7 @@ int MultipleFracsPropagation() {
     max_steps = j_simul["Maximum number of steps"].get<long>();
   }
 
-  dt = 0.001;
+  dt = 0.002;
   if ( j_simul.count("Time step") ==1 ) {
     dt = j_simul["Time step"].get<double>();
   }
@@ -345,7 +345,7 @@ int MultipleFracsPropagation() {
 
     if (accept) {
       std::cout << "-------------------------" << std::endl;
-      std::cout << "Step " << jt << "; time: " << completeSol_n_1.time()
+      std::cout << "Step # " << jt << "; time: " << completeSol_n_1.time()
                 << std::endl;
       for (il::int_t i = 0; i < nfracs; i++) {
         std::cout << "influx in frac. " << i+1 << ": "
@@ -366,7 +366,7 @@ int MultipleFracsPropagation() {
     } else {
       // reject time step
       std::cout << "Reject time step - non-convergence on fracture fronts" << std::endl;;
-      std::cout << "steps # " << jt << "; time " << completeSol_n_1.time()
+      std::cout << "step # " << jt << "; time " << completeSol_n_1.time()
                 << "; time step: " << dt << std::endl;
       std::cout << "Error on frac front " << completeSol_n_1.fracSolution().errFront()
                 << " after " << completeSol_n_1.fracSolution().frontIts() << " its" << std::endl;
@@ -416,7 +416,7 @@ hfp2d::MultiFracsSolution wellHFsSolver_fixedpts(
     hfp2d::SimulationParameters &coupling_p,
     double frac_height,
     bool mute,
-    il::io_t, il::Array2D<double> &K, bool accept) {
+    il::io_t, il::Array2D<double> &K, bool &accept) {
   // We solve here the coupling between wellbore flow, fluid partitioning
   // between fractures
   // and hydraulic fracture propagation over one time-step.
