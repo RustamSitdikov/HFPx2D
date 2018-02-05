@@ -172,8 +172,7 @@ Mesh::Mesh(const il::Array2D<double> &Coordinates,
 
 Mesh::Mesh(const il::Array2D<double> &Coordinates,
            const il::Array2D<il::int_t> &Connectivity,
-           const il::Array<int> &MatID,
-           const il::int_t interpolationOrder) {
+           const il::Array<int> &MatID, const il::int_t interpolationOrder) {
   // check validity of inputs
 
   IL_EXPECT_FAST(Coordinates.size(0) > 1 && Coordinates.size(1) == 2);

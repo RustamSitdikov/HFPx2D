@@ -51,8 +51,8 @@ class Mesh {  // class for 1D mesh of 1D segment elements ?
   // interpolation  )
   il::Array2D<il::int_t> dof_handle_pressure_;
 
-  // Identifier number of the fracture - size: number of elements
-  //  il::Array<il::int_t> fracture_id_; //   not needed.....
+//  // Identifier number of the fracture - size: number of elements
+//  il::Array<il::int_t> fracture_id_;  //   not needed.....
 
   // Material identifier - size: number of elements
   il::Array<int> material_id_;
@@ -125,9 +125,7 @@ class Mesh {  // class for 1D mesh of 1D segment elements ?
   }
 
   // nodal connectivity related
-  il::Array2D<il::int_t> nodeEltConnectivity() const {
-    return node_adj_elt_;
-  };
+  il::Array2D<il::int_t> nodeEltConnectivity() const { return node_adj_elt_; };
 
   il::int_t nodeEltConnectivity(il::int_t k, il::int_t l) const {
     return node_adj_elt_(k, l);

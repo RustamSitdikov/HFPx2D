@@ -9,7 +9,7 @@
 
 #include <gtest/gtest.h>
 
-#include <src/Tip/TipAsymptote.h>
+#include <src/tip/TipAsymptote.h>
 
 
 //  UNIT TESTS FOR TIP Asymptote Libary

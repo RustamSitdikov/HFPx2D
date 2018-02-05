@@ -243,4 +243,77 @@ il::Array2D<double> ReArrangeKP0(const Mesh &mesh, il::Array2D<double> &Kmat) {
 
   return Knew;
 };
+
+////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+il::Array2D<double> basic_assembly_nodal(Mesh &mesh,
+                                         hfp2d::ElasticProperties &elas,
+                                         vKernelCallNode KernelCallNodal,
+                                         double ker_options) {
+  // this matrix perform an assembly by NODE to by element
+  // such that the call to the kernel function is for 2*2 block of the matrix
+  // this sub-block call will be then use in the H-mat approx.
+
+  // Kmat :: the stiffness matrix to assemble
+  // wellMesh :: the Mesh object
+  // id   :: the DOF handle
+  // p    :: the interpolation order
+  // elas :: the elastic properties object
+
+  il::int_t p = mesh.interpolationOrder();
+
+  il::StaticArray2D<double, 2, 2> R;
+  il::Array<il::int_t> dofe{2, 0}, dofc{2, 0};
+
+  il::StaticArray2D<double, 2, 2> stnl;
+  il::int_t ndof = mesh.numberDDDofs();
+
+  il::Array2D<double> Kmat{mesh.numberDDDofs(), mesh.numberDDDofs(), 0.};
+
+  // Brute Force assembly
+  // We perform a loop elts, not node here for simplicity !  note that the
+  // discretization is piece-wise linear
+  // so if a node is shared by 2 segments, it has 2*2=4 unknowns associated to
+  // it
+
+  for (il::int_t e = 0; e < mesh.numberOfElts(); ++e) {  // loop on all elements
+
+    //   get characteristic of element # e
+    hfp2d::SegmentData mysege = mesh.getElementData(e);
+    // Rotation matrix of the element w.r. to x-axis.
+    R = hfp2d::rotationMatrix2D(mysege.theta());
+
+    // loop on the collocation point of that element
+    for (il::int_t i_c = 0; i_c < (p + 1); i_c++) {
+      // vector of dof id of  element e
+      // vector of dof id of element e
+      for (il::int_t i = 0; i < 2; ++i) {
+        dofe[i] = mesh.dofDD(e, i + 2 * i_c);
+      };
+
+      // loop on all the other elements
+      for (il::int_t r = 0; r < mesh.numberOfElts(); r++) {
+        //   get characteristic of element # r
+        hfp2d::SegmentData mysegc = mesh.getElementData(r);
+
+        // loop on the collocation points
+        for (il::int_t j_c = 0; j_c < (p + 1); j_c++) {
+          for (il::int_t i = 0; i < 2; ++i) {
+            dofc[i] = mesh.dofDD(
+                r, i + 2 * j_c);  // vector of dof id of the  element j
+          };
+
+          stnl = KernelCallNodal(mysege, mysegc, i_c, j_c, elas, ker_options);
+
+          for (il::int_t j1 = 0; j1 < 2; ++j1) {
+            for (il::int_t j0 = 0; j0 < 2; ++j0) {
+              Kmat(dofc[0] + j0, dofe[0] + j1) = stnl(j0, j1);
+            }
+          }
+        }
+      }
+    }
+  }
+  return Kmat;
+};
 }

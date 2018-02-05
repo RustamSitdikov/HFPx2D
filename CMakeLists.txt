@@ -71,10 +71,6 @@ set(SOURCE_FILES
         il/io/toml/toml.cpp
         src/input/Conditions/LoadConditions.cpp
         src/input/Conditions/LoadConditions.h
-        #src/elhsolvers/ReynoldsP0.cpp
-        #src/elhsolvers/ReynoldsP0.h
-        #src/solvers/DevLHFMSolver.cpp
-        #src/solvers/DevLHFMSolver.h
         src/core/Solution.h
         src/core/SolidProperties.h
         src/tip/TipAsymptote.cpp
@@ -129,10 +125,13 @@ set(SR_FOLDER "${CMAKE_SOURCE_DIR}/src")
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DIL_FOLDER='\"${SR_FOLDER}\"'")
 
-set(UNIT_TEST_FILES src/_test/elastic_test.cpp
+set(UNIT_TEST_FILES
+        src/_test/elastic_test.cpp
         gtest/src/gtest-all.cc
         src/_test/mesh_test.cpp
-        src/tip/_test/tip_test.cpp)
+        src/tip/_test/tip_test.cpp
+        src/_test/FV_test.cpp
+        src/elasticity/_test/elasticity_tests.cpp)
 
 add_executable(HFPx2DUnitTest ${SOURCE_FILES} ${UNIT_TEST_FILES} test.cpp)
 

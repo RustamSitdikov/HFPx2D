@@ -9,7 +9,7 @@
 
 #include <gtest/gtest.h>
 
-#include "src/Solvers/SimpleElastic.h"
+#include "src/solvers/SimpleElastic.h"
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -27,7 +27,6 @@ TEST(griffith_crack_P1_2, UnitP1) {
   ASSERT_NEAR(0.00625229, ret, 0.001);// norm on just the DD before the tip
 
 }
-
 
 
 TEST(griffith_crack_P0, UnitP0) {
