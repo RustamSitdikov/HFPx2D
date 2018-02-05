@@ -32,7 +32,7 @@ class ElasticProperties {
  public:
   ElasticProperties() = default;
 
-  // Creation of elastic Properties class from Young's modulus and Poisson's
+  // Creation of elastic properties class from Young's modulus and Poisson's
   // Ratio
   ElasticProperties(double YoungModulus, double PoissonRatio) {
     young_ = YoungModulus;

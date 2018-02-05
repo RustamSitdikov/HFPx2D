@@ -180,7 +180,7 @@ hfp2d::WellInjection loadWellParameters(json &j_params,
 //------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------
-// Loading Fluid Properties
+// Loading Fluid properties
 hfp2d::Fluid loadFluidProperties(json &j_fluid){
 
   if (j_fluid.count("Rheology")!=1) {
@@ -216,7 +216,7 @@ hfp2d::Fluid loadFluidProperties(json &j_fluid){
   return the_fluid;
 };
 //------------------------------------------------------------------------------
-// Loading Solid Properties
+// Loading Solid properties
 hfp2d::SolidProperties loadSolidProperties(json &j_rock){
 
   if (j_rock.count("Young's modulus")!=1) {

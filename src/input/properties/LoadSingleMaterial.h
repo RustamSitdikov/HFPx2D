@@ -8,7 +8,7 @@
 #include <iostream>
 #include "il/base.h"
 #include "il/toml.h"
-//#include "src/core_dev/Properties.h"
+//#include "src/core_dev/properties.h"
 #include <src/input/findUtilities.h>
 
 namespace hfp2d {

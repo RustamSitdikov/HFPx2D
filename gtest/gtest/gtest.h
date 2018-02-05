@@ -414,7 +414,7 @@ class GTEST_API_ Test {
   // not members of the test fixture.  Calls to RecordProperty made during
   // lifespan of the test (from the moment its constructor starts to the
   // moment its destructor finishes) will be output in XML as attributes of
-  // the <testcase> element.  Properties recorded from fixture's
+  // the <testcase> element.  properties recorded from fixture's
   // SetUpTestCase or TearDownTestCase are logged as attributes of the
   // corresponding <testsuite> element.  Calls to RecordProperty made in the
   // global context (before or after invocation of RUN_ALL_TESTS and from

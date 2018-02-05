@@ -135,7 +135,7 @@ il::int_t findInterpOrder(
                    0);  // we do not want a negative interpolation order
 
   } else {
-    std::cerr << "ERROR: missing the interpolation order in Geometry."
+    std::cerr << "ERROR: missing the interpolation order in geometry."
               << std::endl;
     std::cerr << "file: " << inputFileName << std::endl;
     exit(2);
@@ -160,7 +160,7 @@ il::int_t findNumFractures(
     IL_EXPECT_FAST(numFractures > 0);  // we want at least 1 fracture
 
   } else {
-    std::cerr << "ERROR: missing the number of fractures in Geometry."
+    std::cerr << "ERROR: missing the number of fractures in geometry."
               << std::endl;
     std::cerr << "file: " << inputFileName << std::endl;
     exit(2);

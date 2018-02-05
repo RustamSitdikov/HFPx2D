@@ -68,7 +68,7 @@ SolidEvolution loadSingleMaterial(const il::String &inputFileName,
 
   } else {
 
-    std::cerr << "ERROR: missing the CZM type in Properties." << std::endl;
+    std::cerr << "ERROR: missing the CZM type in properties." << std::endl;
     std::cerr << "file: " << inputFileName << std::endl;
     exit(3);
 
@@ -93,7 +93,7 @@ SolidEvolution loadSingleMaterial(const il::String &inputFileName,
 
   } else {
 
-    std::cerr << "ERROR: missing the solid evolution in Properties." << std::endl;
+    std::cerr << "ERROR: missing the solid evolution in properties." << std::endl;
     std::cerr << "file: " << inputFileName << std::endl;
     exit(3);
 

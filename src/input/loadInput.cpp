@@ -35,11 +35,11 @@ void loadInput(const il::String &config_filename, il::io_t, Mesh &MyMesh,
   il::int_t keyFound;
 
   ////////// GEOMETRY KEYWORD //////////
-  keyFound = config.search("Geometry");
+  keyFound = config.search("geometry");
 
-  // If "Geometry" is found and it is a map
+  // If "geometry" is found and it is a map
   if (config.found(keyFound) && config.value(keyFound).isMapArray()) {
-    // Save the Geometry map, i.e. the data to create the mesh
+    // Save the geometry map, i.e. the data to create the mesh
     const il::MapArray<il::String, il::Dynamic> &meshCreationMap =
         config.value(keyFound).asMapArray();
 
@@ -47,17 +47,17 @@ void loadInput(const il::String &config_filename, il::io_t, Mesh &MyMesh,
     MyMesh = loadGeometry(config_filename, meshCreationMap);
 
   } else {
-    std::cerr << "ERROR: 'Geometry' not found in input file " << config_filename
+    std::cerr << "ERROR: 'geometry' not found in input file " << config_filename
               << std::endl;
     exit(EXIT_FAILURE);
   }
 
   ////////// PROPERTIES KEYWORD //////////
-  keyFound = config.search("Properties");
+  keyFound = config.search("properties");
 
-  // If "Properties" is found and it is a map
+  // If "properties" is found and it is a map
   if (config.found(keyFound) && config.value(keyFound).isMapArray()) {
-    // Save the Properties map
+    // Save the properties map
     const il::MapArray<il::String, il::Dynamic> &PropertiesMap =
         config.value(keyFound).asMapArray();
 
@@ -66,7 +66,7 @@ void loadInput(const il::String &config_filename, il::io_t, Mesh &MyMesh,
                    FluidProperties, SolidEvolution, FractureEvolution);
 
   } else {
-    std::cerr << "ERROR: 'Properties' not found in input file "
+    std::cerr << "ERROR: 'properties' not found in input file "
               << config_filename << std::endl;
     exit(EXIT_FAILURE);
   }
@@ -85,7 +85,7 @@ void loadInput(const il::String &config_filename, il::io_t, Mesh &MyMesh,
         loadConditions(MyMesh, config_filename, ConditionsMap);
 
   } else {
-    std::cerr << "ERROR: 'Loading Conditions' not found in input file "
+    std::cerr << "ERROR: 'Loading conditions' not found in input file "
               << config_filename << std::endl;
     exit(EXIT_FAILURE);
   }

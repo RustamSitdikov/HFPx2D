@@ -14,11 +14,11 @@ void loadProperties(const Mesh &theLoadedMesh, const il::String &input_filename,
                     FractureEvolution &FractureEvolution) {
   //// Elastic Properties
   // We have to load the elastic properties for each material, and placing it
-  // into the respective slot in the Properties class.
+  // into the respective slot in the properties class.
   // For the moment we accept only one type of solid and fluid evolution.
   //
   // The loading works as following.
-  // We start loading the elasticity Properties which are -for the moment-
+  // We start loading the elasticity properties which are -for the moment-
   // constant on all the domain.
   double young_modulus =
       findDouble("young_modulus", propertiesMap, input_filename);
@@ -27,7 +27,7 @@ void loadProperties(const Mesh &theLoadedMesh, const il::String &input_filename,
 
   ElasticProperties.setElastProp(young_modulus, poisson_ratio);
 
-  // Then, we load the fluid Properties assuming a newtonian fluid in the
+  // Then, we load the fluid properties assuming a newtonian fluid in the
   // natural fractures.
   double fluidDensity =
       findDouble("fluid_density", propertiesMap, input_filename);

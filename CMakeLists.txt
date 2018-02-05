@@ -49,26 +49,26 @@ set(SOURCE_FILES
         src/input/loadArguments.h
         src/input/loadInput.cpp
         src/input/loadInput.h
-        src/input/Geometry/AutoLineMeshUtilities.cpp
-        src/input/Geometry/AutoLineMeshUtilities.h
-        src/input/Geometry/AutoLineMeshCreation.cpp
-        src/input/Geometry/AutoLineMeshCreation.h
-        src/input/Geometry/LoadGeometry.cpp
-        src/input/Geometry/LoadGeometry.h
-        src/input/Geometry/LoadMeshFile.cpp
-        src/input/Geometry/LoadMeshFile.h
-        src/input/Properties/LoadProperties.cpp
-        src/input/Properties/LoadProperties.h
-        src/input/Geometry/AutoLineMeshInfo.cpp
-        src/input/Geometry/AutoLineMeshInfo.h
-        src/input/Properties/LoadSingleMaterial.cpp
-        src/input/Properties/LoadSingleMaterial.h
+        src/input/geometry/AutoLineMeshUtilities.cpp
+        src/input/geometry/AutoLineMeshUtilities.h
+        src/input/geometry/AutoLineMeshCreation.cpp
+        src/input/geometry/AutoLineMeshCreation.h
+        src/input/geometry/LoadGeometry.cpp
+        src/input/geometry/LoadGeometry.h
+        src/input/geometry/LoadMeshFile.cpp
+        src/input/geometry/LoadMeshFile.h
+        src/input/properties/LoadProperties.cpp
+        src/input/properties/LoadProperties.h
+        src/input/geometry/AutoLineMeshInfo.cpp
+        src/input/geometry/AutoLineMeshInfo.h
+        src/input/properties/LoadSingleMaterial.cpp
+        src/input/properties/LoadSingleMaterial.h
         src/input/findUtilities.cpp
         src/input/findUtilities.h
         il/io/toml/toml.h
         il/io/toml/toml.cpp
-        src/input/Conditions/LoadConditions.cpp
-        src/input/Conditions/LoadConditions.h
+        src/input/conditions/LoadConditions.cpp
+        src/input/conditions/LoadConditions.h
         src/core/Solution.h
         src/core/SolidProperties.h
         src/tip/TipAsymptote.cpp

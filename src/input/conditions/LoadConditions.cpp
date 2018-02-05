@@ -55,7 +55,7 @@ InSituStress loadConditions(
     amb_pore_pressure_distribution[k] = amb_pore_pressure;
   }
 
-  // Call the constructor for Loading Conditions
+  // Call the constructor for Loading conditions
   InSituStress BackgroundLoadingConditions(insitu_stress_distribution,
                                  amb_pore_pressure_distribution);
 
