@@ -55,7 +55,7 @@ Mesh loadGeometry(
               meshCreationMap.value(keyFound).asMapArray();
 
           // and we pass it to the automatic mesher
-          theSingleMesh = autoLineMesh(inputFileName, fractureID,
+          theSingleMesh = autoLineMesh(inputFileName, (fractureID - 1),
                                        autoCreationMap, interpOrder);
 
 //          std::cout << " Mesh number " << fractureID << " has "

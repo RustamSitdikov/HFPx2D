@@ -54,8 +54,8 @@ Mesh autoLineMesh(const il::String &inputFileName, const il::int_t fractureID,
   }
 
   ///// Create Mesh /////
-  Mesh theMesh(nodesCoordinates, elementsConnectivity,
-               interpOrder);
+  Mesh theMesh(nodesCoordinates, elementsConnectivity, vectorMaterialID,
+               vectorFractureID, interpOrder);
 
   return theMesh;
 }
