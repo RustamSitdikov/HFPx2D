@@ -371,10 +371,6 @@ int MultipleFracsPropagation() {
 
       completeSol_n = completeSol_n_1;
 
-      // saving solution.
-//      resfilename = basefilename + std::to_string(jt) + ".json";
-//      completeSol_n.writeToFile(resfilename);
-
       for (il::int_t i = 0;
            i < completeSol_n.fracSolution().currentMesh().tipElts().size();
            i++) {
@@ -382,6 +378,10 @@ int MultipleFracsPropagation() {
                   << completeSol_n.fracSolution().tipsVelocity()[i] << "; ";
       }
       std::cout << std::endl;
+
+      // saving solution.
+      resfilename = basefilename + std::to_string(jt) + ".json";
+//      completeSol_n.writeToFile(resfilename);
 
       // adaptive time-step
       max_tip_v = il::max(completeSol_n.fracSolution().tipsVelocity());
