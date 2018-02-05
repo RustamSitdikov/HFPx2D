@@ -16,7 +16,6 @@ namespace hfp2d {
 void loadArguments(int argc, char const *argv[], il::io_t,
                    il::String &config_filename,
                    il::String &path_output_directory) {
-
   // loadArguments will receive the arguments that are passed to the program
   // from the command line as input
 
@@ -50,8 +49,8 @@ void loadArguments(int argc, char const *argv[], il::io_t,
   status_of_access = access(config_filename.asCString(), F_OK | R_OK);
 
   if (status_of_access != 0) {
-    std::cerr << "Error: impossible to access the input file " << config_filename
-              << std::endl;
+    std::cerr << "Error: impossible to access the input file "
+              << config_filename << std::endl;
     std::cerr << strerror(errno) << std::endl;
     exit(EXIT_FAILURE);
   }
@@ -140,6 +139,5 @@ void cleanOutputDir(const char *path) {
     std::cerr << strerror(errno) << std::endl;
     exit(1);
   }
-
 }
 }
