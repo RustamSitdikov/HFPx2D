@@ -53,26 +53,48 @@ double b_12(double d) { return c_2(d) / c_1(d); }
 ////////////////////////////////////////////////////////////////////////////////
 // approximate solution of integral eqn (see Dontsov & Peirce 2015, 2017)
 double effe(double k_h, double b_h, double c1) {
-  double k_h_2 = k_h * k_h, k_h_3 = k_h * k_h_2;
-  double b_h_2 = b_h * b_h, b_h_3 = b_h * b_h_2;
+  double k_h_2 = k_h * k_h;
+//  double k_h_3 = k_h * k_h_2;
+  double b_h_2 = b_h * b_h;
+//  double b_h_3 = b_h * b_h_2;
   double l_h = std::log((1.0 + b_h) / (k_h + b_h));
-  return (1.0 - k_h_3 - 1.5 * b_h * (1.0 - k_h_2) + 3.0 * b_h_2 * (1.0 - k_h) -
-          3.0 * b_h_3 * l_h) /
-         (3.0 * c1);
+  double cf1 = (1.0 - k_h) / b_h;
+  double cf2 = (1.0 + k_h) / b_h;
+  double cf3 = (1.0 + k_h + k_h_2) / b_h_2;
+//  return (1.0 - k_h_3 - 1.5 * b_h * (1.0 - k_h_2) + 3.0 * b_h_2 * (1.0 - k_h) -
+//          3.0 * b_h_3 * l_h) /
+//         (3.0 * c1);
+  return (cf1 * (cf3 / 3.0 - cf2 / 2.0 + 1.0) - l_h) / c1;
 }
 ////////////////////////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////////////////////////////
 // various scaled tip asymptote approximations
 // zero-order approximation for universal tip asymptote
-double g_un_0(double k_h, double c_h) { return effe(k_h, con_mc * c_h, con_m); }
+double g_un_0(double k_h, double c_h) {
+  double b_h = con_mc * c_h;
+//  return effe(k_h, b_h, con_m);
+  return std::pow(effe(k_h, b_h, con_m), al_exp)
+         * std::pow(b_h, al_exp * be_exp);
+}
 
 // 1st order delta-correction for universal tip asymptote
+double delta_c(double k_h, double c_h) {
+  double b_h = con_mc * c_h;
+  return con_m * (1.0 + b_h) * std::pow(b_h, 3.0 - be_exp)
+                     * effe(k_h, b_h, con_m);
+}
+
 double g_un_1(double k_h, double c_h) {
-  double delta = con_m * (1.0 + con_mc * c_h) * g_un_0(k_h, c_h);
+  double b_h = con_mc * c_h;
+//  double delta = con_m * (1.0 + b_h) * g_un_0(k_h, c_h);
+  double delta = delta_c(k_h, c_h);
   double c_1_d = c_1(delta);
   double b_12_d = b_12(delta);
-  return effe(k_h, c_h * b_12_d, c_1_d);
+  double b_h_d = c_h * b_12_d;
+//  return effe(k_h, b_h_d, c_1_d);
+  return std::pow(effe(k_h, b_h_d, c_1_d), al_exp)
+         * std::pow(b_h_d, al_exp * be_exp);
 }
 
 // zero-order approximation for k-m edge solution (zero leak-off)
@@ -122,7 +144,9 @@ double res_u_0_m(double s, TipParameters &taParam) {
     } else {
       // use universal tip asymptote
       double s_u = g_un_0(k_h, c_h);
-      return s_u - s_h;
+//      return s_u - s_h;
+      double b_h = con_mc * c_h;
+      return s_u - std::pow(s_h / std::pow(b_h, 3.0 - be_exp), al_exp);
     }
   }
 }
@@ -148,7 +172,12 @@ double res_u_1_m(double s, TipParameters &taParam) {
     } else {
       // use universal tip asymptote
       double s_u = g_un_1(k_h, c_h);
-      return s_u - s_h;
+//      return s_u - s_h;
+      double b_h = con_mc * c_h;
+      double delta = delta_c(k_h, c_h);;
+      double b_12_d = b_12(delta);
+      double b_h_d = c_h * b_12_d;
+      return s_u - std::pow(s_h / std::pow(b_h_d, 3.0 - be_exp), al_exp);
     }
   }
 }
@@ -156,6 +185,7 @@ double res_u_1_m(double s, TipParameters &taParam) {
 
 ////////////////////////////////////////////////////////////////////////////////
 // criterion for unstable residual function behavior (chi > chi_c)
+// todo: with modified residual function, it might be unnecessary
 bool isMisbehaving(double s, TipParameters &taParam) {
   double k_p = k_P(taParam.k1c);
   return (std::pow(s - taParam.s0, 0.5) * k_p * chi_c <
@@ -206,8 +236,13 @@ il::StaticArray<double, 2> bracket(ResidualFunction resF,
 
   double fb = resF(ab[1], taParam);
 
-  // take previous tip position as lower bound
-  ab[0] = taParam.s0;  // + m_tol;
+  // take previous tip position + inverse asymptote at sqrt(machine precision)
+  // as lower bound
+  double ds = std::sqrt(m_tol)
+            * 27.0 * (4.0 * taParam.cl * taParam.cl)
+            * taParam.s0 * taParam.dt
+            / (taParam.wa * taParam.wa);
+  ab[0] = taParam.s0 + ds;
   double fa = resF(ab[0], taParam);
 
   // search for a better lower bound if signs of fa and fb are equal

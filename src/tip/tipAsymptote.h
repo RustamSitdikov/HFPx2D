@@ -33,10 +33,16 @@ const double con_m = beta_m_3 / 3.0;
 const double con_mc = 0.75 * beta_c_4 / beta_m_3;
 // = 0.99117998230567206; // = con_c / con_m;
 
+// power exponents used in residual function
+// al_exp = 0.5 - 1.0; be_exp isn't really necessary, left for testing
+const double al_exp = 1.0, be_exp = 0.0;
+
 // v tolerance (> machine precision)
+// todo: relate it to the machine precision
 const double m_tol = 2.221e-016;
 
 // critical Chi (misbehaving residual functions)
+// todo: with modified residual function, it might be unnecessary
 const double chi_c = 3000.0;
 
 // fracture tip parameters (input & output)
@@ -77,9 +83,11 @@ double g_kc_1(double k_h, double c_h);  // 1st order delta-correction
 
 // approximations for universal tip asymptote (functions to minimize)
 double g_un_0(double k_h, double c_h);  // zero-order approximation
+double delta_c(double k_h, double c_h);
 double g_un_1(double k_h, double c_h);  // 1st order delta-correction
 
 // criteria for unstable residual function behavior
+// todo: with modified residual function, it might be unnecessary
 bool isMisbehaving(double s, TipParameters &taParam);
 
 // checking propagation criterion
