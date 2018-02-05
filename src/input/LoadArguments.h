@@ -29,5 +29,6 @@ void loadArguments(int argc, char const *argv[], il::io_t,
                    il::String &path_output_directory);
 
 void cleanOutputDir(const char *path);
+
 }
 #endif  // HFPX2DUNITTEST_LOADARGUMENTS_H

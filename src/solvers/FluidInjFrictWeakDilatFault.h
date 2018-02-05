@@ -35,6 +35,7 @@ Solution fractFrontPosition(
     Solution &SolutionAtTn, bool expl_impl, bool damping_term,
     double damping_coeff, double dilat_plast,
     InSituStress &BackgroundLoadingConditions);
+
 }
 
 #endif  // HFPX2D_FLUIDINJFRICTWEAKDILATFAULT_H

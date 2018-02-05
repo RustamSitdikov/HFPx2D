@@ -16,6 +16,7 @@ namespace hfp2d {
 void loadArguments(int argc, char const *argv[], il::io_t,
                    il::String &config_filename,
                    il::String &path_output_directory) {
+
   // loadArguments will receive the arguments that are passed to the program
   // from the command line as input
 
