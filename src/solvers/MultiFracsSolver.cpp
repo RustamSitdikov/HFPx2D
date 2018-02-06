@@ -347,8 +347,7 @@ int MultipleFracsPropagation() {
   bool accept = true;
 
   // time step loop !!!
-
-  while ( (jt < max_steps) && (completeSol_n.time() < max_time) ) {
+  while ( jt < max_steps && completeSol_n.time() < max_time ) {
     jt++;
 
     MultiFracsSolution completeSol_n_1 = wellHFsSolver_fixedpts(
@@ -368,9 +367,9 @@ int MultipleFracsPropagation() {
                   << completeSol_n_1.dpEntries(i)
                   << std::endl;
       }
-      std::cout << "FF loop front error: " << completeSol_n_1.fracSolution().errFront()
+      std::cout << "FF loop error: " << completeSol_n_1.fracSolution().errFront()
+                << "; EHL error (w) " << completeSol_n_1.fracSolution().errOpening()
                 << "; new number of elts: " << completeSol_n_1.fracSolution().currentMesh().numberOfElts()
-                << "; error w EHL "<< completeSol_n_1.fracSolution().errOpening()
                 << std::endl;
 //    std::cout << "-------------------------" << std::endl;
 
@@ -387,6 +386,10 @@ int MultipleFracsPropagation() {
       // saving solution.
       resfilename = basefilename + std::to_string(jt) + ".json";
       completeSol_n.writeToFile(resfilename);
+
+      std::cout << "+++++++++++++++++++++++++" << std::endl;
+
+      // todo: re-start
 
       // adaptive time-step
       max_tip_v = il::max(completeSol_n.fracSolution().tipsVelocity());
@@ -407,7 +410,8 @@ int MultipleFracsPropagation() {
 
     } else {
       // reject time step
-      std::cout << "Reject time step - non-convergence on fracture fronts" << std::endl;;
+      std::cout << "Reject time step; non-convergence on fracture fronts"
+                << std::endl;;
       std::cout << "step # " << jt << "; time " << completeSol_n_1.time()
                 << "; time step: " << dt << std::endl;
       std::cout << "Error on frac front " << completeSol_n_1.fracSolution().errFront()
@@ -513,12 +517,11 @@ hfp2d::MultiFracsSolution wellHFsSolver_fixedpts(
   //  il::LU<il::Array2D<double>> Jacob_LU();
   il::Array2D<double> Jacob_inv;
 
-  if (!mute) {
-    std::cout << "+++++++++++++++++++++++++" << std::endl;
-  }
+//  if (!mute) {
+//    std::cout << "+++++++++++++++++++++++++" << std::endl;
+//  }
 
-  // todo: start with non-zero fluxes - solve the ENTRY FRICTION Residuals
-  // eqn(?)
+  // todo: start with non-zero fluxes, solve the ENTRY FRICTION Residuals eqn(?)
 
   // Quasi-Newton iteration scheme
   //
@@ -531,7 +534,7 @@ hfp2d::MultiFracsSolution wellHFsSolver_fixedpts(
   int max_iters = coupling_p.ehl_max_its;
 
 
-  int k = 0;
+  il::int_t k = 0;
   // note: if all the fluxes are zero do not solve for frac flux,
   // just the wellbore
   while ((k < max_iters) && (err > coupl_tolerance)) {
@@ -566,14 +569,17 @@ hfp2d::MultiFracsSolution wellHFsSolver_fixedpts(
 
     // echo...
     if (!mute) {
+      std::cout << "-------------------------" << std::endl;
+      std::cout << "coupling iter-n " << k << std::endl;
       std::cout << "-------" << std::endl;
       if (!accept) {
         std::cout << "fracture front loop not converged" << std::endl;
       }
       std::cout << "base FF loop its: " << fracSol_k.frontIts()
                 << "; front error: " << fracSol_k.errFront()
+                << "; EHL error (w) "<< fracSol_k.errOpening()
                 << "; new number of elts: " << fracSol_k.currentMesh().numberOfElts()
-                << "; error w EHL "<< fracSol_k.errOpening() << std::endl;
+                << std::endl;
     }
 
     // extract pressure at clusters
@@ -596,7 +602,7 @@ hfp2d::MultiFracsSolution wellHFsSolver_fixedpts(
         K = K_pre;
         //
         double abs_Q = std::fabs(rates_cur[i]);
-        // todo: scale it properly
+        // scale it properly
         double scl_Q =
             ((rates_cur[i] == 0.) ? std::fabs(pump_rate) / nclusters : abs_Q);
         // sign(rates_cur[i])
@@ -633,10 +639,11 @@ hfp2d::MultiFracsSolution wellHFsSolver_fixedpts(
           if (!accept) {
             std::cout << "trial fracture front loop not converged" << std::endl;
           }
-          std::cout << "trial FF loop its: " << fracSol_k.frontIts()
-                    << "; front error: " << fracSol_k.errFront()
-                    << "; new number of elts: " << fracSol_k.currentMesh().numberOfElts()
-                    << "; error w EHL "<< fracSol_k.errOpening() << std::endl;
+          std::cout << "trial FF loop its: " << fracSol_var.frontIts()
+                    << "; front error: " << fracSol_var.errFront()
+                    << "; EHL error (w) "<< fracSol_var.errOpening()
+                    << "; new number of elts: " << fracSol_var.currentMesh().numberOfElts()
+                    << std::endl;
         }
 
         if (accept) {
@@ -646,7 +653,7 @@ hfp2d::MultiFracsSolution wellHFsSolver_fixedpts(
             Jacob(j, i) = ((pc_w_var[j] - pc_f_var[j]) - (dpc_k[j])) / (dQi);
           }
           // Well - HF coupling (ENTRY FRICTION) derivatives
-          // todo: check the sign!
+          // check the sign!
           if (rates_cur[i] != 0.) {
             Jacob(i, i) -= 2. * w_inj.coefPerf(i) * abs_Q
                            + w_inj.coefTort(i) * sgn_dQ *
@@ -691,7 +698,7 @@ hfp2d::MultiFracsSolution wellHFsSolver_fixedpts(
         entry_struct.fp = w_inj.coefPerf(i);
         entry_struct.ft = w_inj.coefTort(i);
         entry_struct.beta_t = w_inj.betaTort(i);
-        // todo: check the sign!
+        // check the sign!
         res_v[i] = -entryFrictionResiduals(rates_cur[i], entry_struct);
       }
 
@@ -710,7 +717,8 @@ hfp2d::MultiFracsSolution wellHFsSolver_fixedpts(
       // echo...
       if (!mute) {
         std::cout << "-------" << std::endl;
-        std::cout << "coupling iter-n " << k << "; DP: ";
+        // std::cout << "coupling iter-n " << k << "; "
+        std::cout << "DP: ";
         for (il::int_t i = 0; i < nclusters; i++) {
           std::cout << i+1 << ": " << dpc_k[i] << "; ";
         }
@@ -737,6 +745,7 @@ hfp2d::MultiFracsSolution wellHFsSolver_fixedpts(
         for (il::int_t i = 0; i < nclusters; i++) {
           std::cout << i+1 << ": " << res_v[i] << "; ";
         }
+        std::cout << "error: " << il::norm(errDP, il::Norm::L2) << std::endl;
         std::cout << std::endl << "new fluxes: ";
         for (il::int_t i = 0; i < nclusters; i++) {
           std::cout << i+1 << ": " << rates_cur[i] << "; ";
