@@ -11,14 +11,14 @@
 #include <iostream>
 
 // Inclusion from the project
-#include <src/core/FluidProperties.h>
+#include <src/core/Fluid.h>
 #include <src/core_dev/FractureEvolution.h>
 #include <src/devt/FiniteVolumeRoutines.h>
 
 namespace hfp2d {
 
 il::Array<double> edgeConductivitiesP1Newtonian(
-    Mesh &theMesh, FluidProperties &FluidProperties,
+    Mesh &theMesh, Fluid &FluidProperties,
     il::Array<double> &permeab_middle, const il::Array<double> &dilat_middle,
     const il::Array<double> &opening_middle) {
 
@@ -42,7 +42,7 @@ il::Array<double> edgeConductivitiesP1Newtonian(
 // Functions for the coefficients of the Finite Difference Matrix "L"
 // Output: array (vector) that contains all the coefficients for each element
 il::Array<double> shearConductivitiesP1Newtonian(
-    Mesh &theMesh, FluidProperties &FluidProperties,
+    Mesh &theMesh, Fluid &FluidProperties,
     FractureEvolution &FractureEvolution, const il::Array<double> &slip,
     const il::Array<double> &opening) {
   il::Array<double> wm_mid{theMesh.numberOfElts(), 0.};
@@ -68,7 +68,7 @@ il::Array<double> shearConductivitiesP1Newtonian(
 // Function that assemble the Finite Difference matrix "L"
 il::Array2D<double> buildLMatrix(Mesh &theMesh, const il::Array<double> &slip,
                                  const il::Array<double> &opening,
-                                 FluidProperties &FluidProperties,
+                                 Fluid &FluidProperties,
                                  FractureEvolution &FractureEvolution,
                                  double TimeStep) {
   il::Array<double> Kk;
@@ -89,7 +89,7 @@ il::Array2D<double> buildLMatrix(Mesh &theMesh, const il::Array<double> &slip,
   }
 
   // Loop over the pressure nodes
-  for (il::int_t i = 0; i < LL.size(0); ++i) {
+  for (int i = 0; i < LL.size(0); ++i) {
     ed = position_2d_array(dofhandle_press, i);
     ni = ed.size(0);
 
@@ -122,7 +122,7 @@ il::Array2D<double> buildLMatrix(Mesh &theMesh, const il::Array<double> &slip,
 // (p = 1)
 il::Array2D<double> buildVpMatrix(Mesh &theMesh,
                                   FractureEvolution &FractureEvolution,
-                                  FluidProperties &FluidProperties,
+                                  Fluid &FluidProperties,
                                   const il::Array<double> &slip) {
   // Create an auxiliary vector for the assembling
   il::Array2D<il::int_t> h{2 * theMesh.numberOfElts() + 1, 2, 0};
@@ -201,7 +201,7 @@ il::Array2D<double> buildVpMatrix(Mesh &theMesh,
 // DDs (p = 1)
 il::Array2D<double> buildVdMatrix(Mesh &theMesh,
                                   FractureEvolution &FractureEvolution,
-                                  FluidProperties &FluidProperties,
+                                  Fluid &FluidProperties,
                                   const il::Array<double> &slip) {
   // Create an auxiliary vector for the assembling
   il::Array2D<il::int_t> h{2 * theMesh.numberOfElts() + 1, 2, 0};

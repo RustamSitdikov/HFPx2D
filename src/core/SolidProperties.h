@@ -16,9 +16,7 @@
 namespace hfp2d {
 
 class SolidProperties {
-
  private:
-
   hfp2d::ElasticProperties elastic_properties_;  // elastic properties object
 
   il::Array<double> fracture_toughness_;  // list of fracture toughness  (should
@@ -27,11 +25,23 @@ class SolidProperties {
                                           // wellMesh)
   // todo :: add fracture energy array....
 
+  il::Array<double> fp_;
+
+  il::Array<double> fr_;
+
+  il::Array<double> residual_slip_;
+
+  il::Array<double> kf_o_;
+
   il::Array<double> wh_o_;  // residual/initial hydraulic width
                             // when the mechanical
                             // width is zero (should match the number of
                             // differents material in the matid vector of the
                             // wellMesh
+
+  il::Array<double> incrm_wh_;
+
+  il::Array<double> incrm_kf_;
 
   il::Array<double> carter_leakoff_coef_;  //  list of carter leak-off
                                            //  coefficient  (should match the
@@ -43,11 +53,23 @@ class SolidProperties {
 
   SolidProperties(hfp2d::ElasticProperties &elas,
                   const il::Array<double> &toughness,
-                  const il::Array<double> &wh_0, const il::Array<double> &Cl) {
+                  const il::Array<double> &wh_0, const il::Array<double> &Cl,
+                  const il::Array<double> &kf_o,
+                  const il::Array<double> &peak_fric,
+                  const il::Array<double> &resid_fric,
+                  const il::Array<double> &resid_slip,
+                  const il::Array<double> &increment_wh,
+                  const il::Array<double> &increment_kf) {
     elastic_properties_ = elas;
     fracture_toughness_ = toughness;
     wh_o_ = wh_0;
     carter_leakoff_coef_ = Cl;
+    fp_ = peak_fric;
+    fr_ = resid_fric;
+    residual_slip_ = resid_slip;
+    kf_o_ = kf_o;
+    incrm_wh_ = increment_wh;
+    incrm_kf_ = increment_kf;
   };
 
   /////////////////////////////////////////////////////////////////////////////
@@ -68,6 +90,30 @@ class SolidProperties {
   il::Array<double> Cl() const { return carter_leakoff_coef_; };
 
   double Cl(il::int_t k) const { return carter_leakoff_coef_[k]; }
+
+  il::Array<double> fpeak() const { return fp_; };
+
+  double fpeak(il::int_t k) const { return fp_[k]; }
+
+  il::Array<double> fres() const { return fr_; };
+
+  double fres(il::int_t k) const { return fr_[k]; }
+
+  il::Array<double> Kf_O() const { return kf_o_; };
+
+  double Kf_O(il::int_t k) const { return kf_o_[k]; }
+
+  il::Array<double> resid_slip() const { return residual_slip_; };
+
+  double resid_slip(il::int_t k) const { return residual_slip_[k]; }
+
+  il::Array<double> incrm_wh() const { return incrm_wh_; };
+
+  double incrm_wh(il::int_t k) const { return incrm_wh_[k]; }
+
+  il::Array<double> incrm_kf() const { return incrm_kf_; };
+
+  double incrm_kf(il::int_t k) const { return incrm_kf_[k]; }
 };
 }
 

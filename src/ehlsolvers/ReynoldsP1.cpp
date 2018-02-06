@@ -7,7 +7,7 @@
 // See the LICENSE.TXT file for more details.
 //
 
-// Inclusion from standard libtrary
+// Inclusion from standard library
 #include <algorithm>
 
 // Inclusion from Inside Loop library
@@ -27,13 +27,12 @@ Solution reynoldsP1(Mesh &theMesh, il::Array2D<double> &elast_matrix,
                     Solution &SolutionAtTn_k, il::Array<double> &incrm_shearDD,
                     il::Array<double> &incrm_openingDD,
                     SimulationParameters &SimulationParameters,
-                    FluidProperties &FluidProperties,
-                    SolidEvolution &SolidEvolution,
+                    Fluid &FluidProperties, SolidEvolution &SolidEvolution,
                     FractureEvolution &FractureEvolution, Sources &Source,
                     il::Array<int> &dof_active_elmnts, il::Status &status,
                     il::Norm &norm, bool damping_term, double damping_coeff,
                     double dilat_plast,
-                    InSituStress &BackgroundLoadingConditions) {
+                    InSituConditions &BackgroundLoadingConditions) {
   //// IMPLICIT SOLUTION OF THE COUPLED PROBLEM ////
   // Initialization of the system BigA*BigX = BigB
   il::Array2D<double> BigA{dof_active_elmnts.size() + theMesh.numberOfNodes(),
@@ -275,8 +274,9 @@ Solution reynoldsP1(Mesh &theMesh, il::Array2D<double> &elast_matrix,
       curr_incr_tau = il::dot(elast_submatrix, tot_slipk);
 
       for (il::int_t i = 0; i < curr_tau.size(); i = i + 2) {
-        curr_tau[i] = curr_incr_tau[i] +
-                      BackgroundLoadingConditions.getBackgroundShearStress(0);
+        curr_tau[i] =
+            curr_incr_tau[i] +
+            BackgroundLoadingConditions.uniformShearInSituTractions(theMesh)[0];
       }
     }
 
@@ -288,8 +288,9 @@ Solution reynoldsP1(Mesh &theMesh, il::Array2D<double> &elast_matrix,
 
       for (il::int_t i = 0; i < curr_tau.size(); i = i + 2) {
         curr_sigmaN[i] =
-            (curr_incr_sigmaN[i]) +
-            BackgroundLoadingConditions.getBackgroundNormalStress(0);
+            curr_incr_sigmaN[i] +
+            BackgroundLoadingConditions.uniformNormalInSituTractions(
+                theMesh)[0];
       }
     }
 
@@ -310,19 +311,19 @@ Solution reynoldsP1(Mesh &theMesh, il::Array2D<double> &elast_matrix,
     /// Boundary conditions ///
 
     for (il::int_t k1 = 0; k1 < BigA.size(1); ++k1) {
-      BigA(dof_active_elmnts.size() + Source.getSourcePoint(), k1) = 0.;
+      BigA(dof_active_elmnts.size() + Source.SourceNodes(0), k1) = 0.;
     }
 
-    BigA(dof_active_elmnts.size() + Source.getSourcePoint(),
-         dof_active_elmnts.size() + Source.getSourcePoint()) = 1.;
+    BigA(dof_active_elmnts.size() + Source.SourceNodes(0),
+         dof_active_elmnts.size() + Source.SourceNodes(0)) = 1.;
 
-    BigB[dof_active_elmnts.size() + Source.getSourcePoint()] = 0.;
+    BigB[dof_active_elmnts.size() + Source.SourceNodes(0)] = 0.;
 
     /// Solve the system ///
 
     BigX = il::linearSolve(BigA, BigB, il::io, status);
     status.abortOnError();
- 
+
     ///  Under relaxation technique & updating ///
 
     for (il::int_t l = 0; l < dof_active_elmnts.size(); l = l + 2) {

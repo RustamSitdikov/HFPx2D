@@ -24,7 +24,6 @@ class Sources {
 
   il::Array<il::int_t> source_location_;
   il::Array<double> injection_rate_;
-  il::int_t source_point_;
 
   //  il::Array<double> injection_rate_;
 
@@ -34,7 +33,7 @@ class Sources {
   ////////////////////////////////////////////////////////////////////////////
   // constructor
   ////////////////////////////////////////////////////////////////////////////
-  Sources(il::int_t source_pnt) { source_point_ = source_pnt; };
+  Sources() {};
 
   Sources(il::Array<il::int_t> &sourceLoc, il::Array<double> &injectionRate) {
     // we need the corresponding location of the injection
@@ -56,15 +55,13 @@ class Sources {
   il::Array<il::int_t> SourceElt() const { return source_location_; };
   il::int_t SourceElt(il::int_t k) const { return source_location_[k]; };
 
-  il::int_t getSourcePoint() const { return source_point_; };
-
   // just overloading here.... in case the source is at a node
   il::Array<il::int_t> SourceNodes() const { return source_location_; };
   il::int_t SourceNodes(il::int_t k) const { return source_location_[k]; };
 
   ////////////////////////////////////////////////////////////////////////////
   // METHODS
-  // ///////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////////////////////////
 
   void setInjectionRates(il::Array<double> &influx) {
     IL_EXPECT_FAST(influx.size() == source_location_.size());

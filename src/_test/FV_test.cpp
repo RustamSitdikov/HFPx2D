@@ -57,7 +57,7 @@ TEST(FV, test_finite_difference_matrix) {
   double density = 1.;
   double viscosity = 0.003;
   double compressibility = 1.;
-  hfp2d::FluidProperties fluidProperties(density, viscosity, compressibility);
+  hfp2d::Fluid fluidProperties(density, compressibility, viscosity);
 
   // Time step
   double dt = 0.1;
@@ -137,10 +137,7 @@ TEST(FV, test_mass_matrix) {
   double density = 1.;
   double viscosity = 0.003;
   double compressibility = 1.;
-  hfp2d::FluidProperties fluidProperties(density, viscosity, compressibility);
-
-  // Time step
-  double dt = 0.1;
+  hfp2d::Fluid fluidProperties(density, compressibility, viscosity);
 
   // Fracture properties
   il::Array<double> init_permeab{2 * nelts, 0.36};
@@ -220,7 +217,7 @@ TEST(FV, test_compressibility_matrix) {
   double density = 1.;
   double viscosity = 0.003;
   double compressibility = 1.;
-  hfp2d::FluidProperties fluidProperties(density, viscosity, compressibility);
+  hfp2d::Fluid fluidProperties(density, compressibility, viscosity);
 
   // Time step
   double dt = 0.1;

@@ -1,8 +1,4 @@
 //
-// Created by lorenzo on 9/18/17.
-//
-
-//
 // This file is part of HFPx2DUnitTest.
 //
 // Created by lorenzo on 9/18/17.
@@ -39,7 +35,6 @@ public:
   double fluidCompressibility() const { return compressibility_; };
 
 };
-
 
 }
 

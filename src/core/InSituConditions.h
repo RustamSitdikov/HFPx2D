@@ -16,9 +16,8 @@
 #include <il/StaticArray.h>
 
 #include <src/core/DomainMesh.h>
-#include <src/core/SegmentData.h>
 #include <src/core/Mesh.h>
-
+#include <src/core/SegmentData.h>
 
 namespace hfp2d {
 
@@ -54,7 +53,7 @@ class InSituConditions {
   // constructor
 
   // uniform stress field constructor
-  InSituConditions(double &sxx, double &syy, double &sxy) {
+  InSituConditions(double &sxx, double &syy, double &sxy, double &p0) {
     sxx_o_ = il::Array<double>(1, sxx);
     syy_o_ = il::Array<double>(1, syy);
     sxy_o_ = il::Array<double>(1, sxy);
@@ -65,7 +64,8 @@ class InSituConditions {
     syy_grad_o_x_ = il::Array<double>(1, 0.);
     syy_grad_o_y_ = il::Array<double>(1, 0.);
 
-    pp_o_ = il::Array<double>(1, 0.);
+    pp_o_ = il::Array<double>(1, p0);
+
     pp_grad_x_ = il::Array<double>(1, 0.);
     pp_grad_y_ = il::Array<double>(1, 0.);
   };
@@ -103,8 +103,11 @@ class InSituConditions {
   // todo constructor with pp_ !
 
   //////////////////////////////////////////////////////////////////
-  //                  Public Interfaces
+  //                  Getter functions
   //////////////////////////////////////////////////////////////////
+
+  il::Array<double> getLocalInSituPorePressure() { return pp_o_; }
+  double getLocalInSituPorePressure(il::int_t k) { return pp_o_[k]; }
 
   //////////////////////////////////////////////////////////////////
   //                  METHODS
@@ -150,37 +153,79 @@ class InSituConditions {
     return traction;
   };
 
-// populate all traction from an uniform stress field......
-  il::Array<double> uniformAllInSituTractions(hfp2d::Mesh &mesh){
-
+  // populate all traction from an uniform stress field......
+  il::Array<double> uniformAllInSituTractions(hfp2d::Mesh &mesh) {
     il::StaticArray<double, 2> aux;
 
-    il::Array<double> all_tractions{mesh.numberDDDofs(),0.};
+    il::Array<double> all_tractions{mesh.numberDDDofs(), 0.};
 
-    IL_EXPECT_FAST(mesh.numberDDDofs()==mesh.numberDDDofsPerElt()*mesh.numberOfElts());
+    IL_EXPECT_FAST(mesh.numberDDDofs() ==
+                   mesh.numberDDDofsPerElt() * mesh.numberOfElts());
 
-//    il::int_t p=mesh.interpolationOrder();
-    il::int_t dd_e=mesh.numberDDDofsPerElt();
-    for (il::int_t e=0;e<mesh.numberOfElts();e++){
-      hfp2d::SegmentData seg=mesh.getElementData(e);
-      aux=uniformInsituTractions(seg);
-      all_tractions[e*dd_e]=aux[0];
-      all_tractions[e*dd_e+1]=aux[1];
-      if ((mesh.interpolationOrder()==1)) {
-        all_tractions[e*dd_e+2]=aux[0];
-        all_tractions[e*dd_e+3]=aux[1];
+    //    il::int_t p=mesh.interpolationOrder();
+    il::int_t dd_e = mesh.numberDDDofsPerElt();
+    for (il::int_t e = 0; e < mesh.numberOfElts(); e++) {
+      hfp2d::SegmentData seg = mesh.getElementData(e);
+      aux = uniformInsituTractions(seg);
+      all_tractions[e * dd_e] = aux[0];
+      all_tractions[e * dd_e + 1] = aux[1];
+      if ((mesh.interpolationOrder() == 1)) {
+        all_tractions[e * dd_e + 2] = aux[0];
+        all_tractions[e * dd_e + 3] = aux[1];
       }
     }
 
     return all_tractions;
-
   }
 
+  // populate all traction from an uniform stress field......
+  il::Array<double> uniformShearInSituTractions(hfp2d::Mesh &mesh) {
+    il::StaticArray<double, 2> aux;
 
-  // todo : more general cases of piece-wise gradient stress over the domain mesh.
+    il::Array<double> all_shear_tractions{mesh.numberDDDofs() / 2, 0.};
 
+    IL_EXPECT_FAST((mesh.numberDDDofs() / 2) ==
+                   (mesh.numberDDDofsPerElt() / 2) * mesh.numberOfElts());
 
+    //    il::int_t p=mesh.interpolationOrder();
+    il::int_t dd_e = mesh.numberDDDofsPerElt() / 2;
+    for (il::int_t e = 0; e < mesh.numberOfElts(); e++) {
+      hfp2d::SegmentData seg = mesh.getElementData(e);
+      aux = uniformInsituTractions(seg);
+      all_shear_tractions[e * dd_e] = aux[0];
+      if ((mesh.interpolationOrder() == 1)) {
+        all_shear_tractions[e * dd_e +1] = aux[0];
+      }
+    }
 
+    return all_shear_tractions;
+  }
+
+  // populate all traction from an uniform stress field......
+  il::Array<double> uniformNormalInSituTractions(hfp2d::Mesh &mesh) {
+    il::StaticArray<double, 2> aux;
+
+    il::Array<double> all_normal_tractions{mesh.numberDDDofs() / 2, 0.};
+
+    IL_EXPECT_FAST((mesh.numberDDDofs() / 2) ==
+                   (mesh.numberDDDofsPerElt() / 2) * mesh.numberOfElts());
+
+    //    il::int_t p=mesh.interpolationOrder();
+    il::int_t dd_e = mesh.numberDDDofsPerElt() / 2;
+    for (il::int_t e = 0; e < mesh.numberOfElts(); e++) {
+      hfp2d::SegmentData seg = mesh.getElementData(e);
+      aux = uniformInsituTractions(seg);
+      all_normal_tractions[e * dd_e] = aux[1];
+      if ((mesh.interpolationOrder() == 1)) {
+        all_normal_tractions[e * dd_e +1] = aux[1];
+      }
+    }
+
+    return all_normal_tractions;
+  }
+
+  // todo : more general cases of piece-wise gradient stress over the domain
+  // mesh.
 };
 }
 

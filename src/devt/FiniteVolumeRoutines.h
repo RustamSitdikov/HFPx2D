@@ -17,7 +17,7 @@
 #include <il/linear_algebra.h>
 
 // Inclusion from the project
-#include <src/core/FluidProperties.h>
+#include <src/core/Fluid.h>
 #include <src/core_dev/FractureEvolution.h>
 #include <src/core/Mesh.h>
 
@@ -98,29 +98,29 @@ inline il::Array<il::int_t> row_selection(const il::Array2D<il::int_t> &arr,
 };
 
 il::Array<double> edgeConductivitiesP1Newtonian(
-    Mesh &theMesh, FluidProperties &FluidProperties,
+    Mesh &theMesh, Fluid &FluidProperties,
     il::Array<double> &permeab_middle, const il::Array<double> &dilat_middle,
     const il::Array<double> &opening_middle);
 
 il::Array<double> shearConductivitiesP1Newtonian(
-    Mesh &theMesh, FluidProperties &FluidProperties,
+    Mesh &theMesh, Fluid &FluidProperties,
     FractureEvolution &FractureEvolution, const il::Array<double> &slip,
     const il::Array<double> &opening);
 
 il::Array2D<double> buildLMatrix(Mesh &theMesh, const il::Array<double> &slip,
                                  const il::Array<double> &opening,
-                                 FluidProperties &FluidProperties,
+                                 Fluid &FluidProperties,
                                  FractureEvolution &FractureEvolution,
                                  double TimeStep);
 
 il::Array2D<double> buildVpMatrix(Mesh &theMesh,
                                   FractureEvolution &FractureEvolution,
-                                  FluidProperties &FluidProperties,
+                                  Fluid &FluidProperties,
                                   const il::Array<double> &slip);
 
 il::Array2D<double> buildVdMatrix(Mesh &theMesh,
                                   FractureEvolution &FractureEvolution,
-                                  FluidProperties &FluidProperties,
+                                  Fluid &FluidProperties,
                                   const il::Array<double> &slip);
 }
 
