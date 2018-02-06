@@ -127,6 +127,8 @@ int MultipleFracsPropagation() {
   il::Array2D<il::int_t> conn{nelts * nfracs, 2, 0};
   il::Array<il::int_t> source_loc_frac{nfracs, 0};
 
+  il::Array<il::int_t> fracID{nfracs*nelts,0};
+
   double well_az =
       well_mesh.azimuth();  // is stored in degree not radians w.r. to y !
   // with respect to true North which is by definition the y-axis
@@ -146,6 +148,7 @@ int MultipleFracsPropagation() {
       xy(i, 1) = yo + ((i - (nelts + 1) * f) * h - lo) * sin_az;
     }
     for (il::int_t i = nelts * f; i < (nelts) * (f + 1); i++) {
+      fracID[i]=f;
       conn(i, 0) = i + f;
       conn(i, 1) = i + 1 + f;
     }
@@ -153,7 +156,9 @@ int MultipleFracsPropagation() {
     source_loc_frac[f] = nelts / 2 + f * nelts;
   }
 
-  hfp2d::Mesh fracsMesh(xy, conn, 0);
+  il::Array<il::int_t> MatID{nfracs*nelts,0};
+
+  hfp2d::Mesh fracsMesh(xy, conn,MatID,fracID, 0);
 
   // zero initial rates entering the fracs
   il::Array<double> frac_rates{nfracs, 0.};
@@ -381,7 +386,7 @@ int MultipleFracsPropagation() {
 
       // saving solution.
       resfilename = basefilename + std::to_string(jt) + ".json";
-//      completeSol_n.writeToFile(resfilename);
+      completeSol_n.writeToFile(resfilename);
 
       // adaptive time-step
       max_tip_v = il::max(completeSol_n.fracSolution().tipsVelocity());

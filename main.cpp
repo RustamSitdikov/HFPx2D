@@ -125,7 +125,7 @@ int main() {
   std::cout << "Parallel HFs test" << std::endl;
   std::string filename = "../Debug/ParallelHFTestsMvertex.json";
 
-  int ret = hfp2d::ParallelHFs(filename);
+ // int ret = hfp2d::ParallelHFs(filename);
 
   // std::cout << "return " << ret;
   // double ret1 =  hfp2d::SimpleGriffithExampleS3D_P0_byNodes(10);
@@ -139,13 +139,13 @@ int main() {
   //  std::cout << "\n rel error L2 norm in Constant Elements (with tip
   //  correction): " << ret2 << "\n";
 
-  std::cout << "------------------" << std::endl;
-  std::cout << "Wellbore flow test" << std::endl;
-  int test= hfp2d::WellboreFlowBenchmark();
+//  std::cout << "------------------" << std::endl;
+//  std::cout << "Wellbore flow test" << std::endl;
+//  int test= hfp2d::WellboreFlowBenchmark();
 
   std::cout << "---------------------" << std::endl;
   std::cout << "Well-HF coupling test" << std::endl;
-  test = hfp2d::MultipleFracsPropagation();
+  int test = hfp2d::MultipleFracsPropagation();
 
   //std::cout << " end of code \n\n\n";
 
