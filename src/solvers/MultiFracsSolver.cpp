@@ -309,25 +309,34 @@ int MultipleFracsPropagation() {
                                           0, dpc, 0.);
 
   double max_time = 1.;
-  if ( j_simul.count("Maximum time") ==1 ) {
+  if ( j_simul.count("Maximum time") == 1 ) {
     max_time = j_simul["Maximum time"].get<double>();
   }
   il::int_t max_steps = 150;
-  if ( j_simul.count("Maximum number of steps") ==1 ) {
+  if ( j_simul.count("Maximum number of steps") == 1 ) {
     max_steps = j_simul["Maximum number of steps"].get<long>();
   }
 
-  dt = 0.001;
-  if ( j_simul.count("Time step") ==1 ) {
+  dt = 0.002;
+  if ( j_simul.count("Time step") == 1 ) {
     dt = j_simul["Time step"].get<double>();
   }
 
   double dt_min = 0.00001;
-  if ( j_simul.count("Minimum time step") ==1 ) {
+  if ( j_simul.count("Minimum time step") == 1 ) {
     dt_min = j_simul["Minimum time step"].get<double>();
   }
 
-  il::int_t jt = 0;
+  il::int_t jt = 0, ea = 0;
+
+  std::string basefilename = "HFs_well_coupling_"; // default name
+  if (js.count("Results files name core") == 1){
+    basefilename = js["Results files name core"].get<std::string>();
+  }
+
+  std::string resfilename;
+
+  double max_tip_v;
 
   // step acceptance (on FF loop convergence)
   bool accept = true;
@@ -345,7 +354,7 @@ int MultipleFracsPropagation() {
 
     if (accept) {
       std::cout << "-------------------------" << std::endl;
-      std::cout << "Step " << jt << "; time: " << completeSol_n_1.time()
+      std::cout << "Step # " << jt << "; time: " << completeSol_n_1.time()
                 << std::endl;
       for (il::int_t i = 0; i < nfracs; i++) {
         std::cout << "influx in frac. " << i+1 << ": "
@@ -359,31 +368,57 @@ int MultipleFracsPropagation() {
                 << "; error w EHL "<< completeSol_n_1.fracSolution().errOpening()
                 << std::endl;
 //    std::cout << "-------------------------" << std::endl;
+
       completeSol_n = completeSol_n_1;
 
-      // todo: adaptive time-step
+      for (il::int_t i = 0;
+           i < completeSol_n.fracSolution().currentMesh().tipElts().size();
+           i++) {
+        std::cout << "tip " << i+1 << " velocity: "
+                  << completeSol_n.fracSolution().tipsVelocity()[i] << "; ";
+      }
+      std::cout << std::endl;
+
+      // saving solution.
+      resfilename = basefilename + std::to_string(jt) + ".json";
+//      completeSol_n.writeToFile(resfilename);
+
+      // adaptive time-step
+      max_tip_v = il::max(completeSol_n.fracSolution().tipsVelocity());
+
+      if ((max_tip_v > 0.0)) {  //&& (fracSol_n.tipsLocation()(1,0)>1.5)
+        double dt_new = 1. * completeSol_n.fracSolution().currentMesh().eltSize(ea) / max_tip_v;
+        // modify to more clever ?
+        if (dt_new > 2.5 * dt) {
+          dt = 2.5 * dt;
+        } else {
+          if (dt_new < dt * 0.8) {
+            dt = 0.8 * dt;
+          } else {
+            dt = dt_new;
+          }
+        }
+      }
 
     } else {
       // reject time step
       std::cout << "Reject time step - non-convergence on fracture fronts" << std::endl;;
-      std::cout << "steps # " << jt << "; time " << completeSol_n_1.time()
+      std::cout << "step # " << jt << "; time " << completeSol_n_1.time()
                 << "; time step: " << dt << std::endl;
       std::cout << "Error on frac front " << completeSol_n_1.fracSolution().errFront()
                 << " after " << completeSol_n_1.fracSolution().frontIts() << " its" << std::endl;
 
+      // reduce time step
       if (dt / 2. >= dt_min) {
         dt = dt / 2.;
         std::cout << "Reducing time steps in order to re-try";
         jt--;
       } else {
         std::cout << "Error on frac. front too large with small time steps. - "
-                "stop simulation \n";
+                "stop simulation" << std::endl;
         break;
       }
     }
-
-    // todo: saving of solution.
-
   }
 
   return 0;
@@ -416,7 +451,7 @@ hfp2d::MultiFracsSolution wellHFsSolver_fixedpts(
     hfp2d::SimulationParameters &coupling_p,
     double frac_height,
     bool mute,
-    il::io_t, il::Array2D<double> &K, bool accept) {
+    il::io_t, il::Array2D<double> &K, bool &accept) {
   // We solve here the coupling between wellbore flow, fluid partitioning
   // between fractures
   // and hydraulic fracture propagation over one time-step.

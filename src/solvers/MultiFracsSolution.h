@@ -119,7 +119,7 @@ class MultiFracsSolution {
 
   void writeToFile(std::string &filename) {
 
-    json j_frac = fracs_solution_.createJsonObject() ;
+    json j_frac = fracs_solution_.createJsonObject();
 
     json j_well = well_solution_.createJsonObject();
 

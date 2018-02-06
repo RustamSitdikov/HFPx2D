@@ -302,7 +302,7 @@ int ParallelHFs(std::string &filename) {
 
       std::cout << " ----++++-----++++-------\n";
 
-      mean_tip_v = il::max(fracSol_n.tipsVelocity()); //
+      mean_tip_v = il::norm(fracSol_n.tipsVelocity(), il::Norm::L2);
 
       if ((mean_tip_v > 0.0)) {  //&& (fracSol_n.tipsLocation()(1,0)>1.5)
         double dt_new = 1. * mesh.eltSize(ea) / mean_tip_v;
