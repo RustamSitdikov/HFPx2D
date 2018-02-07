@@ -363,18 +363,18 @@ int MultipleFracsPropagation() {
       for (il::int_t i = 0; i < nfracs; i++) {
         std::cout << "influx in frac. " << i+1 << ": "
                   << completeSol_n_1.clusterFluxes(i)
-                  << "; DP in frac. " << i+1 << ": "
+                  << "; press.drop in frac. " << i+1 << ": "
                   << completeSol_n_1.dpEntries(i)
                   << std::endl;
       }
       std::cout << "coupling error: " << completeSol_n_1.errFluxes()
+                << "; coupling its.: " << completeSol_n_1.itsCoupling()
                 << "; DP error: " << completeSol_n_1.errDps()
-                << "; coupling its: " << completeSol_n_1.itsCoupling()
                 << std::endl;
-      std::cout << "FF loop error: " << completeSol_n_1.fracSolution().errFront()
-                << "; FF loop its: " << completeSol_n_1.fracSolution().frontIts()
+      std::cout << "frac.tip error: " << completeSol_n_1.fracSolution().errFront()
+                << "; tip loop its.: " << completeSol_n_1.fracSolution().frontIts()
                 << "; EHL error (w): " << completeSol_n_1.fracSolution().errOpening()
-                << "; new number of elts: " << completeSol_n_1.fracSolution().currentMesh().numberOfElts()
+                << "; new number of elts.: " << completeSol_n_1.fracSolution().currentMesh().numberOfElts()
                 << std::endl;
 
       completeSol_n = completeSol_n_1;
@@ -399,8 +399,8 @@ int MultipleFracsPropagation() {
       num_f_its = completeSol_n.fracSolution().frontIts();
 
       if ((max_tip_v > 0.0)) {  //&& (fracSol_n.tipsLocation()(1,0)>1.5)
-//        double dt_new = 0.5 * min_ds / max_tip_v;
-        double dt_new = 1.0 * min_ds / max_tip_v / (double) num_f_its;
+        double dt_new = 0.5 * min_ds / max_tip_v;
+        if (num_f_its > 10) {dt_new *= 5.0 / (double)num_f_its;}
         // modify to more clever ?
         if (dt_new > 1.25 * dt) {
           dt = 1.25 * dt;
@@ -527,14 +527,14 @@ hfp2d::MultiFracsSolution wellHFsSolver_fixedpts(
 //    std::cout << "+++++++++++++++++++++++++" << std::endl;
 //  }
 
-  // todo: start with non-zero fluxes, solve the ENTRY FRICTION Residuals eqn(?)
-
   // Quasi-Newton iteration scheme
   //
   //
-  // todo: pass as arguments OR move to numerical parameters file
-  double dQn = 2.0e-8; // or sqrt of machine precision
-  int num_J_reuse = 1;
+  // todo: relate it to the machine precision
+  double dQn = 1.49e-8; // or >= sqrt of machine precision
+  // todo: pass as argument OR move to numerical parameters file
+  int num_J_reuse = 2; // save time for Jacobian re-calculation
+
   double rela_flux = coupling_p.ehl_relaxation;
   double coupl_tolerance = coupling_p.ehl_tolerance;
   il::int_t max_iters = coupling_p.ehl_max_its;
@@ -782,6 +782,27 @@ hfp2d::MultiFracsSolution wellHFsSolver_fixedpts(
         std::cout << "Well - HFs coupling NOT converged after " << k
                   << " its; error is: " << err_f << std::endl;
       }
+    }
+
+    // run it one more time w. updated fluxes...
+    K = K_pre;
+    for (il::int_t i = 0; i < nclusters; i++) {
+      rates_per_height[i] = rates_cur[i] / frac_height;
+    }
+    // rate entering the fracture = rate escaping the well / fracture height
+    frac_sources_k.setInjectionRates(rates_per_height);
+    well_sources_k.setInjectionRates(rates_cur);
+    // solve for wellbore flow
+    wellSol_k = hfp2d::wellFlowSolverP0(wellSol_n, w_mesh, w_inj,
+                                        well_sources_k, ffChurchill, dt,
+                                        well_solver_p, true, fracfluid);
+    // solve for fracture propagation with given flux
+    fracSol_k = hfp2d::FractureFrontLoop(fracSol_n, fracfluid, rock,
+                                         frac_sources_k, frac_height, dt,
+                                         frac_solver_p, true, il::io, K);
+    // would need to have some checks for convergences of the solvers....
+    if (fracSol_k.errFront() >= frac_solver_p.frac_front_tolerance) {
+      accept = false;
     }
 
     hfp2d::MultiFracsSolution newSol(fracSol_k, wellSol_k, frac_sources_k,
