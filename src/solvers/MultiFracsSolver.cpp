@@ -368,6 +368,7 @@ int MultipleFracsPropagation() {
                   << std::endl;
       }
       std::cout << "coupling error: " << completeSol_n_1.errFluxes()
+                << "; DP error: " << completeSol_n_1.errDps()
                 << "; coupling its: " << completeSol_n_1.itsCoupling()
                 << std::endl;
       std::cout << "FF loop error: " << completeSol_n_1.fracSolution().errFront()
