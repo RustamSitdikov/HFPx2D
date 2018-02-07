@@ -321,13 +321,14 @@ int ParallelHFs(std::string &filename) {
     } else {
 
       // reject time step
-      std::cout << "Reject time step - non-convergence on fracture fronts \n";
+      std::cout << "Reject time step; non-convergence on fracture fronts \n";
       std::cout << " steps # " << jt << " time  " << Soln1.time() << "Time step: " << Soln1.timestep() << "\n";
       std::cout << " Error on frac front " << Soln1.errFront() << " after " << Soln1.frontIts() << " its" << "\n";
 
       if (dt / 2. >= dt_min) {
         dt = dt / 2.;
-        std::cout << "Reducing time steps in order to re-try";
+        std::cout << "Reducing time step to "
+                  << dt << "s. in order to re-try \n";
         jt--;
       } else {
         std::cout << "Error on frac. front too large with small time steps. - "
@@ -504,7 +505,8 @@ hfp2d::Solution FractureFrontLoop(const hfp2d::Solution &Sol_n,
 
       if (((tipstruct.st - h_ribbon / 2.) > h_ribbon) && v_tip_k[i] > 0.) {
         n_add_elt_tip[i] =
-            std::floor((tipstruct.st - h_ribbon / 2.) / h_ribbon);
+                (il::int_t)
+                        std::floor((tipstruct.st - h_ribbon / 2.) / h_ribbon);
         // get the current number of tips element before addition
         ntip_r_elt_k = tip_region_elt_k.size();
         tip_region_elt_k.resize(ntip_r_elt_k + n_add_elt_tip[i]);  // add space.

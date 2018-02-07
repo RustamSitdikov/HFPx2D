@@ -37,6 +37,8 @@ class MultiFracsSolution {
 
   double err_fluxes_ = 0.;   // todo: shall we also have the residuals here ?
 
+  double err_dps_ = 0.;
+
  public:
 
   //////////////////////////////////////////////////////////////////////////////
@@ -49,7 +51,8 @@ class MultiFracsSolution {
                      double frac_height,
                      il::int_t its,
                      il::Array<double> &dp,
-                     double err_f) {
+                     double err_f,
+                     double err_dp) {
 
     fracs_solution_ = frac_s;
     well_solution_ = well_s;
@@ -78,6 +81,9 @@ class MultiFracsSolution {
     dp_entries_ = dp;
 
     err_fluxes_ = err_f;
+
+    err_dps_ = err_dp;
+
     Its_well_frac_coupling_ = its;
 
   };
@@ -105,8 +111,14 @@ class MultiFracsSolution {
   il::Array<double> clusterFluxes() const { return well_outfluxes_.InjectionRate();} ;
   double clusterFluxes(il::int_t k) const { return well_outfluxes_.InjectionRate(k);} ;
 
+  double errFluxes() const { return err_fluxes_;} ;
+
   il::Array<double> dpEntries() const { return dp_entries_;} ;
   double dpEntries(il::int_t k) const { return dp_entries_[k];} ;
+
+  double errDps() const { return err_dps_;} ;
+
+  il::int_t itsCoupling() const { return Its_well_frac_coupling_; };
 
   double time() const { return time_;};
 
