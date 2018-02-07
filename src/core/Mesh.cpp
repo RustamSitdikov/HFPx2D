@@ -330,8 +330,12 @@ void Mesh::addNTipElts(const il::int_t t_e, const il::int_t the_tip_node,
 
   // Material ID UPdate
   // this is for uniform material only
+  // todo: handling heterogeneous media (mat_ID)
 
   material_id_.resize(nelts);
+  for (il::int_t i = 0; i < n_add; i++) {
+    material_id_[i + nelts_old] = 0;
+  };
 
   // fracture id update...
   fracture_id_.resize(nelts);
