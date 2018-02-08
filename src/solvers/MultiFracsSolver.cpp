@@ -36,14 +36,16 @@ using json = nlohmann::json;
 // write a routine - for well + n fracs benchmark
 // with json inputs.
 
-int MultipleFracsPropagation() {
+int MultipleFracsPropagation(std::string &filename) {
   // routine for the propagation of multiple Heigth contained HFs from a
   // horizontal wellbore
   // DEBUGGING
 
   // ...
 
-  std::string wellfilename = "../Debug/WellTest.json";
+  std::string wellfilename = filename.empty()
+                             ? "../Debug/WellTest.json"
+                             : filename;
 
   std::ifstream input(wellfilename);  // ?
   json js;
@@ -295,10 +297,10 @@ int MultipleFracsPropagation() {
   hfp2d::Solution fracSol_n =
       hfp2d::Solution(fracsMesh, wellSol_n.time(), width, sheardd,
                       fluid_pressure_o, sn_o, tau_o);
-  il::Array<double> vel0{4, 0.};  // initial tip velocity
+  il::Array<double> vel0{2 * nfracs, 0.};  // initial tip velocity
   fracSol_n.setTipsVelocity(vel0);
 
-  il::Array<double> s0{4, 0.};  // initial ribbon tip distance
+  il::Array<double> s0{2 * nfracs, 0.};  // initial ribbon tip distance
   for (il::int_t i = 0; i < fracsMesh.tipElts().size(); i++) {
     il::int_t e = fracsMesh.tipElts(i);
     s0[i] = 1.5 * fracsMesh.eltSize(e);
