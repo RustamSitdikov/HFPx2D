@@ -9,7 +9,7 @@
 #include "il/base.h"
 #include "il/toml.h"
 //#include "src/core_dev/properties.h"
-#include <src/input/findUtilities.h>
+#include <src/input/toml/findUtilities.h>
 
 namespace hfp2d {
 

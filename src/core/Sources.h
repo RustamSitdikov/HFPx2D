@@ -25,10 +25,6 @@ class Sources {
   il::Array<il::int_t> source_location_;
   il::Array<double> injection_rate_;
 
-  //  il::Array<double> injection_rate_;
-
-  //  il::Array
-
  public:
   ////////////////////////////////////////////////////////////////////////////
   // constructor

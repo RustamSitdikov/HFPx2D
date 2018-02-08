@@ -17,7 +17,7 @@
 #include <src/core/Mesh.h>
 #include <src/core_dev/FractureEvolution.h>
 #include <src/core_dev/SolidEvolution.h>
-#include <src/input/findUtilities.h>
+#include <src/input/toml/findUtilities.h>
 #include "LoadSingleMaterial.h"
 #include "src/core/ElasticProperties.h"
 

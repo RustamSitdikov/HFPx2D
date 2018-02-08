@@ -31,10 +31,7 @@ set(SOURCE_FILES_DIR ${PROJECT_SOURCE_DIR}/src)
 set(SOURCE_FILES
         src/core/Mesh.cpp
         src/core/Mesh.h
-        src/core/Utilities.h
-        src/core/Utilities.cpp
         src/core/SegmentData.h
-        #src/core/FluidProperties.h
         src/core/ElasticProperties.h
         src/core_dev/SolidEvolution.h
         src/core/Sources.h
@@ -45,57 +42,66 @@ set(SOURCE_FILES
         src/elasticity/PlaneStrainInfinite.cpp
         src/elasticity/PlaneStrainInfinite.h
         src/core/SimulationParameters.h
-        #src/input/loadArguments.cpp
-        #src/input/loadArguments.h
-        #src/input/loadInput.cpp
-        #src/input/loadInput.h
-        #src/input/geometry/AutoLineMeshUtilities.cpp
-        #src/input/geometry/AutoLineMeshUtilities.h
-        #src/input/geometry/AutoLineMeshCreation.cpp
-        #src/input/geometry/AutoLineMeshCreation.h
-        #src/input/geometry/LoadGeometry.cpp
-        #src/input/geometry/LoadGeometry.h
-        #src/input/geometry/LoadMeshFile.cpp
-        #src/input/geometry/LoadMeshFile.h
-        #src/input/properties/LoadProperties.cpp
-        #src/input/properties/LoadProperties.h
-        #src/input/geometry/AutoLineMeshInfo.cpp
-        #src/input/geometry/AutoLineMeshInfo.h
-        #src/input/properties/LoadSingleMaterial.cpp
-        #src/input/properties/LoadSingleMaterial.h
-        #src/input/findUtilities.cpp
-        #src/input/findUtilities.h
+        #src/input/toml/loadArguments.cpp
+        #src/input/toml/loadArguments.h
+        #src/input/toml/loadInput.cpp
+        #src/input/toml/loadInput.h
+        #src/input/geometry/toml/AutoLineMeshUtilities.cpp
+        #src/input/geometry/toml/AutoLineMeshUtilities.h
+        #src/input/geometry/toml/AutoLineMeshCreation.cpp
+        #src/input/geometry/toml/AutoLineMeshCreation.h
+        #src/input/geometry/toml/LoadGeometry.cpp
+        #src/input/geometry/toml/LoadGeometry.h
+        #src/input/geometry/toml/LoadMeshFile.cpp
+        #src/input/geometry/toml/LoadMeshFile.h
+        #src/input/properties/toml/LoadProperties.cpp
+        #src/input/properties/toml/LoadProperties.h
+        #src/input/geometry/toml/AutoLineMeshInfo.cpp
+        #src/input/geometry/toml/AutoLineMeshInfo.h
+        #src/input/properties/toml/LoadSingleMaterial.cpp
+        #src/input/properties/toml/LoadSingleMaterial.h
+        #src/input/toml/findUtilities.cpp
+        #src/input/toml/findUtilities.h
         #il/io/toml/toml.h
         #il/io/toml/toml.cpp
-        #src/input/conditions/LoadConditions.cpp
-        #src/input/conditions/LoadConditions.h
+        #src/input/conditions/toml/LoadConditions.cpp
+        #src/input/conditions/toml/LoadConditions.h
+        #src/wellbore/SimpleWellFlowSolverBenchmark.cpp
+        #src/wellbore/SimpleWellFlowSolverBenchmark.h
+        #src/wellbore/WellFlowP0.cpp
+        #src/wellbore/WellFlowP0.h
+        #src/wellbore/WellInjection.cpp
+        #src/wellbore/WellInjection.h
+        #src/wellbore/WellMesh.h
+        #src/wellbore/WellSolution.h
+        #src/core/DomainMesh.h
         src/core/Solution.h
         src/core/SolidProperties.h
-        src/tip/TipAsymptote.cpp
-        src/tip/TipAsymptote.h
+        #src/tip/TipAsymptote.cpp
+        #src/tip/TipAsymptote.h
         src/solvers/FluidInjFrictWeakDilatFault.cpp
         src/solvers/FluidInjFrictWeakDilatFault.h
         src/core_dev/FractureEvolution.h
-        #src/core/InSituStress.h
-        src/devt/FromEdgeToCol.cpp
-        src/devt/FromEdgeToCol.h
+        src/util/FromEdgeToCol.cpp
+        src/util/FromEdgeToCol.h
         src/ehlsolvers/ReynoldsP1.cpp
         src/ehlsolvers/ReynoldsP1.h
-        src/devt/FiniteVolumeRoutines.cpp
-        src/devt/FiniteVolumeRoutines.h
+        src/ehlsolvers/FiniteVolumeRoutines.cpp
+        src/ehlsolvers/FiniteVolumeRoutines.h
         src/util/json.hpp
-        src/devt/IterativeSolvers.cpp
-        src/devt/IterativeSolvers.h
+        #src/devt/IterativeSolvers.cpp
+        #src/devt/IterativeSolvers.h
         src/solvers/SimpleElasticBenchmarks.cpp
         src/solvers/SimpleElasticBenchmarks.h
-        #src/input/Sources/loadSources.cpp
-        #src/input/Sources/loadSources.h
+        #src/input/toml/Sources/loadSources.cpp
+        #src/input/toml/Sources/loadSources.h
         src/input/json/loadJsonMesh.cpp
         src/input/json/loadJsonMesh.h
         src/core/Fluid.h
         src/input/json/LoadInputFIFWDF.cpp
         src/input/json/LoadInputFIFWDF.h
-        src/core/InSituConditions.h)
+        src/core/InSituConditions.h
+        )
 
 if(APPLE)
 link_directories($ENV{MKLROOT}/lib $ENV{MKLROOT}/../compiler/lib )

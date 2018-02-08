@@ -15,7 +15,7 @@
 #include <il/Array2D.h>
 
 // Inclusion from the project
-#include <src/devt/FiniteVolumeRoutines.h>
+#include <src/ehlsolvers/FiniteVolumeRoutines.h>
 #include <src/devt/IterativeSolvers.h>
 #include <src/ehlsolvers/ReynoldsP1.h>
 

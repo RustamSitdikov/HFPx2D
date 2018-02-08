@@ -26,7 +26,6 @@ class FractureEvolution {
   //////////////////////////////////////////////////////////////////////////
 
  private:
-  il::String type_;
   il::Array<double> initial_permeabilitys_;
   il::Array<double> increment_permeabilitys_;
   il::Array<double> residual_slips_;
@@ -62,41 +61,27 @@ class FractureEvolution {
   };
 
   il::Array<double> getIncrPermeab() { return increment_permeabilitys_; }
-
   double getIncrPermeab(il::int_t i) {
     return increment_permeabilitys_[i];
   };
+
   il::Array<double> getResidSlip() { return residual_slips_; }
   double getResidSlip(il::int_t i) { return residual_slips_[i]; };
+
   il::Array<double> getInitHydrWidth() {
-    return initial_hydraulic_widths_;
-  }
+    return initial_hydraulic_widths_;}
   double getInitHydrWidth(il::int_t i) {
-    return initial_hydraulic_widths_[i];
-  };
+    return initial_hydraulic_widths_[i]; };
+
   il::Array<double> getIncrHydrWidth() {
-    return increment_hydraulic_widths_;
-  }
+    return increment_hydraulic_widths_; }
   double getIncrHydrWidth(il::int_t i) {
     return increment_hydraulic_widths_[i];
   };
-  il::String getType() { return type_; }
 
   //////////////////////////////////////////////////////////////////////////
   //        METHODS
   //////////////////////////////////////////////////////////////////////////
-
-  void setFractureEvolution(il::Array<double> &init_permeab,
-                            il::Array<double> &incr_permeab,
-                            il::Array<double> &res_slip,
-                            il::Array<double> &init_hydr_width,
-                            il::Array<double> &incr_hydr_width) {
-    initial_permeabilitys_ = init_permeab;
-    increment_permeabilitys_ = incr_permeab;
-    residual_slips_ = res_slip;
-    initial_hydraulic_widths_ = init_hydr_width;
-    increment_hydraulic_widths_ = incr_hydr_width;
-  };
 
   il::Array<double> linearDilatancy(const il::Array<double> &slip,
                                     FractureEvolution &FractureEvolution) {

@@ -14,7 +14,7 @@
 #include <il/Array2D.h>
 
 #include <src/core/Mesh.h>
-#include <src/devt/FiniteVolumeRoutines.h>
+#include <src/ehlsolvers/FiniteVolumeRoutines.h>
 
 //// TESTS FOR FINITE VOLUME MATRICES ///
 // Control volumes centred on mesh nodes
@@ -218,9 +218,6 @@ TEST(FV, test_compressibility_matrix) {
   double viscosity = 0.003;
   double compressibility = 1.;
   hfp2d::Fluid fluidProperties(density, compressibility, viscosity);
-
-  // Time step
-  double dt = 0.1;
 
   // Fracture properties
   il::Array<double> init_permeab{2 * nelts, 0.36};

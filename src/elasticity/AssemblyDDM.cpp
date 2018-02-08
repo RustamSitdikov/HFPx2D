@@ -16,10 +16,6 @@
 #include "PlaneStrainInfinite.h"
 #include "Simplified3D.h"
 
-#include <src/core/ElasticProperties.h>
-#include <src/core/Mesh.h>
-#include <src/core/SegmentData.h>
-
 namespace hfp2d {
 
 ///////////////////////////////////////////////////////////////////////////////

@@ -16,8 +16,8 @@
 
 // Inclusion from the project
 #include <src/core/ElasticProperties.h>
-#include <src/core/Mesh.h>
 #include <src/core/SegmentData.h>
+#include <src/core/Mesh.h>
 
 namespace hfp2d {
 

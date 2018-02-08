@@ -13,7 +13,7 @@
 // Inclusion from the project
 #include <src/core/Fluid.h>
 #include <src/core_dev/FractureEvolution.h>
-#include <src/devt/FiniteVolumeRoutines.h>
+#include <src/ehlsolvers/FiniteVolumeRoutines.h>
 
 namespace hfp2d {
 

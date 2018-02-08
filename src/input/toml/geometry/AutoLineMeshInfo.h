@@ -15,7 +15,7 @@
 #include <iostream>
 
 // Inclusion from the project
-#include <src/input/findUtilities.h>
+#include <src/input/toml/findUtilities.h>
 
 double findX1(const il::String &inputFileName,
               const il::int_t fractureID,

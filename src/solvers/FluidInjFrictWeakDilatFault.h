@@ -13,14 +13,13 @@
 // Inclusion from the project
 #include <src/core/ElasticProperties.h>
 #include <src/core/Fluid.h>
+#include <src/core/InSituConditions.h>
 #include <src/core/Mesh.h>
 #include <src/core/SimulationParameters.h>
-#include <src/core/Solution.h>
 #include <src/core/Sources.h>
 #include <src/core_dev/FractureEvolution.h>
 #include <src/core_dev/SolidEvolution.h>
 #include <src/ehlsolvers/ReynoldsP1.h>
-#include <src/core/InSituConditions.h>
 
 namespace hfp2d {
 
@@ -30,10 +29,9 @@ Solution fractFrontPosition(
     il::Array2D<double> &elast_matrix, il::Array2D<double> &fetc_dds,
     il::Array2D<double> &fetc_dd, il::Array2D<double> &fetc_press,
     il::Array2D<il::int_t> &dof_single_dd, Mesh &theMesh,
-    Fluid &FluidProperties,
-    SimulationParameters &SimulationParameters, SolidEvolution &SolidEvolution,
-    FractureEvolution &FractureEvolution, Sources &Source,
-    Solution &SolutionAtTn, bool expl_impl, bool damping_term,
+    Fluid &FluidProperties, SimulationParameters &SimulationParameters,
+    SolidEvolution &SolidEvolution, FractureEvolution &FractureEvolution,
+    Sources &Source, Solution &SolutionAtTn, bool expl_impl, bool damping_term,
     double damping_coeff, double dilat_plast,
     InSituConditions &BackgroundLoadingConditions);
 

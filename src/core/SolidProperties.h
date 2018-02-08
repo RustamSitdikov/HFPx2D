@@ -53,27 +53,42 @@ class SolidProperties {
 
   SolidProperties(hfp2d::ElasticProperties &elas,
                   const il::Array<double> &toughness,
-                  const il::Array<double> &wh_0, const il::Array<double> &Cl,
-                  const il::Array<double> &kf_o,
-                  const il::Array<double> &peak_fric,
-                  const il::Array<double> &resid_fric,
-                  const il::Array<double> &resid_slip,
-                  const il::Array<double> &increment_wh,
-                  const il::Array<double> &increment_kf) {
+                  const il::Array<double> &wh_0, const il::Array<double> &Cl) {
     elastic_properties_ = elas;
     fracture_toughness_ = toughness;
     wh_o_ = wh_0;
     carter_leakoff_coef_ = Cl;
-    fp_ = peak_fric;
-    fr_ = resid_fric;
-    residual_slip_ = resid_slip;
-    kf_o_ = kf_o;
-    incrm_wh_ = increment_wh;
-    incrm_kf_ = increment_kf;
   };
 
   /////////////////////////////////////////////////////////////////////////////
-  // get functions
+  // setter functions
+
+  void setPeakFrictionCoefficient(const il::Array<double> &peak_fric_coeff) {
+    fp_ = peak_fric_coeff;
+  };
+
+  void setResFrictionCoefficient(const il::Array<double> &res_fric_coeff) {
+    fr_ = res_fric_coeff;
+  };
+
+  void setResSlip(const il::Array<double> &res_slip) {
+    residual_slip_ = res_slip;
+  };
+
+  void setPermeability(const il::Array<double> &frac_permeab) {
+    kf_o_ = frac_permeab;
+  };
+
+  void setIncrmHydrWidth(const il::Array<double> &incrm_wh) {
+    incrm_wh_ = incrm_wh;
+  };
+
+  void setIncrmPermeab(const il::Array<double> &incrm_kf) {
+    incrm_kf_ = incrm_kf;
+  };
+
+  /////////////////////////////////////////////////////////////////////////////
+  // getter functions
 
   hfp2d::ElasticProperties ElasticProperties() const {
     return elastic_properties_;

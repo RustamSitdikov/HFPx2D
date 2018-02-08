@@ -21,15 +21,15 @@
 // Inclusion from the project
 #include <il/linear_algebra/dense/norm.h>
 #include <src/core/Fluid.h>
+#include <src/core/SimulationParameters.h>
 #include <src/core/Solution.h>
 #include <src/core_dev/FractureEvolution.h>
-#include <src/devt/FromEdgeToCol.h>
-#include <src/ehlsolvers/ReynoldsP1.h>
 #include <src/elasticity/AssemblyDDM.h>
 #include <src/elasticity/PlaneStrainInfinite.h>
 #include <src/input/json/LoadInputFIFWDF.h>
 #include <src/input/json/loadJsonMesh.h>
 #include <src/solvers/FluidInjFrictWeakDilatFault.h>
+#include <src/util/FromEdgeToCol.h>
 
 namespace hfp2d {
 
@@ -302,14 +302,35 @@ void fluidInjFrictWeakDilatFault(int argc, char const *argv[]) {
 
   // Get active set of elements at time t_0
   il::Array<int> init_set_elements{0};
+  il::Array<int> outp{2};
   init_set_elements.reserve(2 * frac_mesh.numberOfElts());
   for (int l = 0, k = 0; l < init_failed_set_collpoints.size(); ++l, ++k) {
     init_set_elements.resize(k + 1);
-    init_set_elements[l] =
-        hfp2d::find_2d_integer(dof_single_dd, init_failed_set_collpoints[l])[0];
+
+    // Find 2D integer
+    for (int i = 0; i < dof_single_dd.size(0); ++i) {
+      for (int j = 0; j < dof_single_dd.size(1); ++j) {
+        if (dof_single_dd(i, j) == init_failed_set_collpoints[l])
+          outp[0] = i, outp[1] = j;
+      }
+    }
+
+    init_set_elements[l] = outp[0];
   }
 
-  auto init_set_elmnts = hfp2d::delete_duplicates_integer(init_set_elements);
+  // Delete duplicate elements
+  il::Array<int> init_set_elmnts{};
+  for (il::int_t i = 0; i < init_set_elements.size(); ++i) {
+    bool already_there = false;
+    for (il::int_t j = 0; j < init_set_elmnts.size(); ++j) {
+      if (init_set_elements[i] == init_set_elmnts[j]) {
+        already_there = true;
+      }
+    }
+    if (!already_there) {
+      init_set_elmnts.append(init_set_elements[i]);
+    }
+  }
 
   il::Array<int> init_active_set_elements{init_set_elmnts.size()};
   // Enforce the propagation to be element by element
@@ -343,30 +364,29 @@ void fluidInjFrictWeakDilatFault(int argc, char const *argv[]) {
 
   while ((SolutionAtTn.time() < t_max) &&
          (slipp_length_at_Tn <
-          euclidean_distance(
-              frac_mesh.coordinates(0, 0), 0,
-              frac_mesh.coordinates(frac_mesh.numberOfNodes() - 1, 0), 0)) &&
+                  abs(frac_mesh.coordinates(0, 0) -
+           frac_mesh.coordinates(frac_mesh.numberOfNodes() - 1, 0))) &&
          (SolutionAtTn.frontIts() < SimulationParameters.frac_front_max_its)) {
     std::cout << " --------------------------------" << std::endl;
     std::cout << " Current time t = " << SolutionAtTn.time() << std::endl;
 
-    hfp2d::Solution SolutionAtTnPlus1 = fractFrontPosition(
-        kmat, from_edge_to_coll_dds, from_edge_to_coll_dd,
-        from_edge_to_coll_press, dof_single_dd, frac_mesh, fracfluid,
-        SimulationParameters, SolidEvolution, FractureEvolution, Source,
-        SolutionAtTn, expl_impl, QD, damping_coeff, dilat_plast[0], inSituStress);
+    hfp2d::Solution SolutionAtTnPlus1 =
+        fractFrontPosition(kmat, from_edge_to_coll_dds, from_edge_to_coll_dd,
+                           from_edge_to_coll_press, dof_single_dd, frac_mesh,
+                           fracfluid, SimulationParameters, SolidEvolution,
+                           FractureEvolution, Source, SolutionAtTn, expl_impl,
+                           QD, damping_coeff, dilat_plast[0], inSituStress);
 
     // Calculate the new slippage length (i.e at time T_n+1)
     if (SolutionAtTnPlus1.activeElts().size() == 0) {
       slipp_length_at_Tn_plus1 = 0.;
     } else {
-      slipp_length_at_Tn_plus1 = hfp2d::euclidean_distance(
-          frac_mesh.coordinates(SolutionAtTnPlus1.activeElts(0), 0), 0,
+      slipp_length_at_Tn_plus1 =
+          abs(frac_mesh.coordinates(SolutionAtTnPlus1.activeElts(0), 0) -
           frac_mesh.coordinates(SolutionAtTnPlus1.activeElts(
                                     SolutionAtTnPlus1.activeElts().size() - 1) +
                                     1,
-                                0),
-          0);
+                                0));
     }
 
     // Calculate the current crack velocity

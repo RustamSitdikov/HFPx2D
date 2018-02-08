@@ -12,7 +12,7 @@
 
 #include <src/core/Mesh.h>
 #include <src/core/Sources.h>
-#include <src/input/findUtilities.h>
+#include <src/input/toml/findUtilities.h>
 #include <iostream>
 #include "il/base.h"
 #include "il/toml.h"

@@ -6,7 +6,7 @@
 #define HFPX2DUNITTEST_SEGMENTDATA_H
 
 // Inclusion from standard library
-#include <math.h>
+#include <cmath>
 #include <iostream>
 
 // Inclusion from Inside Loop library
@@ -16,10 +16,20 @@
 #include <il/StaticArray2D.h>
 #include <il/linear_algebra.h>
 
-// Inclusion from the project
-#include <src/core/Utilities.h>
-
 namespace hfp2d {
+
+//   Rotation Matrix
+il::StaticArray2D<double, 2, 2> rotationMatrix2D(double theta);
+inline il::StaticArray2D<double, 2, 2> rotationMatrix2D(double theta) {
+  il::StaticArray2D<double, 2, 2> R;
+
+  R(0, 0) = cos(1. * theta);
+  R(0, 1) = -1. * sin(1. * theta);
+  R(1, 0) = sin(theta);
+  R(1, 1) = cos(theta);
+
+  return R;
+}
 
 class SegmentData {
   //////////////////////////////////////////////////////////////////////////
@@ -124,7 +134,9 @@ class SegmentData {
   inline il::StaticArray<double, 2> n() const { return n_; };
   inline il::StaticArray<double, 2> s() const { return s_; };
   inline il::StaticArray<double, 2> Xmid() const { return x_mid_; };
-  inline il::Array2D<double> CollocationPoints() const { return collocation_points_; };
+  inline il::Array2D<double> CollocationPoints() const {
+    return collocation_points_;
+  };
 
   inline double CollocationPoints(il::int_t i, il::int_t j) const {
     return collocation_points_(i, j);

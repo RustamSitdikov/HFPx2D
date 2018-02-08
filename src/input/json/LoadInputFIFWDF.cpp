@@ -9,8 +9,6 @@
 
 #include "LoadInputFIFWDF.h"
 
-#include <src/input/json/LoadInputFIFWDF.h>
-
 namespace hfp2d {
 
 using json = nlohmann::json;
@@ -140,8 +138,13 @@ hfp2d::SolidProperties loadSolidProperties(json &j_rock) {
     d_wh[i] = j_rock["Increment hydraulic width"][i];
   }
 
-  hfp2d::SolidProperties solid(my_elas, tough, wh_o, Cl, kf_o, f_p, f_r, d_r,
-                               d_wh, d_kf);
+  hfp2d::SolidProperties solid(my_elas, tough, wh_o, Cl);
+  solid.setPeakFrictionCoefficient(f_p);
+  solid.setResFrictionCoefficient(f_r);
+  solid.setResSlip(d_r);
+  solid.setPermeability(kf_o);
+  solid.setIncrmHydrWidth(d_wh);
+  solid.setIncrmPermeab(d_kf);
 
   return solid;
 };

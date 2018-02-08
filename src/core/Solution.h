@@ -18,7 +18,6 @@
 
 // Inclusion from the project
 #include <src/core/Mesh.h>
-#include <src/core/Utilities.h>
 #include <src/core_dev/SolidEvolution.h>
 #include <src/util/json.hpp>
 
@@ -243,7 +242,6 @@ class Solution {
                                    il::Array2D<double> &from_edge_to_coll_press,
                                    il::Array2D<il::int_t> &dof_single_dd,
                                    const il::Array<double> &curr_press) {
-
     // Move pore pressure from nodal points to coll points because elasticity
     // is evaluated at collocation points (-> MC criterion is evaluated at
     // collocation points!)
@@ -263,15 +261,36 @@ class Solution {
     }
 
     il::Array<int> set_elements{0};
+    il::Array<int> outp{2};
     set_elements.reserve(2 * theMesh.numberOfElts());
     for (int l = 0, k = 0; l < failed_set_collpoints.size(); ++l) {
       set_elements.resize(k + 1);
-      set_elements[l] =
-          hfp2d::find_2d_integer(dof_single_dd, failed_set_collpoints[l])[0];
+
+      // Find 2D integer
+      for (int i = 0; i < dof_single_dd.size(0); ++i) {
+        for (int j = 0; j < dof_single_dd.size(1); ++j) {
+          if (dof_single_dd(i, j) == failed_set_collpoints[l])
+            outp[0] = i, outp[1] = j;
+        }
+      }
+
+      set_elements[l] = outp[0];
       k = k + 1;
     }
 
-    auto active_set_elmnts = hfp2d::delete_duplicates_integer(set_elements);
+    // Delete duplicate elements
+    il::Array<int> active_set_elmnts{};
+    for (il::int_t i = 0; i < set_elements.size(); ++i) {
+      bool already_there = false;
+      for (il::int_t j = 0; j < active_set_elmnts.size(); ++j) {
+        if (set_elements[i] == active_set_elmnts[j]) {
+          already_there = true;
+        }
+      }
+      if (!already_there) {
+        active_set_elmnts.append(set_elements[i]);
+      }
+    }
 
     il::Array<int> active_set_elements{active_set_elmnts.size()};
 

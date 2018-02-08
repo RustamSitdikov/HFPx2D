@@ -10,7 +10,7 @@
 
 // Inclusion from the project
 #include <src/core/Mesh.h>
-#include <src/input/findUtilities.h>
+#include <src/input/toml/findUtilities.h>
 #include <src/core/InSituStress.h>
 
 namespace hfp2d {

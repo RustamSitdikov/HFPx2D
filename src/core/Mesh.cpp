@@ -10,7 +10,6 @@
 #include <il/linear_algebra/dense/norm.h>
 
 #include <src/core/Mesh.h>
-#include <src/core/SegmentData.h>
 
 namespace hfp2d {
 
