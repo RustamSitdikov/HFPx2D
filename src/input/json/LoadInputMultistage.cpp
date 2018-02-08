@@ -98,7 +98,7 @@ hfp2d::Sources loadWellSource(json &j_params,hfp2d::WellMesh &the_well){
   }
   il::Array<double> hf_vol_rate(n_cl, 0.);  // zero HF rate.
 
-  hfp2d::Sources wellsource(cluster_locs,hf_vol_rate);
+  hfp2d::Sources wellsource(cluster_locs, hf_vol_rate);
   return  wellsource;
 
 }
@@ -172,7 +172,7 @@ hfp2d::WellInjection loadWellParameters(json &j_params,
 
   il::Array<double> hf_vol_rate(ncp, 0.);  // zero HF rate.
 
-  hfp2d::WellInjection w_inj(pump_rate,  perf_coef,
+  hfp2d::WellInjection w_inj(pump_rate, perf_coef,
                              tort_coef, tort_beta);
 
   return w_inj;
