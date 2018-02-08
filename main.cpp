@@ -127,8 +127,6 @@ int main() {
 
     int ret = hfp2d::ParallelHFs(filename);
 
-
-
   ////  il::Array<double> w{10};
   //
   //  std::cout << "\n rel error L2 norm in Linear Elements: " << ret1 << "\n";
