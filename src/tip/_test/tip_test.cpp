@@ -30,7 +30,8 @@ tipPar.vt = 0.0;
   tipPar.wa = 0.00026694;
   tipPar.dt = 0.312799;
 
-    tip::tipInversion(tip::res_u_0_m, tipPar, 1000, 1E-6, 50, mute);
+    tip::tipInversion((imf::ImplicitFunction)tip::res_u_0_m,
+                      tipPar, 1000, 1E-6, 50, mute);
 // the new tip distance is now tipPar.st and the new velocity is tipPar.vt
 double rm = tip::res_u_0_m(tipPar.st, tipPar);
 
@@ -60,7 +61,8 @@ TEST(tip_inversion_2, t1) {
   tipPar.wa = std::sqrt(32./il::pi)*(tipPar.k1c)/(tipPar.e_p)*std::sqrt(mys) ;
   tipPar.dt = 0.1;
 
-  tip::tipInversion(tip::res_u_0_m, tipPar, 1000, 1E-6, 50, mute);
+  tip::tipInversion((imf::ImplicitFunction)tip::res_u_0_m,
+                    tipPar, 1000, 1E-6, 50, mute);
 // the new tip distance is now tipPar.st and the new velocity is tipPar.vt
 
   double rm = tip::res_u_0_m(tipPar.st, tipPar);

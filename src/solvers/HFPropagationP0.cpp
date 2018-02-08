@@ -491,7 +491,8 @@ hfp2d::Solution FractureFrontLoop(const hfp2d::Solution &Sol_n,
       //      std::cout << "ribbon opg " << i << " = " << ribbon_width << "is
       //      prop ? "<< tip::isPropagating(s_o[i], tipstruct) << "\n";
       // invert tip asymptote for that ribbon elt
-      tip::tipInversion(tip::res_u_0_m, tipstruct, 100 * h_ribbon, 1e-6, 200,
+      tip::tipInversion((imf::ImplicitFunction)tip::res_u_0_m,
+                        tipstruct, 100 * h_ribbon, 1e-6, 200,
                         mute);
 
       s_t_k[i] = tipstruct.st;
