@@ -45,14 +45,16 @@ class SolidProperties {
                   const il::Array<double> &toughness,
                   const il::Array<double> &wh_0, const il::Array<double> &Cl) {
     elastic_properties_ = elas;
+
     fracture_toughness_ = toughness;
     wh_o_ = wh_0;
     carter_leakoff_coef_ = Cl;
+
   };
+
 
   /////////////////////////////////////////////////////////////////////////////
   // get functions
-
   hfp2d::ElasticProperties ElasticProperties() const {
     return elastic_properties_;
   };

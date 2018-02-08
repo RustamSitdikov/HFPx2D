@@ -102,7 +102,8 @@ class Mesh {  // class for 1D wellMesh of 1D segment elements ?
     interpolation_order_ = interpolationOrder;
 
     // matid_ was not passed as input, so we assume the material is homogeneous
-    il::Array<il::int_t> material_id_(connectivity_.size(0), 1);
+    il::Array<il::int_t> MatID(connectivity_.size(0), 0);
+    material_id_ = MatID;
 
     il::int_t nelts = connectivity_.size(0);
     il::int_t p = interpolation_order_;
@@ -141,6 +142,7 @@ class Mesh {  // class for 1D wellMesh of 1D segment elements ?
     // construction to automatic detection of # fracture ?
     il::Array<il::int_t> fractureID{nelts, 0};
     fracture_id_ = fractureID;
+
   };
 
   // case where the matid vector and the fracture_ID vector are provided
