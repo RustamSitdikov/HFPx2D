@@ -11,8 +11,9 @@
 #define HFPX2D_TIP_ASYMPTOTE_H
 
 #include <cmath>
-// #include <il/math.h>
-#include <il/StaticArray.h>
+//#include <il/math.h>
+//#include <il/StaticArray.h>
+#include <src/util/RootFinder.h>
 
 // fracture tip asymptote(s) inversion
 namespace tip {
@@ -46,7 +47,7 @@ const double m_tol = 2.221e-016;
 const double chi_c = 3000.0;
 
 // fracture tip parameters (input & output)
-struct TipParameters {
+struct TipParameters : imf::IFParameters {
   double k1c;  // SIF // K' = 4.0 * std::pow(2.0 / il::pi, 0.5) * K1c
   double e_p;  // Plane strain modulus = youngPS_ = E / (1.0 - nu*nu)
   double cl;   // Carter leak-off coefficient; C' = 2.0 * Cl is used
@@ -95,9 +96,6 @@ bool isPropagating(TipParameters &taParam);
 // overload just in case...
 bool isPropagating(double s, TipParameters &taParam);
 
-// (virtual) residual function of distance to minimize (set to zero)
-typedef double (*ResidualFunction)(double s, TipParameters &taParam);
-
 // particular residual functions to find the root (distance to the tip)
 // (modified to overcome misbehavior at high chi values)
 // zero-order approximation
@@ -107,18 +105,16 @@ double res_u_1_m(double s, TipParameters &taParam);
 
 // bracketing the tip
 // (works for modified residual function for high chi)
-il::StaticArray<double, 2> bracket(ResidualFunction resF,
-                                   TipParameters &taParam, double up_bound,
-                                   int maxIter, bool mute);
-
-// Brent root finder
-double brent(tip::ResidualFunction fun, tip::TipParameters &params, double a0,
-             double b0, double epsilon, int maxIter);
+imf::BracketS bracketingTip(imf::ImplicitFunction resF,
+                            TipParameters &taParam,
+                            double up_bound,  // can be ~ Mesh size
+                            const int max_iter, bool mute);
 
 // finding the distance to the tip & velocity after a time step dt
 // bl - I don t really understand why dt and wa are inputs if they already are
 // stored in taIn
-void tipInversion(ResidualFunction resF, TipParameters &tipS, double up_bound,
+void tipInversion(imf::ImplicitFunction resF,
+                  TipParameters &tipS, double up_bound,
                   double epsilon, int maxIter, bool mute);
 
 // moments (volume of the tip)
