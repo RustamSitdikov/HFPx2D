@@ -30,7 +30,7 @@ namespace hfp2d {
 // height
 // fractures
 
-// as per their notation, the heigth is along direction 2
+// as per their notation, the height is along direction 2
 // e_1 (x) corresponds to e_x in 2D plane-strain
 // e_3 (z) corresponds to e_y in 2D plane-strain
 

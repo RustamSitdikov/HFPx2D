@@ -30,8 +30,8 @@ namespace hfp2d {
 
 using json = nlohmann::json;
 
-int ParallelHFs() {
-  std::string wellfilename = "../Debug/ParallelHFTests.json";
+int ParallelHFs(std::string &filename) {
+  std::string wellfilename = "../Debug/ParallelHFTestsMvertex.json";
 
   std::ifstream input(wellfilename);  // ?
   json js;
@@ -72,7 +72,7 @@ int ParallelHFs() {
     std::cout << "No Fracture height input in  model parameters";
     il::abort();
   }
-  auto frac_heigth = j_params["Fracture height"].get<double>();
+  auto frac_height = j_params["Fracture height"].get<double>();
 
   if (j_params.count("Number of fractures") != 1) {
     std::cout << "No Number of fractures  input in  model parameters";
@@ -154,7 +154,7 @@ int ParallelHFs() {
   hfp2d::ElasticProperties myelas = rock.ElasticProperties();
 
   il::Array2D<double> K = hfp2d::basic_assembly(
-      mesh, myelas, hfp2d::normal_shear_stress_kernel_s3d_dp0_dd, frac_heigth);
+      mesh, myelas, hfp2d::normal_shear_stress_kernel_s3d_dp0_dd, frac_height);
 
   // add tip correction for P0 for each tips in the mesh
   for (il::int_t i = 0; i < mesh.tipElts().size(); i++) {
@@ -248,9 +248,12 @@ int ParallelHFs() {
     dt = j_simul["Minimum time step"].get<double>();
   }
 
-  std::string dir = "../Results/";
-  std::string basefilename = "KGD-3HF-M-1.5-";
-  std::string filename;
+  std::string basefilename = "HFs_given_rate"; // default name
+  if (js.count("Results files name core")==1){
+    basefilename =js["Results files name core"].get<std::string>();
+  }
+
+  std::string resfilename;
 
   double mean_tip_v;
 
@@ -270,7 +273,7 @@ int ParallelHFs() {
     //                                         SimulParam,true);
 
     Solution Soln1 =
-        hfp2d::FractureFrontLoop(fracSol_n, fracfluid, rock, the_source, frac_heigth,
+        hfp2d::FractureFrontLoop(fracSol_n, fracfluid, rock, the_source, frac_height,
                                  dt, SimulParam, true, il::io, K);
 
     // accept time step if the error is below 0.01 (hardcoded value for now, should be named relaxed_tolerance ?)
@@ -287,9 +290,9 @@ int ParallelHFs() {
       std::cout << " n elts " << fracSol_n.currentMesh().numberOfElts() << "\n";
 //      std::cout << " nn " << fracSol_n.currentMesh().connectivity().size(0) <<"\n";
 
-      filename = dir + basefilename + std::to_string(jt) + ".json";
+      resfilename =   basefilename + std::to_string(jt) + ".json";
 
-      fracSol_n.writeToFile(filename);
+      fracSol_n.writeToFile(resfilename);
 
       // adjust time step
 //      for (il::int_t i=0;i< mesh.tipElts().size();i++){
@@ -318,13 +321,14 @@ int ParallelHFs() {
     } else {
 
       // reject time step
-      std::cout << "Reject time step - non-convergence on fracture fronts \n";
+      std::cout << "Reject time step; non-convergence on fracture fronts \n";
       std::cout << " steps # " << jt << " time  " << Soln1.time() << "Time step: " << Soln1.timestep() << "\n";
       std::cout << " Error on frac front " << Soln1.errFront() << " after " << Soln1.frontIts() << " its" << "\n";
 
       if (dt / 2. >= dt_min) {
         dt = dt / 2.;
-        std::cout << "Reducing time steps in order to re-try";
+        std::cout << "Reducing time step to "
+                  << dt << "s. in order to re-try \n";
         jt--;
       } else {
         std::cout << "Error on frac. front too large with small time steps. - "
@@ -341,10 +345,8 @@ int ParallelHFs() {
 };
 
 ////////////////////////////////////////////////////////////////////////////////
-
-// write a routine - for well + n fracs benchmark
-// with json inputs.
-
+// for a routine - for well + n fracs benchmark
+// with json inputs, see MultiFracsSolver.cpp
 ////////////////////////////////////////////////////////////////////////////////
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -363,7 +365,7 @@ hfp2d::Solution FractureFrontLoop(const hfp2d::Solution &Sol_n,
   // fluid :: fluid object containing the fluid properties
   // rock :: solid properties object
   // source :: injection object
-  // frac_heigth :: value of the constant fracture heigth
+  // frac_height :: value of the constant fracture height
   // timestep :: double, value of current time step
   // simulParams :: structure containing the solvers parameters
 
@@ -501,7 +503,8 @@ hfp2d::Solution FractureFrontLoop(const hfp2d::Solution &Sol_n,
 
       if (((tipstruct.st - h_ribbon / 2.) > h_ribbon) && v_tip_k[i] > 0.) {
         n_add_elt_tip[i] =
-            std::floor((tipstruct.st - h_ribbon / 2.) / h_ribbon);
+                (il::int_t)
+                        std::floor((tipstruct.st - h_ribbon / 2.) / h_ribbon);
         // get the current number of tips element before addition
         ntip_r_elt_k = tip_region_elt_k.size();
         tip_region_elt_k.resize(ntip_r_elt_k + n_add_elt_tip[i]);  // add space.

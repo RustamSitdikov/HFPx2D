@@ -287,11 +287,14 @@ class Solution {
     json json_dof_handle_dd = json::array();
     json json_dof_handle_pres = json::array();
     json json_mat_id = json::array();
+    json json_frac_id=json::array();
 
     for (il::int_t m = 0; m < currentmesh_.numberOfElts(); ++m) {
       json_connectivity[m] = {currentmesh_.connectivity(m, 0),
                               currentmesh_.connectivity(m, 1)};
       json_mat_id[m] = currentmesh_.matid(m);
+      json_frac_id[m] = currentmesh_.fracid(m);
+
       if (currentmesh_.interpolationOrder() == 0) {
         json_dof_handle_dd[m] = {currentmesh_.dofDD(m, 0),
                                  currentmesh_.dofDD(m, 1)};
@@ -355,6 +358,7 @@ class Solution {
                    {"Node coordinates", json_coord},
                    {"Connectivity", json_connectivity},
                    {"Material ID", json_mat_id},
+                   {"Fracture ID", json_frac_id},
                    {"Dof handle DD", json_dof_handle_dd},
                    {"Dof handle P", json_dof_handle_pres}};
 
@@ -366,7 +370,7 @@ class Solution {
     json j_obj = {{"Time", time_},
                   {"Time step", timestep_},
                   {"Its frac. front", frontIts_},
-                  {"Error Fracture front", err_front_},
+                  {"Error fracture front", err_front_},
                   {"Its EHL", ehlIts_},
                   {"Error EHL pressure", err_P_},
                   {"Error EHL opening", err_openingDD_},
