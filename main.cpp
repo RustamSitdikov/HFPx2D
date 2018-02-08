@@ -121,13 +121,16 @@ int main() {
   double dist = 1e8;
   //
 
-  std::cout << "-----------------" << std::endl;
-  std::cout << "Parallel HFs test" << std::endl;
-  std::string filename = "../Debug/ParallelHFTestsMvertex.json";
+//  std::cout << "-----------------" << std::endl;
+//  std::cout << "Parallel HFs test" << std::endl;
+//  std::string filename1 = "../Debug/ParallelHFTestsMvertex.json";
+//  int ret = hfp2d::ParallelHFs(filename1);
 
-    int ret = hfp2d::ParallelHFs(filename);
-
-
+  // std::cout << "return " << ret;
+  // double ret1 =  hfp2d::SimpleGriffithExampleS3D_P0_byNodes(10);
+  //  double ret1 = hfp2d::SimpleGriffithExampleLinearElement(10);
+  //  double ret2 = hfp2d::SimpleGriffithExampleS3D_P0(nelts);
+  //  double ret2 = hfp2d::SimpleGriffithExampleS3D_P0_AddMesh(10);
 
   ////  il::Array<double> w{10};
   //
@@ -135,13 +138,14 @@ int main() {
   //  std::cout << "\n rel error L2 norm in Constant Elements (with tip
   //  correction): " << ret2 << "\n";
 
-//  std::cout << "------------------" << std::endl;
-//  std::cout << "Wellbore flow test" << std::endl;
-//  int test= hfp2d::WellboreFlowBenchmark();
+  std::cout << "------------------" << std::endl;
+  std::cout << "Wellbore flow test" << std::endl;
+  int test= hfp2d::WellboreFlowBenchmark();
 
-//  std::cout << "---------------------" << std::endl;
-//  std::cout << "Well-HF coupling test" << std::endl;
-//  int test = hfp2d::MultipleFracsPropagation();
+  std::cout << "---------------------" << std::endl;
+  std::cout << "Well-HF coupling test" << std::endl;
+  std::string filename2 = "../Debug/WellTest3Fracs.json";
+  test = hfp2d::MultipleFracsPropagation(filename2);
 
   //std::cout << " end of code \n\n\n";
 

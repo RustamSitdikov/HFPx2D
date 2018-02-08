@@ -17,7 +17,7 @@ namespace hfp2d{
 
 
 
-int MultipleFracsPropagation();
+int MultipleFracsPropagation(std::string &filename);
 
 
 hfp2d::MultiFracsSolution wellHFsSolver_fixedpts(

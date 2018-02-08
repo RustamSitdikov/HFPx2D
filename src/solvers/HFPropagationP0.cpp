@@ -31,7 +31,9 @@ namespace hfp2d {
 using json = nlohmann::json;
 
 int ParallelHFs(std::string &filename) {
-  std::string wellfilename = "../Debug/ParallelHFTestsMvertex.json";
+  std::string wellfilename = filename.empty()
+                             ? "../Debug/ParallelHFTestsMvertex.json"
+                             : filename;
 
   std::ifstream input(wellfilename);  // ?
   json js;
