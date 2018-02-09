@@ -15,8 +15,8 @@
 #include <il/Array2D.h>
 
 // Inclusion from the project
-#include <src/ehlsolvers/FiniteVolumeRoutines.h>
 #include <src/devt/IterativeSolvers.h>
+#include <src/ehlsolvers/FiniteVolumeRoutines.h>
 #include <src/ehlsolvers/ReynoldsP1.h>
 
 namespace hfp2d {
@@ -282,8 +282,8 @@ Solution reynoldsP1(Mesh &theMesh, il::Array2D<double> &elast_matrix,
 
     // Current increment of normal stress due to dilatancy mobilized by slipping
     // nodes
-    auto curr_incr_dil_opening = il::dot(dilat_plast_submatrix, tot_slipk);
     if (dof_active_elmnts.size() != 0) {
+      auto curr_incr_dil_opening = il::dot(dilat_plast_submatrix, tot_slipk);
       curr_incr_sigmaN = il::dot(elast_submatrix, curr_incr_dil_opening);
 
       for (il::int_t i = 0; i < curr_tau.size(); i = i + 2) {
