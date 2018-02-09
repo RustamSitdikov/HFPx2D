@@ -184,6 +184,8 @@ class WellMesh {
   ////////////////////////////////////////////////////////////////////////
 
   double azimuth() const { return azimuth_;};
+  // is stored in degrees not radians w.r. to y !
+  // with respect to true North which is by convention the y-axis
 
    il::int_t numberOfElts() const { return connectivity_.size(0); }
 //

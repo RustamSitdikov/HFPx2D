@@ -71,6 +71,7 @@ int MultipleFracsPropagation(std::string &filename) {
 
   // start loading in our objects.
   hfp2d::WellMesh well_mesh = loadWellMesh(j_wmesh);
+
   hfp2d::WellInjection w_inj = loadWellParameters(j_params, well_mesh);
 
   hfp2d::Sources well_sources = loadWellSource(j_params, well_mesh);
@@ -103,7 +104,12 @@ int MultipleFracsPropagation(std::string &filename) {
   // -> need to have a vector of initial length of fracs
   //  and initial number of elements per frac.
 
-  long nf = j_params.count("Initial fracture length");
+  if (j_params.count("Clusters MD") != 1) {
+    std::cout << "No clusters MD input in  model parameters";
+    il::abort();
+  }
+
+//  long nf = j_params.count("Initial fracture length");
   if (j_params.count("Initial fracture length") != 1) {
     std::cout << "No initial frac length in input file ";
     il::abort();
@@ -112,6 +118,7 @@ int MultipleFracsPropagation(std::string &filename) {
   il::int_t nfracs = j_params["Initial fracture length"].size();
   // check consistency with number of perf.
   IL_EXPECT_FAST(nfracs == w_inj.coefPerf().size());
+  IL_EXPECT_FAST(nfracs == j_params["Clusters MD"].size());
   // check consistency with number of perf.
   //  IL_EXPECT_FAST(nfracs == w_inj.hfLocation().size());
 
@@ -131,20 +138,31 @@ int MultipleFracsPropagation(std::string &filename) {
 
   il::Array<il::int_t> fracID{nfracs*nelts,0};
 
-  double well_az =
-      well_mesh.azimuth();  // is stored in degree not radians w.r. to y !
-  // with respect to true North which is by definition the y-axis
+  double well_az = well_mesh.azimuth();
+  // is stored in degree not radians w.r. to y !
+  // with respect to true North which is by convention the y-axis
   // double frac_az=well_mesh.azimuth()*(il::pi)/180.-il::pi/2.;
 
-  double frac_az_x = well_mesh.azimuth() * (il::pi) / 180.;
+  double frac_az_x = well_az * (il::pi) / 180.;
   double cos_az = cos(frac_az_x);
   double sin_az = sin(frac_az_x);
 
+  // todo: "Clusters MD" should be used to avoid fracs overlapping!!!!!
   for (il::int_t f = 0; f < nfracs; f++) {
-    double xo = well_mesh.coordinates(well_sources.SourceElt(f), 0);
-    double yo = well_mesh.coordinates(well_sources.SourceElt(f), 1);
+    // well mesh element containing f-th cluster
+    il::int_t well_cluster_elt = well_sources.SourceElt(f);
+    // closest upstream well mesh node
+    il::int_t ref_well_node = well_mesh.connectivity(well_cluster_elt, 0);
+    // distance from this node to the f-th cluster
+    double so = (double)j_params["Clusters MD"][f]
+                - well_mesh.md(ref_well_node);
+    // location of the f-th cluster in Cartesian coordinates
+    double xo = well_mesh.coordinates(ref_well_node, 0) + so * sin_az;
+    double yo = well_mesh.coordinates(ref_well_node, 1) + so * cos_az;
+    // frac initial length and element size
     double lo = j_params["Initial fracture length"][f];
     double h = 2 * lo / nelts;
+    // initializing the f-th frac mesh
     for (il::int_t i = (nelts + 1) * f; i < (nelts + 1) * (f + 1); i++) {
       xy(i, 0) = xo + ((i - (nelts + 1) * f) * h - lo) * cos_az;
       xy(i, 1) = yo + ((i - (nelts + 1) * f) * h - lo) * sin_az;
