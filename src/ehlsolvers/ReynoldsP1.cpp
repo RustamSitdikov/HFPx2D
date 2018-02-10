@@ -210,11 +210,6 @@ Solution reynoldsP1(Mesh &theMesh, il::Array2D<double> &elast_matrix,
       Nf(j, j) = fric_coeff_k[dof_active_elmnts[j] / 2];
     }
 
-    if (dof_active_elmnts.size() != 0) {
-      FN = il::dot(Nf, elast_submatrix);
-      B = il::dot(FN, dilat_plast_submatrix);
-    }
-
     // Finite difference matrix
     L = hfp2d::buildLMatrix(theMesh, shearDD_k, openingDD_k, FluidProperties,
                             FractureEvolution, SolutionAtTn.timestep());
@@ -236,7 +231,7 @@ Solution reynoldsP1(Mesh &theMesh, il::Array2D<double> &elast_matrix,
 
     for (int i = 0; i < elast_submatrix.size(0); ++i) {
       for (int j = 0; j < elast_submatrix.size(1); ++j) {
-        BigA(i, j) = elast_submatrix(i, j) - B(i, j);
+        BigA(i, j) = elast_submatrix(i, j);
       }
     }
 
@@ -424,9 +419,31 @@ Solution reynoldsP1(Mesh &theMesh, il::Array2D<double> &elast_matrix,
     incrm_openingDD[l] = incrm_openingDD[l] + incr_opening_dd_k[l];
   }
 
+  // New slip vector (shear DD)
+  il::Array<double> shearDD_new{2 * theMesh.numberOfElts(), 0.};
+  for (il::int_t n2 = 0; n2 < shearDD_new.size(); ++n2) {
+    shearDD_new[n2] = SolutionAtTn.shearDD(n2) + incrm_shearDD[n2];
+  }
+
+  // New opening vector
+  il::Array<double> openingDD_new{2 * theMesh.numberOfElts(), 0.};
+  for (il::int_t i3 = 0; i3 < openingDD_new.size(); ++i3) {
+    openingDD_new[i3] = SolutionAtTn.openingDD(i3) + incrm_openingDD[i3];
+  }
+
   // Calculate increment of shear stress due to increment of shear DD
   il::Array<double> incrm_shear_stress{2 * theMesh.numberOfElts(), 0.};
   incrm_shear_stress = il::dot(elast_matrix_shear, incrm_shearDD);
+
+  // Once the current slip is larger than the residual slip, dilatancy
+  // does not affect the normal stress distribution anymore
+  for (il::int_t l1 = 0; l1 < dilat_plast_sub.size(0); ++l1) {
+    for (il::int_t i = 0; i < dilat_plast_sub.size(1); ++i) {
+      if (incrm_shearDD[l1] > FractureEvolution.getResidSlip(l1)) {
+        dilat_plast_sub(l1, i) = 0.;
+      };
+    }
+  }
 
   // Calculate increment of normal stress due to dilatancy
   auto opening_dil = il::dot(dilat_plast_sub, incrm_shearDD);
@@ -463,18 +480,6 @@ Solution reynoldsP1(Mesh &theMesh, il::Array2D<double> &elast_matrix,
         fabs(fric_coeff_k[dof_active_elmnts[j3] / 2] *
              (sigmaN_new[dof_active_elmnts[j3] / 2] -
               press_coll_new[dof_active_elmnts[j3] / 2]));
-  }
-
-  // New slip vector (shear DD)
-  il::Array<double> shearDD_new{2 * theMesh.numberOfElts(), 0.};
-  for (il::int_t n2 = 0; n2 < shearDD_new.size(); ++n2) {
-    shearDD_new[n2] = SolutionAtTn.shearDD(n2) + incrm_shearDD[n2];
-  }
-
-  // New opening vector
-  il::Array<double> openingDD_new{2 * theMesh.numberOfElts(), 0.};
-  for (il::int_t i3 = 0; i3 < openingDD_new.size(); ++i3) {
-    openingDD_new[i3] = SolutionAtTn.openingDD(i3) + incrm_openingDD[i3];
   }
 
   // Set new friction coefficient in the SolidEvolution object
