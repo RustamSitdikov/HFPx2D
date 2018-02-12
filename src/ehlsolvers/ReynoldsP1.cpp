@@ -174,6 +174,7 @@ Solution reynoldsP1(Mesh &theMesh, il::Array2D<double> &elast_matrix,
   il::Array2D<double> FN;
   il::Array2D<double> B;
   il::Array<double> tot_slipk{dof_active_elmnts.size(), 0.};
+  il::Array<double> tot_incrm_slipk{dof_active_elmnts.size(), 0.};
   il::Array<double> curr_incr_tau{elast_submatrix.size(0), 0.};
   il::Array<double> curr_incr_sigmaN{elast_submatrix.size(0), 0.};
   il::Array<double> curr_tau{curr_incr_tau.size(), 0.};
@@ -438,17 +439,16 @@ Solution reynoldsP1(Mesh &theMesh, il::Array2D<double> &elast_matrix,
   // Once the current slip is larger than the residual slip, dilatancy
   // does not affect the normal stress distribution anymore
   for (il::int_t l1 = 0; l1 < dilat_plast_sub.size(0); ++l1) {
-    for (il::int_t i = 0; i < dilat_plast_sub.size(1); ++i) {
-      if (incrm_shearDD[l1] > FractureEvolution.getResidSlip(l1)) {
-        dilat_plast_sub(l1, i) = 0.;
-      };
-    }
+    if (shearDD_new[l1] > FractureEvolution.getResidSlip(l1)) {
+      dilat_plast_sub(l1, l1) = 0.;
+    };
   }
 
   // Calculate increment of normal stress due to dilatancy
   auto opening_dil = il::dot(dilat_plast_sub, incrm_shearDD);
   il::Array<double> incrm_normal_stress{2 * theMesh.numberOfElts(), 0.};
   incrm_normal_stress = il::dot(elast_matrix_sigmaN, opening_dil);
+
   for (il::int_t k3 = 0; k3 < dof_active_elmnts.size(); k3 = k3 + 2) {
     incrm_normal_stress[dof_active_elmnts[k3] / 2] =
         -1. * incrm_normal_stress[dof_active_elmnts[k3] / 2];
