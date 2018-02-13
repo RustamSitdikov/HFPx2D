@@ -628,9 +628,7 @@ hfp2d::WellSolution wellFlowSolverP0(
       vector_RS[out_flow.SourceElt(i)] -= out_flow.InjectionRate(i) * timestep;
       //      }
     }
-    // plug at an edge (node) -> zero flux through the edge
-    // todo: review the well plug handling, plug not really needed, mesh can be
-    // adjusted in inputs.
+
 
     // compute current residuals w.r.to previous iteration solution
     // (before solution of the new iteration)

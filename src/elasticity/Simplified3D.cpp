@@ -38,7 +38,7 @@ namespace hfp2d {
 // dislocation is centered on the origin in the plane e_3=0 (z) , (-a,a) in e_1
 // (x) (-b,b)
 // in e_2 (z
-    
+
 // AUXILIARY FUNCTIONS NEEDED
 // second order derivatives of I(x,y,z,xi,eta)
 double ip11(double x, double y, double z, double xi, double eta) {
@@ -101,8 +101,9 @@ double ip111(double x, double y, double z, double xi, double eta) {
   double R2 = (x - xi) * (x - xi) + (y - eta) * (y - eta) + z * z;
   double R = sqrt(R2);
 
-  return (R * (R2 - 2. * ((x - xi)*(x - xi))) + (y - eta) * (R2 - ((x-xi)*(x-xi)))) /
-         (pow(R2, 3. / 2.) * ((R + y - eta)*(R + y - eta)));
+  return (R * (R2 - 2. * ((x - xi) * (x - xi))) +
+          (y - eta) * (R2 - ((x - xi) * (x - xi)))) /
+         (pow(R2, 3. / 2.) * ((R + y - eta) * (R + y - eta)));
 }
 
 double ip112(double x, double y, double z, double xi, double eta) {
@@ -123,7 +124,7 @@ double ip113(double x, double y, double z, double xi, double eta) {
   double R = sqrt(R2);
 
   return z * (xi - x) * (2. * R + y - eta) /
-         (pow(R2, 3. / 2.) * ((R + y - eta)*(R + y - eta)));
+         (pow(R2, 3. / 2.) * ((R + y - eta) * (R + y - eta)));
 }
 
 double ip122(double x, double y, double z, double xi, double eta) {
@@ -147,7 +148,7 @@ double ip133(double x, double y, double z, double xi, double eta) {
   double R = sqrt(R2);
 
   return (R * (R2 - 2. * z * z) + (R2 - z * z) * (y - eta)) /
-         (pow(R2, 3. / 2.) * ((R + y - eta)*(R + y - eta)));
+         (pow(R2, 3. / 2.) * ((R + y - eta) * (R + y - eta)));
 }
 
 double ip222(double x, double y, double z, double xi, double eta) {
@@ -156,9 +157,9 @@ double ip222(double x, double y, double z, double xi, double eta) {
   double R2 = (x - xi) * (x - xi) + (y - eta) * (y - eta) + z * z;
   double R = sqrt(R2);
 
-  return (R * (R2 - 2. * ((y - eta)*(y - eta))) +
+  return (R * (R2 - 2. * ((y - eta) * (y - eta))) +
           (x - xi) * (R2 - (y - eta) * (y - eta))) /
-         (pow(R2, 3. / 2.) * ((R + x - xi)*(R + x - xi)));
+         (pow(R2, 3. / 2.) * ((R + x - xi) * (R + x - xi)));
 }
 
 double ip223(double x, double y, double z, double xi, double eta) {
@@ -168,7 +169,7 @@ double ip223(double x, double y, double z, double xi, double eta) {
   double R = sqrt(R2);
 
   return z * (eta - y) * (2 * R + x - xi) /
-         (pow(R2, 3. / 2.) * ((R + x - xi)*(R + x - xi)));
+         (pow(R2, 3. / 2.) * ((R + x - xi) * (R + x - xi)));
 }
 
 double ip233(double x, double y, double z, double xi, double eta) {
@@ -177,7 +178,7 @@ double ip233(double x, double y, double z, double xi, double eta) {
   double R = sqrt(R2);
 
   return (R * (R2 - 2. * z * z) + (x - xi) * (R2 - z * z)) /
-         (pow(R2, 3. / 2.) * ((R + x - xi)*(R + x - xi)));
+         (pow(R2, 3. / 2.) * ((R + x - xi) * (R + x - xi)));
 }
 
 // CHEMMERY Integration function
@@ -193,76 +194,76 @@ double rectangular_integration(double x, double y, double z, double a, double b,
   return (Func(x, y, z, a, b) - Func(x, y, z, a, mb) - Func(x, y, z, ma, b) +
           Func(x, y, z, ma, mb));
 }
-
-// Fundamental stress kernel - only  effect of DD_x(e_1) and DD_z (e3)
-// this function output the 3D stress in the 3D frame for completeness ?
-il::StaticArray2D<double, 2, 6> all_3d_stresses_kernel_s3d_p0_dd(
-    double x, double y, double z, double a, double b, double G, double nu) {
-  // x , y , z location where to compute stress
-  //  a,b  1/2 size of the rectangular DD
-  //  G Shear modulus, nu Poisson's ratio'
-  // Ep instead of G ?
-  //  Rectangular DDon plan z=0   x \in [-a,a], y \in [-b,b]
-  //  DDx (shear), DDy (shear), DDz (normal)
-
-  //  CONVENTION: Positive DDs in Overlap, Stresses positive in tension
-
-  //  double Ip11, Ip22, Ip33, Ip23, Ip12, Ip13;
-
-  //  double Ip111, Ip122, Ip133, Ip112, Ip113, Ip123, Ip222, Ip223, Ip233;
-
-  double Ce =
-      1. * G / (4 * il::pi * (1. - nu));  // Minus sign here for convention !
-  //  double sxx, sxy, sxz, syy, syz, szz;
-  //
-  il::StaticArray2D<double, 2, 6> Stress;
-  // compute the Is function derivatives....
-
-  double Ip11 = rectangular_integration(x, y, z, a, b, ip11);
-  double Ip22 = rectangular_integration(x, y, z, a, b, ip22);
-  double Ip33 = rectangular_integration(x, y, z, a, b, ip33);
-  double Ip23 = rectangular_integration(x, y, z, a, b, ip23);
-  double Ip12 = rectangular_integration(x, y, z, a, b, ip12);
-  double Ip13 = rectangular_integration(x, y, z, a, b, ip13);
-
-  double Ip111 = rectangular_integration(x, y, z, a, b, ip111);
-  double Ip122 = rectangular_integration(x, y, z, a, b, ip122);
-  double Ip133 = rectangular_integration(x, y, z, a, b, ip133);
-  double Ip112 = rectangular_integration(x, y, z, a, b, ip112);
-  double Ip113 = rectangular_integration(x, y, z, a, b, ip113);
-  double Ip123 = rectangular_integration(x, y, z, a, b, ip123);
-  //  Ip222 = rectangular_integration(x, y, z, a, b, ip222);
-  double Ip233 = rectangular_integration(x, y, z, a, b, ip233);
-  double Ip223 = rectangular_integration(x, y, z, a, b, ip223);
-
-  // Stress row is dof (DDx,DDy,DDx), columns are sxx,syy,szz,sxy,sxz,syz
-
-  // stress due to displacement discontinuity DDx (shear)
-  Stress(0, 0) = Ce * (2. * Ip13 - z * Ip111);         // sxx
-  Stress(0, 1) = Ce * (2. * nu * Ip13 - z * Ip122);    // syy
-  Stress(0, 2) = Ce * (-z * Ip133);                    // szz
-  Stress(0, 3) = Ce * ((1. - nu) * Ip23 - z * Ip112);  // sxy
-  Stress(0, 4) = Ce * (Ip33 + nu * Ip22 - z * Ip113);  // sxz
-  Stress(0, 5) = Ce * (-nu * Ip12 - z * Ip123);        // syz
-
-  // stress du to displacement discontinuity  DDy (shear)
-  //  Stress(1, 0) = Ce * (2. * nu * Ip23 - z * Ip112);    // sxx
-  //  Stress(1, 1) = Ce * (2. * Ip23 - z * Ip222);         // syy
-  //  Stress(1, 2) = Ce * (-z * Ip233);                    // szz
-  //  Stress(1, 3) = Ce * ((1. - nu) * Ip13 - z * Ip122);  // sxy
-  //  Stress(1, 4) = Ce * (-nu * Ip12 - z * Ip123);        // sxz
-  //  Stress(1, 5) = Ce * (Ip33 + nu * Ip11 - z * Ip223);  // syz
-
-  // stress du to displacement discontinuity DDz (normal)
-  Stress(1, 0) = Ce * (Ip33 + (1. - 2. * nu) * Ip22 - z * Ip113);  // sxx
-  Stress(1, 1) = Ce * (Ip33 + (1. - 2. * nu) * Ip11 - z * Ip223);  // syy
-  Stress(1, 2) = Ce * (Ip33 - z * Ip113);                          // szz
-  Stress(1, 3) = Ce * (-(1. - 2. * nu) * Ip12 - z * Ip123);        // sxy
-  Stress(1, 4) = Ce * (-z * Ip133);                                // sxz
-  Stress(1, 5) = Ce * (z * Ip233);                                 // syz
-
-  return Stress;
-}
+//
+//// Fundamental stress kernel - only  effect of DD_x(e_1) and DD_z (e3)
+//// this function output the 3D stress in the 3D frame for completeness ?
+// il::StaticArray2D<double, 2, 6> all_3d_stresses_kernel_s3d_p0_dd(
+//    double x, double y, double z, double a, double b, double G, double nu) {
+//  // x , y , z location where to compute stress
+//  //  a,b  1/2 size of the rectangular DD
+//  //  G Shear modulus, nu Poisson's ratio'
+//  // Ep instead of G ?
+//  //  Rectangular DDon plan z=0   x \in [-a,a], y \in [-b,b]
+//  //  DDx (shear), DDy (shear), DDz (normal)
+//
+//  //  CONVENTION: Positive DDs in Overlap, Stresses positive in tension
+//
+//  //  double Ip11, Ip22, Ip33, Ip23, Ip12, Ip13;
+//
+//  //  double Ip111, Ip122, Ip133, Ip112, Ip113, Ip123, Ip222, Ip223, Ip233;
+//
+//  double Ce =
+//      1. * G / (4 * il::pi * (1. - nu));  // Minus sign here for convention !
+//  //  double sxx, sxy, sxz, syy, syz, szz;
+//  //
+//  il::StaticArray2D<double, 2, 6> Stress;
+//  // compute the Is function derivatives....
+//
+//  double Ip11 = rectangular_integration(x, y, z, a, b, ip11);
+//  double Ip22 = rectangular_integration(x, y, z, a, b, ip22);
+//  double Ip33 = rectangular_integration(x, y, z, a, b, ip33);
+//  double Ip23 = rectangular_integration(x, y, z, a, b, ip23);
+//  double Ip12 = rectangular_integration(x, y, z, a, b, ip12);
+//  double Ip13 = rectangular_integration(x, y, z, a, b, ip13);
+//
+//  double Ip111 = rectangular_integration(x, y, z, a, b, ip111);
+//  double Ip122 = rectangular_integration(x, y, z, a, b, ip122);
+//  double Ip133 = rectangular_integration(x, y, z, a, b, ip133);
+//  double Ip112 = rectangular_integration(x, y, z, a, b, ip112);
+//  double Ip113 = rectangular_integration(x, y, z, a, b, ip113);
+//  double Ip123 = rectangular_integration(x, y, z, a, b, ip123);
+//  //  Ip222 = rectangular_integration(x, y, z, a, b, ip222);
+//  double Ip233 = rectangular_integration(x, y, z, a, b, ip233);
+//  double Ip223 = rectangular_integration(x, y, z, a, b, ip223);
+//
+//  // Stress row is dof (DDx,DDy,DDx), columns are sxx,syy,szz,sxy,sxz,syz
+//
+//  // stress due to displacement discontinuity DDx (shear)
+//  Stress(0, 0) = Ce * (2. * Ip13 - z * Ip111);         // sxx
+//  Stress(0, 1) = Ce * (2. * nu * Ip13 - z * Ip122);    // syy
+//  Stress(0, 2) = Ce * (-z * Ip133);                    // szz
+//  Stress(0, 3) = Ce * ((1. - nu) * Ip23 - z * Ip112);  // sxy
+//  Stress(0, 4) = Ce * (Ip33 + nu * Ip22 - z * Ip113);  // sxz
+//  Stress(0, 5) = Ce * (-nu * Ip12 - z * Ip123);        // syz
+//
+//  // stress du to displacement discontinuity  DDy (shear)
+//  //  Stress(1, 0) = Ce * (2. * nu * Ip23 - z * Ip112);    // sxx
+//  //  Stress(1, 1) = Ce * (2. * Ip23 - z * Ip222);         // syy
+//  //  Stress(1, 2) = Ce * (-z * Ip233);                    // szz
+//  //  Stress(1, 3) = Ce * ((1. - nu) * Ip13 - z * Ip122);  // sxy
+//  //  Stress(1, 4) = Ce * (-nu * Ip12 - z * Ip123);        // sxz
+//  //  Stress(1, 5) = Ce * (Ip33 + nu * Ip11 - z * Ip223);  // syz
+//
+//  // stress du to displacement discontinuity DDz (normal)
+//  Stress(1, 0) = Ce * (Ip33 + (1. - 2. * nu) * Ip22 - z * Ip113);  // sxx
+//  Stress(1, 1) = Ce * (Ip33 + (1. - 2. * nu) * Ip11 - z * Ip223);  // syy
+//  Stress(1, 2) = Ce * (Ip33 - z * Ip113);                          // szz
+//  Stress(1, 3) = Ce * (-(1. - 2. * nu) * Ip12 - z * Ip123);        // sxy
+//  Stress(1, 4) = Ce * (-z * Ip133);                                // sxz
+//  Stress(1, 5) = Ce * (z * Ip233);                                 // syz
+//
+//  return Stress;
+//}
 
 //------------------------------------------------------------------------------
 
@@ -272,16 +273,28 @@ il::StaticArray2D<double, 2, 3> stresses_kernel_s3d_p0_dd(double a, double b,
                                                           double G, double nu,
                                                           double xx,
                                                           double yy) {
-  // xx,yy location where to compute stress in the 2D elastic plan
-  //  a,b  1/2 size of the rectangular DD, b corresponds to the 1/2 FRACTURE
-  //  HEIGHT
-  //  G Shear modulus, nu Poisson's ratio'
-  // Ep instead of G ?
-  //  Rectangular DDon plan z=0   x \in [-a,a], y \in [-b,b]
+  //  Simplified 3D Kernel - 3D kernel of Rongved,
+  // with corrections from Wu & Olson 2015
+  //
+  //  Rectangular DD on plan z=0   x \in [-a,a], y \in [-b,b]
   //  DDx (shear),  DDz (normal)
   //  CONVENTION: Positive DD in Overlap, stress positive in tension
+  //
+  // Inputs:
+  // a 1/2 size of the rectangular DD,
+  // b corresponds to the 1/2 FRACTURE HEIGHT
+  // G Shear modulus, nu Poisson's ratio'
+  // xx, yy location where to compute stress in the 2D elastic plane
+  //
+  // Outputs:
+  // 2 by 3 array  - stress components in  the 2D xy frame
+  // 1st row contains the stresses due to the shear DD : sxx, sxy, syy
+  // 2nd row contains the stresses due to the normal DD : sxx, sxy, syy
 
-  // switch to the 3D cartesian frame
+  // Note
+  // switch to the 3D cartesian frame x,y,z (of the DD element) with the plane of the DD being z=0
+  // the simplified 3D kernel then looks at stresses in the mid plane of the element y=0.
+
   double x = xx;
   double z = yy;
   double y = 0.;
@@ -303,8 +316,8 @@ il::StaticArray2D<double, 2, 3> stresses_kernel_s3d_p0_dd(double a, double b,
   C12 =
       1. - pow(D, 1.8) * pow(H / 1., 4.) / pow(D * D + H * H, (1.8 + 4.) / 2.);
 
-  //  double sxx, sxy, sxz, syy, syz, szz;
-  //
+
+   //
   il::StaticArray2D<double, 2, 3> StressInPlane;
   // compute the Is function derivatives....
 
@@ -343,16 +356,16 @@ il::StaticArray2D<double, 2, 3> stresses_kernel_s3d_p0_dd(double a, double b,
   StressInPlane(1, 0) =
       Ce * C11 * (Ip33 + (1. - 2. * nu) * Ip22 - z * Ip113);  // sxx
   //  Stress(1, 3) = Ce * (-(1. - 2. * nu) * Ip12 - z * Ip123);        // sxy
-  StressInPlane(1, 1) = Ce * C12 * (-z * Ip133);  // sxz
+  StressInPlane(1, 1) = Ce * C12 * (-z * Ip133);  // sxz[which is sxy in the 2D]
   //  Stress(1, 5) = Ce * (z * Ip233);                                 // syz
   //  Stress(1, 1) = Ce * (Ip33 + (1. - 2. * nu) * Ip11 - z * Ip223);  // syy
-  StressInPlane(1, 2) = Ce * C11 * (Ip33 - z * Ip113);  // szz
+  StressInPlane(1, 2) = Ce * C11 * (Ip33 - z * Ip113);
+    // szz[which is syy in the 2D]
 
   return StressInPlane;
 }
 
 //------------------------------------------------------------------------------
-
 il::StaticArray2D<double, 2, 4> normal_shear_stress_kernel_s3d_dp0_dd(
     SegmentData source_elt, SegmentData receiver_elt, il::int_t i_col,
     ElasticProperties Elas, double ker_options) {
@@ -363,7 +376,6 @@ il::StaticArray2D<double, 2, 4> normal_shear_stress_kernel_s3d_dp0_dd(
   // along the x axis [-h/2,h/2])
   //
   // INPUTS:
-  // St : returned stress
   // source_elt : element data structure of the source element
   // receiver_elt  : element data structure of the receiver element
   // i_col : integer for the collocation number where to compute the normal and
@@ -371,17 +383,20 @@ il::StaticArray2D<double, 2, 4> normal_shear_stress_kernel_s3d_dp0_dd(
   // Elas :: elastic properties object
   // ker_options : dummy argument here  for the height of the simplified 3D elt
   //
-  // Note that we ensure .... that we return a 2*4 matrix, eventhough here
-  // because
-  // it's a piece-wise DD half is filled with zero
+  // OUTPUTS:
+  //   returned stress
+  //  1 row (effect of shear DD)   shear, normal,0,0
+  // 2 row (effect of normal DD)   shear, normal,0,0
+  // Note that we ensure .... that we return a 2*4 matrix,
+  // because it's a piece-wise DD half is filled with zero (single node)
 
   // switch to the frame of the source element....
   il::StaticArray2D<double, 2, 2> R =
       hfp2d::rotationMatrix2D(source_elt.theta());
 
-  il::StaticArray2D<double, 2, 2> Rt=R;
-  Rt(0,1)=R(1,0);
-  Rt(1,0)=R(0,1);
+  il::StaticArray2D<double, 2, 2> Rt = R;
+  Rt(0, 1) = R(1, 0);
+  Rt(1, 0) = R(0, 1);
 
   il::StaticArray<double, 2> xe;
   for (int i = 0; i < 2; ++i) {
@@ -461,9 +476,9 @@ il::StaticArray2D<double, 2, 2> normal_shear_stress_kernel_s3d_dp0_dd_nodal(
   il::StaticArray2D<double, 2, 2> R =
       hfp2d::rotationMatrix2D(source_elt.theta());
 
-  il::StaticArray2D<double, 2, 2> Rt=R;
-  Rt(0,1)=R(1,0);
-  Rt(1,0)=R(0,1);
+  il::StaticArray2D<double, 2, 2> Rt = R;
+  Rt(0, 1) = R(1, 0);
+  Rt(1, 0) = R(0, 1);
 
   il::StaticArray<double, 2> xe;
   for (int i = 0; i < 2; ++i) {
